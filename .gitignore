@@ -42,3 +42,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+yatai-config.dev.yaml
+yatai-config.test.yaml
+yatai-config.production.yaml
