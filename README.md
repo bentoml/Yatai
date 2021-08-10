@@ -5,7 +5,7 @@ yatai
 
 ## Back-end Part
 
-### 1. Install go and postgresql and create yatai database on you OS
+### 1. Install go and postgresql, create yatai db and create an default user if none exists.
 
 ```bash
 brew install go
@@ -14,24 +14,15 @@ brew install postgresql
 createdb yatai
 ```
 
-### 2. Go to the project root directory
-
-### 3. Copy the sample config file and modify it
-
+### 2. Install dependencies
 ```bash
-cp ./yatai-config.sample.yaml ./yatai-config.dev.yaml
+make be-deps
 ```
 
-### 4. Install dependencies
+### 3. Setup configs and run server all at once
 
 ```bash
-go mod download
-```
-
-### 5. Run your server
-
-```bash
-go run ./api-server/main.go serve -d -c ./yatai-config.dev.yaml
+make be-run
 ```
 
 Now you can visit the swagger on http://localhost:7777/swagger
@@ -59,22 +50,16 @@ nvm alias default 14.16.1
 npm install -g yarn
 ```
 
-### 1. Go to the ui directory
+### 1. Install the dependencies
 
 ```bash
-cd ui
+make fe-deps
 ```
 
-### 2. Install the dependencies
+### 2. Run front-end development server
 
 ```bash
-yarn
-```
-
-### 3. Run front-end development server
-
-```bash
-yarn start
+make fe-run
 ```
 
 Now you also can visit the swagger on http://localhost:3000/swagger
