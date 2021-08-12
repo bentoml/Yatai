@@ -54,7 +54,7 @@ type UpdateClusterOption struct {
 
 type ListClusterOption struct {
 	BaseListOption
-	CreatorId      *uint
+	VisitorId      *uint
 	OrganizationId *uint
 	Ids            *[]uint
 }
@@ -159,8 +159,8 @@ func (s *clusterService) GetIdByName(ctx context.Context, organizationId uint, n
 func (s *clusterService) List(ctx context.Context, opt ListClusterOption) ([]*models.Cluster, uint, error) {
 	clusters := make([]*models.Cluster, 0)
 	query := getBaseQuery(ctx, s)
-	if opt.CreatorId != nil {
-		userID := opt.CreatorId
+	if opt.VisitorId != nil {
+		userID := opt.VisitorId
 		user, err := UserService.Get(ctx, *userID)
 		if err != nil {
 			return nil, 0, errors.Wrapf(err, "get user %d", userID)

@@ -114,7 +114,7 @@ func (c *organizationController) List(ctx *gin.Context, schema *schemasv1.ListQu
 		Count:  utils.UintPtr(schema.Count),
 		Search: schema.Search,
 	},
-		CreatorId: utils.UintPtr(user.ID),
+		VisitorId: utils.UintPtr(user.ID),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "list organizations")
