@@ -109,5 +109,5 @@ module.exports = {
             },
         },
     ],
-    ignorePatterns: ['.eslintrc.js'],
+    ignorePatterns: ['.eslintrc.js', 'craco.config.js'],
 }

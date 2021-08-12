@@ -15,13 +15,13 @@ type organizationMemberController struct {
 
 var OrganizationMemberController = organizationMemberController{}
 
-type CreateOrganizationMemberSchema struct {
-	schemasv1.CreateOrganizationMemberSchema
+type CreateOrganizationMembersSchema struct {
+	schemasv1.CreateMembersSchema
 	GetOrganizationSchema
 }
 
-func (c *organizationMemberController) Create(ctx *gin.Context, schema *CreateOrganizationMemberSchema) (*schemasv1.OrganizationMemberSchema, error) {
-	user, err := services.GetCurrentUser(ctx)
+func (c *organizationMemberController) Create(ctx *gin.Context, schema *CreateOrganizationMembersSchema) ([]*schemasv1.OrganizationMemberSchema, error) {
+	currentUser, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "get current user")
 	}
@@ -32,15 +32,28 @@ func (c *organizationMemberController) Create(ctx *gin.Context, schema *CreateOr
 	if err = c.canOperate(ctx, org); err != nil {
 		return nil, err
 	}
-	organizationMember, err := services.OrganizationMemberService.Create(ctx, user.ID, services.CreateOrganizationMemberOption{
-		CreatorId:      schema.UserId,
-		OrganizationId: org.ID,
-		Role:           schema.Role,
-	})
+	users, err := services.UserService.ListByNames(ctx, schema.Usernames)
 	if err != nil {
-		return nil, errors.Wrap(err, "create organizationMember")
+		return nil, err
 	}
-	return transformersv1.ToOrganizationMemberSchema(ctx, organizationMember)
+	res := make([]*schemasv1.OrganizationMemberSchema, 0, len(users))
+	for _, u := range users {
+		organizationMember, err := services.OrganizationMemberService.Create(ctx, currentUser.ID, services.CreateOrganizationMemberOption{
+			CreatorId:      currentUser.ID,
+			UserId:         u.ID,
+			OrganizationId: org.ID,
+			Role:           schema.Role,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "create organizationMember")
+		}
+		s, err := transformersv1.ToOrganizationMemberSchema(ctx, organizationMember)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, s)
+	}
+	return res, nil
 }
 
 func (c *organizationMemberController) List(ctx *gin.Context, schema *GetOrganizationSchema) ([]*schemasv1.OrganizationMemberSchema, error) {
@@ -61,12 +74,12 @@ func (c *organizationMemberController) List(ctx *gin.Context, schema *GetOrganiz
 }
 
 type DeleteOrganizationMemberSchema struct {
-	schemasv1.DeleteOrganizationMemberSchema
+	schemasv1.DeleteMemberSchema
 	GetOrganizationSchema
 }
 
 func (c *organizationMemberController) Delete(ctx *gin.Context, schema *DeleteOrganizationMemberSchema) (*schemasv1.OrganizationMemberSchema, error) {
-	user, err := services.GetCurrentUser(ctx)
+	currentUser, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "get current user")
 	}
@@ -77,11 +90,15 @@ func (c *organizationMemberController) Delete(ctx *gin.Context, schema *DeleteOr
 	if err = c.canOperate(ctx, org); err != nil {
 		return nil, err
 	}
-	member, err := services.OrganizationMemberService.GetBy(ctx, schema.UserId, org.ID)
+	user, err := services.UserService.GetByName(ctx, schema.Username)
+	if err != nil {
+		return nil, err
+	}
+	member, err := services.OrganizationMemberService.GetBy(ctx, user.ID, org.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get member")
 	}
-	organizationMember, err := services.OrganizationMemberService.Delete(ctx, member, user.ID)
+	organizationMember, err := services.OrganizationMemberService.Delete(ctx, member, currentUser.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "create organizationMember")
 	}

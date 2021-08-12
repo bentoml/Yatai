@@ -1,53 +1,32 @@
 import React from 'react'
 import { Client as Styletron } from 'styletron-engine-atomic'
 import { Provider as StyletronProvider } from 'styletron-react'
-import { LightTheme, BaseProvider } from 'baseui'
-import { Input } from 'baseui/input'
-import { Button } from 'baseui/button'
-import Header from '@/components/Header'
-import Layout from '@/components/Layout'
-import { createForm } from '@/components/Form'
+import { LightTheme, BaseProvider, DarkTheme } from 'baseui'
+import { ToasterContainer } from 'baseui/toast'
+import { SidebarContext } from '@/contexts/SidebarContext'
+import { useSidebar } from '@/hooks/useSidebar'
+import Routes from '@/routes'
+import { QueryClient, QueryClientProvider } from 'react-query'
+import { useCurrentThemeType } from './hooks/useCurrentThemeType'
 
 const engine = new Styletron()
-
-interface IData {
-    name: string
-    age: number
-}
-
-const { Form, FormItem } = createForm<IData>()
+const queryClient = new QueryClient()
 
 export default function Hello() {
+    const sidebarData = useSidebar()
+    const themeType = useCurrentThemeType()
+
     return (
-        <StyletronProvider value={engine}>
-            <BaseProvider theme={LightTheme}>
-                <Header />
-                <Layout>
-                    <Form
-                        onFinish={(values) => {
-                            console.log(values)
-                        }}
-                    >
-                        <FormItem
-                            name='age'
-                            label='age'
-                            required
-                            validators={[
-                                async (_, value?: string) => {
-                                    if (!value || value.length < 3) {
-                                        throw Error('less than 3 characters')
-                                    }
-                                },
-                            ]}
-                        >
-                            <Input />
-                        </FormItem>
-                        <FormItem>
-                            <Button>Submit</Button>
-                        </FormItem>
-                    </Form>
-                </Layout>
-            </BaseProvider>
-        </StyletronProvider>
+        <QueryClientProvider client={queryClient}>
+            <StyletronProvider value={engine}>
+                <BaseProvider theme={themeType === 'dark' ? DarkTheme : LightTheme}>
+                    <ToasterContainer>
+                        <SidebarContext.Provider value={sidebarData}>
+                            <Routes />
+                        </SidebarContext.Provider>
+                    </ToasterContainer>
+                </BaseProvider>
+            </StyletronProvider>
+        </QueryClientProvider>
     )
 }

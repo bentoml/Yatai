@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/bentoml/yatai/api-server/config"
@@ -65,7 +66,11 @@ func getGithubOAuthURL(ctx *gin.Context) (*oauth2.Config, string) {
 	if config.YataiConfig.Server.EnableHTTPS {
 		scheme = "https"
 	}
-	redirectUrl := fmt.Sprintf("%s://%s/callback/github", scheme, ctx.Request.Host)
+	redirectUri := ctx.Query("redirect")
+	if redirectUri == "" {
+		redirectUri = "/"
+	}
+	redirectUrl := fmt.Sprintf("%s://%s/callback/github?redirect=%s", scheme, ctx.Request.Host, url.PathEscape(redirectUri))
 	clientId := config.YataiConfig.OAuth.Github.ClientId
 	clientSecret := config.YataiConfig.OAuth.Github.ClientSecret
 
