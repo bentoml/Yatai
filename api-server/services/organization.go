@@ -31,7 +31,7 @@ type UpdateOrganizationOption struct {
 
 type ListOrganizationOption struct {
 	BaseListOption
-	CreatorId *uint
+	VisitorId *uint
 	Ids       *[]uint
 }
 
@@ -104,14 +104,14 @@ func (s *organizationService) GetByName(ctx context.Context, name string) (*mode
 func (s *organizationService) List(ctx context.Context, opt ListOrganizationOption) ([]*models.Organization, uint, error) {
 	orgs := make([]*models.Organization, 0)
 	query := getBaseQuery(ctx, s)
-	if opt.CreatorId != nil {
-		orgIds, err := OrganizationMemberService.ListOrganizationIds(ctx, *opt.CreatorId)
+	if opt.VisitorId != nil {
+		orgIds, err := OrganizationMemberService.ListOrganizationIds(ctx, *opt.VisitorId)
 		if err != nil {
 			return nil, 0, errors.Wrap(err, "list organization ids")
 		}
 		// postgresql `in` clause cannot be empty, so push 0 to avoid it empty
 		orgIds = append(orgIds, 0)
-		query = query.Where("(creator_id = ? or id in (?))", *opt.CreatorId, orgIds)
+		query = query.Where("(creator_id = ? or id in (?))", *opt.VisitorId, orgIds)
 	}
 	if opt.Ids != nil {
 		if len(*opt.Ids) == 0 {
