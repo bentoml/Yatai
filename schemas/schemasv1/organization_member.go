@@ -9,12 +9,3 @@ type OrganizationMemberSchema struct {
 	User         UserSchema              `json:"user"`
 	Organization OrganizationSchema      `json:"organization"`
 }
-
-type CreateOrganizationMemberSchema struct {
-	UserId uint                    `json:"user_id"`
-	Role   modelschemas.MemberRole `json:"role" enum:"guest,developer,admin"`
-}
-
-type DeleteOrganizationMemberSchema struct {
-	UserId uint `json:"user_id"`
-}

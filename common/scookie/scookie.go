@@ -17,5 +17,9 @@ func SetUsernameToCookie(ctx *gin.Context, username string) error {
 
 func GetUsernameFromCookie(ctx *gin.Context) string {
 	session := sessions.Default(ctx)
-	return session.Get(UserNameKey).(string)
+	username, ok := session.Get(UserNameKey).(string)
+	if !ok {
+		return ""
+	}
+	return username
 }

@@ -9,14 +9,3 @@ type ClusterMemberSchema struct {
 	User    UserSchema              `json:"user"`
 	Cluster ClusterSchema           `json:"cluster"`
 }
-
-type CreateClusterMemberSchema struct {
-	UserId    uint                    `json:"user_id"`
-	ClusterId uint                    `json:"cluster_id"`
-	Role      modelschemas.MemberRole `json:"role" enum:"guest,developer,admin"`
-}
-
-type DeleteClusterMemberSchema struct {
-	UserId    uint `json:"user_id"`
-	ClusterId uint `json:"cluster_id"`
-}

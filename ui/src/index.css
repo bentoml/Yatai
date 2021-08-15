@@ -11,3 +11,37 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+[data-baseweb="toaster"],
+[data-baseweb="modal"],
+[data-baseweb="popover"] {
+  z-index: 1000;
+}
+
+/* zen-tokyo-zoo-regular - latin */
+@font-face {
+  font-family: 'Zen Tokyo Zoo';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./assets/fonts/zen-tokyo-zoo-v1-latin-regular.eot'); /* IE9 Compat Modes */
+  src: local(''),
+       url('./assets/fonts/zen-tokyo-zoo-v1-latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('./assets/fonts/zen-tokyo-zoo-v1-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
+       url('./assets/fonts/zen-tokyo-zoo-v1-latin-regular.woff') format('woff'), /* Modern Browsers */
+       url('./assets/fonts/zen-tokyo-zoo-v1-latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('./assets/fonts/zen-tokyo-zoo-v1-latin-regular.svg#ZenTokyoZoo') format('svg'); /* Legacy iOS */
+}
+
+/* monoton-regular - latin */
+@font-face {
+  font-family: 'Monoton';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./assets/fonts/monoton-v10-latin-regular.eot'); /* IE9 Compat Modes */
+  src: local(''),
+       url('./assets/fonts/monoton-v10-latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('./assets/fonts/monoton-v10-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
+       url('./assets/fonts/monoton-v10-latin-regular.woff') format('woff'), /* Modern Browsers */
+       url('./assets/fonts/monoton-v10-latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('./assets/fonts/monoton-v10-latin-regular.svg#Monoton') format('svg'); /* Legacy iOS */
+}

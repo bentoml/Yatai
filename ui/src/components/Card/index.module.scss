@@ -1,0 +1,65 @@
+.card {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    background-clip: padding-box;
+    position: relative;
+    font-size: 14px;
+    font-variant: tabular-nums;
+    line-height: 1.5715;
+    list-style: none;
+    -webkit-font-feature-settings: "tnum","tnum";
+    font-feature-settings: "tnum","tnum";
+    position: relative;
+    border-radius: 2px;
+    -webkit-transition: transform 270ms cubic-bezier(0.1, 0.9, 0.2, 1),opacity 300ms cubic-bezier(0.1, 0.9, 0.2, 1) 0.05s,-webkit-transform 300ms cubic-bezier(0.1, 0.9, 0.2, 1);
+    transition: transform 270ms cubic-bezier(0.1, 0.9, 0.2, 1),opacity 300ms cubic-bezier(0.1, 0.9, 0.2, 1) 0.05s,-webkit-transform 300ms cubic-bezier(0.1, 0.9, 0.2, 1);
+    transform: translate3d(0,48px,0);
+    transition-delay: 0.4s;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+@for $i from 1 through 10 {
+    .card:nth-child(#{$i}) {
+        transition-delay: 0.05s * ($i - 1);
+    }
+  }
+
+.cardHead {
+    padding: 0 18px;
+    background: transparent;
+    border-bottom: 1px solid #f0f0f0;
+    border-radius: 2px 2px 0 0;
+}
+
+.cardHeadWrapper {
+    -ms-flex-align: center;
+    align-items: center;
+    display: flex;
+}
+
+.cardHeadTitle {
+    display: -ms-flexbox;
+    display: flex;
+    align-items: center;
+    -ms-flex: 1 1;
+    flex: 1 1;
+    padding: 10px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.cardBody {
+    padding: 16px;
+}
+
+.cardExtra {
+    float: right;
+    margin-left: auto;
+    padding: 10px 0;
+    font-weight: 400;
+    font-size: 14px;
+    display: flex;
+}
