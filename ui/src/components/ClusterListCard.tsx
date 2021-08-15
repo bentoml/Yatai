@@ -1,8 +1,7 @@
 import React, { useCallback, useState } from 'react'
-import { useQuery } from 'react-query'
 import Card from '@/components/Card'
 import { GrServerCluster } from 'react-icons/gr'
-import { createCluster, listClusters } from '@/services/cluster'
+import { createCluster } from '@/services/cluster'
 import { usePage } from '@/hooks/usePage'
 import { ICreateClusterSchema } from '@/schemas/cluster'
 import ClusterForm from '@/components/ClusterForm'
@@ -12,6 +11,8 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
+import { Link } from 'react-router-dom'
+import { useFetchClusters } from '@/hooks/useFetchClusters'
 
 export interface IClusterListCardProps {
     orgName: string
@@ -19,7 +20,7 @@ export interface IClusterListCardProps {
 
 export default function ClusterListCard({ orgName }: IClusterListCardProps) {
     const [page, setPage] = usePage()
-    const clustersInfo = useQuery(`fetchOrgClusters:${orgName}`, () => listClusters(orgName, page))
+    const clustersInfo = useFetchClusters(orgName, page)
     const [isCreateClusterOpen, setIsCreateClusterOpen] = useState(false)
     const handleCreateCluster = useCallback(
         async (data: ICreateClusterSchema) => {
@@ -46,7 +47,9 @@ export default function ClusterListCard({ orgName }: IClusterListCardProps) {
                 columns={[t('name'), t('description'), t('creator'), t('created_at')]}
                 data={
                     clustersInfo.data?.items.map((cluster) => [
-                        cluster.name,
+                        <Link key={cluster.uid} to={`/orgs/${orgName}/clusters/${cluster.name}`}>
+                            {cluster.name}
+                        </Link>,
                         cluster.description,
                         cluster.creator && <User user={cluster.creator} />,
                         formatTime(cluster.created_at),

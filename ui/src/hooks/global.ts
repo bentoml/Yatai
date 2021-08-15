@@ -1,3 +1,4 @@
+import { IClusterSchema } from '@/schemas/cluster'
 import { createGlobalState } from 'react-hooks-global-state'
 import { IUserSchema } from '@/schemas/user'
 import { IOrganizationSchema } from '@/schemas/organization'
@@ -12,6 +13,8 @@ const initialState = {
     userLoading: false,
     organization: undefined as IOrganizationSchema | undefined,
     organizationLoading: false,
+    cluster: undefined as IClusterSchema | undefined,
+    clusterLoading: false,
 }
 
 const { useGlobalState } = createGlobalState(initialState)

@@ -12,6 +12,9 @@ import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
+import ClusterMembers from '@/pages/Cluster/Members'
+import ClusterLayout from '@/components/ClusterLayout'
+import ClusterBundles from '@/pages/Cluster/Bundles'
 
 const useStyles = createUseStyles({
     root: ({ theme }: IThemedStyleProps) => ({
@@ -32,29 +35,36 @@ const Routes = () => {
                 className={styles.root}
                 style={{
                     minHeight: '100vh',
-                    background: theme.colors.backgroundPrimary,
+                    background:
+                        themeType === 'light' ? theme.colors.backgroundPrimary : theme.colors.backgroundSecondary,
                     color: theme.colors.contentPrimary,
                 }}
             >
                 <Header />
                 <Switch>
+                    <Route exact path='/orgs/:orgName/clusters/:clusterName/:path?/:path?'>
+                        <ClusterLayout>
+                            <Switch>
+                                <Route exact path='/orgs/:orgName/clusters/:clusterName' component={ClusterOverview} />
+                                <Route
+                                    exact
+                                    path='/orgs/:orgName/clusters/:clusterName/bundles'
+                                    component={ClusterBundles}
+                                />
+                                <Route
+                                    exact
+                                    path='/orgs/:orgName/clusters/:clusterName/members'
+                                    component={ClusterMembers}
+                                />
+                            </Switch>
+                        </ClusterLayout>
+                    </Route>
                     <Route exact path='/orgs/:orgName/:path?/:path?'>
                         <OrganizationLayout>
                             <Switch>
                                 <Route exact path='/orgs/:orgName' component={OrganizationOverview} />
                                 <Route exact path='/orgs/:orgName/clusters' component={OrganizationClusters} />
                                 <Route exact path='/orgs/:orgName/members' component={OrganizationMembers} />
-                                <Route exact path='/orgs/:orgName/clusters/:clusterName/:path?/:path?'>
-                                    <OrganizationLayout>
-                                        <Switch>
-                                            <Route
-                                                exact
-                                                path='/orgs/:orgName/clusters/:clusterName'
-                                                component={ClusterOverview}
-                                            />
-                                        </Switch>
-                                    </OrganizationLayout>
-                                </Route>
                             </Switch>
                         </OrganizationLayout>
                     </Route>

@@ -68,7 +68,6 @@ export default function BaseSidebar({ navItems, style, title, icon }: IBaseSideB
                 display: 'flex',
                 flexDirection: 'column',
                 flexBasis: width,
-                background: theme.colors.backgroundPrimary,
                 overflow: 'hidden',
                 overflowY: 'auto',
                 borderRight: `1px solid ${theme.borders.border200.borderColor}`,
@@ -85,12 +84,16 @@ export default function BaseSidebar({ navItems, style, title, icon }: IBaseSideB
                         alignItems: 'center',
                         padding: '8px 8px 8px 30px',
                         borderBottom: `1px solid ${theme.borders.border200.borderColor}`,
+                        overflow: 'hidden',
                     }}
                 >
                     {icon}
                     <Text
                         style={{
                             fontSize: '12px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
                         }}
                     >
                         {title}

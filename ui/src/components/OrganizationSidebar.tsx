@@ -12,16 +12,16 @@ import BaseSidebar, { IComposedSidebarProps, INavItem } from './BaseSidebar'
 export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
     const { orgName } = useParams<{ orgName: string }>()
     const orgInfo = useQuery(`fetchOrg:${orgName}`, () => fetchOrganization(orgName))
-    const { setOrganization } = useOrganization()
+    const { organization, setOrganization } = useOrganization()
     const { setOrganizationLoading } = useOrganizationLoading()
     useEffect(() => {
-        setOrganizationLoading(orgInfo.isFetching)
-        if (orgInfo.isSuccess) {
+        setOrganizationLoading(orgInfo.isLoading)
+        if (orgInfo.isSuccess && orgInfo.data.uid !== organization?.uid) {
             setOrganization(orgInfo.data)
-        } else if (orgInfo.isFetching) {
+        } else if (orgInfo.isLoading) {
             setOrganization(undefined)
         }
-    }, [orgInfo.data, orgInfo.isFetching, orgInfo.isSuccess, setOrganization, setOrganizationLoading])
+    }, [orgInfo.data, orgInfo.isLoading, orgInfo.isSuccess, organization?.uid, setOrganization, setOrganizationLoading])
 
     const [t] = useTranslation()
 

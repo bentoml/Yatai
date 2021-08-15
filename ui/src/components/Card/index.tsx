@@ -13,8 +13,7 @@ import styles from './index.module.scss'
 
 const getLinkStyle = (theme: Theme) => {
     return {
-        'color': theme.colors.contentPrimary,
-        'text-decoration': 'none',
+        color: theme.colors.contentPrimary,
     }
 }
 
@@ -24,10 +23,7 @@ const useStyles = createUseStyles({
 
         return {
             'box-shadow': props.theme.lighting.shadow400,
-            'background':
-                props.themeType === 'light'
-                    ? props.theme.colors.backgroundPrimary
-                    : props.theme.colors.backgroundSecondary,
+            'background': props.theme.colors.backgroundPrimary,
             '& a': linkStyle,
             '& a:link': linkStyle,
             '& a:visited': linkStyle,

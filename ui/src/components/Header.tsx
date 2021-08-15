@@ -20,7 +20,7 @@ import { Select, SIZE as SelectSize } from 'baseui/select'
 import { useOrganization } from '@/hooks/useOrganization'
 import OrganizationForm from '@/components/OrganizationForm'
 import { ICreateOrganizationSchema } from '@/schemas/organization'
-import { GrOrganization, GrDeploy, GrBundle } from 'react-icons/gr'
+import { GrOrganization, GrCluster, GrDeploy, GrBundle } from 'react-icons/gr'
 import { BiMoon, BiSun } from 'react-icons/bi'
 import color from 'color'
 import { createUseStyles } from 'react-jss'
@@ -28,8 +28,13 @@ import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import { useThemeType } from '@/hooks/useThemeType'
 import classNames from 'classnames'
-import User from './User'
-import Text from './Text'
+import User from '@/components/User'
+import Text from '@/components/Text'
+import { ICreateClusterSchema } from '@/schemas/cluster'
+import { createCluster } from '@/services/cluster'
+import { useCluster } from '@/hooks/useCluster'
+import ClusterForm from '@/components/ClusterForm'
+import { useFetchClusters } from '@/hooks/useFetchClusters'
 
 const useThemeToggleStyles = createUseStyles({
     root: ({ theme }: IThemedStyleProps) => ({
@@ -102,13 +107,16 @@ const ThemeToggle = ({ className }: IThemeToggleProps) => {
 }
 
 const orgPathPattern = /(\/orgs\/)([^/]+)(.*)/
+const clusterPathPattern = /\/orgs\/[^/]+\/clusters\/([^/]+).*/
 
 export default function Header() {
     const location = useLocation()
     const history = useHistory()
     // FIXME: can not use useParams, because of Header is not under the Route component
     const orgMatch = useMemo(() => location.pathname.match(orgPathPattern), [location.pathname])
+    const clusterMatch = useMemo(() => location.pathname.match(clusterPathPattern), [location.pathname])
     const orgName = orgMatch ? orgMatch[2] : undefined
+    const clusterName = clusterMatch ? clusterMatch[1] : undefined
 
     const errMsgExpireTimeSeconds = 5
     const lastErrMsgRef = useRef<Record<string, number>>({})
@@ -165,6 +173,12 @@ export default function Header() {
     }, [userInfo.data, userInfo.isSuccess, setCurrentUser])
 
     const { organization, setOrganization } = useOrganization()
+    useEffect(() => {
+        if (!orgName) {
+            setOrganization(undefined)
+        }
+    }, [orgName, setOrganization])
+
     const orgsInfo = useQuery('organizations', async () => {
         const data = await listOrganizations({
             start: 0,
@@ -173,24 +187,14 @@ export default function Header() {
         return data
     })
 
-    useEffect(() => {
-        if (orgsInfo.isSuccess && orgsInfo.data?.items.length > 0 && !organization) {
-            if (!orgName) {
-                setOrganization(orgsInfo.data.items[0])
-            } else {
-                setOrganization(orgsInfo.data.items.find((item) => item.name === orgName))
-            }
-        }
-    }, [orgName, organization, orgsInfo.data?.items, orgsInfo.isSuccess, setOrganization])
+    const clustersInfo = useFetchClusters(orgName, { start: 0, count: 1000 })
 
+    const { cluster, setCluster } = useCluster()
     useEffect(() => {
-        if (!organization) {
-            return
+        if (!clusterName) {
+            setCluster(undefined)
         }
-        if (orgMatch) {
-            history.push(`${orgMatch[1]}${organization.name}${orgMatch[3]}`)
-        }
-    }, [history, orgMatch, organization])
+    }, [clusterName, setCluster])
 
     const [css, theme] = useStyletron()
     const ctx = useContext(SidebarContext)
@@ -229,6 +233,20 @@ export default function Header() {
         [orgsInfo]
     )
 
+    const [isCreateClusterModalOpen, setIsCreateClusterModalOpen] = useState(false)
+
+    const handleCreateCluster = useCallback(
+        async (data: ICreateClusterSchema) => {
+            if (!orgName) {
+                return
+            }
+            await createCluster(orgName, data)
+            await orgsInfo.refetch()
+            setIsCreateClusterModalOpen(false)
+        },
+        [orgName, orgsInfo]
+    )
+
     return (
         <header
             className={css({
@@ -258,7 +276,7 @@ export default function Header() {
                     boxSizing: 'border-box',
                     transition: 'width 200ms cubic-bezier(0.7, 0.1, 0.33, 1) 0ms',
                 }}
-                to={organization ? `/orgs/${organization.name}` : '/'}
+                to='/'
             >
                 <div
                     style={{
@@ -301,29 +319,34 @@ export default function Header() {
             />
             <div
                 style={{
-                    flexGrow: 1,
+                    flexShrink: 0,
                     display: 'flex',
                     gap: 10,
                     alignItems: 'center',
                 }}
             >
-                <div
+                <Link
                     style={{
                         display: 'flex',
+                        flexShrink: 0,
+                        textDecoration: 'none',
                         gap: 8,
                         alignItems: 'center',
                         fontSize: '12px',
                     }}
+                    to={orgName ? `/orgs/${orgName}` : '/'}
                 >
                     <GrOrganization />
                     <Text>{t('organization')}</Text>
-                </div>
+                </Link>
                 <div
                     style={{
-                        flexBasis: 140,
+                        width: 140,
+                        flexShrink: 0,
                     }}
                 >
                     <Select
+                        isLoading={orgsInfo.isLoading}
                         clearable={false}
                         searchable={false}
                         options={
@@ -344,11 +367,20 @@ export default function Header() {
                         }
                         onChange={(v) => {
                             const org = orgsInfo.data?.items.find((item) => item.uid === v.option?.id)
-                            setOrganization(org)
+                            if (org) {
+                                history.push(`/orgs/${org.name}`)
+                            }
                         }}
                     />
                 </div>
                 <Button
+                    overrides={{
+                        Root: {
+                            style: {
+                                flexShrink: 0,
+                            },
+                        },
+                    }}
                     size={ButtonSize.mini}
                     onClick={() => {
                         setIsCreateOrgModalOpen(true)
@@ -357,9 +389,96 @@ export default function Header() {
                     {t('create')}
                 </Button>
             </div>
+            {cluster && (
+                <>
+                    <div
+                        style={{
+                            flexBasis: 1,
+                            height: 20,
+                            background: theme.colors.borderAlt,
+                            margin: '0 20px',
+                        }}
+                    />
+                    <Link
+                        style={{
+                            display: 'flex',
+                            flexShrink: 0,
+                            textDecoration: 'none',
+                            gap: 8,
+                            alignItems: 'center',
+                            fontSize: '12px',
+                        }}
+                        to={orgName ? `/orgs/${orgName}/clusters/${cluster.name}` : '/'}
+                    >
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexShrink: 0,
+                                gap: 8,
+                                alignItems: 'center',
+                                fontSize: '12px',
+                            }}
+                        >
+                            <GrCluster />
+                            <Text>{t('cluster')}</Text>
+                        </div>
+                        <div
+                            style={{
+                                flexShrink: 0,
+                                width: 140,
+                            }}
+                        >
+                            <Select
+                                isLoading={clustersInfo.isLoading}
+                                clearable={false}
+                                searchable={false}
+                                options={
+                                    clustersInfo.data?.items.map((item) => ({
+                                        id: item.uid,
+                                        label: item.name,
+                                    })) ?? []
+                                }
+                                size={SelectSize.mini}
+                                placeholder={t('select sth', [t('cluster')])}
+                                value={
+                                    cluster && [
+                                        {
+                                            id: cluster.uid,
+                                            label: cluster.name,
+                                        },
+                                    ]
+                                }
+                                onChange={(v) => {
+                                    const cluster_ = clustersInfo.data?.items.find((item) => item.uid === v.option?.id)
+                                    if (cluster_) {
+                                        history.push(`/orgs/${orgName}/clusters/${cluster_.name}`)
+                                    }
+                                }}
+                            />
+                        </div>
+                        <Button
+                            overrides={{
+                                Root: {
+                                    style: {
+                                        flexShrink: 0,
+                                        display: 'none',
+                                    },
+                                },
+                            }}
+                            size={ButtonSize.mini}
+                            onClick={() => {
+                                setIsCreateClusterModalOpen(true)
+                            }}
+                        >
+                            {t('create')}
+                        </Button>
+                    </Link>
+                </>
+            )}
             <div style={{ flexGrow: 1 }} />
             <div
                 className={css({
+                    'flexShrink': 0,
                     'height': '100%',
                     'font-size': '14px',
                     'color': theme.colors.contentPrimary,
@@ -370,22 +489,22 @@ export default function Header() {
                 })}
             >
                 {organization && (
-                    <>
-                        <Link
-                            style={generateLinkStyle(`/orgs/${organization.name}/deployments`)}
-                            to={`/orgs/${organization.name}/deployments`}
-                        >
-                            <GrDeploy />
-                            {t('deployment')}
-                        </Link>
-                        <Link
-                            style={generateLinkStyle(`/orgs/${organization.name}/bundles`)}
-                            to={`/orgs/${organization.name}/bundles`}
-                        >
-                            <GrBundle />
-                            {t('bundle')}
-                        </Link>
-                    </>
+                    <Link
+                        style={generateLinkStyle(`/orgs/${organization.name}/deployments`)}
+                        to={`/orgs/${organization.name}/deployments`}
+                    >
+                        <GrDeploy />
+                        {t('deployment')}
+                    </Link>
+                )}
+                {cluster && (
+                    <Link
+                        style={generateLinkStyle(`/orgs/${orgName}/clusters/${cluster.name}/bundles`)}
+                        to={`/orgs/${orgName}/clusters/${cluster.name}/bundles`}
+                    >
+                        <GrBundle />
+                        {t('bundle')}
+                    </Link>
                 )}
                 <ThemeToggle />
             </div>
@@ -400,6 +519,18 @@ export default function Header() {
                 <ModalHeader>{t('create sth', [t('organization')])}</ModalHeader>
                 <ModalBody>
                     <OrganizationForm onSubmit={handleCreateOrg} />
+                </ModalBody>
+            </Modal>
+            <Modal
+                isOpen={isCreateClusterModalOpen}
+                onClose={() => setIsCreateClusterModalOpen(false)}
+                closeable
+                animate
+                autoFocus
+            >
+                <ModalHeader>{t('create sth', [t('cluster')])}</ModalHeader>
+                <ModalBody>
+                    <ClusterForm onSubmit={handleCreateCluster} />
                 </ModalBody>
             </Modal>
         </header>

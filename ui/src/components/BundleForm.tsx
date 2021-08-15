@@ -1,4 +1,4 @@
-import { ICreateClusterSchema, IClusterFullSchema } from '@/schemas/cluster'
+import { ICreateBundleSchema, IBundleSchema } from '@/schemas/bundle'
 import React, { useCallback, useEffect, useState } from 'react'
 import { createForm } from '@/components/Form'
 import useTranslation from '@/hooks/useTranslation'
@@ -6,22 +6,22 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { Input } from 'baseui/input'
 import { Textarea } from 'baseui/textarea'
 
-const { Form, FormItem } = createForm<ICreateClusterSchema>()
+const { Form, FormItem } = createForm<ICreateBundleSchema>()
 
-export interface IClusterFormProps {
-    cluster?: IClusterFullSchema
-    onSubmit: (data: ICreateClusterSchema) => Promise<void>
+export interface IBundleFormProps {
+    bundle?: IBundleSchema
+    onSubmit: (data: ICreateBundleSchema) => Promise<void>
 }
 
-export default function ClusterForm({ cluster, onSubmit }: IClusterFormProps) {
-    const [initialValue, setInitialValue] = useState<ICreateClusterSchema>()
+export default function BundleForm({ bundle, onSubmit }: IBundleFormProps) {
+    const [initialValue, setInitialValue] = useState<ICreateBundleSchema>()
 
     useEffect(() => {
-        if (!cluster) {
+        if (!bundle) {
             return
         }
-        setInitialValue(cluster)
-    }, [cluster])
+        setInitialValue(bundle)
+    }, [bundle])
 
     const [loading, setLoading] = useState(false)
 
@@ -46,12 +46,6 @@ export default function ClusterForm({ cluster, onSubmit }: IClusterFormProps) {
             </FormItem>
             <FormItem name='description' label={t('description')}>
                 <Textarea />
-            </FormItem>
-            <FormItem name='kube_config' label={t('kube_config')}>
-                <Textarea />
-            </FormItem>
-            <FormItem name={['config', 'ingress_ip']} label='Ingress IP'>
-                <Input />
             </FormItem>
             <FormItem>
                 <div style={{ display: 'flex' }}>

@@ -4,7 +4,8 @@ import { MemberRole } from './member'
 import { IUserSchema } from './user'
 
 export interface IClusterMemberSchema extends IBaseSchema {
+    user: IUserSchema
+    cluster: IClusterSchema
     role: MemberRole
     creator?: IUserSchema
-    cluster: IClusterSchema
 }
