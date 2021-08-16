@@ -1,11 +1,18 @@
-yatai
--------
+<div align="center">
+    <h1 align="center">Yatai</h1>
+    <hr>
+    <br><strong>BentoML's model management server<br></strong>
+</div>
 
-# Development Guide
+_wip_
 
-## Back-end Part
+# Development guide
 
-### 1. Install go and postgresql, create yatai db and create an default user if none exists.
+__TLDR__: Run `make yatai-dev` to quickly spin up yatai in development mode. Make sure to create `yatai-config.dev.yaml` that follows [./yatai-config.sample.yaml](./yatai-config.sample.yaml) templates.
+
+## Backend
+
+### Install go and postgresql, create yatai db and create an default user if none exists.
 
 ```bash
 brew install go
@@ -14,56 +21,56 @@ brew install postgresql
 createdb yatai
 ```
 
-### 2. Install dependencies
+### Install dependencies
 ```bash
 make be-deps
 ```
 
-### 3. Setup configs and run server all at once
+### Setup configs and run server all at once
 
 ```bash
 make be-run
 ```
 
-Now you can visit the swagger on http://localhost:7777/swagger
+Visit backend swagger endpoints via [`localhost:7777/swagger`](http://localhost:7777/swagger)
 
-## Front-end part
+## Frontend
 
-### 1. Install nvm and nodejs and yarn
+__NOTES__: Make sure to create [GitHub OAuth](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app) and edit `yatai-config.{dev,test,production}.yaml`
 
-#### 1.1 Install nvm
+### Install nvm and nodejs and yarn
 
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-```
 
-#### 1.2 Install nodejs
-
-```bash
+# install nodejs with nvm
 nvm install 14.16.1
 nvm alias default 14.16.1
-```
 
-#### 1.3 Install yarn
-
-```bash
+# then install yarn
 npm install -g yarn
 ```
 
-### 1. Install the dependencies
+### Install the dependencies
 
 ```bash
 make fe-deps
 ```
 
-### 2. Run front-end development server
+### Run front-end development server
 
 ```bash
 make fe-run
 ```
 
-Now you also can visit the swagger on http://localhost:3000/swagger
+Visit React App via [`localhost:3000`](http://localhost:3000). You can also accessed swagger via [`localhost:3000/swagger`](http://localhost:3000/swagger)
 
-### 4. Login with GitHub OAuth
+## Docker
 
-visit http://localhost:3000/oauth/github
+```bash
+# Build docker images
+make yatai-d
+
+# Run docker images
+make yatai-d-r
+```
