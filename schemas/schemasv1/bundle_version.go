@@ -8,6 +8,7 @@ import (
 
 type BundleVersionSchema struct {
 	ResourceSchema
+	BundleUid            string                                 `json:"bundle_uid"`
 	Creator              *UserSchema                            `json:"creator"`
 	Version              string                                 `json:"version"`
 	Description          string                                 `json:"description"`

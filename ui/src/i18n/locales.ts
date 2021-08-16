@@ -120,6 +120,14 @@ const locales0 = {
         cn: '暂无数据',
         en: 'No Data',
     },
+    'latest version': {
+        cn: '最新版',
+        en: 'Latest Version',
+    },
+    'version': {
+        cn: '版本',
+        en: 'Version',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

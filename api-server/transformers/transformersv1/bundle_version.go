@@ -3,6 +3,8 @@ package transformersv1
 import (
 	"context"
 
+	"github.com/bentoml/yatai/api-server/services"
+
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/schemas/schemasv1"
 	"github.com/pkg/errors"
@@ -26,8 +28,13 @@ func ToBundleVersionSchemas(ctx context.Context, versions []*models.BundleVersio
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedCreatorSchema")
 		}
+		bundle, err := services.BundleService.GetAssociatedBundle(ctx, version)
+		if err != nil {
+			return nil, errors.Wrap(err, "GetAssociatedBundle")
+		}
 		res = append(res, &schemasv1.BundleVersionSchema{
 			ResourceSchema:       ToResourceSchema(version),
+			BundleUid:            bundle.Uid,
 			Version:              version.Version,
 			Creator:              creatorSchema,
 			Description:          version.Description,

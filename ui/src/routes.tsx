@@ -15,6 +15,9 @@ import OrganizationMembers from '@/pages/Organization/Members'
 import ClusterMembers from '@/pages/Cluster/Members'
 import ClusterLayout from '@/components/ClusterLayout'
 import OrganizationBundles from '@/pages/Organization/Bundles'
+import BundleOverview from '@/pages/Bundle/Overview'
+import BundleVersions from '@/pages/Bundle/Versions'
+import BundleLayout from '@/components/BundleLayout'
 
 const useStyles = createUseStyles({
     root: ({ theme }: IThemedStyleProps) => ({
@@ -42,6 +45,18 @@ const Routes = () => {
             >
                 <Header />
                 <Switch>
+                    <Route exact path='/orgs/:orgName/bundles/:bundleName/:path?/:path?'>
+                        <BundleLayout>
+                            <Switch>
+                                <Route exact path='/orgs/:orgName/bundles/:bundleName' component={BundleOverview} />
+                                <Route
+                                    exact
+                                    path='/orgs/:orgName/bundles/:bundleName/versions'
+                                    component={BundleVersions}
+                                />
+                            </Switch>
+                        </BundleLayout>
+                    </Route>
                     <Route exact path='/orgs/:orgName/clusters/:clusterName/:path?/:path?'>
                         <ClusterLayout>
                             <Switch>
