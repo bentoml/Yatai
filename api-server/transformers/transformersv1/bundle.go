@@ -30,13 +30,13 @@ func ToBundleSchemas(ctx context.Context, bundles []*models.Bundle) ([]*schemasv
 	if err != nil {
 		return nil, errors.Wrap(err, "list latest versions by bundle ids")
 	}
-	versionSchemas, err := ToBundleVersionFullSchemas(ctx, versions)
+	versionSchemas, err := ToBundleVersionSchemas(ctx, versions)
 	if err != nil {
 		return nil, errors.Wrap(err, "ToBundleVersionSchemas")
 	}
 	versionSchemasMap := make(map[string]*schemasv1.BundleVersionSchema, len(versions))
 	for _, s := range versionSchemas {
-		versionSchemasMap[s.Bundle.Uid] = &s.BundleVersionSchema
+		versionSchemasMap[s.BundleUid] = s
 	}
 
 	res := make([]*schemasv1.BundleSchema, 0, len(bundles))

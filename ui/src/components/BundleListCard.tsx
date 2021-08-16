@@ -44,13 +44,13 @@ export default function BundleListCard({ orgName }: IBundleListCardProps) {
         >
             <Table
                 isLoading={bundlesInfo.isLoading}
-                columns={[t('name'), t('description'), t('creator'), t('created_at')]}
+                columns={[t('name'), t('latest version'), t('creator'), t('created_at')]}
                 data={
                     bundlesInfo.data?.items.map((bundle) => [
                         <Link key={bundle.uid} to={`/orgs/${orgName}/bundles/${bundle.name}`}>
                             {bundle.name}
                         </Link>,
-                        bundle.description,
+                        bundle.latest_version?.version,
                         bundle.creator && <User user={bundle.creator} />,
                         formatTime(bundle.created_at),
                     ]) ?? []

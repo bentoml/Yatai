@@ -1,7 +1,8 @@
-import { IClusterSchema } from '@/schemas/cluster'
+import { IBundleSchema } from '@/schemas/bundle'
+import { IClusterFullSchema } from '@/schemas/cluster'
 import { createGlobalState } from 'react-hooks-global-state'
 import { IUserSchema } from '@/schemas/user'
-import { IOrganizationSchema } from '@/schemas/organization'
+import { IOrganizationFullSchema } from '@/schemas/organization'
 
 export type BaseThemeType = 'light' | 'dark'
 export type ThemeType = BaseThemeType | 'followTheSystem'
@@ -11,10 +12,12 @@ const initialState = {
     currentUser: undefined as IUserSchema | undefined,
     user: undefined as IUserSchema | undefined,
     userLoading: false,
-    organization: undefined as IOrganizationSchema | undefined,
+    organization: undefined as IOrganizationFullSchema | undefined,
     organizationLoading: false,
-    cluster: undefined as IClusterSchema | undefined,
+    cluster: undefined as IClusterFullSchema | undefined,
     clusterLoading: false,
+    bundle: undefined as IBundleSchema | undefined,
+    bundleLoading: false,
 }
 
 const { useGlobalState } = createGlobalState(initialState)
