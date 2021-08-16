@@ -15,7 +15,7 @@ import { SidebarContext } from '@/contexts/SidebarContext'
 import { StyledSpinnerNext } from 'baseui/spinner'
 import logo from '@/assets/logo.png'
 import useTranslation from '@/hooks/useTranslation'
-import { createOrganization, listOrganizations } from '@/services/organization'
+import { createOrganization } from '@/services/organization'
 import { Select, SIZE as SelectSize } from 'baseui/select'
 import { useOrganization } from '@/hooks/useOrganization'
 import OrganizationForm from '@/components/OrganizationForm'
@@ -35,6 +35,7 @@ import { createCluster } from '@/services/cluster'
 import { useCluster } from '@/hooks/useCluster'
 import ClusterForm from '@/components/ClusterForm'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
+import { useFetchOrganizations } from '@/hooks/useFetchOrganizations'
 
 const useThemeToggleStyles = createUseStyles({
     root: ({ theme }: IThemedStyleProps) => ({
@@ -179,12 +180,9 @@ export default function Header() {
         }
     }, [orgName, setOrganization])
 
-    const orgsInfo = useQuery('organizations', async () => {
-        const data = await listOrganizations({
-            start: 0,
-            count: 100,
-        })
-        return data
+    const orgsInfo = useFetchOrganizations({
+        start: 0,
+        count: 100,
     })
 
     const clustersInfo = useFetchClusters(orgName, { start: 0, count: 1000 })
