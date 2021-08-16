@@ -35,7 +35,7 @@ export default function ClusterListCard({ orgName }: IClusterListCardProps) {
     return (
         <Card
             title={t('sth list', [t('cluster')])}
-            titleIcon={<GrServerCluster />}
+            titleIcon={GrServerCluster}
             extra={
                 <Button size={ButtonSize.compact} onClick={() => setIsCreateClusterOpen(true)}>
                     {t('create')}

@@ -32,7 +32,7 @@ export default function OrganizationMemberListCard({ orgName }: IOrganizationMem
         <>
             <Card
                 title={t('sth list', [t('member')])}
-                titleIcon={<HiOutlineUserGroup />}
+                titleIcon={HiOutlineUserGroup}
                 extra={
                     <Button size={ButtonSize.compact} onClick={() => setIsCreateMembersOpen(true)}>
                         {t('create')}

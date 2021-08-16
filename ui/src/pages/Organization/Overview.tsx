@@ -14,7 +14,7 @@ export default function OrganizationOverview() {
     const [t] = useTranslation()
 
     return (
-        <Card title={t('overview')} titleIcon={<RiSurveyLine />}>
+        <Card title={t('overview')} titleIcon={RiSurveyLine}>
             <Table
                 isLoading={organizationLoading}
                 columns={[t('name'), t('description'), t('creator'), t('created_at')]}

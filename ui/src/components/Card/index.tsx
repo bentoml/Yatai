@@ -8,6 +8,7 @@ import { Theme } from 'baseui/theme'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import Text from '@/components/Text'
+import type { IconBaseProps } from 'react-icons/lib'
 
 import styles from './index.module.scss'
 
@@ -34,7 +35,7 @@ const useStyles = createUseStyles({
 export interface ICardProps {
     title?: string | React.ReactNode
     onTitleChange?: (title: string) => Promise<void>
-    titleIcon?: React.ReactNode
+    titleIcon?: React.ComponentType<IconBaseProps>
     titleTail?: React.ReactNode
     style?: React.CSSProperties
     headStyle?: React.CSSProperties
@@ -50,7 +51,7 @@ export interface ICardProps {
 
 export default function Card({
     title,
-    titleIcon,
+    titleIcon: TitleIcon,
     titleTail,
     extra,
     className,
@@ -105,7 +106,7 @@ export default function Card({
                     <div className={styles.cardHeadWrapper}>
                         {title && (
                             <div className={styles.cardHeadTitle}>
-                                <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>{titleIcon}</div>
+                                {TitleIcon && <TitleIcon size={12} />}
                                 {typeof title === 'string' ? <Text size='large'>{title}</Text> : title}
                                 {titleTail}
                             </div>
