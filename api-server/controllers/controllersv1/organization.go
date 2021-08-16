@@ -54,7 +54,7 @@ func (c *organizationController) canOperate(ctx context.Context, organization *m
 	return services.MemberService.CanOperate(ctx, &services.OrganizationMemberService, user.ID, organization.ID)
 }
 
-func (c *organizationController) Create(ctx *gin.Context, schema *schemasv1.CreateOrganizationSchema) (*schemasv1.OrganizationSchema, error) {
+func (c *organizationController) Create(ctx *gin.Context, schema *schemasv1.CreateOrganizationSchema) (*schemasv1.OrganizationFullSchema, error) {
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func (c *organizationController) Create(ctx *gin.Context, schema *schemasv1.Crea
 	if err != nil {
 		return nil, errors.Wrap(err, "create organization")
 	}
-	return transformersv1.ToOrganizationSchema(ctx, organization)
+	return transformersv1.ToOrganizationFullSchema(ctx, organization)
 }
 
 type UpdateOrganizationSchema struct {
@@ -75,7 +75,7 @@ type UpdateOrganizationSchema struct {
 	GetOrganizationSchema
 }
 
-func (c *organizationController) Update(ctx *gin.Context, schema *UpdateOrganizationSchema) (*schemasv1.OrganizationSchema, error) {
+func (c *organizationController) Update(ctx *gin.Context, schema *UpdateOrganizationSchema) (*schemasv1.OrganizationFullSchema, error) {
 	organization, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
@@ -89,10 +89,10 @@ func (c *organizationController) Update(ctx *gin.Context, schema *UpdateOrganiza
 	if err != nil {
 		return nil, errors.Wrap(err, "update organization")
 	}
-	return transformersv1.ToOrganizationSchema(ctx, organization)
+	return transformersv1.ToOrganizationFullSchema(ctx, organization)
 }
 
-func (c *organizationController) Get(ctx *gin.Context, schema *GetOrganizationSchema) (*schemasv1.OrganizationSchema, error) {
+func (c *organizationController) Get(ctx *gin.Context, schema *GetOrganizationSchema) (*schemasv1.OrganizationFullSchema, error) {
 	organization, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (c *organizationController) Get(ctx *gin.Context, schema *GetOrganizationSc
 	if err = c.canView(ctx, organization); err != nil {
 		return nil, err
 	}
-	return transformersv1.ToOrganizationSchema(ctx, organization)
+	return transformersv1.ToOrganizationFullSchema(ctx, organization)
 }
 
 func (c *organizationController) List(ctx *gin.Context, schema *schemasv1.ListQuerySchema) (*schemasv1.OrganizationListSchema, error) {

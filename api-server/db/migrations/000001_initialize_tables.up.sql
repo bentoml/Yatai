@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS "organization" (
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     name VARCHAR(128) UNIQUE NOT NULL,
     description TEXT,
+    config TEXT DEFAULT '{}',
     creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE,
@@ -130,14 +131,14 @@ CREATE TABLE IF NOT EXISTS "bundle" (
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     name VARCHAR(128) NOT NULL,
     description TEXT,
-    cluster_id INTEGER NOT NULL REFERENCES "cluster"("id") ON DELETE CASCADE,
+    organization_id INTEGER NOT NULL REFERENCES "organization"("id") ON DELETE CASCADE,
     creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE UNIQUE INDEX "uk_bundle_clusterId_name" ON "bundle" ("cluster_id", "name");
+CREATE UNIQUE INDEX "uk_bundle_orgId_name" ON "bundle" ("organization_id", "name");
 
 CREATE TYPE "bundle_version_upload_status" AS ENUM ('pending', 'uploading', 'success', 'failed');
 CREATE TYPE "bundle_version_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
@@ -147,7 +148,7 @@ CREATE TABLE IF NOT EXISTS "bundle_version" (
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     version VARCHAR(512) NOT NULL,
     description TEXT,
-    storage_id VARCHAR(512),
+    file_path TEXT,
     bundle_id INTEGER NOT NULL REFERENCES "bundle"("id") ON DELETE CASCADE,
     upload_status bundle_version_upload_status NOT NULL DEFAULT 'pending',
     build_status bundle_version_build_status NOT NULL DEFAULT 'pending',

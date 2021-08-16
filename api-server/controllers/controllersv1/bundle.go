@@ -19,16 +19,16 @@ type bundleController struct {
 var BundleController = bundleController{}
 
 type GetBundleSchema struct {
-	GetClusterSchema
+	GetOrganizationSchema
 	BundleName string `path:"bundleName"`
 }
 
 func (s *GetBundleSchema) GetBundle(ctx context.Context) (*models.Bundle, error) {
-	cluster, err := s.GetCluster(ctx)
+	organization, err := s.GetOrganization(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get cluster %s", cluster.Name)
+		return nil, errors.Wrapf(err, "get organization %s", organization.Name)
 	}
-	bundle, err := services.BundleService.GetByName(ctx, cluster.ID, s.BundleName)
+	bundle, err := services.BundleService.GetByName(ctx, organization.ID, s.BundleName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get bundle %s", s.BundleName)
 	}
@@ -36,32 +36,32 @@ func (s *GetBundleSchema) GetBundle(ctx context.Context) (*models.Bundle, error)
 }
 
 func (c *bundleController) canView(ctx context.Context, bundle *models.Bundle) error {
-	cluster, err := services.ClusterService.GetAssociatedCluster(ctx, bundle)
+	organization, err := services.OrganizationService.GetAssociatedOrganization(ctx, bundle)
 	if err != nil {
-		return errors.Wrap(err, "get associated cluster")
+		return errors.Wrap(err, "get associated organization")
 	}
-	return ClusterController.canView(ctx, cluster)
+	return OrganizationController.canView(ctx, organization)
 }
 
 func (c *bundleController) canUpdate(ctx context.Context, bundle *models.Bundle) error {
-	cluster, err := services.ClusterService.GetAssociatedCluster(ctx, bundle)
+	organization, err := services.OrganizationService.GetAssociatedOrganization(ctx, bundle)
 	if err != nil {
-		return errors.Wrap(err, "get associated cluster")
+		return errors.Wrap(err, "get associated organization")
 	}
-	return ClusterController.canUpdate(ctx, cluster)
+	return OrganizationController.canUpdate(ctx, organization)
 }
 
 func (c *bundleController) canOperate(ctx context.Context, bundle *models.Bundle) error {
-	cluster, err := services.ClusterService.GetAssociatedCluster(ctx, bundle)
+	organization, err := services.OrganizationService.GetAssociatedOrganization(ctx, bundle)
 	if err != nil {
-		return errors.Wrap(err, "get associated cluster")
+		return errors.Wrap(err, "get associated organization")
 	}
-	return ClusterController.canOperate(ctx, cluster)
+	return OrganizationController.canOperate(ctx, organization)
 }
 
 type CreateBundleSchema struct {
 	schemasv1.CreateBundleSchema
-	GetClusterSchema
+	GetOrganizationSchema
 }
 
 func (c *bundleController) Create(ctx *gin.Context, schema *CreateBundleSchema) (*schemasv1.BundleSchema, error) {
@@ -69,19 +69,19 @@ func (c *bundleController) Create(ctx *gin.Context, schema *CreateBundleSchema) 
 	if err != nil {
 		return nil, err
 	}
-	cluster, err := schema.GetCluster(ctx)
+	organization, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = ClusterController.canUpdate(ctx, cluster); err != nil {
+	if err = OrganizationController.canUpdate(ctx, organization); err != nil {
 		return nil, err
 	}
 
 	bundle, err := services.BundleService.Create(ctx, services.CreateBundleOption{
-		CreatorId: user.ID,
-		ClusterId: cluster.ID,
-		Name:      schema.Name,
+		CreatorId:      user.ID,
+		OrganizationId: organization.ID,
+		Name:           schema.Name,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create bundle")
@@ -124,16 +124,16 @@ func (c *bundleController) Get(ctx *gin.Context, schema *GetBundleSchema) (*sche
 
 type ListBundleSchema struct {
 	schemasv1.ListQuerySchema
-	GetClusterSchema
+	GetOrganizationSchema
 }
 
 func (c *bundleController) List(ctx *gin.Context, schema *ListBundleSchema) (*schemasv1.BundleListSchema, error) {
-	cluster, err := schema.GetCluster(ctx)
+	organization, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = ClusterController.canView(ctx, cluster); err != nil {
+	if err = OrganizationController.canView(ctx, organization); err != nil {
 		return nil, err
 	}
 
@@ -143,7 +143,7 @@ func (c *bundleController) List(ctx *gin.Context, schema *ListBundleSchema) (*sc
 			Count:  utils.UintPtr(schema.Count),
 			Search: schema.Search,
 		},
-		ClusterId: utils.UintPtr(cluster.ID),
+		OrganizationId: utils.UintPtr(organization.ID),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "list bundles")

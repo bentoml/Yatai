@@ -12,7 +12,7 @@ type BundleVersion struct {
 	BundleAssociate
 	Version              string                                 `json:"version"`
 	Description          string                                 `json:"description"`
-	StorageId            string                                 `json:"storage_id"`
+	FilePath             string                                 `json:"file_path"`
 	UploadStatus         modelschemas.BundleVersionUploadStatus `json:"upload_status"`
 	BuildStatus          modelschemas.BundleVersionBuildStatus  `json:"build_status"`
 	UploadStartedAt      *time.Time                             `json:"upload_started_at"`

@@ -3,7 +3,7 @@ package models
 type Bundle struct {
 	ResourceMixin
 	CreatorAssociate
-	ClusterAssociate
+	OrganizationAssociate
 	Description string `json:"description"`
 }
 

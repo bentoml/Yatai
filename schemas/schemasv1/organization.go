@@ -1,9 +1,16 @@
 package schemasv1
 
+import "github.com/bentoml/yatai/schemas/modelschemas"
+
 type OrganizationSchema struct {
 	ResourceSchema
 	Creator     *UserSchema `json:"creator"`
 	Description string      `json:"description"`
+}
+
+type OrganizationFullSchema struct {
+	OrganizationSchema
+	Config **modelschemas.OrganizationConfigSchema `json:"config"`
 }
 
 type OrganizationListSchema struct {

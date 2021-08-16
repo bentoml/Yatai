@@ -487,20 +487,20 @@ export default function Header() {
             >
                 {organization && (
                     <Link
-                        style={generateLinkStyle(`/orgs/${organization.name}/deployments`)}
-                        to={`/orgs/${organization.name}/deployments`}
+                        style={generateLinkStyle(`/orgs/${organization.name}/bundles`)}
+                        to={`/orgs/${organization.name}/bundles`}
                     >
-                        {React.createElement(resourceIconMapping.deployment, { size: 12 })}
-                        {t('deployment')}
+                        {React.createElement(resourceIconMapping.bundle, { size: 12 })}
+                        {t('bundle')}
                     </Link>
                 )}
                 {cluster && (
                     <Link
-                        style={generateLinkStyle(`/orgs/${orgName}/clusters/${cluster.name}/bundles`)}
-                        to={`/orgs/${orgName}/clusters/${cluster.name}/bundles`}
+                        style={generateLinkStyle(`/orgs/${orgName}/clusters/${cluster.name}/deployments`)}
+                        to={`/orgs/${orgName}/clusters/${cluster.name}/deployments`}
                     >
-                        {React.createElement(resourceIconMapping.bundle, { size: 12 })}
-                        {t('bundle')}
+                        {React.createElement(resourceIconMapping.deployment, { size: 12 })}
+                        {t('deployment')}
                     </Link>
                 )}
                 <ThemeToggle />
