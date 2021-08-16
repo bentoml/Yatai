@@ -38,8 +38,7 @@ const Routes = () => {
                 className={styles.root}
                 style={{
                     minHeight: '100vh',
-                    background:
-                        themeType === 'light' ? theme.colors.backgroundPrimary : theme.colors.backgroundSecondary,
+                    background: themeType === 'light' ? '#fdfdfd' : theme.colors.backgroundSecondary,
                     color: theme.colors.contentPrimary,
                 }}
             >
