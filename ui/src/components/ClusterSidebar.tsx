@@ -9,20 +9,36 @@ import { useQuery } from 'react-query'
 import { useParams } from 'react-router-dom'
 import BaseSidebar, { IComposedSidebarProps, INavItem } from '@/components/BaseSidebar'
 import { fetchCluster } from '@/services/cluster'
+import { useOrganization } from '@/hooks/useOrganization'
 
 export default function ClusterSidebar({ style }: IComposedSidebarProps) {
     const { orgName, clusterName } = useParams<{ orgName: string; clusterName: string }>()
     const clusterInfo = useQuery(`fetchCluster:${orgName}:${clusterName}`, () => fetchCluster(orgName, clusterName))
     const { cluster, setCluster } = useCluster()
+    const { organization, setOrganization } = useOrganization()
     const { setClusterLoading } = useClusterLoading()
     useEffect(() => {
         setClusterLoading(clusterInfo.isLoading)
-        if (clusterInfo.isSuccess && clusterInfo.data.uid !== cluster?.uid) {
-            setCluster(clusterInfo.data)
+        if (clusterInfo.isSuccess) {
+            if (clusterInfo.data.uid !== cluster?.uid) {
+                setCluster(clusterInfo.data)
+            }
+            if (clusterInfo.data.organization?.uid !== organization?.uid) {
+                setOrganization(clusterInfo.data.organization)
+            }
         } else if (clusterInfo.isLoading) {
             setCluster(undefined)
         }
-    }, [cluster?.uid, clusterInfo.data, clusterInfo.isLoading, clusterInfo.isSuccess, setCluster, setClusterLoading])
+    }, [
+        cluster?.uid,
+        clusterInfo.data,
+        clusterInfo.isLoading,
+        clusterInfo.isSuccess,
+        organization?.uid,
+        setCluster,
+        setClusterLoading,
+        setOrganization,
+    ])
 
     const [t] = useTranslation()
 
