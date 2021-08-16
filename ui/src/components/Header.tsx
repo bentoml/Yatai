@@ -10,7 +10,7 @@ import qs from 'qs'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import { Link, useHistory, useLocation } from 'react-router-dom'
 import { useStyletron } from 'baseui'
-import { headerHeight } from '@/consts'
+import { headerHeight, resourceIconMapping } from '@/consts'
 import { SidebarContext } from '@/contexts/SidebarContext'
 import { StyledSpinnerNext } from 'baseui/spinner'
 import logo from '@/assets/logo.png'
@@ -20,7 +20,6 @@ import { Select, SIZE as SelectSize } from 'baseui/select'
 import { useOrganization } from '@/hooks/useOrganization'
 import OrganizationForm from '@/components/OrganizationForm'
 import { ICreateOrganizationSchema } from '@/schemas/organization'
-import { GrOrganization, GrCluster, GrDeploy, GrBundle } from 'react-icons/gr'
 import { BiMoon, BiSun } from 'react-icons/bi'
 import color from 'color'
 import { createUseStyles } from 'react-jss'
@@ -334,7 +333,7 @@ export default function Header() {
                     }}
                     to={orgName ? `/orgs/${orgName}` : '/'}
                 >
-                    <GrOrganization />
+                    {React.createElement(resourceIconMapping.organization, { size: 12 })}
                     <Text>{t('organization')}</Text>
                 </Link>
                 <div
@@ -417,7 +416,7 @@ export default function Header() {
                                 fontSize: '12px',
                             }}
                         >
-                            <GrCluster />
+                            {React.createElement(resourceIconMapping.cluster, { size: 12 })}
                             <Text>{t('cluster')}</Text>
                         </div>
                         <div
@@ -491,7 +490,7 @@ export default function Header() {
                         style={generateLinkStyle(`/orgs/${organization.name}/deployments`)}
                         to={`/orgs/${organization.name}/deployments`}
                     >
-                        <GrDeploy />
+                        {React.createElement(resourceIconMapping.deployment, { size: 12 })}
                         {t('deployment')}
                     </Link>
                 )}
@@ -500,7 +499,7 @@ export default function Header() {
                         style={generateLinkStyle(`/orgs/${orgName}/clusters/${cluster.name}/bundles`)}
                         to={`/orgs/${orgName}/clusters/${cluster.name}/bundles`}
                     >
-                        <GrBundle />
+                        {React.createElement(resourceIconMapping.bundle, { size: 12 })}
                         {t('bundle')}
                     </Link>
                 )}
