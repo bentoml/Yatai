@@ -14,6 +14,7 @@ import { headerHeight, resourceIconMapping } from '@/consts'
 import { SidebarContext } from '@/contexts/SidebarContext'
 import { StyledSpinnerNext } from 'baseui/spinner'
 import logo from '@/assets/logo.png'
+import logoDark from '@/assets/logo-dark.png'
 import useTranslation from '@/hooks/useTranslation'
 import { createOrganization } from '@/services/organization'
 import { Select, SIZE as SelectSize } from 'baseui/select'
@@ -244,6 +245,8 @@ export default function Header() {
         [orgName, orgsInfo]
     )
 
+    const currentThemeType = useCurrentThemeType()
+
     return (
         <header
             className={css({
@@ -272,6 +275,7 @@ export default function Header() {
                     justifyContent: 'start',
                     boxSizing: 'border-box',
                     transition: 'width 200ms cubic-bezier(0.7, 0.1, 0.33, 1) 0ms',
+                    gap: 12,
                 }}
                 to='/'
             >
@@ -280,17 +284,16 @@ export default function Header() {
                         flexShrink: 0,
                         display: 'flex',
                         justifyContent: 'center',
-                        marginRight: 10,
                     }}
                 >
                     <img
                         style={{
-                            width: 38,
-                            height: 36,
+                            width: 26,
+                            height: 26,
                             display: 'inline-flex',
                             transition: 'all 250ms cubic-bezier(0.7, 0.1, 0.33, 1) 0ms',
                         }}
-                        src={logo}
+                        src={currentThemeType === 'light' ? logo : logoDark}
                         alt='logo'
                     />
                 </div>
