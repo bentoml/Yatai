@@ -5,15 +5,8 @@ import (
 	"encoding/json"
 )
 
-type InfraMinIOSchema struct {
-	Endpoint  string `json:"endpoint"`
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
-}
-
 type ClusterConfigSchema struct {
-	IngressIp  string            `json:"ingress_ip"`
-	InfraMinIO *InfraMinIOSchema `json:"infra_minio"`
+	IngressIp string `json:"ingress_ip"`
 }
 
 func (c *ClusterConfigSchema) Scan(value interface{}) error {

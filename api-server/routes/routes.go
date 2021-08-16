@@ -206,6 +206,7 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.Create, 200))
 
 	clusterRoutes(resourceGrp)
+	bundleRoutes(resourceGrp)
 }
 
 func clusterRoutes(grp *fizz.RouterGroup) {
@@ -247,8 +248,6 @@ func clusterRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Create cluster"),
 		fizz.Summary("Create cluster"),
 	}, requireLogin, tonic.Handler(controllersv1.ClusterController.Create, 200))
-
-	bundleRoutes(resourceGrp)
 }
 
 func bundleRoutes(grp *fizz.RouterGroup) {

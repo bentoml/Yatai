@@ -21,9 +21,9 @@ func (s *bundleService) getBaseDB(ctx context.Context) *gorm.DB {
 }
 
 type CreateBundleOption struct {
-	CreatorId uint
-	ClusterId uint
-	Name      string
+	CreatorId      uint
+	OrganizationId uint
+	Name           string
 }
 
 type UpdateBundleOption struct {
@@ -32,7 +32,7 @@ type UpdateBundleOption struct {
 
 type ListBundleOption struct {
 	BaseListOption
-	ClusterId *uint
+	OrganizationId *uint
 }
 
 func (*bundleService) Create(ctx context.Context, opt CreateBundleOption) (*models.Bundle, error) {
@@ -48,8 +48,8 @@ func (*bundleService) Create(ctx context.Context, opt CreateBundleOption) (*mode
 		CreatorAssociate: models.CreatorAssociate{
 			CreatorId: opt.CreatorId,
 		},
-		ClusterAssociate: models.ClusterAssociate{
-			ClusterId: opt.ClusterId,
+		OrganizationAssociate: models.OrganizationAssociate{
+			OrganizationId: opt.OrganizationId,
 		},
 	}
 	err := mustGetSession(ctx).Create(&bundle).Error
@@ -95,9 +95,9 @@ func (s *bundleService) Get(ctx context.Context, id uint) (*models.Bundle, error
 	return &bundle, nil
 }
 
-func (s *bundleService) GetByName(ctx context.Context, clusterId uint, name string) (*models.Bundle, error) {
+func (s *bundleService) GetByName(ctx context.Context, organizationId uint, name string) (*models.Bundle, error) {
 	var bundle models.Bundle
-	err := getBaseQuery(ctx, s).Where("cluster_id = ?", clusterId).Where("name = ?", name).First(&bundle).Error
+	err := getBaseQuery(ctx, s).Where("organization_id = ?", organizationId).Where("name = ?", name).First(&bundle).Error
 	if err != nil {
 		return nil, errors.Wrapf(err, "get bundle %s", name)
 	}
@@ -109,8 +109,8 @@ func (s *bundleService) GetByName(ctx context.Context, clusterId uint, name stri
 
 func (s *bundleService) List(ctx context.Context, opt ListBundleOption) ([]*models.Bundle, uint, error) {
 	query := getBaseQuery(ctx, s)
-	if opt.ClusterId != nil {
-		query = query.Where("cluster_id = ?", *opt.ClusterId)
+	if opt.OrganizationId != nil {
+		query = query.Where("organization_id = ?", *opt.OrganizationId)
 	}
 	var total int64
 	err := query.Count(&total).Error
@@ -119,6 +119,7 @@ func (s *bundleService) List(ctx context.Context, opt ListBundleOption) ([]*mode
 	}
 	bundles := make([]*models.Bundle, 0)
 	query = opt.BindQuery(query)
+	query = query.Order("id DESC")
 	err = query.Find(&bundles).Error
 	if err != nil {
 		return nil, 0, err

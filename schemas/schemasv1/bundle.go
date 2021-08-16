@@ -3,7 +3,7 @@ package schemasv1
 type BundleSchema struct {
 	ResourceSchema
 	Creator       *UserSchema          `json:"creator"`
-	Cluster       *ClusterSchema       `json:"cluster"`
+	Organization  *OrganizationSchema  `json:"organization"`
 	LatestVersion *BundleVersionSchema `json:"latest_version"`
 	Description   string               `json:"description"`
 }

@@ -45,14 +45,14 @@ func ToBundleSchemas(ctx context.Context, bundles []*models.Bundle) ([]*schemasv
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedCreatorSchema")
 		}
-		clusterSchema, err := GetAssociatedClusterSchema(ctx, bundle)
+		organizationSchema, err := GetAssociatedOrganizationSchema(ctx, bundle)
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedClusterSchema")
 		}
 		res = append(res, &schemasv1.BundleSchema{
 			ResourceSchema: ToResourceSchema(bundle),
 			Creator:        creatorSchema,
-			Cluster:        clusterSchema,
+			Organization:   organizationSchema,
 			Description:    bundle.Description,
 			LatestVersion:  versionSchemasMap[bundle.GetUid()],
 		})

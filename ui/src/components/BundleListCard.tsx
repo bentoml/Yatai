@@ -16,22 +16,19 @@ import { resourceIconMapping } from '@/consts'
 
 export interface IBundleListCardProps {
     orgName: string
-    clusterName: string
 }
 
-export default function BundleListCard({ orgName, clusterName }: IBundleListCardProps) {
+export default function BundleListCard({ orgName }: IBundleListCardProps) {
     const [page, setPage] = usePage()
-    const bundlesInfo = useQuery(`fetchClusterBundles:${orgName}:${clusterName}`, () =>
-        listBundles(orgName, clusterName, page)
-    )
+    const bundlesInfo = useQuery(`fetchClusterBundles:${orgName}`, () => listBundles(orgName, page))
     const [isCreateBundleOpen, setIsCreateBundleOpen] = useState(false)
     const handleCreateBundle = useCallback(
         async (data: ICreateBundleSchema) => {
-            await createBundle(orgName, clusterName, data)
+            await createBundle(orgName, data)
             await bundlesInfo.refetch()
             setIsCreateBundleOpen(false)
         },
-        [bundlesInfo, clusterName, orgName]
+        [bundlesInfo, orgName]
     )
     const [t] = useTranslation()
 
@@ -50,7 +47,7 @@ export default function BundleListCard({ orgName, clusterName }: IBundleListCard
                 columns={[t('name'), t('description'), t('creator'), t('created_at')]}
                 data={
                     bundlesInfo.data?.items.map((bundle) => [
-                        <Link key={bundle.uid} to={`/orgs/${orgName}/clusters/${clusterName}/bundles/${bundle.name}`}>
+                        <Link key={bundle.uid} to={`/orgs/${orgName}/bundles/${bundle.name}`}>
                             {bundle.name}
                         </Link>,
                         bundle.description,

@@ -32,6 +32,11 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
                 icon: RiSurveyLine,
             },
             {
+                title: t('sth list', [t('bundle')]),
+                path: `/orgs/${orgName}/bundles`,
+                icon: resourceIconMapping.bundle,
+            },
+            {
                 title: t('sth list', [t('cluster')]),
                 path: `/orgs/${orgName}/clusters`,
                 icon: resourceIconMapping.cluster,

@@ -1,10 +1,10 @@
-import { IClusterSchema } from './cluster'
+import { IOrganizationSchema } from './organization'
 import { IResourceSchema } from './resource'
 import { IUserSchema } from './user'
 
 export interface IBundleSchema extends IResourceSchema {
     creator?: IUserSchema
-    cluster?: IClusterSchema
+    organization?: IOrganizationSchema
     description: string
 }
 

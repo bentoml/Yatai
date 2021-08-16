@@ -7,15 +7,8 @@ export interface IClusterSchema extends IResourceSchema {
     description: string
 }
 
-export interface IInfraMinIOSchema {
-    endpoint: string
-    access_key: string
-    secret_key: string
-}
-
 export interface IClusterConfigSchema {
     ingress_ip: string
-    infra_minio?: IInfraMinIOSchema
 }
 
 export interface IClusterFullSchema extends IClusterSchema {
