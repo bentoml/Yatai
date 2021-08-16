@@ -38,7 +38,7 @@ export default function BundleListCard({ orgName, clusterName }: IBundleListCard
     return (
         <Card
             title={t('sth list', [t('bundle')])}
-            titleIcon={<GoPackage />}
+            titleIcon={GoPackage}
             extra={
                 <Button size={ButtonSize.compact} onClick={() => setIsCreateBundleOpen(true)}>
                     {t('create')}

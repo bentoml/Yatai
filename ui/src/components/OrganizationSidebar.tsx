@@ -30,17 +30,17 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
             {
                 title: t('overview'),
                 path: `/orgs/${orgName}`,
-                icon: <RiSurveyLine />,
+                icon: RiSurveyLine,
             },
             {
                 title: t('sth list', [t('cluster')]),
                 path: `/orgs/${orgName}/clusters`,
-                icon: <GrServerCluster />,
+                icon: GrServerCluster,
             },
             {
                 title: t('sth list', [t('member')]),
                 path: `/orgs/${orgName}/members`,
-                icon: <HiOutlineUserGroup />,
+                icon: HiOutlineUserGroup,
             },
         ],
         [orgName, t]

@@ -31,17 +31,17 @@ export default function ClusterSidebar({ style }: IComposedSidebarProps) {
             {
                 title: t('overview'),
                 path: `/orgs/${orgName}/clusters/${clusterName}`,
-                icon: <RiSurveyLine />,
+                icon: RiSurveyLine,
             },
             {
                 title: t('sth list', [t('bundle')]),
                 path: `/orgs/${orgName}/clusters/${clusterName}/bundles`,
-                icon: <GoPackage />,
+                icon: GoPackage,
             },
             {
                 title: t('sth list', [t('member')]),
                 path: `/orgs/${orgName}/clusters/${clusterName}/members`,
-                icon: <HiOutlineUserGroup />,
+                icon: HiOutlineUserGroup,
             },
         ],
         [clusterName, orgName, t]

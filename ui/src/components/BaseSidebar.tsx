@@ -4,6 +4,7 @@ import React, { useMemo } from 'react'
 import { useLocation, useHistory } from 'react-router-dom'
 import useSidebarWidth from '@/hooks/useSidebarWidth'
 import { useStyletron } from 'baseui'
+import type { IconBaseProps } from 'react-icons/lib'
 import Text from './Text'
 
 export interface IComposedSidebarProps {
@@ -13,13 +14,14 @@ export interface IComposedSidebarProps {
 
 export interface INavItem {
     title: string
-    icon?: React.ReactNode
+    icon?: React.ComponentType<IconBaseProps>
     path: string
     children?: INavItem[]
 }
 
 function transformNavItems(navItems: INavItem[]): Item[] {
     return navItems.map((item) => {
+        const { icon: Icon } = item
         return {
             title: (
                 <div
@@ -29,7 +31,7 @@ function transformNavItems(navItems: INavItem[]): Item[] {
                         gap: 8,
                     }}
                 >
-                    {item.icon} {item.title}
+                    {Icon && <Icon size={12} />} {item.title}
                 </div>
             ),
             itemId: item.path,
