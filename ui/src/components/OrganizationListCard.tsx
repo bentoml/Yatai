@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react'
 import Card from '@/components/Card'
-import { GrOrganization } from 'react-icons/gr'
 import { createOrganization } from '@/services/organization'
 import { usePage } from '@/hooks/usePage'
 import { ICreateOrganizationSchema } from '@/schemas/organization'
@@ -13,6 +12,7 @@ import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { useFetchOrganizations } from '@/hooks/useFetchOrganizations'
+import { resourceIconMapping } from '@/consts'
 
 export default function OrganizationListCard() {
     const [page, setPage] = usePage()
@@ -31,7 +31,7 @@ export default function OrganizationListCard() {
     return (
         <Card
             title={t('sth list', [t('organization')])}
-            titleIcon={GrOrganization}
+            titleIcon={resourceIconMapping.organization}
             extra={
                 <Button size={ButtonSize.compact} onClick={() => setIsCreateOrganizationOpen(true)}>
                     {t('create')}

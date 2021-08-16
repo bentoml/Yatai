@@ -41,7 +41,7 @@ function transformNavItems(navItems: INavItem[]): Item[] {
 
 export interface IBaseSideBarProps extends IComposedSidebarProps {
     title?: string
-    icon?: React.ReactNode
+    icon?: React.ComponentType<IconBaseProps>
     navItems: INavItem[]
 }
 
@@ -89,7 +89,7 @@ export default function BaseSidebar({ navItems, style, title, icon }: IBaseSideB
                         overflow: 'hidden',
                     }}
                 >
-                    {icon}
+                    {React.createElement(icon, { size: 10 })}
                     <Text
                         style={{
                             fontSize: '12px',

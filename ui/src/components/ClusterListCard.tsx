@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react'
 import Card from '@/components/Card'
-import { GrServerCluster } from 'react-icons/gr'
 import { createCluster } from '@/services/cluster'
 import { usePage } from '@/hooks/usePage'
 import { ICreateClusterSchema } from '@/schemas/cluster'
@@ -13,6 +12,7 @@ import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
+import { resourceIconMapping } from '@/consts'
 
 export interface IClusterListCardProps {
     orgName: string
@@ -35,7 +35,7 @@ export default function ClusterListCard({ orgName }: IClusterListCardProps) {
     return (
         <Card
             title={t('sth list', [t('cluster')])}
-            titleIcon={GrServerCluster}
+            titleIcon={resourceIconMapping.cluster}
             extra={
                 <Button size={ButtonSize.compact} onClick={() => setIsCreateClusterOpen(true)}>
                     {t('create')}

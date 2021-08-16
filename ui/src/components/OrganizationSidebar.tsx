@@ -2,12 +2,11 @@ import { useOrganization, useOrganizationLoading } from '@/hooks/useOrganization
 import useTranslation from '@/hooks/useTranslation'
 import { fetchOrganization } from '@/services/organization'
 import { RiSurveyLine } from 'react-icons/ri'
-import { GrServerCluster, GrOrganization } from 'react-icons/gr'
-import { HiOutlineUserGroup } from 'react-icons/hi'
 import React, { useEffect, useMemo } from 'react'
 import { useQuery } from 'react-query'
 import { useParams } from 'react-router-dom'
-import BaseSidebar, { IComposedSidebarProps, INavItem } from './BaseSidebar'
+import BaseSidebar, { IComposedSidebarProps, INavItem } from '@/components/BaseSidebar'
+import { resourceIconMapping } from '@/consts'
 
 export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
     const { orgName } = useParams<{ orgName: string }>()
@@ -35,15 +34,15 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
             {
                 title: t('sth list', [t('cluster')]),
                 path: `/orgs/${orgName}/clusters`,
-                icon: GrServerCluster,
+                icon: resourceIconMapping.cluster,
             },
             {
                 title: t('sth list', [t('member')]),
                 path: `/orgs/${orgName}/members`,
-                icon: HiOutlineUserGroup,
+                icon: resourceIconMapping.user_group,
             },
         ],
         [orgName, t]
     )
-    return <BaseSidebar title={orgName} icon={<GrOrganization />} navItems={navItems} style={style} />
+    return <BaseSidebar title={orgName} icon={resourceIconMapping.organization} navItems={navItems} style={style} />
 }

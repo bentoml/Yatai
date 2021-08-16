@@ -106,8 +106,19 @@ export default function Card({
                     <div className={styles.cardHeadWrapper}>
                         {title && (
                             <div className={styles.cardHeadTitle}>
-                                {TitleIcon && <TitleIcon size={12} />}
-                                {typeof title === 'string' ? <Text size='large'>{title}</Text> : title}
+                                {TitleIcon && <TitleIcon size={13} />}
+                                {typeof title === 'string' ? (
+                                    <Text
+                                        size='large'
+                                        style={{
+                                            fontWeight: 500,
+                                        }}
+                                    >
+                                        {title}
+                                    </Text>
+                                ) : (
+                                    title
+                                )}
                                 {titleTail}
                             </div>
                         )}

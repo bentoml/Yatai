@@ -1,15 +1,13 @@
 import { useCluster, useClusterLoading } from '@/hooks/useCluster'
 import useTranslation from '@/hooks/useTranslation'
 import { RiSurveyLine } from 'react-icons/ri'
-import { GrCluster } from 'react-icons/gr'
-import { HiOutlineUserGroup } from 'react-icons/hi'
-import { GoPackage } from 'react-icons/go'
 import React, { useEffect, useMemo } from 'react'
 import { useQuery } from 'react-query'
 import { useParams } from 'react-router-dom'
 import BaseSidebar, { IComposedSidebarProps, INavItem } from '@/components/BaseSidebar'
 import { fetchCluster } from '@/services/cluster'
 import { useOrganization } from '@/hooks/useOrganization'
+import { resourceIconMapping } from '@/consts'
 
 export default function ClusterSidebar({ style }: IComposedSidebarProps) {
     const { orgName, clusterName } = useParams<{ orgName: string; clusterName: string }>()
@@ -52,15 +50,15 @@ export default function ClusterSidebar({ style }: IComposedSidebarProps) {
             {
                 title: t('sth list', [t('bundle')]),
                 path: `/orgs/${orgName}/clusters/${clusterName}/bundles`,
-                icon: GoPackage,
+                icon: resourceIconMapping.bundle,
             },
             {
                 title: t('sth list', [t('member')]),
                 path: `/orgs/${orgName}/clusters/${clusterName}/members`,
-                icon: HiOutlineUserGroup,
+                icon: resourceIconMapping.user_group,
             },
         ],
         [clusterName, orgName, t]
     )
-    return <BaseSidebar title={clusterName} icon={<GrCluster />} navItems={navItems} style={style} />
+    return <BaseSidebar title={clusterName} icon={resourceIconMapping.cluster} navItems={navItems} style={style} />
 }

@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react'
 import { useQuery } from 'react-query'
 import Card from '@/components/Card'
-import { GoPackage } from 'react-icons/go'
 import { createBundle, listBundles } from '@/services/bundle'
 import { usePage } from '@/hooks/usePage'
 import { ICreateBundleSchema } from '@/schemas/bundle'
@@ -13,6 +12,7 @@ import User from '@/components/User'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
+import { resourceIconMapping } from '@/consts'
 
 export interface IBundleListCardProps {
     orgName: string
@@ -38,7 +38,7 @@ export default function BundleListCard({ orgName, clusterName }: IBundleListCard
     return (
         <Card
             title={t('sth list', [t('bundle')])}
-            titleIcon={GoPackage}
+            titleIcon={resourceIconMapping.bundle}
             extra={
                 <Button size={ButtonSize.compact} onClick={() => setIsCreateBundleOpen(true)}>
                     {t('create')}
