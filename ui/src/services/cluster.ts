@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { ICreateClusterSchema, IClusterSchema, IUpdateClusterSchema } from '@/schemas/cluster'
+import { ICreateClusterSchema, IClusterSchema, IUpdateClusterSchema, IClusterFullSchema } from '@/schemas/cluster'
 import { IListQuerySchema, IListSchema } from '@/schemas/list'
 
 export async function listClusters(orgName: string, query: IListQuerySchema): Promise<IListSchema<IClusterSchema>> {
@@ -17,8 +17,8 @@ export async function listClusters(orgName: string, query: IListQuerySchema): Pr
     return resp.data
 }
 
-export async function fetchCluster(orgName: string, clusterName: string): Promise<IClusterSchema> {
-    const resp = await axios.get<IClusterSchema>(`/api/v1/orgs/${orgName}/clusters/${clusterName}`)
+export async function fetchCluster(orgName: string, clusterName: string): Promise<IClusterFullSchema> {
+    const resp = await axios.get<IClusterFullSchema>(`/api/v1/orgs/${orgName}/clusters/${clusterName}`)
     return resp.data
 }
 

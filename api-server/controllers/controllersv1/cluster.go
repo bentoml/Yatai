@@ -64,7 +64,7 @@ type CreateClusterSchema struct {
 	GetOrganizationSchema
 }
 
-func (c *clusterController) Create(ctx *gin.Context, schema *CreateClusterSchema) (*schemasv1.ClusterSchema, error) {
+func (c *clusterController) Create(ctx *gin.Context, schema *CreateClusterSchema) (*schemasv1.ClusterFullSchema, error) {
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (c *clusterController) Create(ctx *gin.Context, schema *CreateClusterSchema
 	if err != nil {
 		return nil, errors.Wrap(err, "create cluster")
 	}
-	return transformersv1.ToClusterSchema(ctx, cluster)
+	return transformersv1.ToClusterFullSchema(ctx, cluster)
 }
 
 type UpdateClusterSchema struct {
@@ -97,7 +97,7 @@ type UpdateClusterSchema struct {
 	GetClusterSchema
 }
 
-func (c *clusterController) Update(ctx *gin.Context, schema *UpdateClusterSchema) (*schemasv1.ClusterSchema, error) {
+func (c *clusterController) Update(ctx *gin.Context, schema *UpdateClusterSchema) (*schemasv1.ClusterFullSchema, error) {
 	cluster, err := schema.GetCluster(ctx)
 	if err != nil {
 		return nil, err
@@ -113,10 +113,10 @@ func (c *clusterController) Update(ctx *gin.Context, schema *UpdateClusterSchema
 	if err != nil {
 		return nil, errors.Wrap(err, "update cluster")
 	}
-	return transformersv1.ToClusterSchema(ctx, cluster)
+	return transformersv1.ToClusterFullSchema(ctx, cluster)
 }
 
-func (c *clusterController) Get(ctx *gin.Context, schema *GetClusterSchema) (*schemasv1.ClusterSchema, error) {
+func (c *clusterController) Get(ctx *gin.Context, schema *GetClusterSchema) (*schemasv1.ClusterFullSchema, error) {
 	cluster, err := schema.GetCluster(ctx)
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (c *clusterController) Get(ctx *gin.Context, schema *GetClusterSchema) (*sc
 	if err = c.canView(ctx, cluster); err != nil {
 		return nil, err
 	}
-	return transformersv1.ToClusterSchema(ctx, cluster)
+	return transformersv1.ToClusterFullSchema(ctx, cluster)
 }
 
 type ListClusterSchema struct {
