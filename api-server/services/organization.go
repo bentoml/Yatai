@@ -4,11 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/consts"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/util/validation"
+
+	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/common/consts"
 )
 
 type organizationService struct{}

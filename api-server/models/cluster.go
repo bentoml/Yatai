@@ -12,6 +12,6 @@ type Cluster struct {
 	Config      *modelschemas.ClusterConfigSchema `json:"config"`
 }
 
-func (c *Cluster) GetResourceType() ResourceType {
-	return ResourceTypeCluster
+func (c *Cluster) GetResourceType() modelschemas.ResourceType {
+	return modelschemas.ResourceTypeCluster
 }

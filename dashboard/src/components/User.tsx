@@ -9,6 +9,8 @@ export interface IUserProps {
 }
 
 export default function User({ user, size = 'scale800' }: IUserProps) {
+    const name = !user.first_name && !user.last_name ? user.name : `${user.first_name} ${user.last_name}`
+
     return (
         <div
             style={{
@@ -17,10 +19,8 @@ export default function User({ user, size = 'scale800' }: IUserProps) {
                 gap: 10,
             }}
         >
-            <Avatar size={size} name={`${user.first_name} ${user.last_name}`} src={user.avatar_url} />
-            <Text>
-                {user.first_name} {user.last_name}
-            </Text>
+            <Avatar size={size} name={name} src={user.avatar_url} />
+            <Text>{name}</Text>
         </div>
     )
 }

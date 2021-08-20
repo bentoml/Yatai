@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yatai
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: yatai
+      app.kubernetes.io/name: yatai
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: yatai
+        app.kubernetes.io/name: yatai
+    spec:
+      containers:
+      - args:
+        - exec /app/api-server serve -c /conf/config.yaml
+        command:
+        - sh
+        - -c
+        image: 192023623294.dkr.ecr.ap-northeast-1.amazonaws.com/yatai:10dd31c
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: yatai
+        ports:
+        - containerPort: 7777
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        volumeMounts:
+        - mountPath: /conf
+          name: config
+          readOnly: true
+        - mountPath: /etc/localtime
+          name: host-timezone
+          readOnly: true
+      volumes:
+      - hostPath:
+          path: /etc/localtime
+          type: ""
+        name: host-timezone
+      - name: config
+        secret:
+          defaultMode: 420
+          secretName: yatai

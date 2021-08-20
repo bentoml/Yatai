@@ -3,9 +3,10 @@ package services
 import (
 	"context"
 
+	"gorm.io/gorm"
+
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
-	"gorm.io/gorm"
 )
 
 type deploymentSnapshotService struct{}

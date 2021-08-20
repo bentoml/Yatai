@@ -3,10 +3,11 @@ package transformersv1
 import (
 	"context"
 
+	"github.com/pkg/errors"
+
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/schemas/schemasv1"
-	"github.com/pkg/errors"
 )
 
 func ToBundleSchema(ctx context.Context, bundle *models.Bundle) (*schemasv1.BundleSchema, error) {

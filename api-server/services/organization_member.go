@@ -113,8 +113,8 @@ func (s *organizationMemberService) ListOrganizationIds(ctx context.Context, use
 	return res, err
 }
 
-func (s *organizationMemberService) GetResourceType() models.ResourceType {
-	return models.ResourceTypeOrganization
+func (s *organizationMemberService) GetResourceType() modelschemas.ResourceType {
+	return modelschemas.ResourceTypeOrganization
 }
 
 func (s *organizationMemberService) GetOrganization(ctx context.Context, resourceId uint) (*models.Organization, error) {

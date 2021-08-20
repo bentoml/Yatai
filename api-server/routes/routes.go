@@ -7,10 +7,18 @@ import (
 	"path"
 	"strings"
 
+	"github.com/bentoml/yatai/api-server/controllers/web"
+
 	"github.com/bentoml/yatai/api-server/config"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
+
+	"github.com/gin-gonic/gin"
+	"github.com/loopfz/gadgeto/tonic"
+	"github.com/pkg/errors"
+	"github.com/wI2L/fizz"
+	"github.com/wI2L/fizz/openapi"
 
 	"github.com/bentoml/yatai/api-server/controllers/controllersv1"
 	"github.com/bentoml/yatai/api-server/models"
@@ -19,24 +27,24 @@ import (
 	"github.com/bentoml/yatai/common/scookie"
 	"github.com/bentoml/yatai/common/yataicontext"
 	"github.com/bentoml/yatai/schemas/schemasv1"
-	"github.com/gin-gonic/gin"
-	"github.com/loopfz/gadgeto/tonic"
-	"github.com/pkg/errors"
-	"github.com/wI2L/fizz"
-	"github.com/wI2L/fizz/openapi"
 )
 
 var pwd, _ = os.Getwd()
 
 var staticDirs = map[string]string{
 	"/swagger": path.Join(pwd, "statics/swagger-ui"),
+	"/static":  path.Join(config.GetUIDistDir(), "static"),
+}
+
+var staticFiles = map[string]string{
+	"/favicon.ico": path.Join(config.GetUIDistDir(), "favicon.ico"),
 }
 
 func NewRouter() (*fizz.Fizz, error) {
 	engine := gin.New()
 
 	store := cookie.NewStore([]byte(config.YataiConfig.Server.SessionSecretKey))
-	engine.Use(sessions.Sessions("yatai-session", store))
+	engine.Use(sessions.Sessions("yatai-session-v1", store))
 
 	oauthGrp := engine.Group("oauth")
 	oauthGrp.GET("/github", controllersv1.GithubOAuthLogin)
@@ -75,6 +83,10 @@ func NewRouter() (*fizz.Fizz, error) {
 		engine.Static(p, root)
 	}
 
+	for f, root := range staticFiles {
+		engine.StaticFile(f, root)
+	}
+
 	engine.NoRoute(func(ctx *gin.Context) {
 		if strings.HasPrefix(ctx.Request.URL.Path, "/api/") {
 			ctx.JSON(http.StatusNotFound, &schemasv1.MsgSchema{Message: fmt.Sprintf("not found this router with method %s", ctx.Request.Method)})
@@ -87,6 +99,8 @@ func NewRouter() (*fizz.Fizz, error) {
 				return
 			}
 		}
+
+		web.Index(ctx)
 	})
 
 	return fizzApp, nil

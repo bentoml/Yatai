@@ -5,9 +5,10 @@ import (
 
 	"github.com/bentoml/yatai/api-server/services"
 
+	"github.com/pkg/errors"
+
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/schemas/schemasv1"
-	"github.com/pkg/errors"
 )
 
 func ToBundleVersionSchema(ctx context.Context, version *models.BundleVersion) (*schemasv1.BundleVersionSchema, error) {

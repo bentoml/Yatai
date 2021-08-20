@@ -9,13 +9,14 @@ import (
 	"github.com/bentoml/yatai/common/utils"
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
-	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/consts"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/rs/xid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+
+	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/common/consts"
 )
 
 type userService struct{}
@@ -32,15 +33,15 @@ type CreateUserOption struct {
 	Name           string
 	FirstName      string
 	LastName       string
-	GithubUsername string
-	Email          string
+	GithubUsername *string
+	Email          *string
 	Password       string
 	Perm           *modelschemas.UserPerm
 }
 
 type UpdateUserOption struct {
 	Config         **models.UserConfig
-	GithubUsername *string
+	GithubUsername **string
 }
 
 type ListUserOption struct {
@@ -189,8 +190,14 @@ func (*userService) GetByName(ctx context.Context, name string) (*models.User, e
 	if err != nil {
 		return nil, err
 	}
-	if user.ID == 0 {
-		return nil, consts.ErrNotFound
+	return &user, nil
+}
+
+func (*userService) GetByGithubUsername(ctx context.Context, githubUsername string) (*models.User, error) {
+	var user models.User
+	err := mustGetSession(ctx).Where("github_username = ?", githubUsername).First(&user).Error
+	if err != nil {
+		return nil, err
 	}
 	return &user, nil
 }

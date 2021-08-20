@@ -143,6 +143,13 @@ func StringPtr(s string) *string {
 	return &s
 }
 
+func StringPtrWithoutEmpty(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
 func RenderTemplate(dicts map[string]string, toRenderTmpl string) (string, error) {
 	var output bytes.Buffer
 	t, err := template.New("renderTemplate").Parse(toRenderTmpl)

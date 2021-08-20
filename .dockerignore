@@ -5,4 +5,3 @@ Makefile
 yatai-config.sample.yaml
 Dockerfile
 dashboard/node_modules
-dashboard/build

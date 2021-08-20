@@ -7,10 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/bentoml/yatai/api-server/config"
-	"github.com/bentoml/yatai/common/command"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
+
+	"github.com/bentoml/yatai/api-server/config"
+	"github.com/bentoml/yatai/common/command"
 
 	"github.com/bentoml/yatai/api-server/routes"
 	"github.com/bentoml/yatai/api-server/services"

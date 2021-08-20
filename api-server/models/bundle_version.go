@@ -24,6 +24,6 @@ func (b *BundleVersion) GetName() string {
 	return b.Version
 }
 
-func (b *BundleVersion) GetResourceType() ResourceType {
-	return ResourceTypeBundleVersion
+func (b *BundleVersion) GetResourceType() modelschemas.ResourceType {
+	return modelschemas.ResourceTypeBundleVersion
 }

@@ -6,13 +6,14 @@ import (
 
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
+	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
 	"github.com/bentoml/yatai/common/utils"
 	"github.com/bentoml/yatai/schemas/schemasv1"
-	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 )
 
 type bundleVersionController struct {

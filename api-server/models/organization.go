@@ -10,6 +10,6 @@ type Organization struct {
 	Config      *modelschemas.OrganizationConfigSchema `json:"config"`
 }
 
-func (o *Organization) GetResourceType() ResourceType {
-	return ResourceTypeOrganization
+func (o *Organization) GetResourceType() modelschemas.ResourceType {
+	return modelschemas.ResourceTypeOrganization
 }

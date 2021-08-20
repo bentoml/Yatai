@@ -3,31 +3,37 @@ package services
 import (
 	"context"
 
-	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/schemas/modelschemas"
+
 	"github.com/pkg/errors"
+
+	"github.com/bentoml/yatai/api-server/models"
 )
 
 type resourceService struct{}
 
 var ResourceService = resourceService{}
 
-func (m *resourceService) Get(ctx context.Context, resourceType models.ResourceType, resourceId uint) (models.IResource, error) {
+func (m *resourceService) Get(ctx context.Context, resourceType modelschemas.ResourceType, resourceId uint) (models.IResource, error) {
 	switch resourceType {
-	case models.ResourceTypeUser:
+	case modelschemas.ResourceTypeUser:
 		user, err := UserService.Get(ctx, resourceId)
 		return user, err
-	case models.ResourceTypeOrganization:
+	case modelschemas.ResourceTypeOrganization:
 		org, err := OrganizationService.Get(ctx, resourceId)
 		return org, err
-	case models.ResourceTypeCluster:
+	case modelschemas.ResourceTypeCluster:
 		cluster, err := ClusterService.Get(ctx, resourceId)
 		return cluster, err
-	case models.ResourceTypeBundle:
+	case modelschemas.ResourceTypeBundle:
 		bundle, err := BundleService.Get(ctx, resourceId)
 		return bundle, err
-	case models.ResourceTypeBundleVersion:
+	case modelschemas.ResourceTypeBundleVersion:
 		bundleVersion, err := BundleVersionService.Get(ctx, resourceId)
 		return bundleVersion, err
+	case modelschemas.ResourceTypeDeployment:
+		deployment, err := DeploymentService.Get(ctx, resourceId)
+		return deployment, err
 	default:
 		return nil, errors.Errorf("cannot recognize this resource type: %s", resourceType)
 	}
