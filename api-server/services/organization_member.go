@@ -5,9 +5,10 @@ import (
 
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
+	"gorm.io/gorm"
+
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/utils"
-	"gorm.io/gorm"
 )
 
 type organizationMemberService struct{}
@@ -41,7 +42,7 @@ func (s *organizationMemberService) Create(ctx context.Context, operatorId uint,
 		return nil, err
 	}
 
-	oldMember, err := s.GetBy(ctx, opt.CreatorId, opt.OrganizationId)
+	oldMember, err := s.GetBy(ctx, opt.UserId, opt.OrganizationId)
 	if err != nil && !utils.IsNotFound(err) {
 		return nil, err
 	}

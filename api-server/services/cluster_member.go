@@ -5,10 +5,11 @@ import (
 
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
-	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/utils"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+
+	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/common/utils"
 )
 
 type clusterMemberService struct{}
@@ -46,7 +47,7 @@ func (s *clusterMemberService) Create(ctx context.Context, operatorId uint, opt 
 		return nil, err
 	}
 
-	oldMember, err := s.GetBy(ctx, opt.CreatorId, opt.ClusterId)
+	oldMember, err := s.GetBy(ctx, opt.UserId, opt.ClusterId)
 	if err != nil && !utils.IsNotFound(err) {
 		return nil, err
 	}
