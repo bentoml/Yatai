@@ -10,8 +10,6 @@ import (
 	"k8s.io/client-go/kubernetes/typed/autoscaling/v2beta2"
 	"k8s.io/client-go/rest"
 
-	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/consts"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -21,6 +19,9 @@ import (
 	batchtypev1beta "k8s.io/client-go/kubernetes/typed/batch/v1beta1"
 	apitypev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	exttypev1beta "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
+
+	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/common/consts"
 )
 
 type deploymentService struct{}

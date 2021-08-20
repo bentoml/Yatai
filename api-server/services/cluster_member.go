@@ -20,8 +20,8 @@ func (s *clusterMemberService) getBaseDB(ctx context.Context) *gorm.DB {
 	return mustGetSession(ctx).Model(&models.ClusterMember{})
 }
 
-func (s *clusterMemberService) GetResourceType() models.ResourceType {
-	return models.ResourceTypeCluster
+func (s *clusterMemberService) GetResourceType() modelschemas.ResourceType {
+	return modelschemas.ResourceTypeCluster
 }
 
 type CreateClusterMemberOption struct {

@@ -10,11 +10,12 @@ import (
 
 	"github.com/bentoml/yatai/api-server/config"
 
+	"github.com/pkg/errors"
+	"github.com/rs/xid"
+
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/scookie"
 	"github.com/bentoml/yatai/common/utils"
-	"github.com/pkg/errors"
-	"github.com/rs/xid"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -119,6 +120,7 @@ func GithubOAuthCallBack(ctx *gin.Context) {
 	}
 
 	client := githubConfig.Client(ctx, token)
+	// nolint:noctx
 	userInfo, err := client.Get("https://api.github.com/user")
 	if err != nil {
 		_ = ctx.AbortWithError(http.StatusBadRequest, err)
@@ -151,7 +153,7 @@ func GithubOAuthCallBack(ctx *gin.Context) {
 		total := 1000
 
 		for i := 0; i < total; i++ {
-			user, err = services.UserService.GetByName(ctx, userName)
+			_, err = services.UserService.GetByName(ctx, userName)
 			userIsNotFound = utils.IsNotFound(err)
 			if err != nil && !userIsNotFound {
 				_ = ctx.AbortWithError(http.StatusInternalServerError, err)

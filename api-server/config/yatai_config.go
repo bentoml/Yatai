@@ -4,8 +4,9 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/bentoml/yatai/common/consts"
 	"github.com/pkg/errors"
+
+	"github.com/bentoml/yatai/common/consts"
 )
 
 type YataiServerConfigYaml struct {

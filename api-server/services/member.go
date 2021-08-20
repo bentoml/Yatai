@@ -14,7 +14,7 @@ import (
 type IMemberManager interface {
 	CheckRoles(ctx context.Context, userId, resourceId uint, roles []modelschemas.MemberRole) (bool, error)
 	GetOrganization(ctx context.Context, resourceId uint) (*models.Organization, error)
-	GetResourceType() models.ResourceType
+	GetResourceType() modelschemas.ResourceType
 }
 
 type memberService struct{}

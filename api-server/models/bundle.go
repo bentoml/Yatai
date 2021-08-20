@@ -1,5 +1,7 @@
 package models
 
+import "github.com/bentoml/yatai/schemas/modelschemas"
+
 type Bundle struct {
 	ResourceMixin
 	CreatorAssociate
@@ -7,6 +9,6 @@ type Bundle struct {
 	Description string `json:"description"`
 }
 
-func (b *Bundle) GetResourceType() ResourceType {
-	return ResourceTypeBundle
+func (b *Bundle) GetResourceType() modelschemas.ResourceType {
+	return modelschemas.ResourceTypeBundle
 }

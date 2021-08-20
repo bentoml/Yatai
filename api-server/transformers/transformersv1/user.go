@@ -2,6 +2,7 @@ package transformersv1
 
 import (
 	"context"
+	// nolint: gosec
 	"crypto/md5"
 	"encoding/hex"
 
@@ -9,9 +10,10 @@ import (
 
 	"github.com/bentoml/yatai/api-server/services"
 
+	"github.com/pkg/errors"
+
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/schemas/schemasv1"
-	"github.com/pkg/errors"
 )
 
 const gravatarMirrorUrl = "https://en.gravatar.com/avatar/"

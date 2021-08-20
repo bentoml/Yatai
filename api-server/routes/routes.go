@@ -14,6 +14,12 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 
+	"github.com/gin-gonic/gin"
+	"github.com/loopfz/gadgeto/tonic"
+	"github.com/pkg/errors"
+	"github.com/wI2L/fizz"
+	"github.com/wI2L/fizz/openapi"
+
 	"github.com/bentoml/yatai/api-server/controllers/controllersv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
@@ -21,11 +27,6 @@ import (
 	"github.com/bentoml/yatai/common/scookie"
 	"github.com/bentoml/yatai/common/yataicontext"
 	"github.com/bentoml/yatai/schemas/schemasv1"
-	"github.com/gin-gonic/gin"
-	"github.com/loopfz/gadgeto/tonic"
-	"github.com/pkg/errors"
-	"github.com/wI2L/fizz"
-	"github.com/wI2L/fizz/openapi"
 )
 
 var pwd, _ = os.Getwd()

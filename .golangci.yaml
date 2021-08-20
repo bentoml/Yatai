@@ -45,6 +45,8 @@ linters:
   presets:
     - bugs
     - unused
+  disable:
+    - unused
   enable:
     - bodyclose
     - deadcode
@@ -54,7 +56,6 @@ linters:
     - sqlclosecheck
     - structcheck
     - typecheck
-    - unused
     - gofmt
     - unconvert
     - staticcheck

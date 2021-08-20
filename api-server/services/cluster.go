@@ -7,8 +7,6 @@ import (
 
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
-	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/consts"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -16,6 +14,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/common/consts"
 
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"

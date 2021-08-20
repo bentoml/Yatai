@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/bentoml/yatai/schemas/modelschemas"
+)
 
 type DeploymentStatus string
 
@@ -22,4 +26,8 @@ type Deployment struct {
 	Status          DeploymentStatus `json:"status"`
 	StatusSyncingAt *time.Time       `json:"status_syncing_at"`
 	StatusUpdatedAt *time.Time       `json:"status_updated_at"`
+}
+
+func (d *Deployment) GetResourceType() modelschemas.ResourceType {
+	return modelschemas.ResourceTypeDeployment
 }

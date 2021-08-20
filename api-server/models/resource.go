@@ -1,18 +1,9 @@
 package models
 
-type ResourceType string
-
-const (
-	ResourceTypeUser          ResourceType = "user"
-	ResourceTypeOrganization  ResourceType = "organization"
-	ResourceTypeCluster       ResourceType = "cluster"
-	ResourceTypeBundle        ResourceType = "bundle"
-	ResourceTypeBundleVersion ResourceType = "bundle_version"
-	ResourceTypeDeployment    ResourceType = "deployment"
-)
+import "github.com/bentoml/yatai/schemas/modelschemas"
 
 type IResource interface {
 	IBaseModel
-	GetResourceType() ResourceType
+	GetResourceType() modelschemas.ResourceType
 	GetName() string
 }

@@ -38,8 +38,8 @@ func (c *UserConfig) Value() (driver.Value, error) {
 	return json.Marshal(c)
 }
 
-func (u *User) GetResourceType() ResourceType {
-	return ResourceTypeUser
+func (u *User) GetResourceType() modelschemas.ResourceType {
+	return modelschemas.ResourceTypeUser
 }
 
 func (u *User) IsSuperAdmin() bool {

@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/consts"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	apiv1 "k8s.io/api/core/v1"
@@ -14,6 +12,9 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	v1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/utils/pointer"
+
+	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/common/consts"
 )
 
 type kubePodService struct{}
@@ -134,6 +135,7 @@ func (s *kubePodService) DeleteKubePod(ctx context.Context, deployment *models.D
 	return podsCli.Delete(ctx, kubePodName, options)
 }
 
+// nolint:unused,deadcode
 func getResourcesConfig(containerName string, resources *models.DeploymentResources, resourceMap map[string]*models.DeploymentResources, gpuNvidiaResourceRequest bool) (apiv1.ResourceRequirements, error) {
 	currentResources := apiv1.ResourceRequirements{
 		Requests: apiv1.ResourceList{

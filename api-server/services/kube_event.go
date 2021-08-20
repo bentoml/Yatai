@@ -6,14 +6,15 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/consts"
 	"github.com/pkg/errors"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/common/consts"
 )
 
 var KubeEventFailedReasonPartials = []string{"failed", "err", "exceeded", "invalid", "unhealthy",
