@@ -31,41 +31,41 @@ pull-ui-builder-image:
 pull-builder-image:
 	docker pull $(BUILDER_IMG) || true
 
-docker-build-ui: pull-ui-builder-image
+docker-build-ui: pull-ui-builder-image ## Docker build UI
 	$(UI_BUILDER_CNTR_CMD) sh -c "cd dashboard; ln -s /cache/node_modules ./node_modules; yarn build"
 	echo "build ui done"
 
-docker-golint: pull-builder-image
+docker-golint: pull-builder-image ## Docker golint
 	$(BUILDER_CNTR_CMD) ./scripts/ci/golint.sh
 
-docker-gofmt-chk: pull-builder-image
+docker-gofmt-chk: pull-builder-image ## Docker gofmt-check
 	$(BUILDER_CNTR_CMD) ./scripts/ci/gofmt-check.sh
 
-docker-gofmt-fmt: pull-builder-image
+docker-gofmt-fmt: pull-builder-image ## Docker gofmt
 	$(BUILDER_CNTR_CMD) ./scripts/ci/gofmt.sh -w
 
-docker-eslint: pull-ui-builder-image
+docker-eslint: pull-ui-builder-image ## Docker eslint
 	$(UI_BUILDER_CNTR_CMD) sh -c "cd dashboard; ln -s /cache/node_modules ./node_modules; yarn lint"
 
-docker-ui-typecheck: pull-ui-builder-image
+docker-ui-typecheck: pull-ui-builder-image ## Docker typecheck
 	$(UI_BUILDER_CNTR_CMD) sh -c "cd dashboard; ln -s /cache/node_modules ./node_modules; yarn typecheck"
 
-docker-build-api-server: pull-builder-image
+docker-build-api-server: pull-builder-image ## Build api-server binary
 	$(BUILDER_CNTR_CMD) sh -c "mkdir -p ./bin; go build -o ./bin/api-server ./api-server/main.go"
 
-build-builder-image:
+build-builder-image: ## Build builder image
 	docker build -f Dockerfile-builder -t $(BUILDER_IMG) . || exit 1
 	docker push $(BUILDER_IMG)
 
-build-ui-builder-image: pull-ui-builder-image
+build-ui-builder-image: pull-ui-builder-image ## Build UI builder image
 	docker build -f Dockerfile-ui-builder -t $(UI_BUILDER_IMG) . || exit 1
 	docker push $(UI_BUILDER_IMG)
 
-build-image:
+build-image: ## Build Yatai image
 	docker build -t $(YATAI_IMG) .
 	docker push $(YATAI_IMG)
 
-build: docker-build-ui docker-build-api-server build-image
+build: docker-build-ui docker-build-api-server build-image ## Build pipeline
 
 ui-builder-cli:
 	$(UI_BUILDER_CNTR_TTY_CMD) sh
@@ -75,10 +75,6 @@ help: ## Show all Makefile targets
 
 yatai-dev: ## Run yatai(be and fe) in development mode
 	@make -j2 be-run fe-run
-yatai-d: ## Build docker images
-	@docker build -t yatai:production .
-yatai-d-r: ## Run docker image
-	@docker run -it -p 3000:3000 -p 7777:7777 yatai:production
 
 be-deps: ## Fetch Golang deps
 	@echo "Downloading go modules..."
