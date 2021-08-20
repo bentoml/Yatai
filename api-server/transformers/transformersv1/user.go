@@ -19,9 +19,12 @@ import (
 const gravatarMirrorUrl = "https://en.gravatar.com/avatar/"
 
 func getAvatarUrl(user *models.User) (string, error) {
+	if user.Email == nil {
+		return "", nil
+	}
 	// nolint: gosec
 	hasher := md5.New()
-	_, err := hasher.Write([]byte(user.Email))
+	_, err := hasher.Write([]byte(*user.Email))
 	if err != nil {
 		return "", err
 	}
@@ -50,11 +53,15 @@ func ToUserSchemas(ctx context.Context, users []*models.User) ([]*schemasv1.User
 		if err != nil {
 			return nil, errors.Wrap(err, "get avatar url")
 		}
+		email := ""
+		if u.Email != nil {
+			email = *u.Email
+		}
 		res = append(res, &schemasv1.UserSchema{
 			ResourceSchema: ToResourceSchema(u),
 			FirstName:      u.FirstName,
 			LastName:       u.LastName,
-			Email:          u.Email,
+			Email:          email,
 			AvatarUrl:      avatarUrl,
 		})
 	}

@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/bentoml/yatai/api-server/models"
+
 	"github.com/bentoml/yatai/api-server/config"
 
 	"github.com/pkg/errors"
@@ -141,15 +143,31 @@ func GithubOAuthCallBack(ctx *gin.Context) {
 		return
 	}
 
-	user, err := services.UserService.GetByEmail(ctx, githubUser.Email)
+	var email *string
+	if githubUser.Email != "" {
+		email = utils.StringPtr(githubUser.Email)
+	}
+
+	var user *models.User
+
+	user, err = services.UserService.GetByGithubUsername(ctx, githubUser.Login)
 	userIsNotFound := utils.IsNotFound(err)
 	if err != nil && !userIsNotFound {
 		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
+	if userIsNotFound && email != nil {
+		user, err = services.UserService.GetByEmail(ctx, *email)
+		userIsNotFound = utils.IsNotFound(err)
+		if err != nil && !userIsNotFound {
+			_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+	}
+
 	if userIsNotFound {
-		userName := githubUser.Name
+		userName := githubUser.Login
 		total := 1000
 
 		for i := 0; i < total; i++ {
@@ -162,24 +180,25 @@ func GithubOAuthCallBack(ctx *gin.Context) {
 			if userIsNotFound {
 				break
 			}
-			userName = fmt.Sprintf("%s-%d", githubUser.Name, i)
+			userName = fmt.Sprintf("%s-%d", githubUser.Login, i)
 		}
 
 		user, err = services.UserService.Create(ctx, services.CreateUserOption{
 			Name:           userName,
 			FirstName:      githubUser.Name,
 			LastName:       "",
-			Email:          githubUser.Email,
+			Email:          email,
 			Password:       "",
-			GithubUsername: githubUser.Name,
+			GithubUsername: utils.StringPtr(githubUser.Login),
 		})
 		if err != nil {
 			_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 	} else {
+		githubUsername := utils.StringPtr(githubUser.Login)
 		user, err = services.UserService.Update(ctx, user, services.UpdateUserOption{
-			GithubUsername: utils.StringPtr(githubUser.Name),
+			GithubUsername: &githubUsername,
 		})
 		if err != nil {
 			_ = ctx.AbortWithError(http.StatusInternalServerError, err)

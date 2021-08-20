@@ -12,11 +12,11 @@ type User struct {
 	Perm            modelschemas.UserPerm `json:"perm"`
 	FirstName       string                `json:"first_name"`
 	LastName        string                `json:"last_name"`
-	Email           string                `json:"email"`
+	Email           *string               `json:"email"`
 	Password        string                `json:"password"`
 	ApiToken        string                `json:"api_token"`
 	IsEmailVerified bool                  `json:"is_email_verified"`
-	GithubUsername  string                `json:"github_username"`
+	GithubUsername  *string               `json:"github_username"`
 	Config          *UserConfig           `json:"config"`
 }
 

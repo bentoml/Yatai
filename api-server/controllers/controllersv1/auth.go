@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/bentoml/yatai/common/utils"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 
@@ -25,7 +27,7 @@ func (*authController) Register(ctx *gin.Context, schema *schemasv1.RegisterUser
 		Name:      schema.Name,
 		FirstName: schema.FirstName,
 		LastName:  schema.LastName,
-		Email:     schema.Email,
+		Email:     utils.StringPtrWithoutEmpty(schema.Email),
 		Password:  schema.Password,
 	})
 	if err != nil {
