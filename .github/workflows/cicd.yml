@@ -1,0 +1,219 @@
+name: CICD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  workflow_dispatch:
+
+jobs:
+  build-ui-builder:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            dependencies:
+              - dashboard/yarn.lock
+
+      - name: Build dashboard builder image
+        run: make build-ui-builder-image
+        if: steps.changes.outputs.dependencies == 'true'
+
+  eslint:
+    runs-on: ubuntu-latest
+
+    needs:
+      - build-ui-builder
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: eslint
+        run: make docker-eslint
+
+  golint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: golint
+        run: make docker-golint
+
+  build-dashboard:
+    runs-on: ubuntu-latest
+
+    if: github.ref == 'refs/heads/main'
+
+    needs:
+      - eslint
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build dashboard
+        run: make docker-build-ui
+
+      - name: Archive dashboard artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: dashboard-artifacts
+          path: dashboard/build/
+
+  build-api-server:
+    runs-on: ubuntu-latest
+
+    if: github.ref == 'refs/heads/main'
+
+    needs:
+      - golint
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Build api-server
+        run: make docker-build-api-server
+        env:
+          GOMOD_CACHE: ~/go/pkg/mod
+
+      - name: Archive api-server artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: api-server-artifacts
+          path: bin/
+
+  build-image:
+    runs-on: ubuntu-latest
+
+    if: github.ref == 'refs/heads/main'
+
+    needs:
+      - build-dashboard
+      - build-api-server
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Download dashboard artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: dashboard-artifacts
+          path: dashboard/build/
+
+      - name: Download api-server artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: api-server-artifacts
+          path: bin/
+
+      - name: Build yatai image
+        run: make build-image
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    if: github.ref == 'refs/heads/main'
+
+    needs:
+      - build-image
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: Azure/k8s-set-context@v1
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Set git sha_short outputs
+        id: vars
+        run: echo "::set-output name=sha_short::$(git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)"
+
+      - uses: Azure/k8s-deploy@v1.4
+        with:
+          namespace: yatai-system
+          manifests: |
+            scripts/manifests/deployment.yml
+          images: |
+            192023623294.dkr.ecr.ap-northeast-1.amazonaws.com/yatai:${{ steps.vars.outputs.sha_short }}

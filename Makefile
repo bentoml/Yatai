@@ -7,9 +7,12 @@ BUILDER_IMG := $(DOCKER_REGISTRY)/yatai-builder:1.0
 UI_BUILDER_IMG := $(DOCKER_REGISTRY)/yatai-ui-builder:1.0
 YATAI_IMG := $(DOCKER_REGISTRY)/yatai:$(VERSION)
 
+GOMOD_CACHE ?= "$(GOPATH)/pkg/mod"
+
 BASE_CNTR_ARGS := -u root \
 	--privileged --rm --net=host \
 	-e GOPROXY=https://goproxy.io \
+	-v ${GOMOD_CACHE}:/go/pkg/mod \
 	-v $(realpath /etc/localtime):/etc/localtime:ro \
 	-v $(PWD):/code \
 	-w /code
