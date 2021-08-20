@@ -1,0 +1,9 @@
+FROM node:14
+
+RUN yarn global add node-sass@4.14.1
+RUN mkdir /cache
+WORKDIR /cache
+COPY ./dashboard/package.json .
+COPY ./dashboard/yarn.lock .
+RUN yarn
+ENV PATH=${PATH}:/cache/node_modules/.bin

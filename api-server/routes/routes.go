@@ -7,6 +7,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/bentoml/yatai/api-server/controllers/web"
+
 	"github.com/bentoml/yatai/api-server/config"
 
 	"github.com/gin-contrib/sessions"
@@ -30,6 +32,11 @@ var pwd, _ = os.Getwd()
 
 var staticDirs = map[string]string{
 	"/swagger": path.Join(pwd, "statics/swagger-ui"),
+	"/static":  path.Join(config.GetUIDistDir(), "static"),
+}
+
+var staticFiles = map[string]string{
+	"/favicon.ico": path.Join(config.GetUIDistDir(), "favicon.ico"),
 }
 
 func NewRouter() (*fizz.Fizz, error) {
@@ -75,6 +82,10 @@ func NewRouter() (*fizz.Fizz, error) {
 		engine.Static(p, root)
 	}
 
+	for f, root := range staticFiles {
+		engine.StaticFile(f, root)
+	}
+
 	engine.NoRoute(func(ctx *gin.Context) {
 		if strings.HasPrefix(ctx.Request.URL.Path, "/api/") {
 			ctx.JSON(http.StatusNotFound, &schemasv1.MsgSchema{Message: fmt.Sprintf("not found this router with method %s", ctx.Request.Method)})
@@ -87,6 +98,8 @@ func NewRouter() (*fizz.Fizz, error) {
 				return
 			}
 		}
+
+		web.Index(ctx)
 	})
 
 	return fizzApp, nil
