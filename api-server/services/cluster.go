@@ -58,6 +58,7 @@ type ListClusterOption struct {
 	VisitorId      *uint
 	OrganizationId *uint
 	Ids            *[]uint
+	Order          *string
 }
 
 func (s *clusterService) Create(ctx context.Context, opt CreateClusterOption) (*models.Cluster, error) {
@@ -139,6 +140,18 @@ func (s *clusterService) Get(ctx context.Context, id uint) (*models.Cluster, err
 	return &cluster, nil
 }
 
+func (s *clusterService) GetByUid(ctx context.Context, uid string) (*models.Cluster, error) {
+	var cluster models.Cluster
+	err := getBaseQuery(ctx, s).Where("uid = ?", uid).First(&cluster).Error
+	if err != nil {
+		return nil, err
+	}
+	if cluster.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &cluster, nil
+}
+
 func (s *clusterService) GetByName(ctx context.Context, organizationId uint, name string) (*models.Cluster, error) {
 	var cluster models.Cluster
 	err := getBaseQuery(ctx, s).Where("organization_id = ?", organizationId).Where("name = ?", name).First(&cluster).Error
@@ -195,7 +208,11 @@ func (s *clusterService) List(ctx context.Context, opt ListClusterOption) ([]*mo
 	}
 	query = opt.BindQuery(query)
 	if opt.Ids == nil {
-		query = query.Order("id DESC")
+		if opt.Order == nil {
+			query = query.Order("id DESC")
+		} else {
+			query = query.Order(*opt.Order)
+		}
 	}
 	err = query.Find(&clusters).Error
 	if err != nil {

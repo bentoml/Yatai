@@ -5,6 +5,21 @@ export type BentoVersionUploadStatus = 'pending' | 'uploading' | 'success' | 'fa
 
 export type BentoVersionBuildStatus = 'pending' | 'building' | 'success' | 'failed'
 
+export interface IBentoVersionManifestSchema {
+    metadata: {
+        service_name: string
+        service_version: string
+        module_name: string
+        module_version: string
+    }
+    apis: {
+        name: string
+        docs: string
+        input_type: string
+        output_type: string
+    }[]
+}
+
 export interface IBentoVersionSchema extends IResourceSchema {
     creator?: IUserSchema
     version: string
@@ -14,12 +29,16 @@ export interface IBentoVersionSchema extends IResourceSchema {
     upload_started_at?: string
     upload_finished_at?: string
     upload_finished_reason: string
-    s3_uri: string
+    presigned_s3_uri: string
+    manifest: IBentoVersionManifestSchema
+    build_at: string
 }
 
 export interface ICreateBentoVersionSchema {
     description: string
     version: string
+    build_at: string
+    manifest: IBentoVersionManifestSchema
 }
 
 export interface IFinishUploadBentoVersionSchema {

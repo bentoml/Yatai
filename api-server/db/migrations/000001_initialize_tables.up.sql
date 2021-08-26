@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS "bento" (
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     name VARCHAR(128) NOT NULL,
     description TEXT,
+    manifest TEXT,
     organization_id INTEGER NOT NULL REFERENCES "organization"("id") ON DELETE CASCADE,
     creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -148,6 +149,7 @@ CREATE TABLE IF NOT EXISTS "bento_version" (
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     version VARCHAR(512) NOT NULL,
     description TEXT,
+    manifest TEXT,
     file_path TEXT,
     bento_id INTEGER NOT NULL REFERENCES bento("id") ON DELETE CASCADE,
     upload_status bento_version_upload_status NOT NULL DEFAULT 'pending',
@@ -156,6 +158,7 @@ CREATE TABLE IF NOT EXISTS "bento_version" (
     upload_finished_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     upload_finished_reason TEXT,
     creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
+    build_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE

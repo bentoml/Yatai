@@ -19,10 +19,12 @@ type OrganizationListSchema struct {
 }
 
 type UpdateOrganizationSchema struct {
-	Description *string `json:"description"`
+	Description *string                                 `json:"description"`
+	Config      **modelschemas.OrganizationConfigSchema `json:"config"`
 }
 
 type CreateOrganizationSchema struct {
-	UpdateOrganizationSchema
-	Name string `json:"name"`
+	Name        string                                 `json:"name"`
+	Description string                                 `json:"description"`
+	Config      *modelschemas.OrganizationConfigSchema `json:"config"`
 }

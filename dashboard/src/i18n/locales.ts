@@ -24,6 +24,10 @@ const locales0 = {
         en: 'Created At',
         cn: '创建时间',
     },
+    'build_at': {
+        en: 'Build At',
+        cn: '编译时间',
+    },
     'user group': {
         en: 'User Group',
         cn: '用户组',

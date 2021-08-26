@@ -47,6 +47,9 @@ export default function BentoVersionForm({ bentoVersion, onSubmit }: IBentoVersi
             <FormItem name='description' label={t('description')}>
                 <Textarea />
             </FormItem>
+            <FormItem name='build_at' label={t('build_at')}>
+                <Input />
+            </FormItem>
             <FormItem>
                 <div style={{ display: 'flex' }}>
                     <div style={{ flexGrow: 1 }} />

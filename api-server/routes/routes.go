@@ -145,7 +145,7 @@ func requireLogin(ctx *gin.Context) {
 }
 
 func authRoutes(grp *fizz.RouterGroup) {
-	grp = grp.Group("/auth", "auth", "auth")
+	grp = grp.Group("/auth", "auth", "auth api")
 
 	grp.POST("/register", []fizz.OperationOption{
 		fizz.ID("Register an user"),
@@ -161,6 +161,14 @@ func authRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Get current user"),
 		fizz.Summary("Get current user"),
 	}, requireLogin, tonic.Handler(controllersv1.AuthController.GetCurrentUser, 200))
+
+	grp.PUT("/current/api_token", []fizz.OperationOption{
+		fizz.ID("Generate current user api_token"),
+	}, requireLogin, tonic.Handler(controllersv1.AuthController.GenerateApiToken, 200))
+
+	grp.DELETE("/current/api_token", []fizz.OperationOption{
+		fizz.ID("Delete current user api_token"),
+	}, requireLogin, tonic.Handler(controllersv1.AuthController.DeleteApiToken, 200))
 }
 
 func userRoutes(grp *fizz.RouterGroup) {
