@@ -102,38 +102,38 @@ func (a *NullableClusterAssociate) SetAssociatedClusterCache(cluster *Cluster) {
 	a.AssociatedClusterCache = cluster
 }
 
-type BundleAssociate struct {
-	BundleId              uint    `json:"bundle_id"`
-	AssociatedBundleCache *Bundle `gorm:"foreignkey:BundleId"`
+type BentoAssociate struct {
+	BentoId              uint   `json:"bento_id"`
+	AssociatedBentoCache *Bento `gorm:"foreignkey:BentoId"`
 }
 
-func (a *BundleAssociate) GetAssociatedBundleId() uint {
-	return a.BundleId
+func (a *BentoAssociate) GetAssociatedBentoId() uint {
+	return a.BentoId
 }
 
-func (a *BundleAssociate) GetAssociatedBundleCache() *Bundle {
-	return a.AssociatedBundleCache
+func (a *BentoAssociate) GetAssociatedBentoCache() *Bento {
+	return a.AssociatedBentoCache
 }
 
-func (a *BundleAssociate) SetAssociatedBundleCache(bundle *Bundle) {
-	a.AssociatedBundleCache = bundle
+func (a *BentoAssociate) SetAssociatedBentoCache(bento *Bento) {
+	a.AssociatedBentoCache = bento
 }
 
-type BundleVersionAssociate struct {
-	BundleVersionId              uint           `json:"bundle_version_id"`
-	AssociatedBundleVersionCache *BundleVersion `gorm:"foreignkey:BundleVersionId"`
+type BentoVersionAssociate struct {
+	BentoVersionId              uint          `json:"bento_version_id"`
+	AssociatedBentoVersionCache *BentoVersion `gorm:"foreignkey:BentoVersionId"`
 }
 
-func (a *BundleVersionAssociate) GetAssociatedBundleVersionId() uint {
-	return a.BundleVersionId
+func (a *BentoVersionAssociate) GetAssociatedBentoVersionId() uint {
+	return a.BentoVersionId
 }
 
-func (a *BundleVersionAssociate) GetAssociatedBundleVersionCache() *BundleVersion {
-	return a.AssociatedBundleVersionCache
+func (a *BentoVersionAssociate) GetAssociatedBentoVersionCache() *BentoVersion {
+	return a.AssociatedBentoVersionCache
 }
 
-func (a *BundleVersionAssociate) SetAssociatedBundleVersionCache(bundle *BundleVersion) {
-	a.AssociatedBundleVersionCache = bundle
+func (a *BentoVersionAssociate) SetAssociatedBentoVersionCache(bentoVersion *BentoVersion) {
+	a.AssociatedBentoVersionCache = bentoVersion
 }
 
 type DeploymentAssociate struct {
@@ -149,6 +149,6 @@ func (a *DeploymentAssociate) GetAssociatedDeploymentCache() *Deployment {
 	return a.AssociatedDeploymentCache
 }
 
-func (a *DeploymentAssociate) SetAssociatedDeploymentCache(bundle *Deployment) {
-	a.AssociatedDeploymentCache = bundle
+func (a *DeploymentAssociate) SetAssociatedDeploymentCache(deployment *Deployment) {
+	a.AssociatedDeploymentCache = deployment
 }

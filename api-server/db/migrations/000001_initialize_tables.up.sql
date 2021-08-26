@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS "cluster_member" (
 
 CREATE UNIQUE INDEX "uk_clusterMember_userGroupId_userId" ON "cluster_member" ("cluster_id", "user_group_id", "user_id");
 
-CREATE TABLE IF NOT EXISTS "bundle" (
+CREATE TABLE IF NOT EXISTS "bento" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     name VARCHAR(128) NOT NULL,
@@ -138,20 +138,20 @@ CREATE TABLE IF NOT EXISTS "bundle" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE UNIQUE INDEX "uk_bundle_orgId_name" ON "bundle" ("organization_id", "name");
+CREATE UNIQUE INDEX "uk_bento_orgId_name" ON bento ("organization_id", "name");
 
-CREATE TYPE "bundle_version_upload_status" AS ENUM ('pending', 'uploading', 'success', 'failed');
-CREATE TYPE "bundle_version_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
+CREATE TYPE "bento_version_upload_status" AS ENUM ('pending', 'uploading', 'success', 'failed');
+CREATE TYPE "bento_version_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
 
-CREATE TABLE IF NOT EXISTS "bundle_version" (
+CREATE TABLE IF NOT EXISTS "bento_version" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     version VARCHAR(512) NOT NULL,
     description TEXT,
     file_path TEXT,
-    bundle_id INTEGER NOT NULL REFERENCES "bundle"("id") ON DELETE CASCADE,
-    upload_status bundle_version_upload_status NOT NULL DEFAULT 'pending',
-    build_status bundle_version_build_status NOT NULL DEFAULT 'pending',
+    bento_id INTEGER NOT NULL REFERENCES bento("id") ON DELETE CASCADE,
+    upload_status bento_version_upload_status NOT NULL DEFAULT 'pending',
+    build_status bento_version_build_status NOT NULL DEFAULT 'pending',
     upload_started_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     upload_finished_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     upload_finished_reason TEXT,
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS "bundle_version" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE UNIQUE INDEX "uk_bundleVersion_bundleId_version" ON "bundle_version" ("bundle_id", "version");
+CREATE UNIQUE INDEX "uk_bentoVersion_bentoId_version" ON "bento_version" ("bento_id", "version");
 
 CREATE TYPE "deployment_status" AS ENUM ('unknown', 'non-deployed', 'failed', 'unhealthy', 'deploying', 'running');
 
@@ -186,7 +186,7 @@ CREATE TABLE IF NOT EXISTS "deployment_snapshot" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     deployment_id INTEGER NOT NULL REFERENCES "deployment"("id") ON DELETE CASCADE,
-    bundle_version_id INTEGER REFERENCES "bundle_version"("id") ON DELETE CASCADE,
+    bento_version_id INTEGER REFERENCES "bento_version"("id") ON DELETE CASCADE,
     config TEXT DEFAULT '{}',
     creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -194,7 +194,7 @@ CREATE TABLE IF NOT EXISTS "deployment_snapshot" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TYPE "resource_type" AS ENUM ('organization', 'cluster', 'bundle', 'bundle_version', 'deployment', 'deployment_snapshot');
+CREATE TYPE "resource_type" AS ENUM ('organization', 'cluster', 'bento', 'bento_version', 'deployment', 'deployment_snapshot');
 
 CREATE TABLE IF NOT EXISTS "event" (
     id SERIAL PRIMARY KEY,

@@ -220,7 +220,7 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.Create, 200))
 
 	clusterRoutes(resourceGrp)
-	bundleRoutes(resourceGrp)
+	bentoRoutes(resourceGrp)
 }
 
 func clusterRoutes(grp *fizz.RouterGroup) {
@@ -264,61 +264,61 @@ func clusterRoutes(grp *fizz.RouterGroup) {
 	}, requireLogin, tonic.Handler(controllersv1.ClusterController.Create, 200))
 }
 
-func bundleRoutes(grp *fizz.RouterGroup) {
-	grp = grp.Group("/bundles", "bundles", "bundles")
+func bentoRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/bentos", "bentos", "bentos")
 
-	resourceGrp := grp.Group("/:bundleName", "bundle resource", "bundle resource")
+	resourceGrp := grp.Group("/:bentoName", "bento resource", "bento resource")
 
 	resourceGrp.GET("", []fizz.OperationOption{
-		fizz.ID("Get a bundle"),
-		fizz.Summary("Get a bundle"),
-	}, requireLogin, tonic.Handler(controllersv1.BundleController.Get, 200))
+		fizz.ID("Get a bento"),
+		fizz.Summary("Get a bento"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.Get, 200))
 
 	resourceGrp.PATCH("", []fizz.OperationOption{
-		fizz.ID("Update a bundle"),
-		fizz.Summary("Update a bundle"),
-	}, requireLogin, tonic.Handler(controllersv1.BundleController.Update, 200))
+		fizz.ID("Update a bento"),
+		fizz.Summary("Update a bento"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.Update, 200))
 
 	grp.GET("", []fizz.OperationOption{
-		fizz.ID("List bundles"),
-		fizz.Summary("List bundles"),
-	}, requireLogin, tonic.Handler(controllersv1.BundleController.List, 200))
+		fizz.ID("List bentos"),
+		fizz.Summary("List bentos"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.List, 200))
 
 	grp.POST("", []fizz.OperationOption{
-		fizz.ID("Create bundle"),
-		fizz.Summary("Create bundle"),
-	}, requireLogin, tonic.Handler(controllersv1.BundleController.Create, 200))
+		fizz.ID("Create bento"),
+		fizz.Summary("Create bento"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.Create, 200))
 
-	bundleVersionRoutes(resourceGrp)
+	bentoVersionRoutes(resourceGrp)
 }
 
-func bundleVersionRoutes(grp *fizz.RouterGroup) {
-	grp = grp.Group("/versions", "bundle versions", "bundle versions")
+func bentoVersionRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/versions", "bento versions", "bento versions")
 
-	resourceGrp := grp.Group("/:version", "bundle version resource", "bundle version resource")
+	resourceGrp := grp.Group("/:version", "bento version resource", "bento version resource")
 
 	resourceGrp.GET("", []fizz.OperationOption{
-		fizz.ID("Get a bundle version"),
-		fizz.Summary("Get a bundle version"),
-	}, requireLogin, tonic.Handler(controllersv1.BundleVersionController.Get, 200))
+		fizz.ID("Get a bento version"),
+		fizz.Summary("Get a bento version"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.Get, 200))
 
 	resourceGrp.PATCH("/start_upload", []fizz.OperationOption{
-		fizz.ID("Start upload a bundle version"),
-		fizz.Summary("Start upload a bundle version"),
-	}, requireLogin, tonic.Handler(controllersv1.BundleVersionController.StartUpload, 200))
+		fizz.ID("Start upload a bento version"),
+		fizz.Summary("Start upload a bento version"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.StartUpload, 200))
 
 	resourceGrp.PATCH("/finish_upload", []fizz.OperationOption{
-		fizz.ID("Finish upload a bundle version"),
-		fizz.Summary("Finish upload a bundle version"),
-	}, requireLogin, tonic.Handler(controllersv1.BundleVersionController.FinishUpload, 200))
+		fizz.ID("Finish upload a bento version"),
+		fizz.Summary("Finish upload a bento version"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.FinishUpload, 200))
 
 	grp.GET("", []fizz.OperationOption{
-		fizz.ID("List bundle versions"),
-		fizz.Summary("List bundle versions"),
-	}, requireLogin, tonic.Handler(controllersv1.BundleVersionController.List, 200))
+		fizz.ID("List bento versions"),
+		fizz.Summary("List bento versions"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.List, 200))
 
 	grp.POST("", []fizz.OperationOption{
-		fizz.ID("Create bundle version"),
-		fizz.Summary("Create bundle version"),
-	}, requireLogin, tonic.Handler(controllersv1.BundleVersionController.Create, 200))
+		fizz.ID("Create bento version"),
+		fizz.Summary("Create bento version"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.Create, 200))
 }

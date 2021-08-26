@@ -1,4 +1,4 @@
-import { ICreateBundleVersionSchema, IBundleVersionSchema } from '@/schemas/bundle_version'
+import { ICreateBentoVersionSchema, IBentoVersionSchema } from '@/schemas/bento_version'
 import React, { useCallback, useEffect, useState } from 'react'
 import { createForm } from '@/components/Form'
 import useTranslation from '@/hooks/useTranslation'
@@ -6,22 +6,22 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { Input } from 'baseui/input'
 import { Textarea } from 'baseui/textarea'
 
-const { Form, FormItem } = createForm<ICreateBundleVersionSchema>()
+const { Form, FormItem } = createForm<ICreateBentoVersionSchema>()
 
-export interface IBundleVersionFormProps {
-    bundleVersion?: IBundleVersionSchema
-    onSubmit: (data: ICreateBundleVersionSchema) => Promise<void>
+export interface IBentoVersionFormProps {
+    bentoVersion?: IBentoVersionSchema
+    onSubmit: (data: ICreateBentoVersionSchema) => Promise<void>
 }
 
-export default function BundleVersionForm({ bundleVersion, onSubmit }: IBundleVersionFormProps) {
-    const [initialValue, setInitialValue] = useState<ICreateBundleVersionSchema>()
+export default function BentoVersionForm({ bentoVersion, onSubmit }: IBentoVersionFormProps) {
+    const [initialValue, setInitialValue] = useState<ICreateBentoVersionSchema>()
 
     useEffect(() => {
-        if (!bundleVersion) {
+        if (!bentoVersion) {
             return
         }
-        setInitialValue(bundleVersion)
-    }, [bundleVersion])
+        setInitialValue(bentoVersion)
+    }, [bentoVersion])
 
     const [loading, setLoading] = useState(false)
 

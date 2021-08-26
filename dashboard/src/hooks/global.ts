@@ -1,4 +1,4 @@
-import { IBundleSchema } from '@/schemas/bundle'
+import { IBentoSchema } from '@/schemas/bento'
 import { IClusterFullSchema } from '@/schemas/cluster'
 import { createGlobalState } from 'react-hooks-global-state'
 import { IUserSchema } from '@/schemas/user'
@@ -16,8 +16,8 @@ const initialState = {
     organizationLoading: false,
     cluster: undefined as IClusterFullSchema | undefined,
     clusterLoading: false,
-    bundle: undefined as IBundleSchema | undefined,
-    bundleLoading: false,
+    bento: undefined as IBentoSchema | undefined,
+    bentoLoading: false,
 }
 
 const { useGlobalState } = createGlobalState(initialState)

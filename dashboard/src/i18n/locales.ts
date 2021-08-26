@@ -96,9 +96,9 @@ const locales0 = {
         en: 'Deployment',
         cn: '部署',
     },
-    'bundle': {
-        en: 'Bundle',
-        cn: '包',
+    'bento': {
+        en: 'Bento',
+        cn: 'Bento',
     },
     'register': {
         en: 'Register',

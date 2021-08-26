@@ -164,17 +164,17 @@ func (s *kubeEventService) ListAllKubeEventsByDeployment(ctx context.Context, de
 		return nil, errors.Wrap(err, "list events from app pool event informer")
 	}
 
-	bundleVersion, err := BundleVersionService.GetAssociatedBundleVersion(ctx, deploymentSnapshot)
+	bentoVersion, err := BentoVersionService.GetAssociatedBentoVersion(ctx, deploymentSnapshot)
 	if err != nil {
-		return nil, errors.Wrap(err, "get associated bundle version")
+		return nil, errors.Wrap(err, "get associated bento version")
 	}
 
-	bundle, err := BundleService.GetAssociatedBundle(ctx, bundleVersion)
+	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
 	if err != nil {
-		return nil, errors.Wrap(err, "get associated bundle")
+		return nil, errors.Wrap(err, "get associated bento")
 	}
 
-	kubeName := BundleService.GetKubeName(bundle)
+	kubeName := BentoService.GetKubeName(bento)
 
 	events := make([]apiv1.Event, 0, len(_events))
 	for _, e := range _events {
