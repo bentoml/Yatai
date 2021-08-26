@@ -490,11 +490,11 @@ export default function Header() {
             >
                 {organization && (
                     <Link
-                        style={generateLinkStyle(`/orgs/${organization.name}/bundles`)}
-                        to={`/orgs/${organization.name}/bundles`}
+                        style={generateLinkStyle(`/orgs/${organization.name}/bentos`)}
+                        to={`/orgs/${organization.name}/bentos`}
                     >
-                        {React.createElement(resourceIconMapping.bundle, { size: 12 })}
-                        {t('bundle')}
+                        {React.createElement(resourceIconMapping.bento, { size: 12 })}
+                        {t('bento')}
                     </Link>
                 )}
                 {cluster && (

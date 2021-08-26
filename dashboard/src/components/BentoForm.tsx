@@ -1,4 +1,4 @@
-import { ICreateBundleSchema, IBundleSchema } from '@/schemas/bundle'
+import { ICreateBentoSchema, IBentoSchema } from '@/schemas/bento'
 import React, { useCallback, useEffect, useState } from 'react'
 import { createForm } from '@/components/Form'
 import useTranslation from '@/hooks/useTranslation'
@@ -6,22 +6,22 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { Input } from 'baseui/input'
 import { Textarea } from 'baseui/textarea'
 
-const { Form, FormItem } = createForm<ICreateBundleSchema>()
+const { Form, FormItem } = createForm<ICreateBentoSchema>()
 
-export interface IBundleFormProps {
-    bundle?: IBundleSchema
-    onSubmit: (data: ICreateBundleSchema) => Promise<void>
+export interface IBentoFormProps {
+    bento?: IBentoSchema
+    onSubmit: (data: ICreateBentoSchema) => Promise<void>
 }
 
-export default function BundleForm({ bundle, onSubmit }: IBundleFormProps) {
-    const [initialValue, setInitialValue] = useState<ICreateBundleSchema>()
+export default function BentoForm({ bento, onSubmit }: IBentoFormProps) {
+    const [initialValue, setInitialValue] = useState<ICreateBentoSchema>()
 
     useEffect(() => {
-        if (!bundle) {
+        if (!bento) {
             return
         }
-        setInitialValue(bundle)
-    }, [bundle])
+        setInitialValue(bento)
+    }, [bento])
 
     const [loading, setLoading] = useState(false)
 

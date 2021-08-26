@@ -16,7 +16,7 @@ export const resourceIconMapping: Record<ResourceType, React.ComponentType<IconB
     user_group: HiOutlineUserGroup,
     organization: GrOrganization,
     cluster: GrServerCluster,
-    bundle: GoPackage,
-    bundle_version: AiOutlineCodeSandbox,
+    bento: GoPackage,
+    bento_version: AiOutlineCodeSandbox,
     deployment: GrDeploy,
 }

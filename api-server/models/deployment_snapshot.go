@@ -23,7 +23,7 @@ type DeploymentSnapshot struct {
 	BaseModel
 	CreatorAssociate
 	DeploymentAssociate
-	BundleVersionAssociate
+	BentoVersionAssociate
 }
 
 type DeploymentSnapshotConfig struct {

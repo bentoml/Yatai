@@ -14,10 +14,10 @@ import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
 import ClusterMembers from '@/pages/Cluster/Members'
 import ClusterLayout from '@/components/ClusterLayout'
-import OrganizationBundles from '@/pages/Organization/Bundles'
-import BundleOverview from '@/pages/Bundle/Overview'
-import BundleVersions from '@/pages/Bundle/Versions'
-import BundleLayout from '@/components/BundleLayout'
+import OrganizationBentos from '@/pages/Organization/Bentos'
+import BentoOverview from '@/pages/Bento/Overview'
+import BentoVersions from '@/pages/Bento/Versions'
+import BentoLayout from '@/components/BentoLayout'
 
 const useStyles = createUseStyles({
     root: ({ theme }: IThemedStyleProps) => ({
@@ -44,17 +44,17 @@ const Routes = () => {
             >
                 <Header />
                 <Switch>
-                    <Route exact path='/orgs/:orgName/bundles/:bundleName/:path?/:path?'>
-                        <BundleLayout>
+                    <Route exact path='/orgs/:orgName/bentos/:bentoName/:path?/:path?'>
+                        <BentoLayout>
                             <Switch>
-                                <Route exact path='/orgs/:orgName/bundles/:bundleName' component={BundleOverview} />
+                                <Route exact path='/orgs/:orgName/bentos/:bentoName' component={BentoOverview} />
                                 <Route
                                     exact
-                                    path='/orgs/:orgName/bundles/:bundleName/versions'
-                                    component={BundleVersions}
+                                    path='/orgs/:orgName/bentos/:bentoName/versions'
+                                    component={BentoVersions}
                                 />
                             </Switch>
-                        </BundleLayout>
+                        </BentoLayout>
                     </Route>
                     <Route exact path='/orgs/:orgName/clusters/:clusterName/:path?/:path?'>
                         <ClusterLayout>
@@ -72,7 +72,7 @@ const Routes = () => {
                         <OrganizationLayout>
                             <Switch>
                                 <Route exact path='/orgs/:orgName' component={OrganizationOverview} />
-                                <Route exact path='/orgs/:orgName/bundles' component={OrganizationBundles} />
+                                <Route exact path='/orgs/:orgName/bentos' component={OrganizationBentos} />
                                 <Route exact path='/orgs/:orgName/clusters' component={OrganizationClusters} />
                                 <Route exact path='/orgs/:orgName/members' component={OrganizationMembers} />
                             </Switch>

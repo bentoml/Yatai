@@ -18,9 +18,9 @@ func (s *deploymentSnapshotService) getBaseDB(ctx context.Context) *gorm.DB {
 }
 
 type CreateDeploymentSnapshotOption struct {
-	CreatorId       uint
-	DeploymentId    uint
-	BundleVersionId uint
+	CreatorId      uint
+	DeploymentId   uint
+	BentoVersionId uint
 }
 
 type ListDeploymentSnapshotOption struct {
@@ -36,8 +36,8 @@ func (*deploymentSnapshotService) Create(ctx context.Context, opt CreateDeployme
 		DeploymentAssociate: models.DeploymentAssociate{
 			DeploymentId: opt.DeploymentId,
 		},
-		BundleVersionAssociate: models.BundleVersionAssociate{
-			BundleVersionId: opt.BundleVersionId,
+		BentoVersionAssociate: models.BentoVersionAssociate{
+			BentoVersionId: opt.BentoVersionId,
 		},
 	}
 	err := mustGetSession(ctx).Create(&snapshot).Error
