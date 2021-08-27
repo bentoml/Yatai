@@ -64,6 +64,7 @@ func (c *organizationController) Create(ctx *gin.Context, schema *schemasv1.Crea
 		CreatorId:   user.ID,
 		Name:        schema.Name,
 		Description: schema.Description,
+		Config:      schema.Config,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create organization")
@@ -86,6 +87,7 @@ func (c *organizationController) Update(ctx *gin.Context, schema *UpdateOrganiza
 	}
 	organization, err = services.OrganizationService.Update(ctx, organization, services.UpdateOrganizationOption{
 		Description: schema.Description,
+		Config:      schema.Config,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "update organization")

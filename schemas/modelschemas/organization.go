@@ -5,15 +5,26 @@ import (
 	"encoding/json"
 )
 
-type InfraMinIOSchema struct {
-	Endpoint  string `json:"endpoint"`
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
-	BasePath  string `json:"base_path"`
+type AWSS3Schema struct {
+	BucketName string `json:"bucket_name"`
+	Region     string `json:"region"`
+}
+
+type AWSECRSchema struct {
+	RepositoryURI string `json:"repository_uri"`
+	Region        string `json:"region"`
+}
+
+type OrganizationConfigAWSSchema struct {
+	AccessKeyId     string        `json:"access_key_id"`
+	SecretAccessKey string        `json:"secret_access_key"`
+	ECR             *AWSECRSchema `json:"ecr"`
+	S3              *AWSS3Schema  `json:"s3"`
 }
 
 type OrganizationConfigSchema struct {
-	InfraMinIO *InfraMinIOSchema `json:"infra_minio"`
+	MajorClusterUid string                       `json:"major_cluster_uid"`
+	AWS             *OrganizationConfigAWSSchema `json:"aws"`
 }
 
 func (c *OrganizationConfigSchema) Scan(value interface{}) error {

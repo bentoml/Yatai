@@ -1,4 +1,4 @@
-import { ICreateOrganizationSchema, IOrganizationSchema } from '@/schemas/organization'
+import { ICreateOrganizationSchema, IOrganizationFullSchema } from '@/schemas/organization'
 import React, { useCallback, useEffect, useState } from 'react'
 import { createForm } from '@/components/Form'
 import { Input } from 'baseui/input'
@@ -9,7 +9,7 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 const { Form, FormItem } = createForm<ICreateOrganizationSchema>()
 
 export interface IOrganizationFormProps {
-    organization?: IOrganizationSchema
+    organization?: IOrganizationFullSchema
     onSubmit: (data: ICreateOrganizationSchema) => Promise<void>
 }
 
@@ -23,6 +23,7 @@ export default function OrganizationForm({ organization, onSubmit }: IOrganizati
         setInitialValue({
             name: organization.name,
             description: organization.description,
+            config: organization.config,
         })
     }, [organization])
 
@@ -49,6 +50,24 @@ export default function OrganizationForm({ organization, onSubmit }: IOrganizati
             </FormItem>
             <FormItem name='description' label={t('description')}>
                 <Textarea />
+            </FormItem>
+            <FormItem name={['config', 'aws', 'access_key_id']} label='AWS Access Key ID'>
+                <Input />
+            </FormItem>
+            <FormItem name={['config', 'aws', 'secret_access_key']} label='AWS Secret Access Key'>
+                <Input />
+            </FormItem>
+            <FormItem name={['config', 'aws', 's3', 'bucket_name']} label='S3 Bucket Name'>
+                <Input />
+            </FormItem>
+            <FormItem name={['config', 'aws', 's3', 'region']} label='S3 Region'>
+                <Input />
+            </FormItem>
+            <FormItem name={['config', 'aws', 'ecr', 'repository_uri']} label='ECR Repository URI'>
+                <Input />
+            </FormItem>
+            <FormItem name={['config', 'aws', 'ecr', 'region']} label='ECR Region'>
+                <Input />
             </FormItem>
             <FormItem>
                 <div style={{ display: 'flex' }}>

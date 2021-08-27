@@ -80,16 +80,27 @@ func (c *bentoVersionController) Create(ctx *gin.Context, schema *CreateBentoVer
 	if err = BentoController.canUpdate(ctx, bento); err != nil {
 		return nil, err
 	}
-	version, err := services.BentoVersionService.Create(ctx, services.CreateBentoVersionOption{
+	buildAt, err := time.Parse("2006-01-02 15:04:05.000000", schema.BuildAt)
+	if err != nil {
+		return nil, errors.Wrapf(err, "parse build_at")
+	}
+	version, url, err := services.BentoVersionService.Create(ctx, services.CreateBentoVersionOption{
 		CreatorId:   user.ID,
 		BentoId:     bento.ID,
 		Version:     schema.Version,
 		Description: schema.Description,
+		Manifest:    schema.Manifest,
+		BuildAt:     buildAt,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create version")
 	}
-	return transformersv1.ToBentoVersionSchema(ctx, version)
+	bentoVersionSchema, err := transformersv1.ToBentoVersionSchema(ctx, version)
+	if err != nil {
+		return nil, err
+	}
+	bentoVersionSchema.PresignedS3Url = url.String()
+	return bentoVersionSchema, nil
 }
 
 func (c *bentoVersionController) StartUpload(ctx *gin.Context, schema *GetBentoVersionSchema) (*schemasv1.BentoVersionSchema, error) {

@@ -4,6 +4,10 @@ import (
 	"context"
 	"strings"
 
+	"github.com/bentoml/yatai/common/utils"
+
+	"github.com/bentoml/yatai/schemas/modelschemas"
+
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -23,11 +27,13 @@ func (*organizationService) getBaseDB(ctx context.Context) *gorm.DB {
 type CreateOrganizationOption struct {
 	CreatorId   uint
 	Name        string
-	Description *string
+	Description string
+	Config      *modelschemas.OrganizationConfigSchema
 }
 
 type UpdateOrganizationOption struct {
 	Description *string
+	Config      **modelschemas.OrganizationConfigSchema
 }
 
 type ListOrganizationOption struct {
@@ -49,9 +55,8 @@ func (s *organizationService) Create(ctx context.Context, opt CreateOrganization
 		CreatorAssociate: models.CreatorAssociate{
 			CreatorId: opt.CreatorId,
 		},
-	}
-	if opt.Description != nil {
-		org.Description = *opt.Description
+		Description: opt.Description,
+		Config:      opt.Config,
 	}
 	err := mustGetSession(ctx).Create(&org).Error
 	if err != nil {
@@ -68,6 +73,14 @@ func (s *organizationService) Update(ctx context.Context, o *models.Organization
 		defer func() {
 			if err == nil {
 				o.Description = *opt.Description
+			}
+		}()
+	}
+	if opt.Config != nil {
+		updaters["config"] = *opt.Config
+		defer func() {
+			if err == nil {
+				o.Config = *opt.Config
 			}
 		}()
 	}
@@ -146,4 +159,24 @@ func (s *organizationService) GetAssociatedOrganization(ctx context.Context, ass
 	organization, err := s.Get(ctx, associate.GetAssociatedOrganizationId())
 	associate.SetAssociatedOrganizationCache(organization)
 	return organization, err
+}
+
+func (s *organizationService) GetMajorCluster(ctx context.Context, org *models.Organization) (*models.Cluster, error) {
+	if org.Config == nil || org.Config.MajorClusterUid == "" {
+		clusters, _, err := ClusterService.List(ctx, ListClusterOption{
+			BaseListOption: BaseListOption{
+				Start: utils.UintPtr(0),
+				Count: utils.UintPtr(1),
+			},
+			VisitorId:      nil,
+			OrganizationId: nil,
+			Ids:            nil,
+			Order:          utils.StringPtr("id ASC"),
+		})
+		if err != nil {
+			return nil, err
+		}
+		return clusters[0], nil
+	}
+	return ClusterService.GetByUid(ctx, org.Config.MajorClusterUid)
 }

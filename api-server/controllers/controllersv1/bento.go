@@ -27,7 +27,7 @@ type GetBentoSchema struct {
 func (s *GetBentoSchema) GetBento(ctx context.Context) (*models.Bento, error) {
 	organization, err := s.GetOrganization(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get organization %s", organization.Name)
+		return nil, errors.Wrap(err, "get organization")
 	}
 	bento, err := services.BentoService.GetByName(ctx, organization.ID, s.BentoName)
 	if err != nil {

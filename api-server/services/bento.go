@@ -3,11 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
@@ -37,11 +35,6 @@ type ListBentoOption struct {
 }
 
 func (*bentoService) Create(ctx context.Context, opt CreateBentoOption) (*models.Bento, error) {
-	errs := validation.IsDNS1035Label(opt.Name)
-	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, ";"))
-	}
-
 	bento := models.Bento{
 		ResourceMixin: models.ResourceMixin{
 			Name: opt.Name,

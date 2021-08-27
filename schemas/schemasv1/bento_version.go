@@ -8,16 +8,17 @@ import (
 
 type BentoVersionSchema struct {
 	ResourceSchema
-	BentoUid             string                                `json:"bento_uid"`
-	Creator              *UserSchema                           `json:"creator"`
-	Version              string                                `json:"version"`
-	Description          string                                `json:"description"`
-	BuildStatus          modelschemas.BentoVersionBuildStatus  `json:"build_status"`
-	UploadStatus         modelschemas.BentoVersionUploadStatus `json:"upload_status"`
-	UploadStartedAt      *time.Time                            `json:"upload_started_at"`
-	UploadFinishedAt     *time.Time                            `json:"upload_finished_at"`
-	UploadFinishedReason string                                `json:"upload_finished_reason"`
-	S3Uri                string                                `json:"s3_uri"`
+	BentoUid             string                                   `json:"bento_uid"`
+	Creator              *UserSchema                              `json:"creator"`
+	Version              string                                   `json:"version"`
+	Description          string                                   `json:"description"`
+	BuildStatus          modelschemas.BentoVersionBuildStatus     `json:"build_status"`
+	UploadStatus         modelschemas.BentoVersionUploadStatus    `json:"upload_status"`
+	UploadStartedAt      *time.Time                               `json:"upload_started_at"`
+	UploadFinishedAt     *time.Time                               `json:"upload_finished_at"`
+	UploadFinishedReason string                                   `json:"upload_finished_reason"`
+	PresignedS3Url       string                                   `json:"presigned_s3_url"`
+	Manifest             *modelschemas.BentoVersionManifestSchema `json:"manifest"`
 }
 
 type BentoVersionListSchema struct {
@@ -31,8 +32,10 @@ type BentoVersionFullSchema struct {
 }
 
 type CreateBentoVersionSchema struct {
-	Description string `json:"description"`
-	Version     string `json:"version"`
+	Description string                                   `json:"description"`
+	Version     string                                   `json:"version"`
+	Manifest    *modelschemas.BentoVersionManifestSchema `json:"manifest"`
+	BuildAt     string                                   `json:"build_at"`
 }
 
 type FinishUploadBentoVersionSchema struct {

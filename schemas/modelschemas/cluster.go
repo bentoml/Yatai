@@ -5,8 +5,12 @@ import (
 	"encoding/json"
 )
 
+type ClusterConfigAWSSchema struct {
+	Region string `json:"region"`
+}
 type ClusterConfigSchema struct {
-	IngressIp string `json:"ingress_ip"`
+	IngressIp string                  `json:"ingress_ip"`
+	AWS       *ClusterConfigAWSSchema `json:"aws"`
 }
 
 func (c *ClusterConfigSchema) Scan(value interface{}) error {
