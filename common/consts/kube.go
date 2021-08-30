@@ -7,9 +7,12 @@ import (
 )
 
 const (
-	KubeIngressBaseHost = "mcd.megvii-inc.com"
+	KubeLabelYataiSelector     = "yatai.io/selector"
+	KubeLabelYataiBento        = "yatai.io/bento"
+	KubeLabelYataiBentoVersion = "yatai.io/bento-version"
 
-	KubeLabelYataiSelector        = "yatai.io/selector"
+	KubeNamespaceYataiBentoVersionImageBuilder = "yatai-builders"
+
 	KubeLabelMcdInfraCli          = "mcd-infra-cli"
 	KubeLabelMcdKubectl           = "mcd-kubectl"
 	KubeLabelMcdUser              = "mcd-user"
@@ -26,7 +29,7 @@ const (
 	KubeLabelMcdAppCompType = "mcd-app-comp-type"
 	KubeLabelMcdAppCompName = "mcd-app-comp-name"
 
-	KubeLabelMcdOwnerReference = "mcd-owner-reference"
+	KubeLabelYataiOwnerReference = "yatai.io/owner-reference"
 
 	KubeLabelGPUAccelerator = "gpu-accelerator"
 

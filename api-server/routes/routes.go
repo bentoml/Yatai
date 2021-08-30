@@ -68,12 +68,18 @@ func NewRouter() (*fizz.Fizz, error) {
 	// Create a new route that serve the OpenAPI spec.
 	fizzApp.GET("/openapi.json", nil, fizzApp.OpenAPI(infos, "json"))
 
-	rootGrp := fizzApp.Group("/api/v1", "api v1", "api v1")
+	wsRootGroup := fizzApp.Group("/ws/v1", "websocket v1", "websocket v1")
+	wsRootGroup.GET("/subscription/resource", []fizz.OperationOption{
+		fizz.ID("Subscribe resource"),
+		fizz.Summary("Subscribe resource"),
+	}, requireLogin, tonic.Handler(controllersv1.SubscriptionController.SubscribeResource, 200))
+
+	apiRootGroup := fizzApp.Group("/api/v1", "api v1", "api v1")
 
 	// Setup routes.
-	authRoutes(rootGrp)
-	userRoutes(rootGrp)
-	organizationRoutes(rootGrp)
+	authRoutes(apiRootGroup)
+	userRoutes(apiRootGroup)
+	organizationRoutes(apiRootGroup)
 
 	if len(fizzApp.Errors()) != 0 {
 		return nil, fmt.Errorf("fizz errors: %v", fizzApp.Errors())

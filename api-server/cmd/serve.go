@@ -73,6 +73,55 @@ func addCron() {
 		logger.Errorf("cron add func failed: %s", err.Error())
 	}
 
+	go func() {
+		ticker := time.NewTicker(time.Second * 20)
+		defer ticker.Stop()
+		for {
+			func() {
+				ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
+				defer cancel()
+				logger.Info("listing image buld status unsynced bentoVersions")
+				bentoVersions, err := services.BentoVersionService.ListImageBuildStatusUnsynced(ctx)
+				if err != nil {
+					logger.Errorf("list unsynced bento versions: %s", err.Error())
+				}
+				logger.Info("updating unsynced bento versions image_build_status_syncing_at")
+				now := time.Now()
+				nowPtr := &now
+				for _, bentoVersion := range bentoVersions {
+					_, err := services.BentoVersionService.Update(ctx, bentoVersion, services.UpdateBentoVersionOption{
+						ImageBuildStatusSyncingAt: &nowPtr,
+					})
+					if err != nil {
+						logger.Errorf("update bento version %d status: %s", bentoVersion.ID, err.Error())
+					}
+				}
+				logger.Info("updated unsynced bento version image_build_status_syncing_at")
+				var eg errsgroup.Group
+				eg.SetPoolSize(1000)
+				for _, deployment := range bentoVersions {
+					deployment := deployment
+					eg.Go(func() error {
+						_, err := services.BentoVersionService.SyncImageBuilderStatus(ctx, deployment)
+						return err
+					})
+				}
+
+				logger.Info("syncing unsynced bento version image build status...")
+				err = eg.WaitWithTimeout(10 * time.Minute)
+				logger.Info("synced unsynced bento version image build status...")
+				if err != nil {
+					logger.Errorf("sync bento version: %s", err.Error())
+				}
+			}()
+			<-ticker.C
+		}
+	}()
+
+	if err != nil {
+		logger.Errorf("cron add func failed: %s", err.Error())
+	}
+
 	c.Start()
 }
 

@@ -132,6 +132,10 @@ const locales0 = {
         cn: '版本',
         en: 'Version',
     },
+    'image build status': {
+        cn: '镜像编译状态',
+        en: 'Image Build Status',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
