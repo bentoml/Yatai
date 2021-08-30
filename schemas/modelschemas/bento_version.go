@@ -14,13 +14,13 @@ const (
 	BentoVersionUploadStatusFailed    BentoVersionUploadStatus = "failed"
 )
 
-type BentoVersionBuildStatus string
+type BentoVersionImageBuildStatus string
 
 const (
-	BentoVersionBuildStatusPending  BentoVersionBuildStatus = "pending"
-	BentoVersionBuildStatusBuilding BentoVersionBuildStatus = "building"
-	BentoVersionBuildStatusSuccess  BentoVersionBuildStatus = "success"
-	BentoVersionBuildStatusFailed   BentoVersionBuildStatus = "failed"
+	BentoVersionImageBuildStatusPending  BentoVersionImageBuildStatus = "pending"
+	BentoVersionImageBuildStatusBuilding BentoVersionImageBuildStatus = "building"
+	BentoVersionImageBuildStatusSuccess  BentoVersionImageBuildStatus = "success"
+	BentoVersionImageBuildStatusFailed   BentoVersionImageBuildStatus = "failed"
 )
 
 type BentoVersionManifestMetadata struct {

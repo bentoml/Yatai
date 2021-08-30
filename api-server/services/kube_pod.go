@@ -69,22 +69,22 @@ func (s *kubePodService) GetKubePodStatus(pod apiv1.Pod, warnings []apiv1.Event)
 	}
 
 	return models.KubePodStatus{
-		Status:          string(s.getKubePodStatusPhase(pod, warnings)),
+		Status:          s.getKubePodActualStatus(pod, warnings),
 		Phase:           pod.Status.Phase,
 		ContainerStates: states,
 	}
 }
 
-// getKubePodStatusPhase returns one of four pod status phases (Pending, Running, Succeeded, Failed, Unknown, Terminating)
-func (s *kubePodService) getKubePodStatusPhase(pod apiv1.Pod, warnings []apiv1.Event) apiv1.PodPhase {
+// getKubePodActualStatus returns one of four pod status phases (Pending, Running, Succeeded, Failed, Unknown, Terminating)
+func (s *kubePodService) getKubePodActualStatus(pod apiv1.Pod, warnings []apiv1.Event) models.KubePodActualStatus {
 	// For terminated pods that failed
 	if pod.Status.Phase == apiv1.PodFailed {
-		return apiv1.PodFailed
+		return models.KubePodActualStatusFailed
 	}
 
 	// For successfully terminated pods
 	if pod.Status.Phase == apiv1.PodSucceeded {
-		return apiv1.PodSucceeded
+		return models.KubePodActualStatusSucceeded
 	}
 
 	ready := false
@@ -99,23 +99,23 @@ func (s *kubePodService) getKubePodStatusPhase(pod apiv1.Pod, warnings []apiv1.E
 	}
 
 	if initialized && ready && pod.Status.Phase == apiv1.PodRunning {
-		return apiv1.PodRunning
+		return models.KubePodActualStatusRunning
 	}
 
 	// If the pod would otherwise be pending but has warning then label it as
 	// failed and show and error to the user.
 	if len(warnings) > 0 {
-		return apiv1.PodFailed
+		return models.KubePodActualStatusFailed
 	}
 
 	if pod.DeletionTimestamp != nil && pod.Status.Reason == "NodeLost" {
-		return apiv1.PodUnknown
+		return models.KubePodActualStatusUnknown
 	} else if pod.DeletionTimestamp != nil {
-		return "Terminating"
+		return models.KubePodActualStatusTerminating
 	}
 
 	// pending
-	return apiv1.PodPending
+	return models.KubePodActualStatusPending
 }
 
 func (s *kubePodService) DeleteKubePod(ctx context.Context, deployment *models.Deployment, kubePodName string, force bool) error {

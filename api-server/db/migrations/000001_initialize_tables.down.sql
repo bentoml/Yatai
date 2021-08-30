@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS "deployment_snapshot";
 DROP TABLE IF EXISTS "deployment";
 DROP TYPE IF EXISTS "deployment_status";
 DROP TABLE IF EXISTS "bento_version";
-DROP TYPE IF EXISTS "bento_version_build_status";
+DROP TYPE IF EXISTS "bento_version_image_build_status";
 DROP TYPE IF EXISTS "bento_version_upload_status";
 DROP TABLE IF EXISTS "bento";
 DROP TABLE IF EXISTS "cluster_member";

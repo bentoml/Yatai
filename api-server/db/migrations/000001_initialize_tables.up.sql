@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS "bento" (
 CREATE UNIQUE INDEX "uk_bento_orgId_name" ON bento ("organization_id", "name");
 
 CREATE TYPE "bento_version_upload_status" AS ENUM ('pending', 'uploading', 'success', 'failed');
-CREATE TYPE "bento_version_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
+CREATE TYPE "bento_version_image_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
 
 CREATE TABLE IF NOT EXISTS "bento_version" (
     id SERIAL PRIMARY KEY,
@@ -153,7 +153,9 @@ CREATE TABLE IF NOT EXISTS "bento_version" (
     file_path TEXT,
     bento_id INTEGER NOT NULL REFERENCES bento("id") ON DELETE CASCADE,
     upload_status bento_version_upload_status NOT NULL DEFAULT 'pending',
-    build_status bento_version_build_status NOT NULL DEFAULT 'pending',
+    image_build_status bento_version_image_build_status NOT NULL DEFAULT 'pending',
+    image_build_status_syncing_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    image_build_status_updated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     upload_started_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     upload_finished_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     upload_finished_reason TEXT,

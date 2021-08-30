@@ -176,9 +176,9 @@ func makeGetInformer(ctx context.Context, option *makeGetInformerOption) (interf
 	return informer, lister, nil
 }
 
-func GetPodInformer(ctx context.Context, kubeCluster *models.Cluster, namespace string) (informerCoreV1.PodInformer, listerCoreV1.PodNamespaceLister, error) {
+func GetPodInformer(ctx context.Context, cluster *models.Cluster, namespace string) (informerCoreV1.PodInformer, listerCoreV1.PodNamespaceLister, error) {
 	informer, lister, err := makeGetInformer(ctx, &makeGetInformerOption{
-		cluster:         kubeCluster,
+		cluster:         cluster,
 		namespace:       utils.StringPtr(namespace),
 		informerCacheRW: podInformerCacheRW,
 		getInformerFromCache: func(cacheKey CacheKey) (interface{}, bool) {

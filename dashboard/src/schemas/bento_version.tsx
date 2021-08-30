@@ -3,7 +3,7 @@ import { IUserSchema } from './user'
 
 export type BentoVersionUploadStatus = 'pending' | 'uploading' | 'success' | 'failed'
 
-export type BentoVersionBuildStatus = 'pending' | 'building' | 'success' | 'failed'
+export type BentoVersionImageBuildStatus = 'pending' | 'building' | 'success' | 'failed'
 
 export interface IBentoVersionManifestSchema {
     metadata: {
@@ -24,7 +24,7 @@ export interface IBentoVersionSchema extends IResourceSchema {
     creator?: IUserSchema
     version: string
     description: string
-    build_status: BentoVersionBuildStatus
+    image_build_status: BentoVersionImageBuildStatus
     upload_status: BentoVersionUploadStatus
     upload_started_at?: string
     upload_finished_at?: string

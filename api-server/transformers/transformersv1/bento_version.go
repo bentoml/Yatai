@@ -39,7 +39,7 @@ func ToBentoVersionSchemas(ctx context.Context, versions []*models.BentoVersion)
 			Version:              version.Version,
 			Creator:              creatorSchema,
 			Description:          version.Description,
-			BuildStatus:          version.BuildStatus,
+			ImageBuildStatus:     version.ImageBuildStatus,
 			UploadStatus:         version.UploadStatus,
 			UploadStartedAt:      version.UploadStartedAt,
 			UploadFinishedAt:     version.UploadFinishedAt,
