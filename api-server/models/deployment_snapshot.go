@@ -1,32 +1,23 @@
 package models
 
-type DeploymentResourceItem struct {
-	CPU    string `json:"cpu"`
-	Memory string `json:"memory"`
-	GPU    string `json:"gpu"`
-}
-
-type DeploymentResources struct {
-	Requests *DeploymentResourceItem `json:"requests"`
-	Limits   *DeploymentResourceItem `json:"limits"`
-}
-
-type DeploymentHPAConf struct {
-	CPU         *int32  `json:"cpu,omitempty"`
-	GPU         *int32  `json:"gpu,omitempty"`
-	Memory      *string `json:"memory,omitempty"`
-	QPS         *int64  `json:"qps,omitempty"`
-	MaxReplicas *int32  `json:"max_replicas,omitempty"`
-}
+import "github.com/bentoml/yatai/schemas/modelschemas"
 
 type DeploymentSnapshot struct {
 	BaseModel
 	CreatorAssociate
 	DeploymentAssociate
 	BentoVersionAssociate
+
+	Type        modelschemas.DeploymentSnapshotType         `json:"type"`
+	Status      modelschemas.DeploymentSnapshotStatus       `json:"status"`
+	CanaryRules *modelschemas.DeploymentSnapshotCanaryRules `json:"canary_rules"`
+	Config      *modelschemas.DeploymentSnapshotConfig      `json:"config"`
 }
 
-type DeploymentSnapshotConfig struct {
-	Resources *DeploymentResources `json:"resources"`
-	HPAConf   *DeploymentHPAConf   `json:"hpa_conf,omitempty"`
+func (s *DeploymentSnapshot) GetName() string {
+	return s.Uid
+}
+
+func (s *DeploymentSnapshot) GetResourceType() modelschemas.ResourceType {
+	return modelschemas.ResourceTypeDeploymentSnapshot
 }

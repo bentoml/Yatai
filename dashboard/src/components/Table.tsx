@@ -15,7 +15,7 @@ export interface ITableProps extends BaseTableProps {
     }
 }
 
-export default function Table({ isLoading, columns, data, paginationProps }: ITableProps) {
+export default function Table({ isLoading, columns, data, overrides, paginationProps }: ITableProps) {
     const [t] = useTranslation()
 
     return (
@@ -24,6 +24,7 @@ export default function Table({ isLoading, columns, data, paginationProps }: ITa
                 isLoading={isLoading}
                 columns={columns}
                 data={data}
+                overrides={overrides}
                 loadingMessage={<Skeleton rows={3} height='100px' width='100%' animation />}
                 emptyMessage={
                     <div

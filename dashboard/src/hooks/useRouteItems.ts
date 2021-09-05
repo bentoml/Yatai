@@ -1,5 +1,4 @@
 import useTranslation from '@/hooks/useTranslation'
-import DeploymentHome from '@/pages/Deployment/Home'
 import Home from '@/pages/Yatai/Home'
 import { useMemo } from 'react'
 
@@ -23,18 +22,7 @@ export default function useRouteItems() {
         () => ({
             title: t('homepage'),
             path: '/',
-            items: [
-                {
-                    title: t('organization'),
-                    path: '/deployments',
-                    component: DeploymentHome,
-                },
-                {
-                    title: t('deployment'),
-                    path: '/deployments',
-                    component: DeploymentHome,
-                },
-            ],
+            items: [],
             component: Home,
         }),
         [t]

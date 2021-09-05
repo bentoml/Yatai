@@ -27,7 +27,7 @@ type GetClusterSchema struct {
 func (s *GetClusterSchema) GetCluster(ctx context.Context) (*models.Cluster, error) {
 	org, err := s.GetOrganization(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get organization %s", org.Name)
+		return nil, errors.Wrapf(err, "get organization %s", s.OrgName)
 	}
 	cluster, err := services.ClusterService.GetByName(ctx, org.ID, s.ClusterName)
 	if err != nil {

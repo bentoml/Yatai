@@ -44,6 +44,7 @@ func ToBentoVersionSchemas(ctx context.Context, versions []*models.BentoVersion)
 			UploadStartedAt:      version.UploadStartedAt,
 			UploadFinishedAt:     version.UploadFinishedAt,
 			UploadFinishedReason: version.UploadFinishedReason,
+			Manifest:             version.Manifest,
 		})
 	}
 	return res, nil
@@ -81,4 +82,21 @@ func ToBentoVersionFullSchemas(ctx context.Context, versions []*models.BentoVers
 		})
 	}
 	return res, nil
+}
+
+type IBentoVersionAssociate interface {
+	services.IBentoVersionAssociate
+	models.IResource
+}
+
+func GetAssociatedBentoVersionFullSchema(ctx context.Context, associate IBentoVersionAssociate) (*schemasv1.BentoVersionFullSchema, error) {
+	bentoVersion, err := services.BentoVersionService.GetAssociatedBentoVersion(ctx, associate)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get %s %s associated cluster", associate.GetResourceType(), associate.GetName())
+	}
+	bentoVersionFullSchema, err := ToBentoVersionFullSchema(ctx, bentoVersion)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToBentoVersionSchema")
+	}
+	return bentoVersionFullSchema, nil
 }

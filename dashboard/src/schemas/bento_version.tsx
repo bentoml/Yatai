@@ -1,3 +1,5 @@
+/* eslint-disable import/no-cycle */
+import { IBentoSchema } from './bento'
 import { IResourceSchema } from './resource'
 import { IUserSchema } from './user'
 
@@ -32,6 +34,10 @@ export interface IBentoVersionSchema extends IResourceSchema {
     presigned_s3_uri: string
     manifest: IBentoVersionManifestSchema
     build_at: string
+}
+
+export interface IBentoVersionFullSchema extends IBentoVersionSchema {
+    bento: IBentoSchema
 }
 
 export interface ICreateBentoVersionSchema {

@@ -85,13 +85,25 @@ type IClusterAssociate interface {
 }
 
 func GetAssociatedClusterSchema(ctx context.Context, associate IClusterAssociate) (*schemasv1.ClusterSchema, error) {
-	user, err := services.ClusterService.GetAssociatedCluster(ctx, associate)
+	cluster, err := services.ClusterService.GetAssociatedCluster(ctx, associate)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get %s %s associated cluster", associate.GetResourceType(), associate.GetName())
 	}
-	userSchema, err := ToClusterSchema(ctx, user)
+	clusterSchema, err := ToClusterSchema(ctx, cluster)
 	if err != nil {
 		return nil, errors.Wrap(err, "ToClusterSchema")
 	}
-	return userSchema, nil
+	return clusterSchema, nil
+}
+
+func GetAssociatedClusterFullSchema(ctx context.Context, associate IClusterAssociate) (*schemasv1.ClusterFullSchema, error) {
+	cluster, err := services.ClusterService.GetAssociatedCluster(ctx, associate)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get %s %s associated cluster", associate.GetResourceType(), associate.GetName())
+	}
+	clusterSchema, err := ToClusterFullSchema(ctx, cluster)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToClusterSchema")
+	}
+	return clusterSchema, nil
 }

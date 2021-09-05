@@ -14,4 +14,8 @@ const (
 	TracingContextKey = "tracing-context"
 	// nolint: gosec
 	YataiApiTokenHeaderName = "X-YATAI-API-TOKEN"
+
+	BentoServicePort = 5000
+
+	NoneStr = "None"
 )

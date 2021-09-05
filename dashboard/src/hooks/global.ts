@@ -1,3 +1,4 @@
+import { IDeploymentSchema } from '@/schemas/deployment'
 import { IBentoSchema } from '@/schemas/bento'
 import { IClusterFullSchema } from '@/schemas/cluster'
 import { createGlobalState } from 'react-hooks-global-state'
@@ -18,6 +19,8 @@ const initialState = {
     clusterLoading: false,
     bento: undefined as IBentoSchema | undefined,
     bentoLoading: false,
+    deployment: undefined as IDeploymentSchema | undefined,
+    deploymentLoading: false,
 }
 
 const { useGlobalState } = createGlobalState(initialState)

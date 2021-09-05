@@ -10,8 +10,11 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	v1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/utils/pointer"
+
+	"github.com/bentoml/yatai/schemas/modelschemas"
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
@@ -21,7 +24,7 @@ type kubePodService struct{}
 
 var KubePodService = kubePodService{}
 
-func (*kubePodService) ListPodsByDeployment(podLister v1.PodNamespaceLister, deployment *models.Deployment) ([]apiv1.Pod, error) {
+func (s *kubePodService) ListPodsByDeployment(ctx context.Context, podLister v1.PodNamespaceLister, deployment *models.Deployment) ([]*models.KubePodWithStatus, error) {
 	selector, err := labels.Parse(fmt.Sprintf("%s = %d", consts.KubeLabelYataiDeploymentId, deployment.ID))
 	if err != nil {
 		return nil, err
@@ -34,7 +37,13 @@ func (*kubePodService) ListPodsByDeployment(podLister v1.PodNamespaceLister, dep
 	for _, p := range pods_ {
 		pods = append(pods, *p)
 	}
-	return pods, nil
+
+	events, err := KubeEventService.ListAllKubeEvents(ctx, deployment)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.MapKubePodsToKubePodWithStatuses(ctx, pods, events), nil
 }
 
 func (s *kubePodService) MapKubePodsToKubePodWithStatuses(ctx context.Context, pods []apiv1.Pod, events []apiv1.Event) []*models.KubePodWithStatus {
@@ -62,13 +71,13 @@ func (s *kubePodService) GetKubePodRestartCount(pod apiv1.Pod) int32 {
 }
 
 // GetKubePodStatus returns a KubePodStatus object containing a summary of the pod's status.
-func (s *kubePodService) GetKubePodStatus(pod apiv1.Pod, warnings []apiv1.Event) models.KubePodStatus {
+func (s *kubePodService) GetKubePodStatus(pod apiv1.Pod, warnings []apiv1.Event) modelschemas.KubePodStatus {
 	var states []apiv1.ContainerState
 	for _, containerStatus := range pod.Status.ContainerStatuses {
 		states = append(states, containerStatus.State)
 	}
 
-	return models.KubePodStatus{
+	return modelschemas.KubePodStatus{
 		Status:          s.getKubePodActualStatus(pod, warnings),
 		Phase:           pod.Status.Phase,
 		ContainerStates: states,
@@ -76,15 +85,15 @@ func (s *kubePodService) GetKubePodStatus(pod apiv1.Pod, warnings []apiv1.Event)
 }
 
 // getKubePodActualStatus returns one of four pod status phases (Pending, Running, Succeeded, Failed, Unknown, Terminating)
-func (s *kubePodService) getKubePodActualStatus(pod apiv1.Pod, warnings []apiv1.Event) models.KubePodActualStatus {
+func (s *kubePodService) getKubePodActualStatus(pod apiv1.Pod, warnings []apiv1.Event) modelschemas.KubePodActualStatus {
 	// For terminated pods that failed
 	if pod.Status.Phase == apiv1.PodFailed {
-		return models.KubePodActualStatusFailed
+		return modelschemas.KubePodActualStatusFailed
 	}
 
 	// For successfully terminated pods
 	if pod.Status.Phase == apiv1.PodSucceeded {
-		return models.KubePodActualStatusSucceeded
+		return modelschemas.KubePodActualStatusSucceeded
 	}
 
 	ready := false
@@ -99,23 +108,23 @@ func (s *kubePodService) getKubePodActualStatus(pod apiv1.Pod, warnings []apiv1.
 	}
 
 	if initialized && ready && pod.Status.Phase == apiv1.PodRunning {
-		return models.KubePodActualStatusRunning
+		return modelschemas.KubePodActualStatusRunning
 	}
 
 	// If the pod would otherwise be pending but has warning then label it as
 	// failed and show and error to the user.
 	if len(warnings) > 0 {
-		return models.KubePodActualStatusFailed
+		return modelschemas.KubePodActualStatusFailed
 	}
 
 	if pod.DeletionTimestamp != nil && pod.Status.Reason == "NodeLost" {
-		return models.KubePodActualStatusUnknown
+		return modelschemas.KubePodActualStatusUnknown
 	} else if pod.DeletionTimestamp != nil {
-		return models.KubePodActualStatusTerminating
+		return modelschemas.KubePodActualStatusTerminating
 	}
 
 	// pending
-	return models.KubePodActualStatusPending
+	return modelschemas.KubePodActualStatusPending
 }
 
 func (s *kubePodService) DeleteKubePod(ctx context.Context, deployment *models.Deployment, kubePodName string, force bool) error {
@@ -135,8 +144,86 @@ func (s *kubePodService) DeleteKubePod(ctx context.Context, deployment *models.D
 	return podsCli.Delete(ctx, kubePodName, options)
 }
 
+func (s *kubePodService) DeploymentSnapshotToPodTemplateSpec(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot) (podTemplateSpec *apiv1.PodTemplateSpec, err error) {
+	podLabels, err := DeploymentSnapshotService.GetKubeLabels(ctx, deploymentSnapshot)
+	if err != nil {
+		return
+	}
+
+	annotations, err := DeploymentSnapshotService.GetKubeAnnotations(ctx, deploymentSnapshot)
+	if err != nil {
+		return
+	}
+
+	kubeName, err := DeploymentSnapshotService.GetKubeName(ctx, deploymentSnapshot)
+	if err != nil {
+		return
+	}
+
+	bentoVersion, err := BentoVersionService.GetAssociatedBentoVersion(ctx, deploymentSnapshot)
+	if err != nil {
+		return
+	}
+
+	imageName, err := BentoVersionService.GetImageName(ctx, bentoVersion)
+	if err != nil {
+		return
+	}
+
+	livenessProbe := &apiv1.Probe{
+		InitialDelaySeconds: 5,
+		TimeoutSeconds:      5,
+		FailureThreshold:    6,
+		Handler: apiv1.Handler{
+			HTTPGet: &apiv1.HTTPGetAction{
+				Path: "/",
+				Port: intstr.FromInt(consts.BentoServicePort),
+			},
+		},
+	}
+
+	readinessProbe := &apiv1.Probe{
+		InitialDelaySeconds: 5,
+		TimeoutSeconds:      5,
+		FailureThreshold:    6,
+		Handler: apiv1.Handler{
+			HTTPGet: &apiv1.HTTPGetAction{
+				Path: "/",
+				Port: intstr.FromInt(consts.BentoServicePort),
+			},
+		},
+	}
+
+	containers := make([]apiv1.Container, 0, 1)
+
+	container := apiv1.Container{
+		Name:           kubeName,
+		Image:          imageName,
+		LivenessProbe:  livenessProbe,
+		ReadinessProbe: readinessProbe,
+		TTY:            true,
+		Stdin:          true,
+	}
+
+	containers = append(containers, container)
+
+	podLabels[consts.KubeLabelYataiSelector] = kubeName
+
+	podTemplateSpec = &apiv1.PodTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      podLabels,
+			Annotations: annotations,
+		},
+		Spec: apiv1.PodSpec{
+			Containers: containers,
+		},
+	}
+
+	return
+}
+
 // nolint:unused,deadcode
-func getResourcesConfig(containerName string, resources *models.DeploymentResources, resourceMap map[string]*models.DeploymentResources, gpuNvidiaResourceRequest bool) (apiv1.ResourceRequirements, error) {
+func getResourcesConfig(containerName string, resources *modelschemas.DeploymentSnapshotResources, resourceMap map[string]*modelschemas.DeploymentSnapshotResources, gpuNvidiaResourceRequest bool) (apiv1.ResourceRequirements, error) {
 	currentResources := apiv1.ResourceRequirements{
 		Requests: apiv1.ResourceList{
 			apiv1.ResourceCPU:    resource.MustParse("300m"),

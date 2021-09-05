@@ -179,6 +179,7 @@ CREATE TABLE IF NOT EXISTS "deployment" (
     status deployment_status NOT NULL DEFAULT 'non-deployed',
     status_syncing_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     status_updated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    "kube_deploy_token" VARCHAR(128) DEFAULT '',
     creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE,
@@ -187,9 +188,15 @@ CREATE TABLE IF NOT EXISTS "deployment" (
 
 CREATE UNIQUE INDEX "uk_deployment_clusterId_name" ON "deployment" ("cluster_id", "name");
 
+CREATE TYPE "deployment_snapshot_type" AS ENUM ('stable', 'canary');
+CREATE TYPE "deployment_snapshot_status" AS ENUM ('active', 'inactive');
+
 CREATE TABLE IF NOT EXISTS "deployment_snapshot" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
+    type deployment_snapshot_type NOT NULL DEFAULT 'stable',
+    status deployment_snapshot_status NOT NULL DEFAULT 'active',
+    canary_rules TEXT,
     deployment_id INTEGER NOT NULL REFERENCES "deployment"("id") ON DELETE CASCADE,
     bento_version_id INTEGER REFERENCES "bento_version"("id") ON DELETE CASCADE,
     config TEXT DEFAULT '{}',

@@ -73,13 +73,13 @@ type IOrganizationAssociate interface {
 }
 
 func GetAssociatedOrganizationSchema(ctx context.Context, associate IOrganizationAssociate) (*schemasv1.OrganizationSchema, error) {
-	user, err := services.OrganizationService.GetAssociatedOrganization(ctx, associate)
+	organization, err := services.OrganizationService.GetAssociatedOrganization(ctx, associate)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get %s %s associated organization", associate.GetResourceType(), associate.GetName())
 	}
-	userSchema, err := ToOrganizationSchema(ctx, user)
+	organizationSchema, err := ToOrganizationSchema(ctx, organization)
 	if err != nil {
 		return nil, errors.Wrap(err, "ToOrganizationSchema")
 	}
-	return userSchema, nil
+	return organizationSchema, nil
 }

@@ -13,7 +13,7 @@ export interface IUserSelectorProps {
 export default function UserSelector({ value, onChange }: IUserSelectorProps) {
     const [keyword, setKeyword] = useState<string | undefined>(undefined)
     const [options, setOptions] = useState<{ id: string; label: React.ReactNode }[]>([])
-    const usersInfo = useQuery('listUsers', () => listUsers({ start: 0, count: 100, search: keyword }))
+    const usersInfo = useQuery(`listUsers:${keyword}`, () => listUsers({ start: 0, count: 100, search: keyword }))
 
     const handleInputChange = _.debounce((term: string) => {
         if (!term) {
@@ -21,7 +21,6 @@ export default function UserSelector({ value, onChange }: IUserSelectorProps) {
             return
         }
         setKeyword(term)
-        usersInfo.refetch()
     })
     useEffect(() => {
         if (usersInfo.isSuccess) {

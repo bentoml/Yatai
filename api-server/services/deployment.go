@@ -6,7 +6,10 @@ import (
 	"strings"
 	"time"
 
-	apiv1 "k8s.io/api/core/v1"
+	"github.com/bentoml/yatai/schemas/modelschemas"
+
+	"github.com/rs/xid"
+
 	"k8s.io/client-go/kubernetes/typed/autoscaling/v2beta2"
 	"k8s.io/client-go/rest"
 
@@ -43,8 +46,15 @@ type UpdateDeploymentOption struct {
 	Description *string
 }
 
+type UpdateDeploymentStatusOption struct {
+	Status    *modelschemas.DeploymentStatus
+	SyncingAt **time.Time
+	UpdatedAt **time.Time
+}
+
 type ListDeploymentOption struct {
 	BaseListOption
+	ClusterId uint
 }
 
 func (*deploymentService) Create(ctx context.Context, opt CreateDeploymentOption) (*models.Deployment, error) {
@@ -52,6 +62,8 @@ func (*deploymentService) Create(ctx context.Context, opt CreateDeploymentOption
 	if len(errs) > 0 {
 		return nil, errors.New(strings.Join(errs, ";"))
 	}
+
+	guid := xid.New()
 
 	deployment := models.Deployment{
 		ResourceMixin: models.ResourceMixin{
@@ -63,8 +75,9 @@ func (*deploymentService) Create(ctx context.Context, opt CreateDeploymentOption
 		ClusterAssociate: models.ClusterAssociate{
 			ClusterId: opt.ClusterId,
 		},
-		Description: opt.Description,
-		Status:      models.DeploymentStatusNonDeployed,
+		Description:     opt.Description,
+		Status:          modelschemas.DeploymentStatusNonDeployed,
+		KubeDeployToken: guid.String(),
 	}
 	err := mustGetSession(ctx).Create(&deployment).Error
 	if err != nil {
@@ -121,8 +134,17 @@ func (s *deploymentService) GetByName(ctx context.Context, clusterId uint, name 
 	return &deployment, nil
 }
 
+func (s *deploymentService) ListByUids(ctx context.Context, uids []string) ([]*models.Deployment, error) {
+	deployments := make([]*models.Deployment, 0, len(uids))
+	if len(uids) == 0 {
+		return deployments, nil
+	}
+	err := getBaseQuery(ctx, s).Where("uid in (?)", uids).Find(&deployments).Error
+	return deployments, err
+}
+
 func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) ([]*models.Deployment, uint, error) {
-	query := getBaseQuery(ctx, s)
+	query := getBaseQuery(ctx, s).Where("cluster_id = ?", opt.ClusterId)
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
@@ -130,7 +152,7 @@ func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) 
 	}
 	deployments := make([]*models.Deployment, 0)
 	query = opt.BindQuery(query)
-	err = query.Find(&deployments).Error
+	err = query.Order("id DESC").Find(&deployments).Error
 	if err != nil {
 		return nil, 0, err
 	}
@@ -145,12 +167,6 @@ func (s *deploymentService) ListUnsynced(ctx context.Context) ([]*models.Deploym
 	envs := make([]*models.Deployment, 0)
 	err := q.Order("id DESC").Find(&envs).Error
 	return envs, err
-}
-
-type UpdateDeploymentStatusOption struct {
-	Status    *models.DeploymentStatus
-	SyncingAt **time.Time
-	UpdatedAt **time.Time
 }
 
 func (s *deploymentService) UpdateStatus(ctx context.Context, deployment *models.Deployment, opt UpdateDeploymentStatusOption) (*models.Deployment, error) {
@@ -188,7 +204,7 @@ func (s *deploymentService) GetAssociatedDeployment(ctx context.Context, associa
 }
 
 func (s *deploymentService) GetKubeNamespace(d *models.Deployment) string {
-	return fmt.Sprintf("yatai-deploy-%s", d.Name)
+	return consts.KubeNamespaceYataiDeployment
 }
 
 func (s *deploymentService) GetKubeCliSet(ctx context.Context, d *models.Deployment) (*kubernetes.Clientset, *rest.Config, error) {
@@ -279,7 +295,7 @@ func (s *deploymentService) GetKubeJobsCli(ctx context.Context, d *models.Deploy
 	return jobsCli, nil
 }
 
-func (s *deploymentService) SyncStatus(ctx context.Context, d *models.Deployment) (models.DeploymentStatus, error) {
+func (s *deploymentService) SyncStatus(ctx context.Context, d *models.Deployment) (modelschemas.DeploymentStatus, error) {
 	now := time.Now()
 	nowPtr := &now
 	_, err := s.UpdateStatus(ctx, d, UpdateDeploymentStatusOption{
@@ -304,8 +320,8 @@ func (s *deploymentService) SyncStatus(ctx context.Context, d *models.Deployment
 	return currentStatus, nil
 }
 
-func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Deployment) (models.DeploymentStatus, error) {
-	defaultStatus := models.DeploymentStatusUnknown
+func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Deployment) (modelschemas.DeploymentStatus, error) {
+	defaultStatus := modelschemas.DeploymentStatusUnknown
 
 	cluster, err := ClusterService.GetAssociatedCluster(ctx, d)
 	if err != nil {
@@ -319,31 +335,21 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 		return defaultStatus, err
 	}
 
-	pods, err := KubePodService.ListPodsByDeployment(podLister, d)
+	pods, err := KubePodService.ListPodsByDeployment(ctx, podLister, d)
 	if err != nil {
 		return defaultStatus, err
 	}
 
 	if len(pods) == 0 {
-		return models.DeploymentStatusNonDeployed, nil
+		return modelschemas.DeploymentStatusNonDeployed, nil
 	}
-
-	events, err := KubeEventService.ListAllKubeEvents(ctx, d)
-	if err != nil {
-		return defaultStatus, err
-	}
-	warningsMapping := KubeEventService.GetKubePodsWarningEventsMapping(events, pods)
 
 	hasFailed := false
 	hasRunning := false
 	hasPending := false
 
 	for _, p := range pods {
-		warnings, ok := warningsMapping[p.UID]
-		if !ok {
-			warnings = make([]apiv1.Event, 0)
-		}
-		podStatus := KubePodService.GetKubePodStatus(p, warnings)
+		podStatus := p.Status
 		if podStatus.Status == "Running" {
 			hasRunning = true
 		}
@@ -357,18 +363,55 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 
 	if hasFailed && hasRunning {
 		if hasPending {
-			return models.DeploymentStatusDeploying, nil
+			return modelschemas.DeploymentStatusDeploying, nil
 		}
-		return models.DeploymentStatusUnhealthy, nil
+		return modelschemas.DeploymentStatusUnhealthy, nil
 	}
 
 	if hasPending {
-		return models.DeploymentStatusDeploying, nil
+		return modelschemas.DeploymentStatusDeploying, nil
 	}
 
 	if hasRunning {
-		return models.DeploymentStatusRunning, nil
+		return modelschemas.DeploymentStatusRunning, nil
 	}
 
-	return models.DeploymentStatusFailed, nil
+	return modelschemas.DeploymentStatusFailed, nil
+}
+
+func (s *deploymentService) UpdateKubeDeployToken(ctx context.Context, deployment *models.Deployment, oldToken, newToken string) (*models.Deployment, error) {
+	db := mustGetSession(ctx)
+	err := db.Model(&models.Deployment{}).Where("id = ?", deployment.ID).Where("kube_deploy_token = ?", oldToken).Updates(map[string]interface{}{
+		"kube_deploy_token": newToken,
+	}).Error
+	if err != nil {
+		return nil, err
+	}
+	deployment.KubeDeployToken = newToken
+	return deployment, nil
+}
+
+func (s *deploymentService) GetKubeName(deployment *models.Deployment) string {
+	return fmt.Sprintf("yatai-%s", deployment.Name)
+}
+
+func (s *deploymentService) GetIngressHost(ctx context.Context, deployment *models.Deployment) (string, error) {
+	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
+	if err != nil {
+		return "", err
+	}
+	organization, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
+	if err != nil {
+		return "", err
+	}
+	// TODO: remove the hard code
+	return fmt.Sprintf("%s-%s-%s.apps.atalaya.io", deployment.Name, cluster.Name, organization.Name), nil
+}
+
+func (s *deploymentService) GetURLs(ctx context.Context, deployment *models.Deployment) ([]string, error) {
+	host, err := s.GetIngressHost(ctx, deployment)
+	if err != nil {
+		return nil, err
+	}
+	return []string{fmt.Sprintf("http://%s", host)}, nil
 }

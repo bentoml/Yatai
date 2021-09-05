@@ -176,6 +176,9 @@ func (s *organizationService) GetMajorCluster(ctx context.Context, org *models.O
 		if err != nil {
 			return nil, err
 		}
+		if len(clusters) == 0 {
+			return nil, errors.New("please add a cluster")
+		}
 		return clusters[0], nil
 	}
 	return ClusterService.GetByUid(ctx, org.Config.MajorClusterUid)
