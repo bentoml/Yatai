@@ -18,6 +18,7 @@ import OrganizationBentos from '@/pages/Organization/Bentos'
 import BentoOverview from '@/pages/Bento/Overview'
 import BentoVersions from '@/pages/Bento/Versions'
 import BentoLayout from '@/components/BentoLayout'
+import UserProfile from './pages/Yatai/UserProfile'
 
 const useStyles = createUseStyles({
     root: ({ theme }: IThemedStyleProps) => ({
@@ -81,6 +82,7 @@ const Routes = () => {
                     <Route>
                         <YataiLayout>
                             <Switch>
+                                <Route exact path='/user' component={UserProfile} />
                                 <Route exact path='/' component={Home} />
                             </Switch>
                         </YataiLayout>

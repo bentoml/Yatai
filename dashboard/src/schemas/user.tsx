@@ -5,6 +5,7 @@ export interface IUserSchema extends IResourceSchema {
     last_name: string
     email: string
     avatar_url: string
+    api_token: string
 }
 
 export interface IRegisterUserSchema {
