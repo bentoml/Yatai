@@ -28,3 +28,8 @@ export async function loginUser(data: ILoginUserSchema): Promise<IUserSchema> {
     const resp = await axios.post<IUserSchema>('/api/v1/auth/login', data)
     return resp.data
 }
+
+export async function fetchCurrentUserApiToken(): Promise<IUserSchema> {
+    const resp = await axios.put<IUserSchema>('/api/v1/auth/current/api_token')
+    return resp.data
+}

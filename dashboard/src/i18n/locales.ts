@@ -136,6 +136,14 @@ const locales0 = {
         cn: '镜像编译状态',
         en: 'Image Build Status',
     },
+    'user profile': {
+        cn: '用户资料',
+        en: 'User Profile',
+    },
+    'api token': {
+        cn: 'API 令牌',
+        en: 'API Token',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
