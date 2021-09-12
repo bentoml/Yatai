@@ -40,6 +40,12 @@ func (m *resourceService) Get(ctx context.Context, resourceType modelschemas.Res
 	case modelschemas.ResourceTypeTerminalRecord:
 		terminalRecord, err := TerminalRecordService.Get(ctx, resourceId)
 		return terminalRecord, err
+	case modelschemas.ResourceTypeModel:
+		model, err := ModelService.Get(ctx, resourceId)
+		return model, err
+	case modelschemas.ResourceTypeModelVersion:
+		modelVersion, err := ModelVersionService.Get(ctx, resourceId)
+		return modelVersion, err
 	default:
 		return nil, errors.Errorf("cannot recognize this resource type: %s", resourceType)
 	}

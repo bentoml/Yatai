@@ -10,96 +10,84 @@ import (
 	"text/template"
 	"time"
 
-	"k8s.io/apimachinery/pkg/labels"
-
 	"github.com/iancoleman/strcase"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	apiv1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/minio/minio-go/v7/pkg/credentials"
-
-	"github.com/minio/minio-go/v7"
-
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
+	"k8s.io/apimachinery/pkg/labels"
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
-// nolint:gosec
-var awsSecretTemplate = `
-[default]
-aws_access_key_id = {{.AccessKeyId}}
-aws_secret_access_key = {{.SecretAccessKey}}
-`
+type modelVersionService struct{}
 
-type bentoVersionService struct{}
+var ModelVersionService = &modelVersionService{}
 
-var BentoVersionService = bentoVersionService{}
-
-func (s *bentoVersionService) getBaseDB(ctx context.Context) *gorm.DB {
-	return mustGetSession(ctx).Model(&models.BentoVersion{})
+func (s *modelVersionService) getBaseDB(ctx context.Context) *gorm.DB {
+	return mustGetSession(ctx).Model(&models.ModelVersion{})
 }
 
-type CreateBentoVersionOption struct {
+type CreateModelVersionOption struct {
 	CreatorId   uint
-	BentoId     uint
+	ModelId     uint
 	Version     string
 	Description string
 	BuildAt     time.Time
-	Manifest    *modelschemas.BentoVersionManifestSchema
+	Manifest    *modelschemas.ModelVersionManifestSchema
 }
 
-type UpdateBentoVersionOption struct {
-	ImageBuildStatus          *modelschemas.BentoVersionImageBuildStatus
+type UpdateModelVersionOption struct {
+	ImageBuildStatus          *modelschemas.ModelVersionImageBuildStatus
 	ImageBuildStatusSyncingAt **time.Time
 	ImageBuildStatusUpdatedAt **time.Time
-	UploadStatus              *modelschemas.BentoVersionUploadStatus
+	UploadStatus              *modelschemas.ModelVersionUploadStatus
 	UploadStartedAt           **time.Time
 	UploadFinishedAt          **time.Time
 	UploadFinishedReason      *string
 }
 
-type ListBentoVersionOption struct {
+type ListModelVersionOption struct {
 	BaseListOption
-	BentoId *uint
+	ModelId *uint
 }
 
-func (s *bentoVersionService) Create(ctx context.Context, opt CreateBentoVersionOption) (bentoVersion *models.BentoVersion, err error) {
-	// nolint: ineffassign,staticcheck
+func (s *modelVersionService) Create(ctx context.Context, opt CreateModelVersionOption) (modelVersion *models.ModelVersion, err error) {
+	// nolint: ineffassign, staticcheck
 	db, ctx, df, err := startTransaction(ctx)
 	if err != nil {
 		return
 	}
 	defer func() { df(err) }()
-	bentoVersion = &models.BentoVersion{
+	modelVersion = &models.ModelVersion{
 		CreatorAssociate: models.CreatorAssociate{
 			CreatorId: opt.CreatorId,
 		},
-		BentoAssociate: models.BentoAssociate{
-			BentoId: opt.BentoId,
+		ModelAssociate: models.ModelAssociate{
+			ModelId: opt.ModelId,
 		},
 		Version:          opt.Version,
 		Description:      opt.Description,
-		ImageBuildStatus: modelschemas.BentoVersionImageBuildStatusPending,
-		UploadStatus:     modelschemas.BentoVersionUploadStatusPending,
+		ImageBuildStatus: modelschemas.ModelVersionImageBuildStatusPending,
+		UploadStatus:     modelschemas.ModelVersionUploadStatusPending,
 		BuildAt:          opt.BuildAt,
 		Manifest:         opt.Manifest,
 	}
-	err = db.Create(bentoVersion).Error
+	err = db.Create(modelVersion).Error
 	return
 }
 
-func (s *bentoVersionService) PreSignS3UploadUrl(ctx context.Context, bentoVersion *models.BentoVersion) (url *url.URL, err error) {
-	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+func (s *modelVersionService) PreSignS3UploadUrl(ctx context.Context, modelVersion *models.ModelVersion) (url *url.URL, err error) {
+	model, err := ModelService.GetAssociatedModel(ctx, modelVersion)
 	if err != nil {
 		return
 	}
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, model)
 	if err != nil {
 		return
 	}
@@ -133,7 +121,7 @@ func (s *bentoVersionService) PreSignS3UploadUrl(ctx context.Context, bentoVersi
 		}
 	}
 
-	objectName, err := s.getS3ObjectName(ctx, bentoVersion)
+	objectName, err := s.getS3ObjectName(ctx, modelVersion)
 	if err != nil {
 		return
 	}
@@ -146,97 +134,96 @@ func (s *bentoVersionService) PreSignS3UploadUrl(ctx context.Context, bentoVersi
 	return
 }
 
-func (s *bentoVersionService) getS3ObjectName(ctx context.Context, bentoVersion *models.BentoVersion) (string, error) {
-	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+func (s *modelVersionService) getS3ObjectName(ctx context.Context, modelVersion *models.ModelVersion) (string, error) {
+	model, err := ModelService.GetAssociatedModel(ctx, modelVersion)
 	if err != nil {
 		return "", err
 	}
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, model)
 	if err != nil {
 		return "", err
 	}
-	objectName := fmt.Sprintf("bentos/%s/%s/%s.tar.gz", org.Name, bento.Name, bentoVersion.Version)
+	objectName := fmt.Sprintf("models/%s/%s/%s.tar.gz", org.Name, model.Name, modelVersion.Version)
 	return objectName, nil
 }
 
-func (s *bentoVersionService) GetImageName(ctx context.Context, bentoVersion *models.BentoVersion) (string, error) {
-	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+func (s *modelVersionService) GetImageName(ctx context.Context, modelVersion *models.ModelVersion) (string, error) {
+	model, err := ModelService.GetAssociatedModel(ctx, modelVersion)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, model)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	if org.Config == nil || org.Config.AWS == nil || org.Config.AWS.ECR == nil {
-		return "", errors.Errorf("organization %s don't have ECR config", org.Name)
+		return "", errors.Errorf("Organization %s does not have ECR configuration", org.Name)
 	}
-	imageName := fmt.Sprintf("%s:yatai.%s.%s.%s", org.Config.AWS.ECR.RepositoryURI, org.Name, bento.Name, bentoVersion.Version)
+
+	imageName := fmt.Sprintf("%s:yatai.%s.%s.%s", org.Config.AWS.ECR.RepositoryURI, org.Name, model.Name, modelVersion.Version)
 	return imageName, nil
 }
-
-func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.BentoVersion, opt UpdateBentoVersionOption) (*models.BentoVersion, error) {
+func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.ModelVersion, opt UpdateModelVersionOption) (*models.ModelVersion, error) {
 	var err error
 	updaters := make(map[string]interface{})
 	if opt.ImageBuildStatus != nil {
 		updaters["image_build_status"] = *opt.ImageBuildStatus
 		defer func() {
-			if err == nil {
-				bentoVersion.ImageBuildStatus = *opt.ImageBuildStatus
+			if err != nil {
+				modelVersion.ImageBuildStatus = *opt.ImageBuildStatus
 			}
 		}()
 	}
 	if opt.ImageBuildStatusSyncingAt != nil {
 		updaters["image_build_status_syncing_at"] = *opt.ImageBuildStatusSyncingAt
 		defer func() {
-			if err == nil {
-				bentoVersion.ImageBuildStatusSyncingAt = *opt.ImageBuildStatusSyncingAt
+			if err != nil {
+				modelVersion.ImageBuildStatusSyncingAt = *opt.ImageBuildStatusSyncingAt
 			}
 		}()
 	}
 	if opt.ImageBuildStatusUpdatedAt != nil {
 		updaters["image_build_status_updated_at"] = *opt.ImageBuildStatusUpdatedAt
 		defer func() {
-			if err == nil {
-				bentoVersion.ImageBuildStatusUpdatedAt = *opt.ImageBuildStatusUpdatedAt
+			if err != nil {
+				modelVersion.ImageBuildStatusUpdatedAt = *opt.ImageBuildStatusUpdatedAt
 			}
 		}()
 	}
 	if opt.UploadStatus != nil {
 		updaters["upload_status"] = *opt.UploadStatus
 		defer func() {
-			if err == nil {
-				bentoVersion.UploadStatus = *opt.UploadStatus
+			if err != nil {
+				modelVersion.UploadStatus = *opt.UploadStatus
 			}
 		}()
 	}
 	if opt.UploadStartedAt != nil {
 		updaters["upload_started_at"] = *opt.UploadStartedAt
 		defer func() {
-			if err == nil {
-				bentoVersion.UploadStartedAt = *opt.UploadStartedAt
+			if err != nil {
+				modelVersion.UploadStartedAt = *opt.UploadStartedAt
 			}
 		}()
 	}
 	if opt.UploadFinishedAt != nil {
 		updaters["upload_finished_at"] = *opt.UploadFinishedAt
 		defer func() {
-			if err == nil {
-				bentoVersion.UploadFinishedAt = *opt.UploadFinishedAt
+			if err != nil {
+				modelVersion.UploadFinishedAt = *opt.UploadFinishedAt
 			}
 		}()
 	}
 	if opt.UploadFinishedReason != nil {
 		updaters["upload_finished_reason"] = *opt.UploadFinishedReason
 		defer func() {
-			if err == nil {
-				bentoVersion.UploadFinishedReason = *opt.UploadFinishedReason
+			if err != nil {
+				modelVersion.UploadFinishedReason = *opt.UploadFinishedReason
 			}
 		}()
 	}
-
 	if len(updaters) == 0 {
-		return bentoVersion, nil
+		return modelVersion, nil
 	}
 
 	// nolint: ineffassign,staticcheck
@@ -246,21 +233,20 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 	}
 	defer func() { df(err) }()
 
-	err = db.Model(&models.BentoVersion{}).Where("id = ?", bentoVersion.ID).Updates(updaters).Error
+	err = db.Model(&models.ModelVersion{}).Where("id = ?", modelVersion.ID).Updates(updaters).Error
 	if err != nil {
 		return nil, err
 	}
 
-	if opt.UploadStatus == nil || *opt.UploadStatus != modelschemas.BentoVersionUploadStatusSuccess {
-		return bentoVersion, err
+	if opt.UploadStatus != nil || *opt.UploadStatus != modelschemas.ModelVersionUploadStatusSuccess {
+		return modelVersion, nil
 	}
 
-	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+	model, err := ModelService.GetAssociatedModel(ctx, modelVersion)
 	if err != nil {
 		return nil, err
 	}
-
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, model)
 	if err != nil {
 		return nil, err
 	}
@@ -275,15 +261,14 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 		return nil, err
 	}
 
-	kubeNamespace := consts.KubeNamespaceYataiBentoVersionImageBuilder
+	kubeNamespace := consts.KubeNamespaceYataiModelVersionImageBuilder
 
 	_, err = KubeNamespaceService.MakeSureNamespace(ctx, majorCluster, kubeNamespace)
 	if err != nil {
 		return nil, err
 	}
-
 	if org.Config == nil || org.Config.AWS == nil {
-		return nil, errors.Errorf("organization %s don't have aws config", org.Name)
+		return nil, errors.Errorf("Organization %s does not have AWS configuration", org.Name)
 	}
 
 	awsSecretKubeName := "aws-secret"
@@ -336,21 +321,20 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 
 	podsCli := kubeCli.CoreV1().Pods(kubeNamespace)
 
-	kubeName, err := s.GetImageBuilderKubeName(ctx, bentoVersion)
+	kubeName, err := s.GetImageBuilderKubeName(ctx, modelVersion)
 	if err != nil {
 		return nil, err
 	}
-
 	if org.Config == nil || org.Config.AWS == nil || org.Config.AWS.S3 == nil {
-		return nil, errors.Errorf("origanization %s don't have s3 config", org.Name)
+		return nil, errors.Errorf("Organization %s does not have AWS S3 configuration", org.Name)
 	}
 
-	s3ObjectName, err := s.getS3ObjectName(ctx, bentoVersion)
+	s3ObjectName, err := s.getS3ObjectName(ctx, modelVersion)
 	if err != nil {
 		return nil, err
 	}
 
-	imageName, err := s.GetImageName(ctx, bentoVersion)
+	imageName, err := s.GetImageName(ctx, modelVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -361,8 +345,8 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 			ObjectMeta: metav1.ObjectMeta{
 				Name: kubeName,
 				Labels: map[string]string{
-					consts.KubeLabelYataiBento:        bento.Name,
-					consts.KubeLabelYataiBentoVersion: bentoVersion.Version,
+					consts.KubeLabelYataiModel:        model.Name,
+					consts.KubeLabelYataiModelVersion: modelVersion.Version,
 				},
 			},
 			Spec: apiv1.PodSpec{
@@ -389,7 +373,7 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 				},
 				Containers: []apiv1.Container{
 					{
-						Name:  "builder",
+						Name:  "image-builder",
 						Image: "gcr.io/kaniko-project/executor:latest",
 						Args: []string{
 							"--dockerfile=./Dockerfile",
@@ -416,7 +400,6 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 				},
 			},
 		}, metav1.CreateOptions{})
-
 		if err != nil {
 			return nil, err
 		}
@@ -425,114 +408,100 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 	}
 
 	go func() {
-		_, _ = s.SyncImageBuilderStatus(ctx, bentoVersion)
+		_, _ = s.SyncImageBuilderStatus(ctx, modelVersion)
 	}()
 
-	return bentoVersion, nil
+	return modelVersion, nil
 }
 
-func (s *bentoVersionService) GetImageBuilderKubeName(ctx context.Context, bentoVersion *models.BentoVersion) (string, error) {
-	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+func (s *modelVersionService) GetImageBuilderKubeName(ctx context.Context, modelVersion *models.ModelVersion) (string, error) {
+	model, err := ModelService.GetAssociatedModel(ctx, modelVersion)
 	if err != nil {
 		return "", err
 	}
 
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, model)
 	if err != nil {
 		return "", err
 	}
 
-	return strings.ReplaceAll(strcase.ToKebab(fmt.Sprintf("yatai-image-builder-%s-%s-%s", org.Name, bento.Name, bentoVersion.Version)), ".", "-"), nil
+	return strings.ReplaceAll(strcase.ToKebab(fmt.Sprintf("yatai-image-builder-%s-%s-%s", org.Name, model.Name, modelVersion.Version)), ".", "-"), nil
 }
 
-func (s *bentoVersionService) Get(ctx context.Context, id uint) (*models.BentoVersion, error) {
-	var bentoVersion models.BentoVersion
-	err := getBaseQuery(ctx, s).Where("id = ?", id).First(&bentoVersion).Error
+func (s *modelVersionService) Get(ctx context.Context, id uint) (*models.ModelVersion, error) {
+	var modelVersion models.ModelVersion
+	err := getBaseQuery(ctx, s).Where("id = ?", id).First(&modelVersion).Error
 	if err != nil {
 		return nil, err
 	}
-	if bentoVersion.ID == 0 {
+	if modelVersion.ID == 0 {
 		return nil, consts.ErrNotFound
 	}
-	return &bentoVersion, nil
+	return &modelVersion, nil
 }
 
-func (s *bentoVersionService) GetByUid(ctx context.Context, uid string) (*models.BentoVersion, error) {
-	var bentoVersion models.BentoVersion
-	err := getBaseQuery(ctx, s).Where("uid = ?", uid).First(&bentoVersion).Error
+func (s *modelVersionService) GetByVersion(ctx context.Context, modelId uint, version string) (*models.ModelVersion, error) {
+	var modelVersion models.ModelVersion
+	err := getBaseQuery(ctx, s).Where("model_id = ?", modelId).Where("version = ?", version).First(&modelVersion).Error
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get model version by model id %d and version %s", modelId, version)
 	}
-	if bentoVersion.ID == 0 {
+	if modelVersion.ID == 0 {
 		return nil, consts.ErrNotFound
 	}
-	return &bentoVersion, nil
+	return &modelVersion, nil
 }
 
-func (s *bentoVersionService) GetByVersion(ctx context.Context, bentoId uint, version string) (*models.BentoVersion, error) {
-	var bentoVersion models.BentoVersion
-	err := getBaseQuery(ctx, s).Where("bento_id = ?", bentoId).Where("version = ?", version).First(&bentoVersion).Error
-	if err != nil {
-		return nil, errors.Wrapf(err, "get bento version %s", version)
-	}
-	if bentoVersion.ID == 0 {
-		return nil, consts.ErrNotFound
-	}
-	return &bentoVersion, nil
-}
-
-func (s *bentoVersionService) ListByUids(ctx context.Context, uids []string) ([]*models.BentoVersion, error) {
-	bentoVersions := make([]*models.BentoVersion, 0, len(uids))
+func (s *modelVersionService) ListByUids(ctx context.Context, uids []uint) ([]*models.ModelVersion, error) {
+	modelVersions := make([]*models.ModelVersion, 0, len(uids))
 	if len(uids) == 0 {
-		return bentoVersions, nil
+		return modelVersions, nil
 	}
-	err := getBaseQuery(ctx, s).Where("uid in (?)", uids).Find(&bentoVersions).Error
-	return bentoVersions, err
+	err := getBaseQuery(ctx, s).Where("id in (?)", uids).Find(&modelVersions).Error
+	return modelVersions, err
 }
 
-func (s *bentoVersionService) List(ctx context.Context, opt ListBentoVersionOption) ([]*models.BentoVersion, uint, error) {
+func (s *modelVersionService) List(ctx context.Context, opt ListModelVersionOption) ([]*models.ModelVersion, uint, error) {
 	query := getBaseQuery(ctx, s)
-	if opt.BentoId != nil {
-		query = query.Where("bento_id = ?", *opt.BentoId)
+	if opt.ModelId != nil {
+		query = query.Where("model_id = ?", *opt.ModelId)
 	}
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	bentoVersions := make([]*models.BentoVersion, 0)
+	modelVersions := make([]*models.ModelVersion, 0)
 	query = opt.BindQuery(query).Order("build_at DESC")
-	err = query.Find(&bentoVersions).Error
+	err = query.Find(&modelVersions).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	return bentoVersions, uint(total), err
+	return modelVersions, uint(total), nil
 }
 
-func (s *bentoVersionService) ListLatestByBentoIds(ctx context.Context, bentoIds []uint) ([]*models.BentoVersion, error) {
+func (s *modelVersionService) ListLatestByModelIds(ctx context.Context, modelIds []uint) ([]*models.ModelVersion, error) {
 	db := mustGetSession(ctx)
 
-	query := db.Raw(`select * from bento_version where id in (
-					select n.version_id from (
-						select bento_id, max(id) as version_id from bento_version
-						where bento_id in (?) group by bento_id
-					) as n)`, bentoIds)
-
-	versions := make([]*models.BentoVersion, 0, len(bentoIds))
+	query := db.Raw(`select * from model_version where id in (
+			select n.version_id from (
+				select model_id, max(id) as version_id from model_version
+				where model_id in (?) group by model_id
+			) as n)`, modelIds)
+	versions := make([]*models.ModelVersion, 0, len(modelIds))
 	err := query.Find(&versions).Error
 	if err != nil {
 		return nil, err
 	}
-
 	return versions, err
 }
 
-func (s *bentoVersionService) ListImageBuilderPods(ctx context.Context, bentoVersion *models.BentoVersion) ([]*models.KubePodWithStatus, error) {
-	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+func (s *modelVersionService) ListImageBuilderPods(ctx context.Context, modelVersion *models.ModelVersion) ([]*models.KubePodWithStatus, error) {
+	model, err := ModelService.GetAssociatedModel(ctx, modelVersion)
 	if err != nil {
 		return nil, err
 	}
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, model)
 	if err != nil {
 		return nil, err
 	}
@@ -540,27 +509,25 @@ func (s *bentoVersionService) ListImageBuilderPods(ctx context.Context, bentoVer
 	if err != nil {
 		return nil, err
 	}
-	_, podLister, err := GetPodInformer(ctx, cluster, consts.KubeNamespaceYataiBentoVersionImageBuilder)
+	_, podLister, err := GetPodInformer(ctx, cluster, consts.KubeNamespaceYataiModelVersionImageBuilder)
 	if err != nil {
 		return nil, err
 	}
 
-	selector, err := labels.Parse(fmt.Sprintf("%s = %s, %s = %s", consts.KubeLabelYataiBento, bento.Name, consts.KubeLabelYataiBentoVersion, bentoVersion.Version))
+	selector, err := labels.Parse(fmt.Sprintf("%s = %s, %s = %s", consts.KubeLabelYataiModel, model.Name, consts.KubeLabelYataiModelVersion, modelVersion.Version))
 	if err != nil {
 		return nil, err
 	}
-
 	pods, err := podLister.List(selector)
 	if err != nil {
 		return nil, err
 	}
-
-	_, eventLister, err := GetEventInformer(ctx, cluster, consts.KubeNamespaceYataiBentoVersionImageBuilder)
+	_, eventLister, err := GetEventInformer(ctx, cluster, consts.KubeNamespaceYataiModelVersionImageBuilder)
 	if err != nil {
 		return nil, err
 	}
 
-	events, err := eventLister.List(labels.Everything())
+	events, err := eventLister.List(selector)
 	if err != nil {
 		return nil, err
 	}
@@ -569,7 +536,6 @@ func (s *bentoVersionService) ListImageBuilderPods(ctx context.Context, bentoVer
 	for _, p := range pods {
 		pods_ = append(pods_, *p)
 	}
-
 	events_ := make([]apiv1.Event, 0, len(pods))
 	for _, e := range events {
 		events_ = append(events_, *e)
@@ -578,9 +544,9 @@ func (s *bentoVersionService) ListImageBuilderPods(ctx context.Context, bentoVer
 	return KubePodService.MapKubePodsToKubePodWithStatuses(ctx, pods_, events_), nil
 }
 
-func (s *bentoVersionService) CalculateImageBuildStatus(ctx context.Context, bentoVersion *models.BentoVersion) (modelschemas.BentoVersionImageBuildStatus, error) {
-	defaultStatus := modelschemas.BentoVersionImageBuildStatusPending
-	pods, err := s.ListImageBuilderPods(ctx, bentoVersion)
+func (s *modelVersionService) CalculateImageBuildStatus(ctx context.Context, modelVersion *models.ModelVersion) (modelschemas.ModelVersionImageBuildStatus, error) {
+	defaultStatus := modelschemas.ModelVersionImageBuildStatusPending
+	pods, err := s.ListImageBuilderPods(ctx, modelVersion)
 	if err != nil {
 		return defaultStatus, err
 	}
@@ -591,42 +557,42 @@ func (s *bentoVersionService) CalculateImageBuildStatus(ctx context.Context, ben
 
 	for _, p := range pods {
 		if p.Status.Status == modelschemas.KubePodActualStatusRunning || p.Status.Status == modelschemas.KubePodActualStatusPending {
-			return modelschemas.BentoVersionImageBuildStatusBuilding, nil
+			return modelschemas.ModelVersionImageBuildStatusBuilding, nil
 		}
 		if p.Status.Status == modelschemas.KubePodActualStatusTerminating || p.Status.Status == modelschemas.KubePodActualStatusUnknown || p.Status.Status == modelschemas.KubePodActualStatusFailed {
-			return modelschemas.BentoVersionImageBuildStatusFailed, nil
+			return modelschemas.ModelversionImageBuildStatusFailed, nil
 		}
 	}
 
-	return modelschemas.BentoVersionImageBuildStatusSuccess, nil
+	return modelschemas.ModelVersionImageBuildStatusSuccess, nil
 }
 
-func (s *bentoVersionService) ListImageBuildStatusUnsynced(ctx context.Context) ([]*models.BentoVersion, error) {
+func (s *modelVersionService) ListImageBuildStatusUnsynced(ctx context.Context) ([]*models.ModelVersion, error) {
 	q := getBaseQuery(ctx, s)
 	now := time.Now()
 	t := now.Add(-time.Minute)
-	q = q.Where("image_build_status != ? and (image_build_status_syncing_at is null or image_build_status_syncing_at < ? or image_build_status_updated_at is null or image_build_status_updated_at < ?)", modelschemas.BentoVersionImageBuildStatusSuccess, t, t)
-	bentoVersions := make([]*models.BentoVersion, 0)
-	err := q.Order("id DESC").Find(&bentoVersions).Error
-	return bentoVersions, err
+	q = q.Where("image_build_status != ? and (image_build_status_syncing_at is null or image_build_status_syncing_at < ? or image_build_status_updated_at is null or image_build_status_updated_at < ?)", modelschemas.ModelVersionImageBuildStatusSuccess, t, t)
+	modelVersions := make([]*models.ModelVersion, 0)
+	err := q.Order("id DESC").Find(&modelVersions).Error
+	return modelVersions, err
 }
 
-func (s *bentoVersionService) SyncImageBuilderStatus(ctx context.Context, bentoVersion *models.BentoVersion) (modelschemas.BentoVersionImageBuildStatus, error) {
+func (s *modelVersionService) SyncImageBuilderStatus(ctx context.Context, modelVersion *models.ModelVersion) (modelschemas.ModelVersionImageBuildStatus, error) {
 	now := time.Now()
 	nowPtr := &now
-	_, err := s.Update(ctx, bentoVersion, UpdateBentoVersionOption{
+	_, err := s.Update(ctx, modelVersion, UpdateModelVersionOption{
 		ImageBuildStatusSyncingAt: &nowPtr,
 	})
 	if err != nil {
-		return bentoVersion.ImageBuildStatus, err
+		return modelVersion.ImageBuildStatus, err
 	}
-	currentStatus, err := s.CalculateImageBuildStatus(ctx, bentoVersion)
+	currentStatus, err := s.CalculateImageBuildStatus(ctx, modelVersion)
 	if err != nil {
-		return bentoVersion.ImageBuildStatus, err
+		return modelVersion.ImageBuildStatus, err
 	}
 	now = time.Now()
 	nowPtr = &now
-	_, err = s.Update(ctx, bentoVersion, UpdateBentoVersionOption{
+	_, err = s.Update(ctx, modelVersion, UpdateModelVersionOption{
 		ImageBuildStatus:          &currentStatus,
 		ImageBuildStatusUpdatedAt: &nowPtr,
 	})
@@ -636,18 +602,18 @@ func (s *bentoVersionService) SyncImageBuilderStatus(ctx context.Context, bentoV
 	return currentStatus, nil
 }
 
-type IBentoVersionAssociate interface {
-	GetAssociatedBentoVersionId() uint
-	GetAssociatedBentoVersionCache() *models.BentoVersion
-	SetAssociatedBentoVersionCache(version *models.BentoVersion)
+type IModelVersionAssociated interface {
+	GetAssociatedModelVersionId() uint
+	GetAssociatedModelVersionCache() *models.ModelVersion
+	SetAssociatedModelVersionCache(version *models.ModelVersion)
 }
 
-func (s *bentoVersionService) GetAssociatedBentoVersion(ctx context.Context, associate IBentoVersionAssociate) (*models.BentoVersion, error) {
-	cache := associate.GetAssociatedBentoVersionCache()
+func (s *modelVersionService) GetAssociatedModelVersion(ctx context.Context, associate IModelVersionAssociated) (*models.ModelVersion, error) {
+	cache := associate.GetAssociatedModelVersionCache()
 	if cache != nil {
 		return cache, nil
 	}
-	version, err := s.Get(ctx, associate.GetAssociatedBentoVersionId())
-	associate.SetAssociatedBentoVersionCache(version)
+	version, err := s.Get(ctx, associate.GetAssociatedModelVersionId())
+	associate.SetAssociatedModelVersionCache(version)
 	return version, err
 }

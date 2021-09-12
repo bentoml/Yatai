@@ -10,6 +10,8 @@ export type ResourceType =
     | 'deployment'
     | 'deployment_snapshot'
     | 'yatai_component'
+    | 'model'
+    | 'model_version'
 
 export interface IResourceSchema extends IBaseSchema {
     name: string

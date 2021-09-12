@@ -168,6 +168,47 @@ CREATE TABLE IF NOT EXISTS "bento_version" (
 
 CREATE UNIQUE INDEX "uk_bentoVersion_bentoId_version" ON "bento_version" ("bento_id", "version");
 
+CREATE TABLE IF NOT EXISTS "model" (
+    id SERIAL PRIMARY KEY,
+    uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
+    name VARCHAR(128) NOT NULL,
+    description TEXT,
+    manifest TEXT,
+    organization_id INTEGER NOT NULL REFERENCES "organization"("id") ON DELETE CASCADE,
+    creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE UNIQUE INDEX "uk_model_orgId_name" ON "model" ("organization_id", "name");
+
+CREATE TYPE "model_version_upload_status" AS ENUM ('pending', 'uploading', 'success', 'failed');
+CREATE TYPE "model_version_image_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
+
+CREATE TABLE IF NOT EXISTS "model_version" (
+    id SERIAL PRIMARY KEY,
+    uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
+    version VARCHAR(512) NOT NULL,
+    description TEXT,
+    model_id INTEGER NOT NULL REFERENCES "model"("id") ON DELETE CASCADE,
+    upload_status model_version_upload_status NOT NULL DEFAULT 'pending',
+    image_build_status model_version_image_build_status NOT NULL DEFAULT 'pending',
+    image_build_status_syncing_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    image_build_status_updated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    upload_started_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    upload_finished_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    upload_finished_reason TEXT,
+    creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
+    build_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    manifest TEXT
+);
+
+CREATE UNIQUE INDEX "uk_modelVersion_modelId_version" ON "model_version" ("model_id", "version");
+
 CREATE TYPE "deployment_status" AS ENUM ('unknown', 'non-deployed', 'failed', 'unhealthy', 'deploying', 'running');
 
 CREATE TABLE IF NOT EXISTS "deployment" (
@@ -206,7 +247,7 @@ CREATE TABLE IF NOT EXISTS "deployment_snapshot" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TYPE "resource_type" AS ENUM ('organization', 'cluster', 'bento', 'bento_version', 'deployment', 'deployment_snapshot');
+CREATE TYPE "resource_type" AS ENUM ('organization', 'cluster', 'bento', 'bento_version', 'deployment', 'deployment_snapshot', 'model', 'model_version');
 
 CREATE TABLE IF NOT EXISTS "event" (
     id SERIAL PRIMARY KEY,

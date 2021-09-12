@@ -6,7 +6,8 @@ import { AiOutlineDashboard, AiOutlineCodeSandbox } from 'react-icons/ai'
 import { HiOutlineUserGroup } from 'react-icons/hi'
 import { BiRevision, BiExtension } from 'react-icons/bi'
 import { GoPackage } from 'react-icons/go'
-import { MdOutlineAnalytics } from 'react-icons/md'
+import { VscFileBinary } from 'react-icons/vsc'
+import { RiMistFill } from 'react-icons/ri'
 
 export const headerHeight = 55
 export const sidebarExpandedWidth = 220
@@ -24,9 +25,11 @@ export const resourceIconMapping: Record<ResourceType, React.ComponentType<IconB
     deployment: GrDeploy,
     deployment_snapshot: BiRevision,
     yatai_component: BiExtension,
+    model: VscFileBinary,
+    model_version: VscFileBinary,
 }
 
 export const yataiComponentIconMapping: Record<YataiComponentType, React.ComponentType<IconBaseProps>> = {
-    logging: MdOutlineAnalytics,
+    logging: RiMistFill,
     monitoring: AiOutlineDashboard,
 }

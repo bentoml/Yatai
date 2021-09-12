@@ -503,6 +503,15 @@ export default function Header() {
             >
                 {organization && (
                     <Link
+                        style={generateLinkStyle(`/orgs/${organization.name}/models`)}
+                        to={`/orgs/${organization.name}/models`}
+                    >
+                        {React.createElement(resourceIconMapping.model, { size: 12 })}
+                        {t('model')}
+                    </Link>
+                )}
+                {organization && (
+                    <Link
                         style={generateLinkStyle(`/orgs/${organization.name}/bentos`)}
                         to={`/orgs/${organization.name}/bentos`}
                     >

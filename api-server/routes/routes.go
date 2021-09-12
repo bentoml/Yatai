@@ -310,6 +310,7 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 
 	clusterRoutes(resourceGrp)
 	bentoRoutes(resourceGrp)
+	modelRoutes(resourceGrp)
 }
 
 func clusterRoutes(grp *fizz.RouterGroup) {
@@ -502,4 +503,65 @@ func terminalRecordRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Download a terminal record"),
 		fizz.Summary("Download a terminal record"),
 	}, requireLogin, tonic.Handler(controllersv1.TerminalRecordController.Download, 200))
+}
+
+func modelRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/models", "models", "models")
+
+	resourceGrp := grp.Group("/:modelName", "model resource", "model resource")
+
+	resourceGrp.GET("", []fizz.OperationOption{
+		fizz.ID("Get a model"),
+		fizz.Summary("Get a model"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.Get, 200))
+
+	resourceGrp.PATCH("", []fizz.OperationOption{
+		fizz.ID("Update a model"),
+		fizz.Summary("Update a model"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.Update, 200))
+
+	grp.GET("", []fizz.OperationOption{
+		fizz.ID("List models"),
+		fizz.Summary("List models"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.List, 200))
+
+	grp.POST("", []fizz.OperationOption{
+		fizz.ID("Create model"),
+		fizz.Summary("Create model"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.Create, 200))
+
+	modelVersionRoutes(resourceGrp)
+}
+
+func modelVersionRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/versions", "model versions", "model versions")
+
+	resourceGrp := grp.Group("/:version", "model version resource", "model version resource")
+
+	resourceGrp.GET("", []fizz.OperationOption{
+		fizz.ID("Get a model version"),
+		fizz.Summary("Get a model version"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.Get, 200))
+
+	// WIP patch s3 upload
+
+	resourceGrp.PATCH("/start_upload", []fizz.OperationOption{
+		fizz.ID("Start upload a model version"),
+		fizz.Summary("Start upload a model version"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.StartUpload, 200))
+
+	resourceGrp.PATCH("/finish_upload", []fizz.OperationOption{
+		fizz.ID("Finish upload a model version"),
+		fizz.Summary("Finish upload a model version"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.FinishUpload, 200))
+
+	grp.GET("", []fizz.OperationOption{
+		fizz.ID("List model versions"),
+		fizz.Summary("List model versions"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.List, 200))
+
+	grp.POST("", []fizz.OperationOption{
+		fizz.ID("Create model version"),
+		fizz.Summary("Create model version"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.Create, 200))
 }

@@ -4,6 +4,7 @@ import { IClusterFullSchema } from '@/schemas/cluster'
 import { createGlobalState } from 'react-hooks-global-state'
 import { IUserSchema } from '@/schemas/user'
 import { IOrganizationFullSchema } from '@/schemas/organization'
+import { IModelSchema } from '@/schemas/model'
 
 export type BaseThemeType = 'light' | 'dark'
 export type ThemeType = BaseThemeType | 'followTheSystem'
@@ -21,6 +22,8 @@ const initialState = {
     bentoLoading: false,
     deployment: undefined as IDeploymentSchema | undefined,
     deploymentLoading: false,
+    model: undefined as IModelSchema | undefined,
+    modelLoading: false,
 }
 
 const { useGlobalState } = createGlobalState(initialState)
