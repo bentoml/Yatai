@@ -12,13 +12,17 @@ import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
+import ClusterDeployments from '@/pages/Cluster/Deployments'
 import ClusterMembers from '@/pages/Cluster/Members'
 import ClusterLayout from '@/components/ClusterLayout'
 import OrganizationBentos from '@/pages/Organization/Bentos'
 import BentoOverview from '@/pages/Bento/Overview'
 import BentoVersions from '@/pages/Bento/Versions'
+import DeploymentOverview from '@/pages/Deployment/Overview'
+import DeploymentSnapshots from '@/pages/Deployment/Snapshots'
 import BentoLayout from '@/components/BentoLayout'
-import UserProfile from './pages/Yatai/UserProfile'
+import UserProfile from '@/pages/Yatai/UserProfile'
+import DeploymentLayout from '@/components/DeploymentLayout'
 
 const useStyles = createUseStyles({
     root: ({ theme }: IThemedStyleProps) => ({
@@ -57,10 +61,31 @@ const Routes = () => {
                             </Switch>
                         </BentoLayout>
                     </Route>
+                    <Route exact path='/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/:path?/:path?'>
+                        <DeploymentLayout>
+                            <Switch>
+                                <Route
+                                    exact
+                                    path='/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName'
+                                    component={DeploymentOverview}
+                                />
+                                <Route
+                                    exact
+                                    path='/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/snapshots'
+                                    component={DeploymentSnapshots}
+                                />
+                            </Switch>
+                        </DeploymentLayout>
+                    </Route>
                     <Route exact path='/orgs/:orgName/clusters/:clusterName/:path?/:path?'>
                         <ClusterLayout>
                             <Switch>
                                 <Route exact path='/orgs/:orgName/clusters/:clusterName' component={ClusterOverview} />
+                                <Route
+                                    exact
+                                    path='/orgs/:orgName/clusters/:clusterName/deployments'
+                                    component={ClusterDeployments}
+                                />
                                 <Route
                                     exact
                                     path='/orgs/:orgName/clusters/:clusterName/members'

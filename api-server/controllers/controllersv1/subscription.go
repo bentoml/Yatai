@@ -102,6 +102,33 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 						}
 						actualUids = append(actualUids, bentoVersion.Uid)
 					}
+				case modelschemas.ResourceTypeDeployment:
+					deployments, err := services.DeploymentService.ListByUids(ctx, req.Payload.ResourceUids)
+					if err != nil {
+						_ = conn.WriteJSON(&schemasv1.WsRespSchema{
+							Type:    schemasv1.WsRespTypeError,
+							Message: err.Error(),
+						})
+						continue
+					}
+					for _, deployment := range deployments {
+						cluster, err := services.ClusterService.GetAssociatedCluster(ctx, deployment)
+						if err != nil {
+							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
+								Type:    schemasv1.WsRespTypeError,
+								Message: err.Error(),
+							})
+							continue
+						}
+						if err = services.MemberService.CanView(ctx, &services.ClusterMemberService, currentUser.ID, cluster.ID); err != nil {
+							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
+								Type:    schemasv1.WsRespTypeError,
+								Message: err.Error(),
+							})
+							continue
+						}
+						actualUids = append(actualUids, deployment.Uid)
+					}
 				default:
 					continue
 				}
@@ -171,6 +198,44 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 						Payload: &schemasv1.SubscriptionRespSchema{
 							ResourceType: bentoVersionSchema.ResourceType,
 							Payload:      bentoVersionSchema,
+						},
+					})
+					if err != nil {
+						return err
+					}
+				}
+			case modelschemas.ResourceTypeDeployment:
+				deployments, err := services.DeploymentService.ListByUids(ctx, uids)
+				if err != nil {
+					return err
+				}
+				deploymentSchemas, err := transformersv1.ToDeploymentSchemas(ctx, deployments)
+				if err != nil {
+					return err
+				}
+				for _, deploymentSchema := range deploymentSchemas {
+					isEqual := func() bool {
+						mu.Lock()
+						defer func() {
+							schemasCache[deploymentSchema.Uid] = deploymentSchema
+						}()
+						defer mu.Unlock()
+						if oldSchema, ok := schemasCache[deploymentSchema.Uid]; ok {
+							return reflect.DeepEqual(oldSchema, deploymentSchema)
+						}
+						return false
+					}()
+
+					if isEqual {
+						continue
+					}
+
+					err = conn.WriteJSON(&schemasv1.WsRespSchema{
+						Type:    schemasv1.WsRespTypeSuccess,
+						Message: "",
+						Payload: &schemasv1.SubscriptionRespSchema{
+							ResourceType: deploymentSchema.ResourceType,
+							Payload:      deploymentSchema,
 						},
 					})
 					if err != nil {

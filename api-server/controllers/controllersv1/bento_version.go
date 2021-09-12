@@ -84,7 +84,7 @@ func (c *bentoVersionController) Create(ctx *gin.Context, schema *CreateBentoVer
 	if err != nil {
 		return nil, errors.Wrapf(err, "parse build_at")
 	}
-	version, url, err := services.BentoVersionService.Create(ctx, services.CreateBentoVersionOption{
+	version, err := services.BentoVersionService.Create(ctx, services.CreateBentoVersionOption{
 		CreatorId:   user.ID,
 		BentoId:     bento.ID,
 		Version:     schema.Version,
@@ -94,6 +94,21 @@ func (c *bentoVersionController) Create(ctx *gin.Context, schema *CreateBentoVer
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create version")
+	}
+	return transformersv1.ToBentoVersionSchema(ctx, version)
+}
+
+func (c *bentoVersionController) PreSignS3UploadUrl(ctx *gin.Context, schema *GetBentoVersionSchema) (*schemasv1.BentoVersionSchema, error) {
+	version, err := schema.GetBentoVersion(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, version); err != nil {
+		return nil, err
+	}
+	url, err := services.BentoVersionService.PreSignS3UploadUrl(ctx, version)
+	if err != nil {
+		return nil, errors.Wrap(err, "pre sign s3 upload url")
 	}
 	bentoVersionSchema, err := transformersv1.ToBentoVersionSchema(ctx, version)
 	if err != nil {

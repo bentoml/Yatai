@@ -69,7 +69,7 @@ type ListBentoVersionOption struct {
 	BentoId *uint
 }
 
-func (s *bentoVersionService) Create(ctx context.Context, opt CreateBentoVersionOption) (bentoVersion *models.BentoVersion, url *url.URL, err error) {
+func (s *bentoVersionService) Create(ctx context.Context, opt CreateBentoVersionOption) (bentoVersion *models.BentoVersion, err error) {
 	// nolint: ineffassign,staticcheck
 	db, ctx, df, err := startTransaction(ctx)
 	if err != nil {
@@ -91,10 +91,11 @@ func (s *bentoVersionService) Create(ctx context.Context, opt CreateBentoVersion
 		Manifest:         opt.Manifest,
 	}
 	err = db.Create(bentoVersion).Error
-	if err != nil {
-		return
-	}
-	bento, err := BentoService.Get(ctx, opt.BentoId)
+	return
+}
+
+func (s *bentoVersionService) PreSignS3UploadUrl(ctx context.Context, bentoVersion *models.BentoVersion) (url *url.URL, err error) {
+	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
 	if err != nil {
 		return
 	}
@@ -117,6 +118,7 @@ func (s *bentoVersionService) Create(ctx context.Context, opt CreateBentoVersion
 	})
 	if err != nil {
 		err = errors.Wrap(err, "create s3 client")
+		return
 	}
 
 	bucketName := minioConf.BucketName
@@ -275,15 +277,8 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 
 	kubeNamespace := consts.KubeNamespaceYataiBentoVersionImageBuilder
 
-	_, err = kubeCli.CoreV1().Namespaces().Get(ctx, kubeNamespace, metav1.GetOptions{})
-	if apierrors.IsNotFound(err) {
-		_, err = kubeCli.CoreV1().Namespaces().Create(ctx, &apiv1.Namespace{ObjectMeta: metav1.ObjectMeta{
-			Name: kubeNamespace,
-		}}, metav1.CreateOptions{})
-		if err != nil {
-			return nil, err
-		}
-	} else if err != nil {
+	_, err = KubeNamespaceService.MakeSureNamespace(ctx, majorCluster, kubeNamespace)
+	if err != nil {
 		return nil, err
 	}
 
@@ -360,67 +355,72 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 		return nil, err
 	}
 
-	_, err = podsCli.Create(ctx, &apiv1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: kubeName,
-			Labels: map[string]string{
-				consts.KubeLabelYataiBento:        bento.Name,
-				consts.KubeLabelYataiBentoVersion: bentoVersion.Version,
+	_, err = podsCli.Get(ctx, kubeName, metav1.GetOptions{})
+	if apierrors.IsNotFound(err) {
+		_, err = podsCli.Create(ctx, &apiv1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: kubeName,
+				Labels: map[string]string{
+					consts.KubeLabelYataiBento:        bento.Name,
+					consts.KubeLabelYataiBentoVersion: bentoVersion.Version,
+				},
 			},
-		},
-		Spec: apiv1.PodSpec{
-			RestartPolicy: apiv1.RestartPolicyNever,
-			Volumes: []apiv1.Volume{
-				{
-					Name: dockerCMKubeName,
-					VolumeSource: apiv1.VolumeSource{
-						ConfigMap: &apiv1.ConfigMapVolumeSource{
-							LocalObjectReference: apiv1.LocalObjectReference{
-								Name: dockerCMKubeName,
+			Spec: apiv1.PodSpec{
+				RestartPolicy: apiv1.RestartPolicyNever,
+				Volumes: []apiv1.Volume{
+					{
+						Name: dockerCMKubeName,
+						VolumeSource: apiv1.VolumeSource{
+							ConfigMap: &apiv1.ConfigMapVolumeSource{
+								LocalObjectReference: apiv1.LocalObjectReference{
+									Name: dockerCMKubeName,
+								},
+							},
+						},
+					},
+					{
+						Name: awsSecretKubeName,
+						VolumeSource: apiv1.VolumeSource{
+							Secret: &apiv1.SecretVolumeSource{
+								SecretName: awsSecretKubeName,
 							},
 						},
 					},
 				},
-				{
-					Name: awsSecretKubeName,
-					VolumeSource: apiv1.VolumeSource{
-						Secret: &apiv1.SecretVolumeSource{
-							SecretName: awsSecretKubeName,
+				Containers: []apiv1.Container{
+					{
+						Name:  "builder",
+						Image: "gcr.io/kaniko-project/executor:latest",
+						Args: []string{
+							"--dockerfile=./Dockerfile",
+							fmt.Sprintf("--context=s3://%s/%s", org.Config.AWS.S3.BucketName, s3ObjectName),
+							fmt.Sprintf("--destination=%s", imageName),
+						},
+						VolumeMounts: []apiv1.VolumeMount{
+							{
+								Name:      dockerCMKubeName,
+								MountPath: "/kaniko/.docker/",
+							},
+							{
+								Name:      awsSecretKubeName,
+								MountPath: "/root/.aws/",
+							},
+						},
+						Env: []apiv1.EnvVar{
+							{
+								Name:  "AWS_REGION",
+								Value: org.Config.AWS.S3.Region,
+							},
 						},
 					},
 				},
 			},
-			Containers: []apiv1.Container{
-				{
-					Name:  "builder",
-					Image: "gcr.io/kaniko-project/executor:latest",
-					Args: []string{
-						"--dockerfile=./Dockerfile",
-						fmt.Sprintf("--context=s3://%s/%s", org.Config.AWS.S3.BucketName, s3ObjectName),
-						fmt.Sprintf("--destination=%s", imageName),
-					},
-					VolumeMounts: []apiv1.VolumeMount{
-						{
-							Name:      dockerCMKubeName,
-							MountPath: "/kaniko/.docker/",
-						},
-						{
-							Name:      awsSecretKubeName,
-							MountPath: "/root/.aws/",
-						},
-					},
-					Env: []apiv1.EnvVar{
-						{
-							Name:  "AWS_REGION",
-							Value: org.Config.AWS.S3.Region,
-						},
-					},
-				},
-			},
-		},
-	}, metav1.CreateOptions{})
+		}, metav1.CreateOptions{})
 
-	if err != nil {
+		if err != nil {
+			return nil, err
+		}
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -448,6 +448,18 @@ func (s *bentoVersionService) GetImageBuilderKubeName(ctx context.Context, bento
 func (s *bentoVersionService) Get(ctx context.Context, id uint) (*models.BentoVersion, error) {
 	var bentoVersion models.BentoVersion
 	err := getBaseQuery(ctx, s).Where("id = ?", id).First(&bentoVersion).Error
+	if err != nil {
+		return nil, err
+	}
+	if bentoVersion.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &bentoVersion, nil
+}
+
+func (s *bentoVersionService) GetByUid(ctx context.Context, uid string) (*models.BentoVersion, error) {
+	var bentoVersion models.BentoVersion
+	err := getBaseQuery(ctx, s).Where("uid = ?", uid).First(&bentoVersion).Error
 	if err != nil {
 		return nil, err
 	}
@@ -578,10 +590,10 @@ func (s *bentoVersionService) CalculateImageBuildStatus(ctx context.Context, ben
 	}
 
 	for _, p := range pods {
-		if p.Status.Status == models.KubePodActualStatusRunning || p.Status.Status == models.KubePodActualStatusPending {
+		if p.Status.Status == modelschemas.KubePodActualStatusRunning || p.Status.Status == modelschemas.KubePodActualStatusPending {
 			return modelschemas.BentoVersionImageBuildStatusBuilding, nil
 		}
-		if p.Status.Status == models.KubePodActualStatusTerminating || p.Status.Status == models.KubePodActualStatusUnknown || p.Status.Status == models.KubePodActualStatusFailed {
+		if p.Status.Status == modelschemas.KubePodActualStatusTerminating || p.Status.Status == modelschemas.KubePodActualStatusUnknown || p.Status.Status == modelschemas.KubePodActualStatusFailed {
 			return modelschemas.BentoVersionImageBuildStatusFailed, nil
 		}
 	}

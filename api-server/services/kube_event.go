@@ -3,8 +3,11 @@ package services
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/bentoml/yatai/schemas/modelschemas"
 
 	"github.com/pkg/errors"
 	apiv1 "k8s.io/api/core/v1"
@@ -149,7 +152,7 @@ func (s *kubeEventService) ListAllKubeEvents(ctx context.Context, deployment *mo
 	return s.ListAllKubeEventsByDeployment(ctx, deployment, nil)
 }
 
-func (s *kubeEventService) ListAllKubeEventsByDeployment(ctx context.Context, deployment *models.Deployment, deploymentSnapshot *models.DeploymentSnapshot) ([]apiv1.Event, error) {
+func (s *kubeEventService) ListAllKubeEventsByDeployment(ctx context.Context, deployment *models.Deployment, deploymentSnapshot **models.DeploymentSnapshot) ([]apiv1.Event, error) {
 	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
 	if err != nil {
 		return nil, errors.Wrap(err, "get cluster")
@@ -164,24 +167,28 @@ func (s *kubeEventService) ListAllKubeEventsByDeployment(ctx context.Context, de
 		return nil, errors.Wrap(err, "list events from app pool event informer")
 	}
 
-	bentoVersion, err := BentoVersionService.GetAssociatedBentoVersion(ctx, deploymentSnapshot)
-	if err != nil {
-		return nil, errors.Wrap(err, "get associated bento version")
-	}
+	kubeName := DeploymentService.GetKubeName(deployment)
 
-	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
-	if err != nil {
-		return nil, errors.Wrap(err, "get associated bento")
-	}
+	var kubeNamePattern *regexp.Regexp
 
-	kubeName := BentoService.GetKubeName(bento)
+	if deploymentSnapshot != nil {
+		kubeNamePattern, err = regexp.Compile(fmt.Sprintf("^%s-%s", kubeName, modelschemas.DeploymentSnapshotTypeAddrs[(*deploymentSnapshot).Type]))
+		if err != nil {
+			return nil, errors.Wrap(err, "compile regexp pattern")
+		}
+	} else {
+		kubeNamePattern, err = regexp.Compile(fmt.Sprintf("^%s-", kubeName))
+		if err != nil {
+			return nil, errors.Wrap(err, "compile regexp pattern")
+		}
+	}
 
 	events := make([]apiv1.Event, 0, len(_events))
 	for _, e := range _events {
 		if e == nil {
 			continue
 		}
-		if e.InvolvedObject.Name == kubeName {
+		if !kubeNamePattern.Match([]byte(e.InvolvedObject.Name)) {
 			continue
 		}
 		events = append(events, *e)

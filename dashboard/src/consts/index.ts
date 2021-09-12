@@ -3,6 +3,7 @@ import type { IconBaseProps } from 'react-icons/lib'
 import { GrOrganization, GrServerCluster, GrDeploy, GrUser } from 'react-icons/gr'
 import { AiOutlineCodeSandbox } from 'react-icons/ai'
 import { HiOutlineUserGroup } from 'react-icons/hi'
+import { BiRevision } from 'react-icons/bi'
 import { GoPackage } from 'react-icons/go'
 
 export const headerHeight = 55
@@ -19,4 +20,5 @@ export const resourceIconMapping: Record<ResourceType, React.ComponentType<IconB
     bento: GoPackage,
     bento_version: AiOutlineCodeSandbox,
     deployment: GrDeploy,
+    deployment_snapshot: BiRevision,
 }

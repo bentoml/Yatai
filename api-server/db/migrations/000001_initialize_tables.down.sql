@@ -1,6 +1,8 @@
 DROP TABLE IF EXISTS "event";
 DROP TYPE IF EXISTS "resource_type";
 DROP TABLE IF EXISTS "deployment_snapshot";
+DROP TYPE IF EXISTS "deployment_snapshot_status";
+DROP TYPE IF EXISTS "deployment_snapshot_type";
 DROP TABLE IF EXISTS "deployment";
 DROP TYPE IF EXISTS "deployment_status";
 DROP TABLE IF EXISTS "bento_version";

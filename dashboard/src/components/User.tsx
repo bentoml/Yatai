@@ -5,10 +5,11 @@ import Text from './Text'
 
 export interface IUserProps {
     user: IUserSchema
-    size?: 'scale800' | 'scale1000' | 'scale1200' | 'scale1400' | '64px'
+    size?: 'scale800' | 'scale1000' | 'scale1200' | 'scale1400' | '64px' | '32px' | '16px'
+    style?: React.CSSProperties
 }
 
-export default function User({ user, size = 'scale800' }: IUserProps) {
+export default function User({ user, size = 'scale800', style }: IUserProps) {
     const name = !user.first_name && !user.last_name ? user.name : `${user.first_name} ${user.last_name}`
 
     return (
@@ -17,6 +18,7 @@ export default function User({ user, size = 'scale800' }: IUserProps) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
+                ...style,
             }}
         >
             <Avatar size={size} name={name} src={user.avatar_url} />

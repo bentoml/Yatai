@@ -13,17 +13,18 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/sessions v1.2.1 // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/iancoleman/strcase v0.2.0 // indirect
+	github.com/iancoleman/strcase v0.2.0
 	github.com/jackc/pgx/v4 v4.13.0 // indirect
 	github.com/juju/errors v0.0.0-20200330140219-3fe23663418f
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/loopfz/gadgeto v0.11.1
 	github.com/mattn/go-isatty v0.0.13 // indirect
+	github.com/miekg/dns v1.0.14
 	github.com/minio/md5-simd v1.1.2 // indirect
-	github.com/minio/minio-go/v7 v7.0.13 // indirect
+	github.com/minio/minio-go/v7 v7.0.13
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/panjf2000/ants/v2 v2.4.6
@@ -49,7 +50,7 @@ require (
 	golang.org/x/tools v0.1.5 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/driver/postgres v1.1.0 // indirect
 	gorm.io/gorm v1.21.12
 	howett.net/plist v0.0.0-20201203080718-1454fab16a06 // indirect

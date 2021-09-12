@@ -34,6 +34,9 @@ func (m *resourceService) Get(ctx context.Context, resourceType modelschemas.Res
 	case modelschemas.ResourceTypeDeployment:
 		deployment, err := DeploymentService.Get(ctx, resourceId)
 		return deployment, err
+	case modelschemas.ResourceTypeDeploymentSnapshot:
+		deploymentSnapshot, err := DeploymentSnapshotService.Get(ctx, resourceId)
+		return deploymentSnapshot, err
 	default:
 		return nil, errors.Errorf("cannot recognize this resource type: %s", resourceType)
 	}

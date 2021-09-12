@@ -100,9 +100,21 @@ const locales0 = {
         en: 'Deployment',
         cn: '部署',
     },
+    'deployment snapshot': {
+        en: 'Deployment Snapshot',
+        cn: '部署快照',
+    },
+    'snapshot': {
+        en: 'Snapshot',
+        cn: '快照',
+    },
     'bento': {
         en: 'Bento',
         cn: 'Bento',
+    },
+    'bento version': {
+        cn: 'Bento 版本',
+        en: 'Bento Version',
     },
     'register': {
         en: 'Register',
@@ -132,6 +144,10 @@ const locales0 = {
         cn: '版本',
         en: 'Version',
     },
+    'status': {
+        cn: '状态',
+        en: 'Status',
+    },
     'image build status': {
         cn: '镜像编译状态',
         en: 'Image Build Status',
@@ -143,6 +159,174 @@ const locales0 = {
     'api token': {
         cn: 'API 令牌',
         en: 'API Token',
+    },
+    'production': {
+        cn: '正式',
+        en: 'Production',
+    },
+    'stable': {
+        cn: '稳定',
+        en: 'Stable',
+    },
+    'canary': {
+        cn: '金丝雀',
+        en: 'Canary',
+    },
+    'canary rules': {
+        cn: '金丝雀规则',
+        en: 'Canary Rules',
+    },
+    'weight': {
+        cn: '权重',
+        en: 'Weight',
+    },
+    'header': {
+        cn: 'Header',
+        en: 'Header',
+    },
+    'cookie': {
+        cn: 'Cookie',
+        en: 'Cookie',
+    },
+    'header value': {
+        cn: 'Header 值',
+        en: 'Header value',
+    },
+    'add app deployment canary rule': {
+        cn: '增加灰度发布规则',
+        en: 'Add app deployment gray rule',
+    },
+    'create canary deploy': {
+        cn: '创建灰度发布',
+        en: 'Create gray deploy',
+    },
+    'create deploy': {
+        cn: '创建部署',
+        en: 'Create deploy',
+    },
+    'force': {
+        cn: '强制',
+        en: 'Force',
+    },
+    'deployment detail': {
+        cn: '部署详情',
+        en: 'Deployment Detail',
+    },
+    'visibility': {
+        cn: '可见性',
+        en: 'Visibility',
+    },
+    'non-deployed': {
+        cn: '未部署',
+        en: 'Non Deployed',
+    },
+    'unhealthy': {
+        cn: '不健康',
+        en: 'Unhealthy',
+    },
+    'failed': {
+        cn: '失败',
+        en: 'Failed',
+    },
+    'deploying': {
+        cn: '部署中',
+        en: 'Deploying',
+    },
+    'running': {
+        cn: '运行中',
+        en: 'Running',
+    },
+    'unknown': {
+        cn: '未知',
+        en: 'Unknown',
+    },
+    'replicas': {
+        cn: '副本',
+        en: 'Replicas',
+    },
+    'type': {
+        cn: '类型',
+        en: 'Type',
+    },
+    'view log': {
+        cn: '查看日志',
+        en: 'View Log',
+    },
+    'download log': {
+        cn: '下载日志',
+        en: 'Download Log',
+    },
+    'log forward': {
+        cn: '日志正序',
+        en: 'Log Forward',
+    },
+    'stop scroll': {
+        cn: '停止滚动',
+        en: 'Stop Scroll',
+    },
+    'scroll': {
+        cn: '滚动',
+        en: 'Scroll',
+    },
+    'all pods': {
+        cn: '所有的 Pod',
+        en: 'All Pods',
+    },
+    'lines': {
+        cn: '行数',
+        en: 'Lines',
+    },
+    'realtime': {
+        cn: '实时',
+        en: 'Realtime',
+    },
+    'max lines': {
+        cn: '最大行数',
+        en: 'Max Lines',
+    },
+    'advance': {
+        cn: '高级',
+        en: 'Advance',
+    },
+    'cpu limits': {
+        cn: 'CPU 资源限制',
+        en: 'CPU Resources Limits',
+    },
+    'gpu limits': {
+        cn: 'GPU 资源限制',
+        en: 'GPU Resources Limits',
+    },
+    'gpu requests': {
+        cn: 'GPU 资源请求',
+        en: 'GPU Resources Requests',
+    },
+    'cpu': {
+        cn: 'CPU',
+        en: 'CPU',
+    },
+    'gpu': {
+        cn: '显卡',
+        en: 'GPU',
+    },
+    'memory': {
+        cn: '内存',
+        en: 'Memory',
+    },
+    'memory limits': {
+        cn: '内存资源限制',
+        en: 'Memory Resources Limits',
+    },
+    'cpu requests': {
+        cn: 'CPU 资源请求',
+        en: 'CPU Resources Requests',
+    },
+    'memory requests': {
+        cn: '内存资源请求',
+        en: 'Memory Resources Requests',
+    },
+    'add': {
+        cn: '添加',
+        en: 'Add',
     },
 }
 

@@ -48,6 +48,11 @@ export default function ClusterSidebar({ style }: IComposedSidebarProps) {
                 icon: RiSurveyLine,
             },
             {
+                title: t('sth list', [t('deployment')]),
+                path: `/orgs/${orgName}/clusters/${clusterName}/deployments`,
+                icon: resourceIconMapping.deployment,
+            },
+            {
                 title: t('sth list', [t('member')]),
                 path: `/orgs/${orgName}/clusters/${clusterName}/members`,
                 icon: resourceIconMapping.user_group,

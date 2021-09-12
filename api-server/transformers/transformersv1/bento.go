@@ -67,13 +67,13 @@ type IBentoAssociate interface {
 }
 
 func GetAssociatedBentoSchema(ctx context.Context, associate IBentoAssociate) (*schemasv1.BentoSchema, error) {
-	user, err := services.BentoService.GetAssociatedBento(ctx, associate)
+	bento, err := services.BentoService.GetAssociatedBento(ctx, associate)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get %s %s associated cluster", associate.GetResourceType(), associate.GetName())
 	}
-	userSchema, err := ToBentoSchema(ctx, user)
+	bentoSchema, err := ToBentoSchema(ctx, bento)
 	if err != nil {
 		return nil, errors.Wrap(err, "ToBentoSchema")
 	}
-	return userSchema, nil
+	return bentoSchema, nil
 }

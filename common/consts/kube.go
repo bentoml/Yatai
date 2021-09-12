@@ -11,20 +11,22 @@ const (
 	KubeLabelYataiBento        = "yatai.io/bento"
 	KubeLabelYataiBentoVersion = "yatai.io/bento-version"
 
-	KubeNamespaceYataiBentoVersionImageBuilder = "yatai-builders"
+	KubeHPAQPSMetric = "http_request"
+	KubeHPAGPUMetric = "container_accelerator_duty_cycle"
 
-	KubeLabelMcdInfraCli          = "mcd-infra-cli"
-	KubeLabelMcdKubectl           = "mcd-kubectl"
-	KubeLabelMcdUser              = "mcd-user"
-	KubeLabelMcdApp               = "mcd-app"
-	KubeLabelMcdAppPool           = "mcd-app-pool"
-	KubeLabelYataiDeploymentId    = "yatai.io/deployment-id"
-	KubeLabelMcdDeploymentFixedId = "mcd-deployment-fixed-id"
-	KubeLabelMcdDeploymentType    = "mcd-deployment-type"
-	KubeLabelMcdDeploymentEnvType = "mcd-deployment-env-type"
-	KubeLabelCreator              = "creator"
+	KubeNamespaceYataiBentoVersionImageBuilder = "yatai-builders"
+	KubeNamespaceYataiDeployment               = "yatai-deployments"
+
+	KubeLabelMcdInfraCli                 = "mcd-infra-cli"
+	KubeLabelMcdKubectl                  = "mcd-kubectl"
+	KubeLabelMcdUser                     = "mcd-user"
+	KubeLabelMcdAppPool                  = "mcd-app-pool"
+	KubeLabelYataiDeployment             = "yatai.io/deployment"
+	KubeLabelYataiDeploymentId           = "yatai.io/deployment-id"
+	KubeLabelYataiDeploymentSnapshotType = "yatai.io/deployment-snapshot-type"
+	KubeLabelCreator                     = "creator"
 	// nolint: gosec
-	KubeLabelMcdDeployToken = "mcd-deploy-token"
+	KubeLabelYataiDeployToken = "yatai.io/deploy-token"
 
 	KubeLabelMcdAppCompType = "mcd-app-comp-type"
 	KubeLabelMcdAppCompName = "mcd-app-comp-name"
@@ -46,9 +48,9 @@ const (
 	KubeLabelHelmHeritage = "heritage"
 	KubeLabelHelmRelease  = "release"
 
-	KubeAnnotationMcdCommitId     = "mcd-commit-id"
-	KubeAnnotationMcdDeploymentId = "mcd-deployment-id"
-	KubeAnnotationHelmReleaseName = "meta.helm.sh/release-name"
+	KubeAnnotationBentoVersion      = "yatai.io/bento-version"
+	KubeAnnotationYataiDeploymentId = "yatai.io/deployment-id"
+	KubeAnnotationHelmReleaseName   = "meta.helm.sh/release-name"
 
 	KubeAnnotationPrometheusScrape = "prometheus.io/scrape"
 	KubeAnnotationPrometheusPort   = "prometheus.io/port"
@@ -57,7 +59,7 @@ const (
 	KubeAnnotationARMSAutoEnable = "armsPilotAutoEnable"
 	KubeAnnotationARMSAppName    = "armsPilotCreateAppName"
 
-	KubeCreator = "mcd"
+	KubeCreator = "yatai"
 
 	KubeVolumeNamePermdir                            = "permdir"
 	KubeVolumeNameFastPermdir                        = "fast-permdir"
@@ -81,8 +83,7 @@ const (
 	KubeIngressCanaryHeader      = "mcd-canary"
 	KubeIngressCanaryHeaderValue = "always"
 
-	KubeNameMcdDns                      = "mcd-dns"
-	KubeNamespaceYataiDeploymentDefault = "yatai-deployment"
+	KubeNameMcdDns = "mcd-dns"
 
 	KubeStorageClassNameMcd       = "mcd"
 	KubeStorageClassNameLocalPath = "local-path"

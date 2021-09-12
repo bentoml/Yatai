@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
 import { createBentoVersion, listBentoVersions } from '@/services/bento_version'
 import { usePage } from '@/hooks/usePage'
-import { BentoVersionImageBuildStatus, IBentoVersionSchema, ICreateBentoVersionSchema } from '@/schemas/bento_version'
+import { IBentoVersionSchema, ICreateBentoVersionSchema } from '@/schemas/bento_version'
 import BentoVersionForm from '@/components/BentoVersionForm'
 import { formatTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
@@ -13,10 +13,9 @@ import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
-import { Tag, KIND as TagKind, VARIANT as TagVariant } from 'baseui/tag'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
-import { StyledSpinnerNext } from 'baseui/spinner'
+import BentoVersionImageBuildStatusTag from '@/components/BentoVersionImageBuildStatus'
 
 export interface IBentoVersionListCardProps {
     orgName: string
@@ -37,14 +36,6 @@ export default function BentoVersionListCard({ orgName, bentoName }: IBentoVersi
         [bentoName, bentoVersionsInfo, orgName]
     )
     const [t] = useTranslation()
-    const imageBuildStatusColorMap: Record<BentoVersionImageBuildStatus, keyof TagKind> = useMemo(() => {
-        return {
-            pending: TagKind.primary,
-            building: TagKind.accent,
-            failed: TagKind.negative,
-            success: TagKind.positive,
-        }
-    }, [])
 
     const uids = useMemo(
         () => bentoVersionsInfo.data?.items.map((bentoVersion) => bentoVersion.uid) ?? [],
@@ -119,25 +110,10 @@ export default function BentoVersionListCard({ orgName, bentoName }: IBentoVersi
                         >
                             {bentoVersion.version}
                         </Link>,
-                        <Tag
+                        <BentoVersionImageBuildStatusTag
                             key={bentoVersion.uid}
-                            closeable={false}
-                            variant={TagVariant.light}
-                            kind={imageBuildStatusColorMap[bentoVersion.image_build_status]}
-                        >
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                }}
-                            >
-                                {['pending', 'building'].indexOf(bentoVersion.image_build_status) >= 0 && (
-                                    <StyledSpinnerNext $size={100} />
-                                )}
-                                {bentoVersion.image_build_status}
-                            </div>
-                        </Tag>,
+                            status={bentoVersion.image_build_status}
+                        />,
                         bentoVersion.description,
                         bentoVersion.creator && <User user={bentoVersion.creator} />,
                         formatTime(bentoVersion.created_at),
