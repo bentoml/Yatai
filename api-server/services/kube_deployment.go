@@ -109,7 +109,7 @@ func (s *kubeDeploymentService) DeploymentSnapshotToKubeDeployment(ctx context.C
 			OwnerReferences: deployOption.OwnerReferences,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: pointer.Int32(2),
+			Replicas: pointer.Int32Ptr(2),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					consts.KubeLabelYataiSelector: kubeName,

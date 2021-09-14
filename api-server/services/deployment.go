@@ -203,6 +203,26 @@ func (s *deploymentService) GetAssociatedDeployment(ctx context.Context, associa
 	return deployment, err
 }
 
+type INullableDeploymentAssociate interface {
+	GetAssociatedDeploymentId() *uint
+	GetAssociatedDeploymentCache() *models.Deployment
+	SetAssociatedDeploymentCache(cluster *models.Deployment)
+}
+
+func (s *deploymentService) GetAssociatedNullableDeployment(ctx context.Context, associate INullableDeploymentAssociate) (*models.Deployment, error) {
+	cache := associate.GetAssociatedDeploymentCache()
+	if cache != nil {
+		return cache, nil
+	}
+	deploymentId := associate.GetAssociatedDeploymentId()
+	if deploymentId == nil {
+		return nil, nil
+	}
+	deployment, err := s.Get(ctx, *deploymentId)
+	associate.SetAssociatedDeploymentCache(deployment)
+	return deployment, err
+}
+
 func (s *deploymentService) GetKubeNamespace(d *models.Deployment) string {
 	return consts.KubeNamespaceYataiDeployment
 }

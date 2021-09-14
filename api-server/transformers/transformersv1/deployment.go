@@ -53,13 +53,33 @@ type IDeploymentAssociate interface {
 }
 
 func GetAssociatedDeploymentSchema(ctx context.Context, associate IDeploymentAssociate) (*schemasv1.DeploymentSchema, error) {
-	user, err := services.DeploymentService.GetAssociatedDeployment(ctx, associate)
+	deployment, err := services.DeploymentService.GetAssociatedDeployment(ctx, associate)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get %s %s associated cluster", associate.GetResourceType(), associate.GetName())
 	}
-	userSchema, err := ToDeploymentSchema(ctx, user)
+	deploymentSchema, err := ToDeploymentSchema(ctx, deployment)
 	if err != nil {
 		return nil, errors.Wrap(err, "ToDeploymentSchema")
 	}
-	return userSchema, nil
+	return deploymentSchema, nil
+}
+
+type INullableDeploymentAssociate interface {
+	services.INullableDeploymentAssociate
+	models.IResource
+}
+
+func GetAssociatedNullableDeploymentSchema(ctx context.Context, associate INullableDeploymentAssociate) (*schemasv1.DeploymentSchema, error) {
+	deployment, err := services.DeploymentService.GetAssociatedNullableDeployment(ctx, associate)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get %s %s associated cluster", associate.GetResourceType(), associate.GetName())
+	}
+	if deployment == nil {
+		return nil, nil
+	}
+	deploymentSchema, err := ToDeploymentSchema(ctx, deployment)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToNullableDeploymentSchema")
+	}
+	return deploymentSchema, nil
 }

@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS "terminal_record";
 DROP TABLE IF EXISTS "event";
 DROP TYPE IF EXISTS "resource_type";
 DROP TABLE IF EXISTS "deployment_snapshot";

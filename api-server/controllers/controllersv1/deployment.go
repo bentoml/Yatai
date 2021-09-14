@@ -241,6 +241,43 @@ func (c *deploymentController) List(ctx *gin.Context, schema *ListDeploymentSche
 	}, err
 }
 
+type ListTerminalRecordSchema struct {
+	schemasv1.ListQuerySchema
+	GetDeploymentSchema
+}
+
+func (c *deploymentController) ListTerminalRecords(ctx *gin.Context, schema *ListTerminalRecordSchema) (*schemasv1.TerminalRecordListSchema, error) {
+	deployment, err := schema.GetDeployment(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, deployment); err != nil {
+		return nil, err
+	}
+
+	terminalRecords, total, err := services.TerminalRecordService.List(ctx, services.ListTerminalRecordOption{
+		BaseListOption: services.BaseListOption{
+			Start:  utils.UintPtr(schema.Start),
+			Count:  utils.UintPtr(schema.Count),
+			Search: schema.Search,
+		},
+		DeploymentId: utils.UintPtr(deployment.ID),
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "list terminal records")
+	}
+
+	terminalRecordSchemas, err := transformersv1.ToTerminalRecordSchemas(ctx, terminalRecords)
+	return &schemasv1.TerminalRecordListSchema{
+		BaseListSchema: schemasv1.BaseListSchema{
+			Total: total,
+			Start: schema.Start,
+			Count: schema.Count,
+		},
+		Items: terminalRecordSchemas,
+	}, err
+}
+
 var (
 	deploymentPodsWsConns       sync.Map
 	deploymentPodsWsConnRws     = make(map[string]*sync.RWMutex)

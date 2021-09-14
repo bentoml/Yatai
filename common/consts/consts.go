@@ -8,9 +8,12 @@ const (
 	AppNameMaxLength     = 20
 	AppCompNameMaxLength = 20
 	AppCompMaxReplicas   = 10
-)
 
-const (
+	YataiDebugImg             = "yatai.io/yatai-infras/debug"
+	YataiKubectlNamespace     = "default"
+	YataiKubectlContainerName = "main"
+	YataiKubectlImage         = "yatai.io/yatai-infras/k8s"
+
 	TracingContextKey = "tracing-context"
 	// nolint: gosec
 	YataiApiTokenHeaderName = "X-YATAI-API-TOKEN"

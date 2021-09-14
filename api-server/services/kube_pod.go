@@ -25,7 +25,7 @@ type kubePodService struct{}
 var KubePodService = kubePodService{}
 
 func (s *kubePodService) ListPodsByDeployment(ctx context.Context, podLister v1.PodNamespaceLister, deployment *models.Deployment) ([]*models.KubePodWithStatus, error) {
-	selector, err := labels.Parse(fmt.Sprintf("%s = %d", consts.KubeLabelYataiDeploymentId, deployment.ID))
+	selector, err := labels.Parse(fmt.Sprintf("%s = %s", consts.KubeLabelYataiDeployment, deployment.Name))
 	if err != nil {
 		return nil, err
 	}

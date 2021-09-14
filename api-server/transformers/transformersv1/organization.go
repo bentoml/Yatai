@@ -83,3 +83,23 @@ func GetAssociatedOrganizationSchema(ctx context.Context, associate IOrganizatio
 	}
 	return organizationSchema, nil
 }
+
+type INullableOrganizationAssociate interface {
+	services.INullableOrganizationAssociate
+	models.IResource
+}
+
+func GetAssociatedNullableOrganizationSchema(ctx context.Context, associate INullableOrganizationAssociate) (*schemasv1.OrganizationSchema, error) {
+	organization, err := services.OrganizationService.GetAssociatedNullableOrganization(ctx, associate)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get %s %s associated organization", associate.GetResourceType(), associate.GetName())
+	}
+	if organization == nil {
+		return nil, nil
+	}
+	organizationSchema, err := ToOrganizationSchema(ctx, organization)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToOrganizationSchema")
+	}
+	return organizationSchema, nil
+}

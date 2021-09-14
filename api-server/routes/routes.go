@@ -57,7 +57,7 @@ func NewRouter() (*fizz.Fizz, error) {
 	// Override type names.
 	// fizz.Generator().OverrideTypeName(reflect.TypeOf(Fruit{}), "SweetFruit")
 
-	// Initialize the informations of
+	// Initialize the information of
 	// the API that will be served with
 	// the specification.
 	infos := &openapi.Info{
@@ -79,6 +79,11 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("Tail pods log"),
 	}, requireLogin, tonic.Handler(controllersv1.LogController.TailPodsLog, 200))
 
+	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/terminal", []fizz.OperationOption{
+		fizz.ID("Deployment terminal"),
+		fizz.Summary("Deployment terminal"),
+	}, requireLogin, tonic.Handler(controllersv1.TerminalController.GetDeploymentTerminal, 200))
+
 	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/pods", []fizz.OperationOption{
 		fizz.ID("Ws pods"),
 		fizz.Summary("Ws pods"),
@@ -90,6 +95,7 @@ func NewRouter() (*fizz.Fizz, error) {
 	authRoutes(apiRootGroup)
 	userRoutes(apiRootGroup)
 	organizationRoutes(apiRootGroup)
+	terminalRecordRoutes(apiRootGroup)
 
 	if len(fizzApp.Errors()) != 0 {
 		return nil, fmt.Errorf("fizz errors: %v", fizzApp.Errors())
@@ -369,6 +375,11 @@ func deploymentRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Update a deployment"),
 	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.Update, 200))
 
+	resourceGrp.GET("/terminal_records", []fizz.OperationOption{
+		fizz.ID("List deployment terminal records"),
+		fizz.Summary("List deployment terminal records"),
+	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.ListTerminalRecords, 200))
+
 	grp.GET("", []fizz.OperationOption{
 		fizz.ID("List deployments"),
 		fizz.Summary("List deployments"),
@@ -389,4 +400,20 @@ func deploymentSnapshotRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("List deployment snapshots"),
 		fizz.Summary("List deployment snapshots"),
 	}, requireLogin, tonic.Handler(controllersv1.DeploymentSnapshotController.List, 200))
+}
+
+func terminalRecordRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/terminal_records", "terminal records", "terminal records")
+
+	resourceGrp := grp.Group("/:uid", "terminal record resource", "terminal record resource")
+
+	resourceGrp.GET("", []fizz.OperationOption{
+		fizz.ID("Get a terminal record"),
+		fizz.Summary("Get a terminal record"),
+	}, requireLogin, tonic.Handler(controllersv1.TerminalRecordController.Get, 200))
+
+	resourceGrp.GET("/download", []fizz.OperationOption{
+		fizz.ID("Download a terminal record"),
+		fizz.Summary("Download a terminal record"),
+	}, requireLogin, tonic.Handler(controllersv1.TerminalRecordController.Download, 200))
 }

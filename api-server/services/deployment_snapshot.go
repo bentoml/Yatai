@@ -67,10 +67,10 @@ func (*deploymentSnapshotService) Create(ctx context.Context, opt CreateDeployme
 				},
 			},
 			HPAConf: &modelschemas.DeploymentSnapshotHPAConf{
-				CPU:         pointer.Int32(80),
-				GPU:         pointer.Int32(80),
-				MinReplicas: pointer.Int32(2),
-				MaxReplicas: pointer.Int32(10),
+				CPU:         pointer.Int32Ptr(80),
+				GPU:         pointer.Int32Ptr(80),
+				MinReplicas: pointer.Int32Ptr(2),
+				MaxReplicas: pointer.Int32Ptr(10),
 			},
 		}
 	}

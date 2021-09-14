@@ -96,6 +96,26 @@ func GetAssociatedClusterSchema(ctx context.Context, associate IClusterAssociate
 	return clusterSchema, nil
 }
 
+type INullableClusterAssociate interface {
+	services.INullableClusterAssociate
+	models.IResource
+}
+
+func GetAssociatedNullableClusterSchema(ctx context.Context, associate INullableClusterAssociate) (*schemasv1.ClusterSchema, error) {
+	cluster, err := services.ClusterService.GetAssociatedNullableCluster(ctx, associate)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get %s %s associated cluster", associate.GetResourceType(), associate.GetName())
+	}
+	if cluster == nil {
+		return nil, nil
+	}
+	clusterSchema, err := ToClusterSchema(ctx, cluster)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToNullableClusterSchema")
+	}
+	return clusterSchema, nil
+}
+
 func GetAssociatedClusterFullSchema(ctx context.Context, associate IClusterAssociate) (*schemasv1.ClusterFullSchema, error) {
 	cluster, err := services.ClusterService.GetAssociatedCluster(ctx, associate)
 	if err != nil {

@@ -2,6 +2,8 @@ package transformersv1
 
 import (
 	"context"
+	"sort"
+	"strings"
 
 	apiv1 "k8s.io/api/core/v1"
 
@@ -20,6 +22,32 @@ func ToPodSchema(ctx context.Context, pod *models.KubePodWithStatus) (v *schemas
 }
 
 func ToPodSchemas(ctx context.Context, pods []*models.KubePodWithStatus) (vs []*schemasv1.KubePodSchema, err error) {
+	sort.SliceStable(pods, func(i, j int) bool {
+		iName := pods[i].Pod.Name
+		jName := pods[j].Pod.Name
+
+		return strings.Compare(iName, jName) >= 0
+	})
+
+	sort.SliceStable(pods, func(i, j int) bool {
+		it := pods[i].Pod.Status.StartTime
+		jt := pods[j].Pod.Status.StartTime
+
+		if it == nil {
+			return false
+		}
+
+		if jt == nil {
+			return true
+		}
+
+		return it.Before(jt)
+	})
+
+	sort.SliceStable(pods, func(i, j int) bool {
+		return pods[i].Pod.Labels[consts.KubeLabelYataiDeploymentSnapshotType] == string(modelschemas.DeploymentSnapshotTypeStable)
+	})
+
 	for _, p := range pods {
 		var statusReady bool
 		for _, c := range p.Pod.Status.Conditions {
