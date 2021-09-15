@@ -3,7 +3,7 @@ import axios from 'axios'
 import { ICreateDeploymentSchema, IDeploymentSchema, IUpdateDeploymentSchema } from '@/schemas/deployment'
 import { IListQuerySchema, IListSchema } from '@/schemas/list'
 
-export async function listDeployments(
+export async function listClusterDeployments(
     orgName: string,
     clusterName: string,
     query: IListQuerySchema
@@ -14,6 +14,16 @@ export async function listDeployments(
             params: query,
         }
     )
+    return resp.data
+}
+
+export async function listOrganizationDeployments(
+    orgName: string,
+    query: IListQuerySchema
+): Promise<IListSchema<IDeploymentSchema>> {
+    const resp = await axios.get<IListSchema<IDeploymentSchema>>(`/api/v1/orgs/${orgName}/deployments`, {
+        params: query,
+    })
     return resp.data
 }
 

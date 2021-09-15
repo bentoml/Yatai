@@ -239,6 +239,11 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Remove an organization member"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationMemberController.Delete, 200))
 
+	resourceGrp.GET("/deployments", []fizz.OperationOption{
+		fizz.ID("List organization deployments"),
+		fizz.Summary("List organization deployments"),
+	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.ListOrganizationDeployments, 200))
+
 	grp.GET("", []fizz.OperationOption{
 		fizz.ID("List organizations"),
 		fizz.Summary("List organizations"),
@@ -383,7 +388,7 @@ func deploymentRoutes(grp *fizz.RouterGroup) {
 	grp.GET("", []fizz.OperationOption{
 		fizz.ID("List deployments"),
 		fizz.Summary("List deployments"),
-	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.List, 200))
+	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.ListClusterDeployments, 200))
 
 	grp.POST("", []fizz.OperationOption{
 		fizz.ID("Create deployment"),

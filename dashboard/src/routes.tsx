@@ -12,6 +12,7 @@ import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
+import OrganizationDeployments from '@/pages/Organization/Deployments'
 import ClusterDeployments from '@/pages/Cluster/Deployments'
 import ClusterMembers from '@/pages/Cluster/Members'
 import ClusterLayout from '@/components/ClusterLayout'
@@ -107,6 +108,7 @@ const Routes = () => {
                                 <Route exact path='/orgs/:orgName/bentos' component={OrganizationBentos} />
                                 <Route exact path='/orgs/:orgName/clusters' component={OrganizationClusters} />
                                 <Route exact path='/orgs/:orgName/members' component={OrganizationMembers} />
+                                <Route exact path='/orgs/:orgName/deployments' component={OrganizationDeployments} />
                             </Switch>
                         </OrganizationLayout>
                     </Route>

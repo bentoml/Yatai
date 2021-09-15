@@ -497,7 +497,7 @@ export default function Header() {
                         {t('bento')}
                     </Link>
                 )}
-                {cluster && (
+                {cluster ? (
                     <Link
                         style={generateLinkStyle(`/orgs/${orgName}/clusters/${cluster.name}/deployments`)}
                         to={`/orgs/${orgName}/clusters/${cluster.name}/deployments`}
@@ -505,6 +505,16 @@ export default function Header() {
                         {React.createElement(resourceIconMapping.deployment, { size: 12 })}
                         {t('deployment')}
                     </Link>
+                ) : (
+                    organization && (
+                        <Link
+                            style={generateLinkStyle(`/orgs/${orgName}/deployments`)}
+                            to={`/orgs/${orgName}/deployments`}
+                        >
+                            {React.createElement(resourceIconMapping.deployment, { size: 12 })}
+                            {t('deployment')}
+                        </Link>
+                    )
                 )}
                 <ThemeToggle />
             </div>

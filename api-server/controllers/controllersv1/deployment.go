@@ -203,12 +203,12 @@ func (c *deploymentController) Get(ctx *gin.Context, schema *GetDeploymentSchema
 	return transformersv1.ToDeploymentSchema(ctx, deployment)
 }
 
-type ListDeploymentSchema struct {
+type ListClusterDeploymentSchema struct {
 	schemasv1.ListQuerySchema
 	GetClusterSchema
 }
 
-func (c *deploymentController) List(ctx *gin.Context, schema *ListDeploymentSchema) (*schemasv1.DeploymentListSchema, error) {
+func (c *deploymentController) ListClusterDeployments(ctx *gin.Context, schema *ListClusterDeploymentSchema) (*schemasv1.DeploymentListSchema, error) {
 	cluster, err := schema.GetCluster(ctx)
 	if err != nil {
 		return nil, err
@@ -224,7 +224,45 @@ func (c *deploymentController) List(ctx *gin.Context, schema *ListDeploymentSche
 			Count:  utils.UintPtr(schema.Count),
 			Search: schema.Search,
 		},
-		ClusterId: cluster.ID,
+		ClusterId: utils.UintPtr(cluster.ID),
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "list deployments")
+	}
+
+	deploymentSchemas, err := transformersv1.ToDeploymentSchemas(ctx, deployments)
+	return &schemasv1.DeploymentListSchema{
+		BaseListSchema: schemasv1.BaseListSchema{
+			Total: total,
+			Start: schema.Start,
+			Count: schema.Count,
+		},
+		Items: deploymentSchemas,
+	}, err
+}
+
+type ListOrganizationDeploymentSchema struct {
+	schemasv1.ListQuerySchema
+	GetOrganizationSchema
+}
+
+func (c *deploymentController) ListOrganizationDeployments(ctx *gin.Context, schema *ListOrganizationDeploymentSchema) (*schemasv1.DeploymentListSchema, error) {
+	organization, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = OrganizationController.canView(ctx, organization); err != nil {
+		return nil, err
+	}
+
+	deployments, total, err := services.DeploymentService.List(ctx, services.ListDeploymentOption{
+		BaseListOption: services.BaseListOption{
+			Start:  utils.UintPtr(schema.Start),
+			Count:  utils.UintPtr(schema.Count),
+			Search: schema.Search,
+		},
+		OrganizationId: utils.UintPtr(organization.ID),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "list deployments")
