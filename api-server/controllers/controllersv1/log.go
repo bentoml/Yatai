@@ -275,6 +275,17 @@ func (c *logController) TailPodsLog(ctx *gin.Context, schema *GetDeploymentSchem
 	}
 	defer conn.Close()
 
+	defer func() {
+		if err != nil {
+			msg := schemasv1.WsRespSchema{
+				Type:    schemasv1.WsRespTypeError,
+				Message: err.Error(),
+				Payload: nil,
+			}
+			_ = conn.WriteJSON(&msg)
+		}
+	}()
+
 	deployment, err := schema.GetDeployment(ctx)
 	if err != nil {
 		return err
@@ -298,9 +309,11 @@ func (c *logController) TailPodsLog(ctx *gin.Context, schema *GetDeploymentSchem
 	var podNames []string
 	containerName := ctx.Query("container_name")
 
+	kubeNs := services.DeploymentService.GetKubeNamespace(deployment)
+
 	if podName != "" {
 		podNames = append(podNames, podName)
-		podsCli := cliset.CoreV1().Pods(consts.KubeNamespaceYataiDeployment)
+		podsCli := cliset.CoreV1().Pods(kubeNs)
 
 		pod, err := podsCli.Get(ctx, podName, metav1.GetOptions{})
 		if err != nil {
@@ -316,7 +329,7 @@ func (c *logController) TailPodsLog(ctx *gin.Context, schema *GetDeploymentSchem
 		}
 	}
 
-	t := NewTail(conn, consts.KubeNamespaceYataiDeployment, podNames, containerName, true, false)
+	t := NewTail(conn, kubeNs, podNames, containerName, true, false)
 
 	return t.Start(ctx, cliset)
 }

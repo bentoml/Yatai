@@ -7,8 +7,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
 	"github.com/pkg/errors"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -148,15 +146,40 @@ func (s *kubeEventService) isKubeEventFailedReason(reason string, partials ...st
 	return false
 }
 
-func (s *kubeEventService) ListAllKubeEvents(ctx context.Context, deployment *models.Deployment) ([]apiv1.Event, error) {
-	return s.ListAllKubeEventsByDeployment(ctx, deployment, nil)
+func (s *kubeEventService) ListAllKubeEventsByDeployment(ctx context.Context, deployment *models.Deployment) ([]apiv1.Event, error) {
+	return s.ListAllKubeEventsByDeploymentSnapshot(ctx, deployment, nil)
 }
 
-func (s *kubeEventService) ListAllKubeEventsByDeployment(ctx context.Context, deployment *models.Deployment, deploymentSnapshot **models.DeploymentSnapshot) ([]apiv1.Event, error) {
+func (s *kubeEventService) MakeKubeEventFilter(ctx context.Context, deployment *models.Deployment, deploymentSnapshot **models.DeploymentSnapshot) (func(event *apiv1.Event) bool, error) {
+
+	var err error
+	var kubeName string
+
+	if deploymentSnapshot != nil {
+		kubeName, err = DeploymentSnapshotService.GetKubeName(ctx, *deploymentSnapshot)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		kubeName = DeploymentService.GetKubeName(deployment)
+	}
+
+	kubeNamePattern, err := regexp.Compile(fmt.Sprintf("^%s-", kubeName))
+	if err != nil {
+		return nil, errors.Wrap(err, "compile regexp pattern")
+	}
+
+	return func(event *apiv1.Event) bool {
+		return kubeNamePattern.Match([]byte(event.InvolvedObject.Name))
+	}, nil
+}
+
+func (s *kubeEventService) ListAllKubeEventsByDeploymentSnapshot(ctx context.Context, deployment *models.Deployment, deploymentSnapshot **models.DeploymentSnapshot) ([]apiv1.Event, error) {
 	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
 	if err != nil {
 		return nil, errors.Wrap(err, "get cluster")
 	}
+
 	_, eventLister, err := GetEventInformer(ctx, cluster, DeploymentService.GetKubeNamespace(deployment))
 	if err != nil {
 		return nil, errors.Wrap(err, "get app pool event informer")
@@ -167,20 +190,9 @@ func (s *kubeEventService) ListAllKubeEventsByDeployment(ctx context.Context, de
 		return nil, errors.Wrap(err, "list events from app pool event informer")
 	}
 
-	kubeName := DeploymentService.GetKubeName(deployment)
-
-	var kubeNamePattern *regexp.Regexp
-
-	if deploymentSnapshot != nil {
-		kubeNamePattern, err = regexp.Compile(fmt.Sprintf("^%s-%s", kubeName, modelschemas.DeploymentSnapshotTypeAddrs[(*deploymentSnapshot).Type]))
-		if err != nil {
-			return nil, errors.Wrap(err, "compile regexp pattern")
-		}
-	} else {
-		kubeNamePattern, err = regexp.Compile(fmt.Sprintf("^%s-", kubeName))
-		if err != nil {
-			return nil, errors.Wrap(err, "compile regexp pattern")
-		}
+	filter, err := s.MakeKubeEventFilter(ctx, deployment, deploymentSnapshot)
+	if err != nil {
+		return nil, err
 	}
 
 	events := make([]apiv1.Event, 0, len(_events))
@@ -188,7 +200,7 @@ func (s *kubeEventService) ListAllKubeEventsByDeployment(ctx context.Context, de
 		if e == nil {
 			continue
 		}
-		if !kubeNamePattern.Match([]byte(e.InvolvedObject.Name)) {
+		if !filter(e) {
 			continue
 		}
 		events = append(events, *e)

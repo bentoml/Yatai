@@ -99,10 +99,17 @@ func (s *kubeHPAService) DeploymentSnapshotToKubeHPA(ctx context.Context, deploy
 		maxReplicas = *hpaConf.MaxReplicas
 	}
 
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	if err != nil {
+		return nil, err
+	}
+
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+
 	kubeHpa := &v2beta2.HorizontalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            kubeName,
-			Namespace:       consts.KubeNamespaceYataiDeployment,
+			Namespace:       kubeNs,
 			Labels:          labels,
 			Annotations:     annotations,
 			OwnerReferences: deployOption.OwnerReferences,
@@ -131,7 +138,12 @@ func (s *kubeHPAService) DeployDeploymentSnapshotAsKubeHPA(ctx context.Context, 
 	if err != nil {
 		return errors.Wrap(err, "get kube cli set")
 	}
-	hpaCli := kubeCli.AutoscalingV2beta2().HorizontalPodAutoscalers(consts.KubeNamespaceYataiDeployment)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	if err != nil {
+		return errors.Wrap(err, "get deployment")
+	}
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+	hpaCli := kubeCli.AutoscalingV2beta2().HorizontalPodAutoscalers(kubeNs)
 	if err != nil {
 		return errors.Wrap(err, "get KubeHPA cli failed")
 	}

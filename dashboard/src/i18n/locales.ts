@@ -396,6 +396,18 @@ const locales0 = {
         cn: '回放操作',
         en: 'Playback Operation',
     },
+    'no event': {
+        cn: '暂无事件',
+        en: 'No Event',
+    },
+    'event': {
+        cn: '事件',
+        en: 'Event',
+    },
+    'events': {
+        cn: '事件列表',
+        en: 'Events',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

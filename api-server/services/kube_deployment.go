@@ -64,7 +64,9 @@ func (s *kubeDeploymentService) DeploymentSnapshotToKubeDeployment(ctx context.C
 		return
 	}
 
-	_, err = KubeNamespaceService.MakeSureNamespace(ctx, cluster, consts.KubeNamespaceYataiDeployment)
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+
+	_, err = KubeNamespaceService.MakeSureNamespace(ctx, cluster, kubeNs)
 	if err != nil {
 		return
 	}
@@ -103,7 +105,7 @@ func (s *kubeDeploymentService) DeploymentSnapshotToKubeDeployment(ctx context.C
 	kubeDeployment = &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            kubeName,
-			Namespace:       consts.KubeNamespaceYataiDeployment,
+			Namespace:       kubeNs,
 			Labels:          labels,
 			Annotations:     annotations,
 			OwnerReferences: deployOption.OwnerReferences,
@@ -132,7 +134,12 @@ func (s *kubeDeploymentService) DeployDeploymentSnapshotAsKubeDeployment(ctx con
 	if err != nil {
 		return err
 	}
-	kubeDeploymentsCli := kubeCli.AppsV1().Deployments(consts.KubeNamespaceYataiDeployment)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	if err != nil {
+		return err
+	}
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+	kubeDeploymentsCli := kubeCli.AppsV1().Deployments(kubeNs)
 	if err != nil {
 		return errors.Wrap(err, "get k8s deployments cli")
 	}
