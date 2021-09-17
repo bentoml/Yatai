@@ -34,6 +34,7 @@ var pwd, _ = os.Getwd()
 var staticDirs = map[string]string{
 	"/swagger": path.Join(pwd, "statics/swagger-ui"),
 	"/static":  path.Join(config.GetUIDistDir(), "static"),
+	"/libs":    path.Join(config.GetUIDistDir(), "libs"),
 }
 
 var staticFiles = map[string]string{
