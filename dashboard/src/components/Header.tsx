@@ -36,6 +36,8 @@ import { useCluster } from '@/hooks/useCluster'
 import ClusterForm from '@/components/ClusterForm'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
 import { useFetchOrganizations } from '@/hooks/useFetchOrganizations'
+import ReactCountryFlag from 'react-country-flag'
+import i18n from '@/i18n'
 
 const useThemeToggleStyles = createUseStyles({
     root: ({ theme }: IThemedStyleProps) => ({
@@ -219,6 +221,16 @@ export default function Header() {
             borderBottomColor: 'transparent',
         }
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleRenderLanguageOption = useCallback(({ option }: any) => {
+        return (
+            <div>
+                {option.flag && <span style={{ marginRight: 8, verticalAlign: 'middle' }}>{option.flag}</span>}
+                <span style={{ verticalAlign: 'middle' }}>{option.text}</span>
+            </div>
+        )
+    }, [])
 
     const [isCreateOrgModalOpen, setIsCreateOrgModalOpen] = useState(false)
 
@@ -517,6 +529,50 @@ export default function Header() {
                     )
                 )}
                 <ThemeToggle />
+                <div
+                    style={{
+                        width: 120,
+                    }}
+                >
+                    <Select
+                        overrides={{
+                            ControlContainer: {
+                                style: {
+                                    fontSize: 12,
+                                },
+                            },
+                            InputContainer: {
+                                style: {
+                                    fontSize: 12,
+                                },
+                            },
+                        }}
+                        clearable={false}
+                        searchable={false}
+                        size='mini'
+                        value={[{ id: i18n.language }]}
+                        onChange={(params) => {
+                            if (!params.option?.id) {
+                                return
+                            }
+                            i18n.changeLanguage(params.option?.id as string)
+                        }}
+                        getOptionLabel={handleRenderLanguageOption}
+                        getValueLabel={handleRenderLanguageOption}
+                        options={[
+                            {
+                                id: 'zh-CN',
+                                text: '中文',
+                                flag: <ReactCountryFlag countryCode='CN' svg />,
+                            },
+                            {
+                                id: 'en',
+                                text: 'English',
+                                flag: <ReactCountryFlag countryCode='US' svg />,
+                            },
+                        ]}
+                    />
+                </div>
             </div>
             {currentUser ? <User user={currentUser} /> : <StyledSpinnerNext />}
             <Modal
