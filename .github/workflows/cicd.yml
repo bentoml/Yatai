@@ -105,11 +105,19 @@ jobs:
       - name: Build dashboard
         run: make docker-build-ui
 
-      - name: Archive dashboard artifacts
-        uses: actions/upload-artifact@v2
+      - name: Set git sha_short outputs
+        id: vars
+        run: echo "::set-output name=sha_short::$(git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)"
+
+      - name: Upload dashboard artifacts
+        uses: prewk/s3-cp-action@v2
         with:
-          name: dashboard-artifacts
-          path: dashboard/build/
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ap-northeast-1
+          source: './dashboard/build/'
+          dest: 's3://yatai-github-artifacts/dashboard-artifacts/${{ steps.vars.outputs.sha_short }}'
+          flags: --recursive
 
   build-api-server:
     runs-on: ubuntu-latest
@@ -147,11 +155,19 @@ jobs:
         env:
           GOMOD_CACHE: ~/go/pkg/mod
 
-      - name: Archive api-server artifacts
-        uses: actions/upload-artifact@v2
+      - name: Set git sha_short outputs
+        id: vars
+        run: echo "::set-output name=sha_short::$(git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)"
+
+      - name: Upload api-server artifacts
+        uses: prewk/s3-cp-action@v2
         with:
-          name: api-server-artifacts
-          path: bin/
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ap-northeast-1
+          source: './bin/'
+          dest: 's3://yatai-github-artifacts/api-server-artifacts/${{ steps.vars.outputs.sha_short }}'
+          flags: --recursive
 
   build-image:
     runs-on: ubuntu-latest
@@ -176,17 +192,29 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Set git sha_short outputs
+        id: vars
+        run: echo "::set-output name=sha_short::$(git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)"
+
       - name: Download dashboard artifacts
-        uses: actions/download-artifact@v2
+        uses: prewk/s3-cp-action@v2
         with:
-          name: dashboard-artifacts
-          path: dashboard/build/
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ap-northeast-1
+          dest: './dashboard/build/'
+          source: 's3://yatai-github-artifacts/dashboard-artifacts/${{ steps.vars.outputs.sha_short }}'
+          flags: --recursive
 
       - name: Download api-server artifacts
-        uses: actions/download-artifact@v2
+        uses: prewk/s3-cp-action@v2
         with:
-          name: api-server-artifacts
-          path: bin/
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ap-northeast-1
+          dest: './bin/'
+          source: 's3://yatai-github-artifacts/api-server-artifacts/${{ steps.vars.outputs.sha_short }}'
+          flags: --recursive
 
       - name: Build yatai image
         run: make build-image
