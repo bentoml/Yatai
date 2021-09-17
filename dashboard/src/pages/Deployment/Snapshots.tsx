@@ -19,6 +19,7 @@ export default function DeploymentSnapshots() {
                 <DeploymentKubeEvents
                     open
                     width='auto'
+                    height={200}
                     orgName={orgName}
                     clusterName={clusterName}
                     deploymentName={deploymentName}

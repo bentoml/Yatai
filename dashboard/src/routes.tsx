@@ -27,11 +27,28 @@ import UserProfile from '@/pages/Yatai/UserProfile'
 import DeploymentLayout from '@/components/DeploymentLayout'
 
 const useStyles = createUseStyles({
-    root: ({ theme }: IThemedStyleProps) => ({
+    'root': ({ theme }: IThemedStyleProps) => ({
         '& path': {
             stroke: theme.colors.contentPrimary,
         },
+        ...Object.entries(theme.colors).reduce((p: Record<string, string>, [k, v]) => {
+            return {
+                ...p,
+                [`--color-${k}`]: v,
+            }
+        }, {} as Record<string, string>),
     }),
+    '@global': {
+        '.react-lazylog': {
+            background: 'var(--color-backgroundPrimary)',
+        },
+        '.react-lazylog-searchbar': {
+            background: 'var(--color-backgroundPrimary)',
+        },
+        '.react-lazylog-searchbar-input': {
+            background: 'var(--color-backgroundPrimary)',
+        },
+    },
 })
 
 const Routes = () => {

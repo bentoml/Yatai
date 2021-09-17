@@ -1,8 +1,13 @@
 package controllersv1
 
 import (
+	"sort"
 	"sync/atomic"
 	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/bentoml/yatai/common/consts"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -10,7 +15,6 @@ import (
 	"github.com/sirupsen/logrus"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/cache"
 
@@ -68,24 +72,46 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 		return err
 	}
 
-	eventInformer, eventLister, err := services.GetEventInformer(ctx, cluster, services.DeploymentService.GetKubeNamespace(deployment))
+	filter, err := services.KubeEventService.MakeKubeEventFilter(ctx, deployment, nil)
 	if err != nil {
-		err = errors.Wrap(err, "get app pool event informer")
 		return err
 	}
 
-	filter, err := services.KubeEventService.MakeKubeEventFilter(ctx, deployment, nil)
+	podName := ctx.Query("pod_name")
+	if podName != "" {
+		cliset, _, err := services.ClusterService.GetKubeCliSet(ctx, cluster)
+		if err != nil {
+			return err
+		}
+
+		kubeNs := services.DeploymentService.GetKubeNamespace(deployment)
+		podsCli := cliset.CoreV1().Pods(kubeNs)
+
+		pod, err := podsCli.Get(ctx, podName, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+
+		if pod.Labels[consts.KubeLabelYataiDeployment] != deployment.Name {
+			return errors.Errorf("pod %s not in this deployment", podName)
+		}
+
+		filter = func(event *apiv1.Event) bool {
+			return event.InvolvedObject.Kind == consts.KubeEventResourceKindPod && event.InvolvedObject.UID == pod.UID
+		}
+	}
+
+	eventInformer, eventLister, err := services.GetEventInformer(ctx, cluster, services.DeploymentService.GetKubeNamespace(deployment))
 	if err != nil {
+		err = errors.Wrap(err, "get event informer")
 		return err
 	}
 
 	informer := eventInformer.Informer()
 	defer runtime.HandleCrash()
 
-	seen := make(map[types.UID]struct{})
 	ticker := time.NewTicker(time.Second * 3)
 	defer ticker.Stop()
-	returned := false
 
 	var failedCount int32 = 0
 	var maxFailed int32 = 10
@@ -98,45 +124,40 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 	send := func() {
 		events, err := eventLister.List(labels.Everything())
 		if err != nil {
-			logrus.Errorf("list events failed: %s", errors.Wrap(err, "list events from app pool event informer").Error())
+			logrus.Errorf("list events failed: %s", err.Error())
 			failed()
 			return
 		}
+
+		_events := make([]*apiv1.Event, 0)
 
 		for _, event := range events {
 			if !filter(event) {
 				continue
 			}
-			if _, ok := seen[event.UID]; ok {
-				continue
-			}
-			seen[event.UID] = struct{}{}
-			err := conn.WriteJSON(&schemasv1.WsRespSchema{
-				Type:    schemasv1.WsRespTypeSuccess,
-				Message: "",
-				Payload: event,
-			})
-			if err != nil {
-				logrus.Errorf("ws write json failed: %s", err.Error())
-				failed()
-				continue
-			}
+			_events = append(_events, event)
 		}
 
-		if !returned && len(events) == 0 {
-			returned = true
-			err := conn.WriteJSON(&schemasv1.WsRespSchema{
-				Type:    schemasv1.WsRespTypeSuccess,
-				Message: "",
-				Payload: nil,
-			})
-			if err != nil {
-				logrus.Errorf("ws write json failed: %s", err.Error())
-				failed()
-				return
-			}
+		sort.SliceStable(_events, func(i, j int) bool {
+			it := _events[i].LastTimestamp
+			jt := _events[j].LastTimestamp
+
+			return it.Before(&jt)
+		})
+
+		err = conn.WriteJSON(&schemasv1.WsRespSchema{
+			Type:    schemasv1.WsRespTypeSuccess,
+			Message: "",
+			Payload: _events,
+		})
+		if err != nil {
+			logrus.Errorf("ws write json failed: %s", err.Error())
+			failed()
+			return
 		}
 	}
+
+	send()
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {

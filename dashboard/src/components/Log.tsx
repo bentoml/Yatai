@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react'
 import qs from 'qs'
-import { LazyLog, ScrollFollow } from 'react-lazylog'
+import { ScrollFollow } from 'react-lazylog'
 import useTranslation from '@/hooks/useTranslation'
 import { v4 as uuidv4 } from 'uuid'
 import { IWsReqSchema, IWsRespSchema } from '@/schemas/websocket'
@@ -8,6 +8,7 @@ import { toaster } from 'baseui/toast'
 import { Select } from 'baseui/select'
 import Card from './Card'
 import Toggle from './Toggle'
+import LazyLog from './LazyLog'
 
 interface ITailRequest {
     id: string
@@ -37,23 +38,9 @@ export default ({ orgName, clusterName, deploymentName, podName, open, width = 3
         pod_name: podName,
     })}`
 
-    let logContainerStyle = {}
-    if (width !== 'auto') {
-        logContainerStyle = {
-            ...logContainerStyle,
-            width,
-        }
-    }
-    if (typeof height === 'number') {
-        logContainerStyle = {
-            ...logContainerStyle,
-            height: height - 46 - 40,
-        }
-    }
-
-    const [items, setItems] = React.useState([] as string[])
-    const [tailLines, setTailLines] = React.useState(50)
-    const [follow, setFollow] = React.useState(true)
+    const [items, setItems] = useState<string[]>([])
+    const [tailLines, setTailLines] = useState(50)
+    const [follow, setFollow] = useState(true)
 
     const reqIdRef = useRef('')
     const wsRef = useRef(null as null | WebSocket)
@@ -191,10 +178,11 @@ export default ({ orgName, clusterName, deploymentName, podName, open, width = 3
                     startFollowing={scroll}
                     render={({ follow: follow_ }) => (
                         <LazyLog
+                            caseInsensitive
+                            width={width}
                             enableSearch
                             selectableLines
                             text={items.length > 0 ? items.join('\n') : ' '}
-                            style={logContainerStyle}
                             follow={follow_}
                         />
                     )}

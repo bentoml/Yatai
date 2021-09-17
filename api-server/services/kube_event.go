@@ -151,7 +151,6 @@ func (s *kubeEventService) ListAllKubeEventsByDeployment(ctx context.Context, de
 }
 
 func (s *kubeEventService) MakeKubeEventFilter(ctx context.Context, deployment *models.Deployment, deploymentSnapshot **models.DeploymentSnapshot) (func(event *apiv1.Event) bool, error) {
-
 	var err error
 	var kubeName string
 
