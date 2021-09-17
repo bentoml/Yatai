@@ -432,7 +432,7 @@ func (s *deploymentService) GetIngressHost(ctx context.Context, deployment *mode
 		return "", err
 	}
 	// TODO: remove the hard code
-	return fmt.Sprintf("%s-%s-%s.apps.atalaya.io", deployment.Name, cluster.Name, organization.Name), nil
+	return fmt.Sprintf("%s-%s-%s.apps.dev.yatai.ai", deployment.Name, cluster.Name, organization.Name), nil
 }
 
 func (s *deploymentService) GetURLs(ctx context.Context, deployment *models.Deployment) ([]string, error) {
