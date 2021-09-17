@@ -18,22 +18,31 @@ import FormGroup from './FormGroup'
 import { CPUResourceInput } from './CPUResourceInput'
 import MemoryResourceInput from './MemoryResourceInput'
 import DeploymentSnapshotCanaryRulesForm from './DeploymentSnapshotCanaryRulesForm'
+import ClusterSelector from './ClusterSelector'
 
 const { Form, FormItem, useForm } = createForm<ICreateDeploymentSchema>()
 
 export interface IDeploymentFormProps {
     orgName: string
+    clusterName?: string
     deployment?: IDeploymentSchema
     deploymentSnapshot?: IDeploymentSnapshotSchema
     onSubmit: (data: ICreateDeploymentSchema) => Promise<void>
 }
 
-export default function DeploymentForm({ orgName, deployment, deploymentSnapshot, onSubmit }: IDeploymentFormProps) {
+export default function DeploymentForm({
+    orgName,
+    clusterName,
+    deployment,
+    deploymentSnapshot,
+    onSubmit,
+}: IDeploymentFormProps) {
     const [form] = useForm()
 
     const [values, setValues] = useState<ICreateDeploymentSchema>({
         name: '',
         type: 'stable',
+        cluster_name: clusterName,
         description: '',
         bento_name: '',
         bento_version: '',
@@ -68,12 +77,13 @@ export default function DeploymentForm({ orgName, deployment, deploymentSnapshot
         setValues({
             name: deployment.name,
             description: deployment.description,
+            cluster_name: clusterName,
             type: deploymentSnapshot.type,
             bento_name: deploymentSnapshot.bento_version.bento.name,
             bento_version: deploymentSnapshot.bento_version.version,
             config: deploymentSnapshot.config,
         })
-    }, [deployment, deploymentSnapshot])
+    }, [clusterName, deployment, deploymentSnapshot])
 
     const [loading, setLoading] = useState(false)
 
@@ -101,8 +111,16 @@ export default function DeploymentForm({ orgName, deployment, deploymentSnapshot
 
     return (
         <Form form={form} initialValues={values} onFinish={handleFinish} onValuesChange={handleChange}>
+            <FormItem
+                required
+                name='cluster_name'
+                label={t('cluster')}
+                style={{ display: clusterName ? 'none' : 'block' }}
+            >
+                <ClusterSelector orgName={orgName} />
+            </FormItem>
             {!deployment && (
-                <FormItem name='name' label={t('name')}>
+                <FormItem required name='name' label={t('name')}>
                     <Input />
                 </FormItem>
             )}
@@ -112,20 +130,20 @@ export default function DeploymentForm({ orgName, deployment, deploymentSnapshot
                 </FormItem>
             )}
             {deployment && (
-                <FormItem name='type' label={t('type')}>
+                <FormItem required name='type' label={t('type')}>
                     <DeploymentSnapshotTypeSelector />
                 </FormItem>
             )}
             {values.type === 'canary' && (
-                <FormItem name='canary_rules' label={t('canary rules')}>
+                <FormItem required name='canary_rules' label={t('canary rules')}>
                     <DeploymentSnapshotCanaryRulesForm />
                 </FormItem>
             )}
-            <FormItem name='bento_name' label={t('bento')}>
+            <FormItem required name='bento_name' label={t('bento')}>
                 <BentoSelector orgName={orgName} />
             </FormItem>
             {values?.bento_name && (
-                <FormItem name='bento_version' label={t('bento version')}>
+                <FormItem required name='bento_version' label={t('bento version')}>
                     <BentoVersionSelector orgName={orgName} bentoName={values.bento_name} />
                 </FormItem>
             )}

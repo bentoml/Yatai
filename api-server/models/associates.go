@@ -68,6 +68,23 @@ func (a *OrganizationAssociate) SetAssociatedOrganizationCache(organization *Org
 	a.AssociatedOrganizationCache = organization
 }
 
+type NullableOrganizationAssociate struct {
+	OrganizationId              *uint         `json:"organization_id"`
+	AssociatedOrganizationCache *Organization `gorm:"foreignkey:OrganizationId"`
+}
+
+func (a *NullableOrganizationAssociate) GetAssociatedOrganizationId() *uint {
+	return a.OrganizationId
+}
+
+func (a *NullableOrganizationAssociate) GetAssociatedOrganizationCache() *Organization {
+	return a.AssociatedOrganizationCache
+}
+
+func (a *NullableOrganizationAssociate) SetAssociatedOrganizationCache(organization *Organization) {
+	a.AssociatedOrganizationCache = organization
+}
+
 type ClusterAssociate struct {
 	ClusterId              uint     `json:"cluster_id"`
 	AssociatedClusterCache *Cluster `gorm:"foreignkey:ClusterId"`
@@ -150,5 +167,22 @@ func (a *DeploymentAssociate) GetAssociatedDeploymentCache() *Deployment {
 }
 
 func (a *DeploymentAssociate) SetAssociatedDeploymentCache(deployment *Deployment) {
+	a.AssociatedDeploymentCache = deployment
+}
+
+type NullableDeploymentAssociate struct {
+	DeploymentId              *uint       `json:"deployment_id"`
+	AssociatedDeploymentCache *Deployment `gorm:"foreignkey:DeploymentId"`
+}
+
+func (a *NullableDeploymentAssociate) GetAssociatedDeploymentId() *uint {
+	return a.DeploymentId
+}
+
+func (a *NullableDeploymentAssociate) GetAssociatedDeploymentCache() *Deployment {
+	return a.AssociatedDeploymentCache
+}
+
+func (a *NullableDeploymentAssociate) SetAssociatedDeploymentCache(deployment *Deployment) {
 	a.AssociatedDeploymentCache = deployment
 }

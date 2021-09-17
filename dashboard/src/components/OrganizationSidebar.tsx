@@ -37,6 +37,11 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
                 icon: resourceIconMapping.bento,
             },
             {
+                title: t('sth list', [t('deployment')]),
+                path: `/orgs/${orgName}/deployments`,
+                icon: resourceIconMapping.deployment,
+            },
+            {
                 title: t('sth list', [t('cluster')]),
                 path: `/orgs/${orgName}/clusters`,
                 icon: resourceIconMapping.cluster,

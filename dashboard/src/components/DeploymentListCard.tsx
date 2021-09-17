@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
-import { createDeployment, listDeployments } from '@/services/deployment'
+import { createDeployment, listClusterDeployments, listOrganizationDeployments } from '@/services/deployment'
 import { usePage } from '@/hooks/usePage'
 import { DeploymentStatus, ICreateDeploymentSchema, IDeploymentSchema } from '@/schemas/deployment'
 import DeploymentForm from '@/components/DeploymentForm'
@@ -20,21 +20,26 @@ import { StyledSpinnerNext } from 'baseui/spinner'
 
 export interface IDeploymentListCardProps {
     orgName: string
-    clusterName: string
+    clusterName?: string
 }
 
 export default function DeploymentListCard({ orgName, clusterName }: IDeploymentListCardProps) {
     const [page, setPage] = usePage()
-    const queryKey = `fetchClusterDeployments:${orgName}:${clusterName}`
-    const deploymentsInfo = useQuery(queryKey, () => listDeployments(orgName, clusterName, page))
+    const queryKey = `fetchClusterDeployments:${orgName}:${clusterName ?? ''}`
+    const deploymentsInfo = useQuery(queryKey, () =>
+        clusterName ? listClusterDeployments(orgName, clusterName, page) : listOrganizationDeployments(orgName, page)
+    )
     const [isCreateDeploymentOpen, setIsCreateDeploymentOpen] = useState(false)
     const handleCreateDeployment = useCallback(
         async (data: ICreateDeploymentSchema) => {
-            await createDeployment(orgName, clusterName, data)
+            if (!data.cluster_name) {
+                return
+            }
+            await createDeployment(orgName, data.cluster_name, data)
             await deploymentsInfo.refetch()
             setIsCreateDeploymentOpen(false)
         },
-        [clusterName, deploymentsInfo, orgName]
+        [deploymentsInfo, orgName]
     )
     const [t] = useTranslation()
 
@@ -113,15 +118,29 @@ export default function DeploymentListCard({ orgName, clusterName }: IDeployment
         >
             <Table
                 isLoading={deploymentsInfo.isLoading}
-                columns={[t('name'), t('status'), t('creator'), t('created_at')]}
+                columns={[
+                    t('name'),
+                    clusterName ? undefined : t('cluster'),
+                    t('status'),
+                    t('creator'),
+                    t('created_at'),
+                ]}
                 data={
                     deploymentsInfo.data?.items.map((deployment) => [
                         <Link
                             key={deployment.uid}
-                            to={`/orgs/${orgName}/clusters/${clusterName}/deployments/${deployment.name}`}
+                            to={`/orgs/${orgName}/clusters/${deployment.cluster?.name}/deployments/${deployment.name}`}
                         >
                             {deployment.name}
                         </Link>,
+                        clusterName ? undefined : (
+                            <Link
+                                key={deployment.cluster?.uid}
+                                to={`/orgs/${orgName}/clusters/${deployment.cluster?.name}`}
+                            >
+                                {deployment.cluster?.name}
+                            </Link>
+                        ),
                         <Tag
                             key={deployment.uid}
                             closeable={false}
@@ -165,7 +184,7 @@ export default function DeploymentListCard({ orgName, clusterName }: IDeployment
             >
                 <ModalHeader>{t('create sth', [t('deployment')])}</ModalHeader>
                 <ModalBody>
-                    <DeploymentForm onSubmit={handleCreateDeployment} orgName={orgName} />
+                    <DeploymentForm onSubmit={handleCreateDeployment} orgName={orgName} clusterName={clusterName} />
                 </ModalBody>
             </Modal>
         </Card>

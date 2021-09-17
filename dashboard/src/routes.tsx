@@ -12,6 +12,7 @@ import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
+import OrganizationDeployments from '@/pages/Organization/Deployments'
 import ClusterDeployments from '@/pages/Cluster/Deployments'
 import ClusterMembers from '@/pages/Cluster/Members'
 import ClusterLayout from '@/components/ClusterLayout'
@@ -20,6 +21,7 @@ import BentoOverview from '@/pages/Bento/Overview'
 import BentoVersions from '@/pages/Bento/Versions'
 import DeploymentOverview from '@/pages/Deployment/Overview'
 import DeploymentSnapshots from '@/pages/Deployment/Snapshots'
+import DeploymentTerminalRecordPlayer from '@/pages/Deployment/TerminalRecordPlayer'
 import BentoLayout from '@/components/BentoLayout'
 import UserProfile from '@/pages/Yatai/UserProfile'
 import DeploymentLayout from '@/components/DeploymentLayout'
@@ -74,6 +76,11 @@ const Routes = () => {
                                     path='/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/snapshots'
                                     component={DeploymentSnapshots}
                                 />
+                                <Route
+                                    exact
+                                    path='/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/terminal_records/:uid'
+                                    component={DeploymentTerminalRecordPlayer}
+                                />
                             </Switch>
                         </DeploymentLayout>
                     </Route>
@@ -101,6 +108,7 @@ const Routes = () => {
                                 <Route exact path='/orgs/:orgName/bentos' component={OrganizationBentos} />
                                 <Route exact path='/orgs/:orgName/clusters' component={OrganizationClusters} />
                                 <Route exact path='/orgs/:orgName/members' component={OrganizationMembers} />
+                                <Route exact path='/orgs/:orgName/deployments' component={OrganizationDeployments} />
                             </Switch>
                         </OrganizationLayout>
                     </Route>

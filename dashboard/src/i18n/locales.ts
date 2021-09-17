@@ -148,6 +148,10 @@ const locales0 = {
         cn: '状态',
         en: 'Status',
     },
+    'status name': {
+        cn: '状态名称',
+        en: 'Status Name',
+    },
     'image build status': {
         cn: '镜像编译状态',
         en: 'Image Build Status',
@@ -252,6 +256,10 @@ const locales0 = {
         cn: '查看日志',
         en: 'View Log',
     },
+    'view terminal history': {
+        cn: '查看终端操作记录',
+        en: 'View Terminal History',
+    },
     'download log': {
         cn: '下载日志',
         en: 'Download Log',
@@ -327,6 +335,66 @@ const locales0 = {
     'add': {
         cn: '添加',
         en: 'Add',
+    },
+    'action': {
+        cn: '行为',
+        en: 'Action',
+    },
+    'Terminating': {
+        cn: '结束中',
+        en: 'Terminating',
+    },
+    'ContainerCreating': {
+        cn: '创建中',
+        en: 'Creating',
+    },
+    'Pending': {
+        cn: '等待中',
+        en: 'Pending',
+    },
+    'Running': {
+        cn: '运行中',
+        en: 'Running',
+    },
+    'Succeeded': {
+        cn: '成功',
+        en: 'Succeeded',
+    },
+    'Failed': {
+        cn: '失败',
+        en: 'Failed',
+    },
+    'Unknown': {
+        cn: '未知',
+        en: 'Unknown',
+    },
+    'start time': {
+        cn: '启动时间',
+        en: 'Start Time',
+    },
+    'end time': {
+        cn: '结束时间',
+        en: 'End Time',
+    },
+    'terminal': {
+        cn: '终端',
+        en: 'Terminal',
+    },
+    'operation': {
+        en: 'Operation',
+        cn: '操作',
+    },
+    'pod': {
+        cn: 'Pod ',
+        en: 'Pod',
+    },
+    'container': {
+        cn: '容器',
+        en: 'Container',
+    },
+    'playback operation': {
+        cn: '回放操作',
+        en: 'Playback Operation',
     },
 }
 

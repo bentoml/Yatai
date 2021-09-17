@@ -7,12 +7,15 @@ import { useDeployment, useDeploymentLoading } from '@/hooks/useDeployment'
 import Card from '@/components/Card'
 import { formatTime } from '@/utils/datetime'
 import User from '@/components/User'
-import PodsStatus from '@/components/PodsStatus'
+import { AiOutlineHistory } from 'react-icons/ai'
 import { IKubePodSchema } from '@/schemas/kube_pod'
 import { useFetchDeploymentPods } from '@/hooks/useFetchDeploymentPods'
 import { useParams } from 'react-router-dom'
-import { Skeleton } from 'baseui/skeleton'
 import { StyledLink } from 'baseui/link'
+import PodList from '@/components/PodList'
+import { Button } from 'baseui/button'
+import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
+import DeploymentTerminalRecordList from '@/components/DeploymentTerminalRecordList'
 
 export default function DeploymentOverview() {
     const { orgName, clusterName, deploymentName } =
@@ -31,10 +34,25 @@ export default function DeploymentOverview() {
     })
 
     const [t] = useTranslation()
+    const [showTerminalRecordsModal, setShowTerminalRecordsModal] = useState(false)
 
     return (
         <>
-            <Card title={t('overview')} titleIcon={RiSurveyLine}>
+            <Card
+                title={t('overview')}
+                titleIcon={RiSurveyLine}
+                extra={
+                    <>
+                        <Button
+                            size='mini'
+                            startEnhancer={<AiOutlineHistory />}
+                            onClick={() => setShowTerminalRecordsModal(true)}
+                        >
+                            {t('view terminal history')}
+                        </Button>
+                    </>
+                }
+            >
                 <Table
                     isLoading={deploymentLoading}
                     columns={[t('name'), 'URL', t('description'), t('creator'), t('created_at')]}
@@ -56,8 +74,27 @@ export default function DeploymentOverview() {
                 />
             </Card>
             <Card title={t('replicas')} titleIcon={VscServerProcess}>
-                {podsLoading ? <Skeleton rows={1} /> : <PodsStatus replicas={pods?.length ?? 0} pods={pods || []} />}
+                <PodList loading={podsLoading} pods={pods ?? []} />
             </Card>
+            <Modal
+                size='auto'
+                isOpen={showTerminalRecordsModal}
+                onClose={() => setShowTerminalRecordsModal(false)}
+                closeable
+                animate
+                autoFocus
+            >
+                <ModalHeader>{t('view terminal history')}</ModalHeader>
+                <ModalBody style={{ flex: '1 1 0' }}>
+                    {deployment && (
+                        <DeploymentTerminalRecordList
+                            orgName={orgName}
+                            clusterName={clusterName}
+                            deploymentName={deployment.name}
+                        />
+                    )}
+                </ModalBody>
+            </Modal>
         </>
     )
 }

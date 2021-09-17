@@ -164,6 +164,7 @@ export function createForm<S extends {} = Store>({
             {
                 name,
                 rules,
+                style,
                 ...(deps.length ? { dependencies: deps, shouldUpdate: createShouldUpdate(deps) } : {}),
                 ...props,
             },

@@ -132,6 +132,7 @@ export default function DeploymentSnapshotListCard({
                 <ModalHeader>{t('create sth', [t('version')])}</ModalHeader>
                 <ModalBody>
                     <DeploymentForm
+                        clusterName={clusterName}
                         deployment={deployment}
                         deploymentSnapshot={
                             deploymentSnapshotsInfo.data?.items.filter(

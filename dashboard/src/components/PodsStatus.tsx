@@ -4,8 +4,6 @@ import { StatefulTooltip } from 'baseui/tooltip'
 import classNames from 'classnames'
 import _ from 'lodash'
 import { IKubePodSchema } from '@/schemas/kube_pod'
-import { IoMdList } from 'react-icons/io'
-import { Button, SHAPE } from 'baseui/button'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import useTranslation from '@/hooks/useTranslation'
 import { useOrganization } from '@/hooks/useOrganization'
@@ -123,13 +121,6 @@ export const PodStatus = React.memo(
                 <StatefulTooltip
                     content={
                         <div>
-                            <div style={{ marginBottom: 8 }}>
-                                <StatefulTooltip content={t('view log')} showArrow>
-                                    <Button size='mini' shape={SHAPE.circle} onClick={() => setShowLogModal(true)}>
-                                        <IoMdList />
-                                    </Button>
-                                </StatefulTooltip>
-                            </div>
                             <div style={{ marginBottom: 8 }}>
                                 <span>{pod.name}</span>
                             </div>

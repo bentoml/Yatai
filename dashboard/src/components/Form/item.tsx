@@ -6,15 +6,16 @@ import styles from './index.module.scss'
 export interface IFormItemProps extends FieldProps {
     label?: React.ReactNode
     required?: boolean
+    style?: React.CSSProperties
 }
 
-export const FormItem = ({ label: label_, required, children, ...restProps }: IFormItemProps) => {
+export const FormItem = ({ label: label_, required, style, children, ...restProps }: IFormItemProps) => {
     let label = label_
     if (required) {
         label = <span>{label} *</span>
     }
     return (
-        <div className={styles.formItem}>
+        <div className={styles.formItem} style={style}>
             {/* eslint-disable-next-line react/jsx-props-no-spreading  */}
             <Field {...restProps}>
                 {(control, meta, form) => {

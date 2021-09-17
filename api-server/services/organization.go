@@ -161,6 +161,26 @@ func (s *organizationService) GetAssociatedOrganization(ctx context.Context, ass
 	return organization, err
 }
 
+type INullableOrganizationAssociate interface {
+	GetAssociatedOrganizationId() *uint
+	GetAssociatedOrganizationCache() *models.Organization
+	SetAssociatedOrganizationCache(cluster *models.Organization)
+}
+
+func (s *organizationService) GetAssociatedNullableOrganization(ctx context.Context, associate INullableOrganizationAssociate) (*models.Organization, error) {
+	cache := associate.GetAssociatedOrganizationCache()
+	if cache != nil {
+		return cache, nil
+	}
+	organizationId := associate.GetAssociatedOrganizationId()
+	if organizationId == nil {
+		return nil, nil
+	}
+	organization, err := s.Get(ctx, *organizationId)
+	associate.SetAssociatedOrganizationCache(organization)
+	return organization, err
+}
+
 func (s *organizationService) GetMajorCluster(ctx context.Context, org *models.Organization) (*models.Cluster, error) {
 	if org.Config == nil || org.Config.MajorClusterUid == "" {
 		clusters, _, err := ClusterService.List(ctx, ListClusterOption{

@@ -54,7 +54,8 @@ type UpdateDeploymentStatusOption struct {
 
 type ListDeploymentOption struct {
 	BaseListOption
-	ClusterId uint
+	ClusterId      *uint
+	OrganizationId *uint
 }
 
 func (*deploymentService) Create(ctx context.Context, opt CreateDeploymentOption) (*models.Deployment, error) {
@@ -144,7 +145,13 @@ func (s *deploymentService) ListByUids(ctx context.Context, uids []string) ([]*m
 }
 
 func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) ([]*models.Deployment, uint, error) {
-	query := getBaseQuery(ctx, s).Where("cluster_id = ?", opt.ClusterId)
+	query := getBaseQuery(ctx, s)
+	if opt.ClusterId != nil {
+		query = query.Where("cluster_id = ?", *opt.ClusterId)
+	}
+	if opt.OrganizationId != nil {
+		query = query.Where("cluster_id in (select id from cluster where organization_id = ?)", *opt.OrganizationId)
+	}
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
@@ -199,6 +206,26 @@ func (s *deploymentService) GetAssociatedDeployment(ctx context.Context, associa
 		return cache, nil
 	}
 	deployment, err := s.Get(ctx, associate.GetAssociatedDeploymentId())
+	associate.SetAssociatedDeploymentCache(deployment)
+	return deployment, err
+}
+
+type INullableDeploymentAssociate interface {
+	GetAssociatedDeploymentId() *uint
+	GetAssociatedDeploymentCache() *models.Deployment
+	SetAssociatedDeploymentCache(cluster *models.Deployment)
+}
+
+func (s *deploymentService) GetAssociatedNullableDeployment(ctx context.Context, associate INullableDeploymentAssociate) (*models.Deployment, error) {
+	cache := associate.GetAssociatedDeploymentCache()
+	if cache != nil {
+		return cache, nil
+	}
+	deploymentId := associate.GetAssociatedDeploymentId()
+	if deploymentId == nil {
+		return nil, nil
+	}
+	deployment, err := s.Get(ctx, *deploymentId)
 	associate.SetAssociatedDeploymentCache(deployment)
 	return deployment, err
 }
