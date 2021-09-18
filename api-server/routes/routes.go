@@ -85,6 +85,11 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("Deployment terminal"),
 	}, requireLogin, tonic.Handler(controllersv1.TerminalController.GetDeploymentTerminal, 200))
 
+	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/kube_events", []fizz.OperationOption{
+		fizz.ID("Deployment kube events"),
+		fizz.Summary("Deployment kube events"),
+	}, requireLogin, tonic.Handler(controllersv1.KubeController.GetDeploymentKubeEvents, 200))
+
 	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/pods", []fizz.OperationOption{
 		fizz.ID("Ws pods"),
 		fizz.Summary("Ws pods"),

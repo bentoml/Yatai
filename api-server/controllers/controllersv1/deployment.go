@@ -376,7 +376,8 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 		return err
 	}
 
-	podInformer, podLister, err := services.GetPodInformer(ctx, cluster, consts.KubeNamespaceYataiDeployment)
+	kubeNs := services.DeploymentService.GetKubeNamespace(deployment)
+	podInformer, podLister, err := services.GetPodInformer(ctx, cluster, kubeNs)
 	if err != nil {
 		return err
 	}

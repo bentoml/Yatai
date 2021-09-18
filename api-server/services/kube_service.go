@@ -48,10 +48,18 @@ func (s *kubeServiceService) DeploymentSnapshotToKubeService(ctx context.Context
 		return
 	}
 
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	if err != nil {
+		err = errors.Wrap(err, "get deployment")
+		return
+	}
+
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+
 	kubeService = &apiv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            kubeName,
-			Namespace:       consts.KubeNamespaceYataiDeployment,
+			Namespace:       kubeNs,
 			Labels:          labels,
 			Annotations:     annotations,
 			OwnerReferences: deployOption.OwnerReferences,
@@ -67,7 +75,15 @@ func (s *kubeServiceService) DeployKubeService(ctx context.Context, deploymentSn
 	if err != nil {
 		return err
 	}
-	servicesCli := kubeCli.CoreV1().Services(consts.KubeNamespaceYataiDeployment)
+
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	if err != nil {
+		return errors.Wrap(err, "get deployment")
+	}
+
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+
+	servicesCli := kubeCli.CoreV1().Services(kubeNs)
 	logrus.Infof("get k8s service %s ...", kubeService.Name)
 	oldSvc, err := servicesCli.Get(ctx, kubeService.Name, metav1.GetOptions{})
 	notFound := apierrors.IsNotFound(err)
@@ -124,7 +140,15 @@ func (s *kubeServiceService) DeleteKubeService(ctx context.Context, deploymentSn
 	if err != nil {
 		return err
 	}
-	servicesCli := kubeCli.CoreV1().Services(consts.KubeNamespaceYataiDeployment)
+
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	if err != nil {
+		return errors.Wrap(err, "get deployment")
+	}
+
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+
+	servicesCli := kubeCli.CoreV1().Services(kubeNs)
 	logrus.Infof("delete k8s service %s ...", kubeServiceName)
 	return servicesCli.Delete(ctx, kubeServiceName, metav1.DeleteOptions{})
 }

@@ -7,6 +7,7 @@ import { formatTime } from '@/utils/datetime'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import { IoMdList } from 'react-icons/io'
 import { GoTerminal } from 'react-icons/go'
+import { MdEventNote } from 'react-icons/md'
 import React, { useState } from 'react'
 import { StatefulTooltip } from 'baseui/tooltip'
 import { Button } from 'baseui/button'
@@ -14,6 +15,7 @@ import Log from './Log'
 import { PodStatus } from './PodsStatus'
 import Table from './Table'
 import Terminal from './Terminal'
+import DeploymentKubeEvents from './DeploymentKubeEvents'
 
 export interface IPodListProps {
     loading?: boolean
@@ -25,7 +27,8 @@ export default ({ loading = false, pods }: IPodListProps) => {
     const { organization } = useOrganization()
     const { cluster } = useCluster()
     const { deployment } = useDeployment()
-    const [desiredShowLogPod, setDesiredShowLogPod] = useState<IKubePodSchema>()
+    const [desiredShowLogsPod, setDesiredShowLogsPod] = useState<IKubePodSchema>()
+    const [desiredShowKubeEventsPod, setDesiredShowKubeEventsPod] = useState<IKubePodSchema>()
     const [desiredShowTerminalPod, setDesiredShowTerminalPod] = useState<IKubePodSchema>()
 
     return (
@@ -47,8 +50,13 @@ export default ({ loading = false, pods }: IPodListProps) => {
                         }}
                     >
                         <StatefulTooltip content={t('view log')} showArrow>
-                            <Button size='mini' shape='circle' onClick={() => setDesiredShowLogPod(pod)}>
+                            <Button size='mini' shape='circle' onClick={() => setDesiredShowLogsPod(pod)}>
                                 <IoMdList />
+                            </Button>
+                        </StatefulTooltip>
+                        <StatefulTooltip content={t('events')} showArrow>
+                            <Button size='mini' shape='circle' onClick={() => setDesiredShowKubeEventsPod(pod)}>
+                                <MdEventNote />
                             </Button>
                         </StatefulTooltip>
                         <StatefulTooltip content={t('terminal')} showArrow>
@@ -68,21 +76,51 @@ export default ({ loading = false, pods }: IPodListProps) => {
                         },
                     },
                 }}
-                isOpen={desiredShowLogPod !== undefined}
-                onClose={() => setDesiredShowLogPod(undefined)}
+                isOpen={desiredShowLogsPod !== undefined}
+                onClose={() => setDesiredShowLogsPod(undefined)}
                 closeable
                 animate
                 autoFocus
             >
                 <ModalHeader>{t('view log')}</ModalHeader>
                 <ModalBody>
-                    {organization && cluster && deployment && desiredShowLogPod && (
+                    {organization && cluster && deployment && desiredShowLogsPod && (
                         <Log
-                            open={desiredShowLogPod !== undefined}
+                            open={desiredShowLogsPod !== undefined}
                             orgName={organization.name}
                             clusterName={cluster.name}
                             deploymentName={deployment.name}
-                            podName={desiredShowLogPod.name}
+                            podName={desiredShowLogsPod.name}
+                            width='auto'
+                            height='calc(80vh - 200px)'
+                        />
+                    )}
+                </ModalBody>
+            </Modal>
+            <Modal
+                overrides={{
+                    Dialog: {
+                        style: {
+                            width: '80vw',
+                            height: '80vh',
+                        },
+                    },
+                }}
+                isOpen={desiredShowKubeEventsPod !== undefined}
+                onClose={() => setDesiredShowKubeEventsPod(undefined)}
+                closeable
+                animate
+                autoFocus
+            >
+                <ModalHeader>{t('events')}</ModalHeader>
+                <ModalBody>
+                    {organization && cluster && deployment && desiredShowKubeEventsPod && (
+                        <DeploymentKubeEvents
+                            open={desiredShowKubeEventsPod !== undefined}
+                            orgName={organization.name}
+                            clusterName={cluster.name}
+                            deploymentName={deployment.name}
+                            podName={desiredShowKubeEventsPod.name}
                             width='auto'
                             height='calc(80vh - 200px)'
                         />

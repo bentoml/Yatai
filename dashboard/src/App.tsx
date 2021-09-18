@@ -7,7 +7,7 @@ import { SidebarContext } from '@/contexts/SidebarContext'
 import { useSidebar } from '@/hooks/useSidebar'
 import Routes from '@/routes'
 import { QueryClient, QueryClientProvider } from 'react-query'
-import { useCurrentThemeType } from './hooks/useCurrentThemeType'
+import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 
 const engine = new Styletron()
 const queryClient = new QueryClient()

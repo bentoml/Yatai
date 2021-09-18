@@ -38,7 +38,7 @@ func (s *kubePodService) ListPodsByDeployment(ctx context.Context, podLister v1.
 		pods = append(pods, *p)
 	}
 
-	events, err := KubeEventService.ListAllKubeEvents(ctx, deployment)
+	events, err := KubeEventService.ListAllKubeEventsByDeployment(ctx, deployment)
 	if err != nil {
 		return nil, err
 	}

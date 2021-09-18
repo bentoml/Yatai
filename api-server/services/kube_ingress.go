@@ -79,10 +79,17 @@ more_set_headers "X-Yatai-Bento-Version: %s";
 
 	pathType := v1.PathTypeImplementationSpecific
 
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	if err != nil {
+		return nil, errors.Wrap(err, "get deployment")
+	}
+
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+
 	interIng := &v1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            kubeName,
-			Namespace:       consts.KubeNamespaceYataiDeployment,
+			Namespace:       kubeNs,
 			Labels:          labels,
 			Annotations:     annotations,
 			OwnerReferences: deployOption.OwnerReferences,
@@ -124,7 +131,15 @@ func (s *kubeIngressService) DeployDeploymentSnapshotAsKubeIngresses(ctx context
 	if err != nil {
 		return err
 	}
-	ingressesCli := kubeCli.NetworkingV1().Ingresses(consts.KubeNamespaceYataiDeployment)
+
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	if err != nil {
+		return errors.Wrap(err, "get deployment")
+	}
+
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+
+	ingressesCli := kubeCli.NetworkingV1().Ingresses(kubeNs)
 	kubeIngresses, err := s.ToKubeIngresses(ctx, deploymentSnapshot, deployOption)
 	if err != nil {
 		return err

@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bentoml/yatai/schemas/schemasv1"
+
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/consts"
@@ -290,6 +292,17 @@ func (c *terminalController) GetDeploymentTerminal(ctx *gin.Context, schema *Get
 	}
 	defer conn.Close()
 
+	defer func() {
+		if err != nil {
+			msg := schemasv1.WsRespSchema{
+				Type:    schemasv1.WsRespTypeError,
+				Message: err.Error(),
+				Payload: nil,
+			}
+			_ = conn.WriteJSON(&msg)
+		}
+	}()
+
 	deployment, err := schema.GetDeployment(ctx)
 	if err != nil {
 		return err
@@ -312,8 +325,10 @@ func (c *terminalController) GetDeploymentTerminal(ctx *gin.Context, schema *Get
 	podName := ctx.Query("pod_name")
 	containerName := ctx.Query("container_name")
 
+	kubeNs := services.DeploymentService.GetKubeNamespace(deployment)
+
 	if podName != "" {
-		podsCli := cliset.CoreV1().Pods(consts.KubeNamespaceYataiDeployment)
+		podsCli := cliset.CoreV1().Pods(kubeNs)
 
 		pod, err := podsCli.Get(ctx, podName, metav1.GetOptions{})
 		if err != nil {
@@ -328,8 +343,6 @@ func (c *terminalController) GetDeploymentTerminal(ctx *gin.Context, schema *Get
 			containerName = pod.Spec.Containers[0].Name
 		}
 	}
-
-	kubeNs := consts.KubeNamespaceYataiDeployment
 
 	debug := ctx.Query("debug")
 	fork := ctx.Query("fork")

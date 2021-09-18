@@ -229,7 +229,8 @@ func (s *deploymentSnapshotService) MakeSureKubeOwnerReferences(ctx context.Cont
 	if err != nil {
 		return nil, err
 	}
-	cmCli := kubeCli.CoreV1().ConfigMaps(consts.KubeNamespaceYataiDeployment)
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+	cmCli := kubeCli.CoreV1().ConfigMaps(kubeNs)
 	name, err := s.GetKubeOwnerReferenceName(ctx, deploymentSnapshot)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube owner reference name")
@@ -281,7 +282,12 @@ func (s *deploymentSnapshotService) DeleteKubeOwnerReferences(ctx context.Contex
 	if err != nil {
 		return err
 	}
-	cmCli := kubeCli.CoreV1().ConfigMaps(consts.KubeNamespaceYataiDeployment)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	if err != nil {
+		return err
+	}
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+	cmCli := kubeCli.CoreV1().ConfigMaps(kubeNs)
 	_, err = cmCli.Get(ctx, name, metav1.GetOptions{})
 	if errors2.IsNotFound(err) {
 		return nil
@@ -391,7 +397,9 @@ func (s *deploymentSnapshotService) Deploy(ctx context.Context, deploymentSnapsh
 		return
 	}
 
-	_, err = KubeNamespaceService.MakeSureNamespace(ctx, cluster, consts.KubeNamespaceYataiDeployment)
+	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+
+	_, err = KubeNamespaceService.MakeSureNamespace(ctx, cluster, kubeNs)
 	if err != nil {
 		return
 	}
