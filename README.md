@@ -1,7 +1,11 @@
 <div align="center">
     <h1 align="center">Yatai</h1>
-    <hr>
-    <br><strong>BentoML's model management server<br></strong>
+    <p><strong>BentoML's model management server<br></strong></p>
+    <p align="center">
+        <a href="https://github.com/bentoml/yatai/actions/workflows/cicd.yml">
+            <img alt="Build Status" src="https://github.com/bentoml/yatai/actions/workflows/cicd.yml/badge.svg">
+        </a>
+    </p>
 </div>
 
 _wip_
