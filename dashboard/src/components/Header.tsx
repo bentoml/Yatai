@@ -324,6 +324,7 @@ export default function Header() {
             <div
                 style={{
                     flexBasis: 1,
+                    flexShrink: 0,
                     height: 20,
                     background: theme.colors.borderAlt,
                     margin: '0 20px',
