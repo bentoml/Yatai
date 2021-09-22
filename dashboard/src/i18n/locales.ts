@@ -408,6 +408,10 @@ const locales0 = {
         cn: '事件列表',
         en: 'Events',
     },
+    'node': {
+        cn: '节点',
+        en: 'Node',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
