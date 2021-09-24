@@ -183,7 +183,7 @@ func (s *deploymentSnapshotService) GetIngressHost(ctx context.Context, deployme
 	if err != nil {
 		return "", err
 	}
-	return DeploymentService.GetIngressHost(ctx, deployment)
+	return DeploymentService.GetDefaultHostname(ctx, deployment)
 }
 
 func (s *deploymentSnapshotService) GetKubeLabels(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot) (map[string]string, error) {

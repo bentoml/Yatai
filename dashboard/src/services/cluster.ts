@@ -22,8 +22,8 @@ export async function fetchCluster(orgName: string, clusterName: string): Promis
     return resp.data
 }
 
-export async function createCluster(orgName: string, data: ICreateClusterSchema): Promise<IClusterSchema> {
-    const resp = await axios.post<IClusterSchema>(`/api/v1/orgs/${orgName}/clusters`, data)
+export async function createCluster(orgName: string, data: ICreateClusterSchema): Promise<IClusterFullSchema> {
+    const resp = await axios.post<IClusterFullSchema>(`/api/v1/orgs/${orgName}/clusters`, data)
     return resp.data
 }
 
@@ -31,7 +31,7 @@ export async function updateCluster(
     orgName: string,
     clusterName: string,
     data: IUpdateClusterSchema
-): Promise<IClusterSchema> {
-    const resp = await axios.patch<IClusterSchema>(`/api/v1/orgs/${orgName}/clusters/${clusterName}`, data)
+): Promise<IClusterFullSchema> {
+    const resp = await axios.patch<IClusterFullSchema>(`/api/v1/orgs/${orgName}/clusters/${clusterName}`, data)
     return resp.data
 }

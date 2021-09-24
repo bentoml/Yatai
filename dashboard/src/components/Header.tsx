@@ -262,7 +262,7 @@ export default function Header() {
     return (
         <header
             className={css({
-                padding: '0 30px',
+                padding: '0 23px',
                 position: 'fixed',
                 background: color(theme.colors.backgroundPrimary).fade(0.5).rgb().string(),
                 borderBottom: `1px solid ${theme.borders.border300.borderColor}`,

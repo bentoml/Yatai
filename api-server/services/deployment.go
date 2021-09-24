@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
 	"time"
 
@@ -422,21 +423,30 @@ func (s *deploymentService) GetKubeName(deployment *models.Deployment) string {
 	return fmt.Sprintf("yatai-%s", deployment.Name)
 }
 
-func (s *deploymentService) GetIngressHost(ctx context.Context, deployment *models.Deployment) (string, error) {
+func (s *deploymentService) GetDefaultHostname(ctx context.Context, deployment *models.Deployment) (string, error) {
 	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
 	if err != nil {
 		return "", err
 	}
-	organization, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
-	if err != nil {
-		return "", err
+	ip := cluster.Config.IngressIp
+	if ip == "" {
+		return "", errors.Errorf("please specify the ingress ip or hostname in cluster %s", cluster.Name)
 	}
-	// TODO: remove the hard code
-	return fmt.Sprintf("%s-%s-%s.apps.dev.yatai.ai", deployment.Name, cluster.Name, organization.Name), nil
+	if net.ParseIP(ip) == nil {
+		addr, err := net.LookupIP(ip)
+		if err != nil {
+			return "", errors.Wrapf(err, "lookup ip from ingress hostname %s in cluster %s", ip, cluster.Name)
+		}
+		if len(addr) == 0 {
+			return "", errors.Errorf("cannot lookup ip from ingress hostname %s in cluster %s", ip, cluster.Name)
+		}
+		ip = addr[0].String()
+	}
+	return fmt.Sprintf("%s.yatai.%s.sslip.io", deployment.Name, ip), nil
 }
 
 func (s *deploymentService) GetURLs(ctx context.Context, deployment *models.Deployment) ([]string, error) {
-	host, err := s.GetIngressHost(ctx, deployment)
+	host, err := s.GetDefaultHostname(ctx, deployment)
 	if err != nil {
 		return nil, err
 	}
