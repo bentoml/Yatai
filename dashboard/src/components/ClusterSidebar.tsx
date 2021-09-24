@@ -60,5 +60,13 @@ export default function ClusterSidebar({ style }: IComposedSidebarProps) {
         ],
         [clusterName, orgName, t]
     )
-    return <BaseSidebar title={clusterName} icon={resourceIconMapping.cluster} navItems={navItems} style={style} />
+    return (
+        <BaseSidebar
+            title={clusterName}
+            icon={resourceIconMapping.cluster}
+            navItems={navItems}
+            style={style}
+            settingsPath={`/orgs/${orgName}/clusters/${clusterName}/settings`}
+        />
+    )
 }

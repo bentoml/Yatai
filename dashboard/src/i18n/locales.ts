@@ -412,6 +412,10 @@ const locales0 = {
         cn: '节点',
         en: 'Node',
     },
+    'settings': {
+        cn: '设置',
+        en: 'Settings',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

@@ -8,7 +8,7 @@ import { GoPackage } from 'react-icons/go'
 
 export const headerHeight = 55
 export const sidebarExpandedWidth = 220
-export const sidebarFoldedWidth = 56
+export const sidebarFoldedWidth = 68
 export const textVariant = 'smallPlus'
 export const timeFormat = 'YYYY-MM-DD HH:mm:ss'
 

@@ -15,6 +15,7 @@ import OrganizationMembers from '@/pages/Organization/Members'
 import OrganizationDeployments from '@/pages/Organization/Deployments'
 import ClusterDeployments from '@/pages/Cluster/Deployments'
 import ClusterMembers from '@/pages/Cluster/Members'
+import ClusterSettings from '@/pages/Cluster/Settings'
 import ClusterLayout from '@/components/ClusterLayout'
 import OrganizationBentos from '@/pages/Organization/Bentos'
 import BentoOverview from '@/pages/Bento/Overview'
@@ -114,6 +115,11 @@ const Routes = () => {
                                     exact
                                     path='/orgs/:orgName/clusters/:clusterName/members'
                                     component={ClusterMembers}
+                                />
+                                <Route
+                                    exact
+                                    path='/orgs/:orgName/clusters/:clusterName/settings'
+                                    component={ClusterSettings}
                                 />
                             </Switch>
                         </ClusterLayout>

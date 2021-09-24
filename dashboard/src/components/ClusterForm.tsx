@@ -5,6 +5,7 @@ import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { Input } from 'baseui/input'
 import { Textarea } from 'baseui/textarea'
+import { isModified } from '@/utils'
 
 const { Form, FormItem } = createForm<ICreateClusterSchema>()
 
@@ -14,22 +15,26 @@ export interface IClusterFormProps {
 }
 
 export default function ClusterForm({ cluster, onSubmit }: IClusterFormProps) {
-    const [initialValue, setInitialValue] = useState<ICreateClusterSchema>()
+    const [values, setValues] = useState<ICreateClusterSchema | undefined>(cluster)
 
     useEffect(() => {
         if (!cluster) {
             return
         }
-        setInitialValue(cluster)
+        setValues(cluster)
     }, [cluster])
 
     const [loading, setLoading] = useState(false)
 
+    const handleValuesChange = useCallback((_changes, values_) => {
+        setValues(values_)
+    }, [])
+
     const handleFinish = useCallback(
-        async (values) => {
+        async (values_) => {
             setLoading(true)
             try {
-                await onSubmit(values)
+                await onSubmit(values_)
             } finally {
                 setLoading(false)
             }
@@ -40,23 +45,25 @@ export default function ClusterForm({ cluster, onSubmit }: IClusterFormProps) {
     const [t] = useTranslation()
 
     return (
-        <Form initialValues={initialValue} onFinish={handleFinish}>
-            <FormItem name='name' label={t('name')}>
-                <Input />
-            </FormItem>
+        <Form initialValues={values} onFinish={handleFinish} onValuesChange={handleValuesChange}>
+            {!cluster && (
+                <FormItem name='name' label={t('name')}>
+                    <Input />
+                </FormItem>
+            )}
             <FormItem name='description' label={t('description')}>
                 <Textarea />
             </FormItem>
             <FormItem name='kube_config' label={t('kube_config')}>
-                <Textarea />
+                <Textarea rows={7} />
             </FormItem>
-            <FormItem name={['config', 'ingress_ip']} label='Ingress IP'>
+            <FormItem name={['config', 'ingress_ip']} label='Ingress IPv4 address or hostname'>
                 <Input />
             </FormItem>
             <FormItem>
                 <div style={{ display: 'flex' }}>
                     <div style={{ flexGrow: 1 }} />
-                    <Button isLoading={loading} size={ButtonSize.compact}>
+                    <Button isLoading={loading} size={ButtonSize.compact} disabled={!isModified(cluster, values)}>
                         {t('submit')}
                     </Button>
                 </div>
