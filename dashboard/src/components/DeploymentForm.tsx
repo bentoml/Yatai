@@ -156,7 +156,7 @@ export default function DeploymentForm({
                     },
                 }}
             >
-                <Panel title={t('advance')}>
+                <Panel title={t('advanced')}>
                     <FormGroup
                         icon={VscServerProcess}
                         style={{
