@@ -16,6 +16,9 @@ import { PodStatus } from './PodsStatus'
 import Table from './Table'
 import Terminal from './Terminal'
 import DeploymentKubeEvents from './DeploymentKubeEvents'
+import Toggle from './Toggle'
+import Label from './Label'
+import LokiLog from './LokiLog'
 
 export interface IPodListProps {
     loading?: boolean
@@ -30,6 +33,7 @@ export default ({ loading = false, pods }: IPodListProps) => {
     const [desiredShowLogsPod, setDesiredShowLogsPod] = useState<IKubePodSchema>()
     const [desiredShowKubeEventsPod, setDesiredShowKubeEventsPod] = useState<IKubePodSchema>()
     const [desiredShowTerminalPod, setDesiredShowTerminalPod] = useState<IKubePodSchema>()
+    const [advancedLog, setAdvancedLog] = useState(false)
 
     return (
         <>
@@ -92,19 +96,44 @@ export default ({ loading = false, pods }: IPodListProps) => {
                 animate
                 autoFocus
             >
-                <ModalHeader>{t('view log')}</ModalHeader>
+                <ModalHeader>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <div style={{ marginRight: 40 }}>{t('view log')}</div>
+                        <Label
+                            style={{
+                                fontSize: 12,
+                            }}
+                        >
+                            {t('advanced')}
+                        </Label>
+                        <Toggle value={advancedLog} onChange={setAdvancedLog} />
+                    </div>
+                </ModalHeader>
                 <ModalBody>
-                    {organization && cluster && deployment && desiredShowLogsPod && (
-                        <Log
-                            open={desiredShowLogsPod !== undefined}
-                            orgName={organization.name}
-                            clusterName={cluster.name}
-                            deploymentName={deployment.name}
-                            podName={desiredShowLogsPod.name}
-                            width='auto'
-                            height='calc(80vh - 200px)'
-                        />
-                    )}
+                    {organization &&
+                        cluster &&
+                        deployment &&
+                        desiredShowLogsPod &&
+                        (advancedLog ? (
+                            <div style={{ height: 'calc(80vh - 100px)' }}>
+                                <LokiLog podName={desiredShowLogsPod.name} />
+                            </div>
+                        ) : (
+                            <Log
+                                open={desiredShowLogsPod !== undefined}
+                                orgName={organization.name}
+                                clusterName={cluster.name}
+                                deploymentName={deployment.name}
+                                podName={desiredShowLogsPod.name}
+                                width='auto'
+                                height='calc(80vh - 200px)'
+                            />
+                        ))}
                 </ModalBody>
             </Modal>
             <Modal

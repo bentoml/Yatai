@@ -10,11 +10,12 @@ import User from '@/components/User'
 import { AiOutlineHistory } from 'react-icons/ai'
 import { IKubePodSchema } from '@/schemas/kube_pod'
 import { useFetchDeploymentPods } from '@/hooks/useFetchDeploymentPods'
-import { useParams } from 'react-router-dom'
+import { useHistory, useParams } from 'react-router-dom'
 import { StyledLink } from 'baseui/link'
 import PodList from '@/components/PodList'
 import { Button } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
+import { FaJournalWhills } from 'react-icons/fa'
 import DeploymentTerminalRecordList from '@/components/DeploymentTerminalRecordList'
 
 export default function DeploymentOverview() {
@@ -35,6 +36,7 @@ export default function DeploymentOverview() {
 
     const [t] = useTranslation()
     const [showTerminalRecordsModal, setShowTerminalRecordsModal] = useState(false)
+    const history = useHistory()
 
     return (
         <>
@@ -42,7 +44,13 @@ export default function DeploymentOverview() {
                 title={t('overview')}
                 titleIcon={RiSurveyLine}
                 extra={
-                    <>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                        }}
+                    >
                         <Button
                             size='mini'
                             startEnhancer={<AiOutlineHistory />}
@@ -50,7 +58,18 @@ export default function DeploymentOverview() {
                         >
                             {t('view terminal history')}
                         </Button>
-                    </>
+                        <Button
+                            size='mini'
+                            startEnhancer={<FaJournalWhills />}
+                            onClick={() => {
+                                history.push(
+                                    `/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/log`
+                                )
+                            }}
+                        >
+                            {t('view log')}
+                        </Button>
+                    </div>
                 }
             >
                 <Table

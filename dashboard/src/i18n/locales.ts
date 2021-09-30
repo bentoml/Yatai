@@ -292,9 +292,9 @@ const locales0 = {
         cn: '最大行数',
         en: 'Max Lines',
     },
-    'advance': {
+    'advanced': {
         cn: '高级',
-        en: 'Advance',
+        en: 'Advanced',
     },
     'cpu limits': {
         cn: 'CPU 资源限制',
@@ -415,6 +415,50 @@ const locales0 = {
     'settings': {
         cn: '设置',
         en: 'Settings',
+    },
+    'regexp': {
+        cn: '正则表达式',
+        en: 'Regexp',
+    },
+    'contains': {
+        cn: '包含',
+        en: 'Contains',
+    },
+    'not contains': {
+        cn: '不包含',
+        en: 'Not Contains',
+    },
+    'clear': {
+        cn: '清空',
+        en: 'Clear',
+    },
+    'and': {
+        cn: '且',
+        en: 'And',
+    },
+    'add filter condition': {
+        cn: '添加过滤条件',
+        en: 'Add Filter Condition',
+    },
+    'match': {
+        cn: '匹配',
+        en: 'Match',
+    },
+    'not match': {
+        cn: '不匹配',
+        en: 'Not Match',
+    },
+    'advanced search': {
+        cn: '高级搜索',
+        en: 'Advanced Search',
+    },
+    'search': {
+        cn: '搜索',
+        en: 'Search',
+    },
+    'please enter keywords': {
+        cn: '请输入关键词',
+        en: 'Please enter keywords',
     },
 }
 
