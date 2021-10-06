@@ -176,7 +176,7 @@ func (s *kubePodService) DeploymentSnapshotToPodTemplateSpec(ctx context.Context
 		FailureThreshold:    6,
 		Handler: apiv1.Handler{
 			HTTPGet: &apiv1.HTTPGetAction{
-				Path: "/",
+				Path: "/healthz",
 				Port: intstr.FromInt(consts.BentoServicePort),
 			},
 		},
@@ -188,7 +188,7 @@ func (s *kubePodService) DeploymentSnapshotToPodTemplateSpec(ctx context.Context
 		FailureThreshold:    6,
 		Handler: apiv1.Handler{
 			HTTPGet: &apiv1.HTTPGetAction{
-				Path: "/",
+				Path: "/healthz",
 				Port: intstr.FromInt(consts.BentoServicePort),
 			},
 		},
