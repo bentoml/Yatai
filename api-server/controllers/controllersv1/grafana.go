@@ -7,9 +7,13 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strings"
+	"sync"
+
+	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
+
+	"github.com/bentoml/yatai/api-server/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/huandu/xstrings"
@@ -32,9 +36,21 @@ type ProxyGrafanaSchema struct {
 var (
 	staticSuffixes    = []string{"js", "css", "svg", "png", "woff2"}
 	pathPrefixPattern = regexp.MustCompile("^/")
+	grafanasCache     sync.Map
+	clustersCache     sync.Map
 )
 
-func (c *grafanaController) Proxy(ctx *gin.Context, schema *ProxyGrafanaSchema) error {
+func (c *grafanaController) Proxy(ctx *gin.Context) {
+	schema := &ProxyGrafanaSchema{
+		GetClusterSchema: GetClusterSchema{
+			GetOrganizationSchema: GetOrganizationSchema{
+				OrgName: ctx.Param("orgName"),
+			},
+			ClusterName: ctx.Param("clusterName"),
+		},
+		Path: ctx.Param("path"),
+	}
+
 	_, _, suffix := xstrings.LastPartition(schema.Path, ".")
 	suffix = strings.ToLower(suffix)
 	isStatic := false
@@ -45,17 +61,40 @@ func (c *grafanaController) Proxy(ctx *gin.Context, schema *ProxyGrafanaSchema) 
 		}
 	}
 
-	cluster, err := schema.GetCluster(ctx)
-	if err != nil {
-		return err
-	}
-	if err = ClusterController.canView(ctx, cluster); err != nil {
-		return err
+	var cluster *models.Cluster
+	var err error
+
+	clusterCacheKey := fmt.Sprintf("%s:%s", schema.OrgName, schema.ClusterName)
+	cluster_, ok := clustersCache.Load(clusterCacheKey)
+	if !ok {
+		cluster, err = schema.GetCluster(ctx)
+		if err != nil {
+			_ = ctx.AbortWithError(400, err)
+			return
+		}
+		clustersCache.Store(clusterCacheKey, cluster)
+	} else {
+		cluster = cluster_.(*models.Cluster)
 	}
 
-	grafana, err := services.ClusterService.GetGrafana(ctx, cluster)
-	if err != nil {
-		return err
+	if !isStatic {
+		if err = ClusterController.canView(ctx, cluster); err != nil {
+			_ = ctx.AbortWithError(400, err)
+			return
+		}
+	}
+
+	var grafana *v1alpha1.Grafana
+	grafana_, ok := grafanasCache.Load(cluster.ID)
+	if !ok {
+		grafana, err = services.ClusterService.GetGrafana(ctx, cluster)
+		if err != nil {
+			_ = ctx.AbortWithError(400, err)
+			return
+		}
+		grafanasCache.Store(cluster.ID, grafana)
+	} else {
+		grafana = grafana_.(*v1alpha1.Grafana)
 	}
 
 	grafanaHostname := grafana.Spec.Ingress.Hostname
@@ -65,15 +104,10 @@ func (c *grafanaController) Proxy(ctx *gin.Context, schema *ProxyGrafanaSchema) 
 	oldReq := ctx.Request
 	oldUrl := oldReq.URL
 
-	url_ := &url.URL{
-		Scheme:      "http",
-		Host:        grafanaHostname,
-		Path:        path,
-		ForceQuery:  oldUrl.ForceQuery,
-		RawQuery:    oldUrl.RawQuery,
-		Fragment:    oldUrl.Fragment,
-		RawFragment: oldUrl.RawFragment,
-	}
+	url_ := oldUrl
+	url_.Scheme = "http"
+	url_.Host = grafanaHostname
+	url_.Path = path
 
 	req := &http.Request{
 		Method:        oldReq.Method,
@@ -94,7 +128,8 @@ func (c *grafanaController) Proxy(ctx *gin.Context, schema *ProxyGrafanaSchema) 
 	}
 	resp, err := cli.Do(req)
 	if err != nil {
-		return err
+		_ = ctx.AbortWithError(resp.StatusCode, err)
+		return
 	}
 	defer resp.Body.Close()
 
@@ -108,7 +143,11 @@ func (c *grafanaController) Proxy(ctx *gin.Context, schema *ProxyGrafanaSchema) 
 	//if mediaType == "text/html" {
 	//	return writeHTMLProxyResp(schema, ctx.Writer, resp, enableGzip)
 	//}
-	return writeProxyResp(ctx.Writer, resp)
+	err = writeProxyResp(ctx.Writer, resp)
+	if err != nil {
+		_ = ctx.AbortWithError(400, err)
+	}
+	return
 }
 
 // Hop-by-hop headers. These are removed when sent to the backend.
