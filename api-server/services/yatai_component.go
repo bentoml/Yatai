@@ -97,7 +97,7 @@ func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiCompo
 		}
 
 		release_, err = install.Run(chart_, map[string]interface{}{
-			"logging": map[string]interface{}{
+			string(opt.Type): map[string]interface{}{
 				"grafana": map[string]interface{}{
 					"hostname": grafanaHostname,
 					"rootUrl":  fmt.Sprintf("%%(protocol)s://%%(domain)s:%%(http_port)s%s", grafanaRootPath),
