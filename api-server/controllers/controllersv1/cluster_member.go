@@ -69,7 +69,7 @@ func (c *clusterMemberController) List(ctx *gin.Context, schema *GetClusterSchem
 		ClusterId: utils.UintPtr(cluster.ID),
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "list organization members")
+		return nil, errors.Wrap(err, "list cluster members")
 	}
 	return transformersv1.ToClusterMemberSchemas(ctx, members)
 }
@@ -86,7 +86,7 @@ func (c *clusterMemberController) Delete(ctx *gin.Context, schema *DeleteCluster
 	}
 	cluster, err := schema.GetCluster(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "get organization")
+		return nil, errors.Wrap(err, "get cluster")
 	}
 	if err = c.canOperate(ctx, cluster); err != nil {
 		return nil, err

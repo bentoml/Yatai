@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"net"
 	"strings"
 
 	"github.com/bentoml/yatai/schemas/modelschemas"
@@ -254,6 +256,32 @@ func (s *clusterService) GetKubeCliSet(ctx context.Context, c *models.Cluster) (
 	}
 
 	return clientSet, clientConfig, nil
+}
+
+func (s *clusterService) GetIngressIp(ctx context.Context, cluster *models.Cluster) (string, error) {
+	ip := cluster.Config.IngressIp
+	if ip == "" {
+		return "", errors.Errorf("please specify the ingress ip or hostname in cluster %s", cluster.Name)
+	}
+	if net.ParseIP(ip) == nil {
+		addr, err := net.LookupIP(ip)
+		if err != nil {
+			return "", errors.Wrapf(err, "lookup ip from ingress hostname %s in cluster %s", ip, cluster.Name)
+		}
+		if len(addr) == 0 {
+			return "", errors.Errorf("cannot lookup ip from ingress hostname %s in cluster %s", ip, cluster.Name)
+		}
+		ip = addr[0].String()
+	}
+	return ip, nil
+}
+
+func (s *clusterService) GetGrafanaHostname(ctx context.Context, cluster *models.Cluster) (string, error) {
+	ip, err := ClusterService.GetIngressIp(ctx, cluster)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("grafana.yatai-infra.%s.sslip.io", ip), nil
 }
 
 type IClusterAssociate interface {

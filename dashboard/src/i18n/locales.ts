@@ -348,6 +348,14 @@ const locales0 = {
         cn: '创建中',
         en: 'Creating',
     },
+    'pending': {
+        cn: '等待中',
+        en: 'Pending',
+    },
+    'building': {
+        cn: '编译中',
+        en: 'Building',
+    },
     'Pending': {
         cn: '等待中',
         en: 'Pending',
@@ -355,6 +363,10 @@ const locales0 = {
     'Running': {
         cn: '运行中',
         en: 'Running',
+    },
+    'success': {
+        cn: '成功',
+        en: 'Succeeded',
     },
     'Succeeded': {
         cn: '成功',
@@ -459,6 +471,50 @@ const locales0 = {
     'please enter keywords': {
         cn: '请输入关键词',
         en: 'Please enter keywords',
+    },
+    'yatai component': {
+        cn: 'Yatai 组件',
+        en: 'Yatai Component',
+    },
+    'deployed': {
+        cn: '部署完毕',
+        en: 'Deployed',
+    },
+    'uninstalled': {
+        cn: '卸载完毕',
+        en: 'Uninstalled',
+    },
+    'superseded': {
+        cn: '已废弃',
+        en: 'Superseded',
+    },
+    'uninstalling': {
+        cn: '卸载中',
+        en: 'Uninstalling',
+    },
+    'pending-install': {
+        cn: '等待安装',
+        en: 'Pending Install',
+    },
+    'pending-upgrade': {
+        cn: '等待升级',
+        en: 'Pending Upgrade',
+    },
+    'pending-rollback': {
+        cn: '等待回滚',
+        en: 'Pending Rollback',
+    },
+    'logging': {
+        cn: '日志',
+        en: 'Logging',
+    },
+    'monitoring': {
+        cn: '监控',
+        en: 'Monitoring',
+    },
+    'please install yatai component first': {
+        cn: '请先安装 Yatai {{0}} 组件',
+        en: 'Please install yatai component {{0}} first',
     },
 }
 
