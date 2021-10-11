@@ -1,0 +1,8 @@
+apiVersion: component.yatai.ai/v1alpha1
+kind: Monitoring
+metadata:
+  name: monitoring
+spec:
+  grafana:
+    hostname: "{{ .Values.monitoring.grafana.hostname }}"
+    rootUrl: "{{ .Values.monitoring.grafana.rootUrl }}"
