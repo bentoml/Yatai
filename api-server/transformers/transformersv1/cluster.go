@@ -71,11 +71,16 @@ func ToClusterFullSchema(ctx context.Context, cluster *models.Cluster) (*schemas
 		kubeConfig = &cluster.KubeConfig
 		config = &cluster.Config
 	}
+	grafanaRootPath, err := services.ClusterService.GetGrafanaRootPath(ctx, cluster)
+	if err != nil {
+		return nil, err
+	}
 	return &schemasv1.ClusterFullSchema{
-		ClusterSchema: *s,
-		Organization:  orgSchema,
-		KubeConfig:    kubeConfig,
-		Config:        config,
+		ClusterSchema:   *s,
+		Organization:    orgSchema,
+		KubeConfig:      kubeConfig,
+		Config:          config,
+		GrafanaRootPath: grafanaRootPath,
 	}, nil
 }
 

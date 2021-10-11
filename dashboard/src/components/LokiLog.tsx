@@ -5,6 +5,7 @@ import { IDeploymentSchema } from '@/schemas/deployment'
 import { useStyletron } from 'baseui'
 import { Skeleton } from 'baseui/skeleton'
 import { FaJournalWhills } from 'react-icons/fa'
+import { useCluster } from '@/hooks/useCluster'
 
 import color from 'color'
 import _ from 'lodash'
@@ -78,6 +79,7 @@ export default function LokiLog({ deployment: deployment_, podName, style }: ILo
 
     const [t] = useTranslation()
 
+    const { cluster } = useCluster()
     const { deployment: deployment0 } = useDeployment()
 
     let deployment = deployment_
@@ -104,11 +106,11 @@ export default function LokiLog({ deployment: deployment_, podName, style }: ILo
     if (!deployment) {
         return <Skeleton rows={3} />
     }
-    // FIXME
-    const grafanaDashboardUrl = 'http://grafanax.apps.dev.yatai.ai'
+
+    const grafanaRootPath = cluster?.grafana_root_path
     const dataSource = 'Loki'
 
-    if (!grafanaDashboardUrl) {
+    if (!grafanaRootPath) {
         return <div>no data</div>
     }
 
@@ -142,7 +144,7 @@ export default function LokiLog({ deployment: deployment_, podName, style }: ILo
 
     const expr = `{${labels.join(', ')}} ${[...defaultFilters, ...filters].map(filterToString).join(' ')}`
 
-    const pathname = '/explore'
+    const pathname = `${grafanaRootPath}explore`
     const query = {
         kiosk: null,
         orgId: 1,
@@ -266,7 +268,7 @@ export default function LokiLog({ deployment: deployment_, podName, style }: ILo
                     className={styles.iframe}
                     style={style}
                     title='Loki Log'
-                    baseUrl={grafanaDashboardUrl}
+                    baseUrl=''
                     pathname={pathname}
                     query={query}
                 />

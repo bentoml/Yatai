@@ -279,6 +279,36 @@ func clusterRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Update a cluster"),
 	}, requireLogin, tonic.Handler(controllersv1.ClusterController.Update, 200))
 
+	resourceGrp.GET("/grafana/*path", []fizz.OperationOption{
+		fizz.ID("Get grafana"),
+		fizz.Summary("Get grafana"),
+	}, requireLogin, tonic.Handler(controllersv1.GrafanaController.Proxy, 200))
+
+	resourceGrp.POST("/grafana/*path", []fizz.OperationOption{
+		fizz.ID("Post grafana"),
+		fizz.Summary("Post grafana"),
+	}, requireLogin, tonic.Handler(controllersv1.GrafanaController.Proxy, 200))
+
+	resourceGrp.PUT("/grafana/*path", []fizz.OperationOption{
+		fizz.ID("Put grafana"),
+		fizz.Summary("Put grafana"),
+	}, requireLogin, tonic.Handler(controllersv1.GrafanaController.Proxy, 200))
+
+	resourceGrp.PATCH("/grafana/*path", []fizz.OperationOption{
+		fizz.ID("Patch grafana"),
+		fizz.Summary("Patch grafana"),
+	}, requireLogin, tonic.Handler(controllersv1.GrafanaController.Proxy, 200))
+
+	resourceGrp.HEAD("/grafana/*path", []fizz.OperationOption{
+		fizz.ID("Head grafana"),
+		fizz.Summary("Head grafana"),
+	}, requireLogin, tonic.Handler(controllersv1.GrafanaController.Proxy, 200))
+
+	resourceGrp.DELETE("/grafana/*path", []fizz.OperationOption{
+		fizz.ID("Delete grafana"),
+		fizz.Summary("Delete grafana"),
+	}, requireLogin, tonic.Handler(controllersv1.GrafanaController.Proxy, 200))
+
 	resourceGrp.GET("/members", []fizz.OperationOption{
 		fizz.ID("List cluster members"),
 		fizz.Summary("List cluster members"),
