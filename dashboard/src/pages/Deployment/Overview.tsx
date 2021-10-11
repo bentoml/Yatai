@@ -7,7 +7,7 @@ import { useDeployment, useDeploymentLoading } from '@/hooks/useDeployment'
 import Card from '@/components/Card'
 import { formatTime } from '@/utils/datetime'
 import User from '@/components/User'
-import { AiOutlineHistory } from 'react-icons/ai'
+import { AiOutlineHistory, AiOutlineQuestionCircle } from 'react-icons/ai'
 import { IKubePodSchema } from '@/schemas/kube_pod'
 import { useFetchDeploymentPods } from '@/hooks/useFetchDeploymentPods'
 import { useHistory, useParams } from 'react-router-dom'
@@ -17,6 +17,8 @@ import { Button } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import { FaJournalWhills } from 'react-icons/fa'
 import DeploymentTerminalRecordList from '@/components/DeploymentTerminalRecordList'
+import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
+import { StatefulTooltip } from 'baseui/tooltip'
 
 export default function DeploymentOverview() {
     const { orgName, clusterName, deploymentName } =
@@ -25,6 +27,9 @@ export default function DeploymentOverview() {
     const { deploymentLoading } = useDeploymentLoading()
     const [pods, setPods] = useState<IKubePodSchema[]>()
     const [podsLoading, setPodsLoading] = useState(false)
+    const { yataiComponentsInfo } = useFetchYataiComponents(orgName, clusterName)
+
+    const hasLogging = yataiComponentsInfo.data?.find((x) => x.type === 'logging') !== undefined
 
     useFetchDeploymentPods({
         orgName,
@@ -58,17 +63,52 @@ export default function DeploymentOverview() {
                         >
                             {t('view terminal history')}
                         </Button>
-                        <Button
-                            size='mini'
-                            startEnhancer={<FaJournalWhills />}
-                            onClick={() => {
-                                history.push(
-                                    `/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/log`
-                                )
-                            }}
-                        >
-                            {t('view log')}
-                        </Button>
+                        {hasLogging ? (
+                            <Button
+                                size='mini'
+                                startEnhancer={<FaJournalWhills />}
+                                onClick={() => {
+                                    history.push(
+                                        `/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/log`
+                                    )
+                                }}
+                            >
+                                {t('view log')}
+                            </Button>
+                        ) : (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 5,
+                                }}
+                            >
+                                <Button
+                                    disabled
+                                    size='mini'
+                                    startEnhancer={<FaJournalWhills />}
+                                    onClick={() => {
+                                        history.push(
+                                            `/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/log`
+                                        )
+                                    }}
+                                >
+                                    {t('view log')}
+                                </Button>
+                                <StatefulTooltip
+                                    content={t('please install yatai component first', [t('logging')])}
+                                    showArrow
+                                >
+                                    <div
+                                        style={{
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        <AiOutlineQuestionCircle />
+                                    </div>
+                                </StatefulTooltip>
+                            </div>
+                        )}
                     </div>
                 }
             >

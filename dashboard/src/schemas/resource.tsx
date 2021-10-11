@@ -9,6 +9,7 @@ export type ResourceType =
     | 'bento_version'
     | 'deployment'
     | 'deployment_snapshot'
+    | 'yatai_component'
 
 export interface IResourceSchema extends IBaseSchema {
     name: string

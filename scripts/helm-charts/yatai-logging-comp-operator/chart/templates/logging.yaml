@@ -1,0 +1,6 @@
+apiVersion: component.yatai.ai/v1alpha1
+kind: Logging
+metadata:
+  name: logging
+spec:
+  grafana_hostname: {{ .Values.logging.grafanaHostname }}

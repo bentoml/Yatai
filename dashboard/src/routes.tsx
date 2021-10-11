@@ -13,6 +13,7 @@ import { createUseStyles } from 'react-jss'
 import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
 import OrganizationDeployments from '@/pages/Organization/Deployments'
+import ClusterYataiComponents from '@/pages/Cluster/YataiComponents'
 import ClusterDeployments from '@/pages/Cluster/Deployments'
 import ClusterMembers from '@/pages/Cluster/Members'
 import ClusterSettings from '@/pages/Cluster/Settings'
@@ -112,6 +113,11 @@ const Routes = () => {
                         <ClusterLayout>
                             <Switch>
                                 <Route exact path='/orgs/:orgName/clusters/:clusterName' component={ClusterOverview} />
+                                <Route
+                                    exact
+                                    path='/orgs/:orgName/clusters/:clusterName/yatai_components'
+                                    component={ClusterYataiComponents}
+                                />
                                 <Route
                                     exact
                                     path='/orgs/:orgName/clusters/:clusterName/deployments'

@@ -1,0 +1,62 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.6.1
+  name: loggings.component.yatai.ai
+spec:
+  conversion:
+    strategy: None
+  group: component.yatai.ai
+  names:
+    kind: Logging
+    listKind: LoggingList
+    plural: loggings
+    singular: logging
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Logging is the Schema for the loggings API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: LoggingSpec defines the desired state of Logging
+            properties:
+              grafana_hostname:
+                description: Foo is an example field of Logging. Edit logging_types.go
+                  to remove/update Foo string `json:"foo,omitempty"`
+                type: string
+            required:
+            - grafana_hostname
+            type: object
+          status:
+            description: LoggingStatus defines the observed state of Logging
+            properties:
+              reason:
+                type: string
+              status:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
+                type: string
+            required:
+            - status
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

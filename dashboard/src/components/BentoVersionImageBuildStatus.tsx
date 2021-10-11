@@ -2,6 +2,7 @@ import React from 'react'
 import { Tag, KIND as TagKind, VARIANT as TagVariant } from 'baseui/tag'
 import { BentoVersionImageBuildStatus } from '@/schemas/bento_version'
 import { StyledSpinnerNext } from 'baseui/spinner'
+import useTranslation from '@/hooks/useTranslation'
 
 const imageBuildStatusColorMap: Record<BentoVersionImageBuildStatus, keyof TagKind> = {
     pending: TagKind.primary,
@@ -15,6 +16,7 @@ export interface IBentoVersionImageBuildStatusProps {
 }
 
 export default function BentoVersionImageBuildStatusTag({ status }: IBentoVersionImageBuildStatusProps) {
+    const [t] = useTranslation()
     return (
         <Tag closeable={false} variant={TagVariant.light} kind={imageBuildStatusColorMap[status]}>
             <div
@@ -25,7 +27,7 @@ export default function BentoVersionImageBuildStatusTag({ status }: IBentoVersio
                 }}
             >
                 {['pending', 'building'].indexOf(status) >= 0 && <StyledSpinnerNext $size={100} />}
-                {status}
+                {t(status)}
             </div>
         </Tag>
     )

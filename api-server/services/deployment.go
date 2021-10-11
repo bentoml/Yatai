@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"net"
 	"strings"
 	"time"
 
@@ -428,19 +427,9 @@ func (s *deploymentService) GetDefaultHostname(ctx context.Context, deployment *
 	if err != nil {
 		return "", err
 	}
-	ip := cluster.Config.IngressIp
-	if ip == "" {
-		return "", errors.Errorf("please specify the ingress ip or hostname in cluster %s", cluster.Name)
-	}
-	if net.ParseIP(ip) == nil {
-		addr, err := net.LookupIP(ip)
-		if err != nil {
-			return "", errors.Wrapf(err, "lookup ip from ingress hostname %s in cluster %s", ip, cluster.Name)
-		}
-		if len(addr) == 0 {
-			return "", errors.Errorf("cannot lookup ip from ingress hostname %s in cluster %s", ip, cluster.Name)
-		}
-		ip = addr[0].String()
+	ip, err := ClusterService.GetIngressIp(ctx, cluster)
+	if err != nil {
+		return "", err
 	}
 	return fmt.Sprintf("%s.yatai.%s.sslip.io", deployment.Name, ip), nil
 }

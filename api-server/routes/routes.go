@@ -305,6 +305,28 @@ func clusterRoutes(grp *fizz.RouterGroup) {
 	}, requireLogin, tonic.Handler(controllersv1.ClusterController.Create, 200))
 
 	deploymentRoutes(resourceGrp)
+	yataiComponentRoutes(resourceGrp)
+}
+
+func yataiComponentRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/yatai_components", "yatai components", "yatai components")
+
+	resourceGrp := grp.Group("/:componentType", "yatai component resource", "yatai component resource")
+
+	resourceGrp.DELETE("", []fizz.OperationOption{
+		fizz.ID("Delete a yatai component"),
+		fizz.Summary("Delete a yatai component"),
+	}, requireLogin, tonic.Handler(controllersv1.YataiComponentController.Delete, 200))
+
+	grp.GET("", []fizz.OperationOption{
+		fizz.ID("List yatai components"),
+		fizz.Summary("List yatai components"),
+	}, requireLogin, tonic.Handler(controllersv1.YataiComponentController.List, 200))
+
+	grp.POST("", []fizz.OperationOption{
+		fizz.ID("Create yatai component"),
+		fizz.Summary("Create yatai component"),
+	}, requireLogin, tonic.Handler(controllersv1.YataiComponentController.Create, 200))
 }
 
 func bentoRoutes(grp *fizz.RouterGroup) {

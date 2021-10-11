@@ -16,6 +16,8 @@ const (
 
 	KubeNamespaceYataiBentoVersionImageBuilder = "yatai-builders"
 	KubeNamespaceYataiDeployment               = "yatai-deployments"
+	KubeNamespaceYataiOperators                = "yatai-operators"
+	KubeNamespaceYataiComponents               = "yatai-components"
 
 	KubeLabelMcdInfraCli                 = "mcd-infra-cli"
 	KubeLabelMcdKubectl                  = "mcd-kubectl"
