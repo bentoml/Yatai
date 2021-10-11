@@ -1,11 +1,8 @@
 package controllersv1
 
 import (
-	"bytes"
-	"compress/gzip"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
@@ -124,8 +121,6 @@ func (c *grafanaController) Proxy(ctx *gin.Context) {
 
 	cli := reqcli.GetDefaultHttpClient()
 
-	if !isStatic {
-	}
 	resp, err := cli.Do(req)
 	if err != nil {
 		_ = ctx.AbortWithError(resp.StatusCode, err)
@@ -133,16 +128,6 @@ func (c *grafanaController) Proxy(ctx *gin.Context) {
 	}
 	defer resp.Body.Close()
 
-	//mediaType, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//enableGzip := strings.Contains(req.Header.Get("Accept-Encoding"), "gzip")
-	//
-	//if mediaType == "text/html" {
-	//	return writeHTMLProxyResp(schema, ctx.Writer, resp, enableGzip)
-	//}
 	err = writeProxyResp(ctx.Writer, resp)
 	if err != nil {
 		_ = ctx.AbortWithError(400, err)
@@ -170,65 +155,6 @@ type gzipResponseWriter struct {
 
 func (w gzipResponseWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
-}
-
-func writeHTMLProxyResp(schema *ProxyGrafanaSchema, w http.ResponseWriter, resp *http.Response, enableGzip bool) error {
-	htmlBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	if enableGzip {
-		gzReader, err := gzip.NewReader(bytes.NewReader(htmlBytes))
-		if err != nil {
-			return err
-		}
-		htmlBytes, err = ioutil.ReadAll(gzReader)
-		if err != nil {
-			return err
-		}
-	}
-	htmlBytes = bytes.Replace(htmlBytes, []byte(`<base href="/" />`), []byte(fmt.Sprintf(`<base href="/api/v1/orgs/%s/clusters/%s/grafana/" />`, schema.OrgName, schema.ClusterName)), -1)
-	htmlBytes = bytes.Replace(htmlBytes, []byte(`"gravatarUrl":"/avatar/`), []byte(fmt.Sprintf(`"grafanaUrl":"/api/v1/orgs/%s/clusters/%s/grafana/avatar/`, schema.OrgName, schema.ClusterName)), -1)
-	//doc, err := goquery.NewDocumentFromReader(resp.Body)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//doc.Find("base").SetAttr("href", fmt.Sprintf(`/api/v1/orgs/%s/clusters/%s/grafana/`, schema.OrgName, schema.ClusterName))
-	//
-	//html, err := doc.Html()
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//htmlBytes := []byte(html)
-
-	for _, h := range hopHeaders {
-		resp.Header.Del(h)
-	}
-
-	header := w.Header()
-	for k, vs := range resp.Header {
-		for _, v := range vs {
-			header.Set(k, v)
-		}
-	}
-
-	//contentLength := strconv.Itoa(len(htmlBytes))
-	//header.Set("Content-Length", contentLength)
-	header.Del("Content-Length")
-	w.WriteHeader(resp.StatusCode)
-
-	if enableGzip {
-		gzWriter := gzip.NewWriter(w)
-		defer gzWriter.Close()
-		w = gzipResponseWriter{Writer: gzWriter, ResponseWriter: w}
-	}
-
-	written, err := io.Copy(w, bytes.NewReader(htmlBytes))
-	fmt.Println(written)
-	return err
 }
 
 func writeProxyResp(w http.ResponseWriter, resp *http.Response) error {

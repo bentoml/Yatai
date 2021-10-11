@@ -302,34 +302,20 @@ func (s *clusterService) GetGrafana(ctx context.Context, cluster *models.Cluster
 	if err != nil {
 		return nil, err
 	}
-	//
-	//restConf.ContentConfig.GroupVersion = &v1alpha1.GroupVersion
-	//restConf.APIPath = "/apis"
-	//restConf.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
-	//restConf.UserAgent = rest.DefaultKubernetesUserAgent()
-	//
-	//restClient, err := rest.RESTClientFor(restConf)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//grafana := &v1alpha1.Grafana{}
-	//
-	//err = restClient.Get().
-	//	Namespace(consts.KubeNamespaceYataiComponents).
-	//	Resource("grafanas").
-	//	Name("yatai-grafana").
-	//	VersionedParams(&metav1.GetOptions{}, scheme.ParameterCodec).
-	//	Do(ctx).
-	//	Into(grafana)
 
 	client, err := dynamic.NewForConfig(restConf)
+	if err != nil {
+		return nil, err
+	}
 
 	utd, err := client.Resource(schema.GroupVersionResource{
 		Group:    v1alpha1.GroupVersion.Group,
 		Version:  v1alpha1.GroupVersion.Version,
 		Resource: "grafanas",
 	}).Namespace(consts.KubeNamespaceYataiComponents).Get(ctx, "yatai-grafana", metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
 
 	data, err := utd.MarshalJSON()
 	if err != nil {
