@@ -132,7 +132,6 @@ func (c *grafanaController) Proxy(ctx *gin.Context) {
 	if err != nil {
 		_ = ctx.AbortWithError(400, err)
 	}
-	return
 }
 
 // Hop-by-hop headers. These are removed when sent to the backend.

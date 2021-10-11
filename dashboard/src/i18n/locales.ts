@@ -516,6 +516,38 @@ const locales0 = {
         cn: '请先安装 Yatai {{0}} 组件',
         en: 'Please install yatai component {{0}} first',
     },
+    'monitor': {
+        cn: '监控器',
+        en: 'Monitor',
+    },
+    'upgrade': {
+        cn: '升级',
+        en: 'Upgrade',
+    },
+    'upgrade to sth': {
+        cn: '升级到 {{0}}',
+        en: 'Upgrade to {{0}}',
+    },
+    'do you want to upgrade yatai component sth to some version': {
+        cn: '你想把 Yatai 组件 {{0}} 升级到 {{1}} 版本吗？',
+        en: 'Do you want to upgrade yatai component {{0}} to {{1}} version?',
+    },
+    'do you want to delete yatai component sth': {
+        cn: '你想删除 Yatai 组件 {{0}} 吗？',
+        en: 'Do you want to delete yatai component {{0}}?',
+    },
+    'cancel': {
+        cn: '取消',
+        en: 'Cancel',
+    },
+    'ok': {
+        cn: '确定',
+        en: 'Okay',
+    },
+    'delete': {
+        cn: '删除',
+        en: 'Delete',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

@@ -3,6 +3,7 @@ package controllersv1
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"helm.sh/helm/v3/pkg/chart"
 
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
@@ -15,6 +16,10 @@ type yataiComponentController struct {
 }
 
 var YataiComponentController = yataiComponentController{}
+
+func (c *yataiComponentController) ListOperatorHelmCharts(ctx *gin.Context) ([]*chart.Chart, error) {
+	return services.YataiComponentService.ListOperatorHelmCharts(ctx)
+}
 
 func (c *yataiComponentController) List(ctx *gin.Context, schema *GetClusterSchema) ([]*schemasv1.YataiComponentSchema, error) {
 	cluster, err := schema.GetCluster(ctx)

@@ -130,16 +130,11 @@ func (s *kubeDeploymentService) DeployDeploymentSnapshotAsKubeDeployment(ctx con
 	if err != nil {
 		return errors.Wrap(err, "to k8s deployment")
 	}
-	kubeCli, _, err := DeploymentSnapshotService.GetKubeCliSet(ctx, deploymentSnapshot)
-	if err != nil {
-		return err
-	}
 	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
 	if err != nil {
 		return err
 	}
-	kubeNs := DeploymentService.GetKubeNamespace(deployment)
-	kubeDeploymentsCli := kubeCli.AppsV1().Deployments(kubeNs)
+	kubeDeploymentsCli, err := DeploymentService.GetKubeDeploymentsCli(ctx, deployment)
 	if err != nil {
 		return errors.Wrap(err, "get k8s deployments cli")
 	}

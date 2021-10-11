@@ -8,9 +8,6 @@ import (
 	"strings"
 
 	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
 
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
@@ -298,35 +295,44 @@ func (s *clusterService) GetGrafanaRootPath(ctx context.Context, cluster *models
 }
 
 func (s *clusterService) GetGrafana(ctx context.Context, cluster *models.Cluster) (*v1alpha1.Grafana, error) {
-	_, restConf, err := s.GetKubeCliSet(ctx, cluster)
+	_, ingLister, err := GetIngressInformer(ctx, cluster, consts.KubeNamespaceYataiComponents)
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := dynamic.NewForConfig(restConf)
+	ing, err := ingLister.Get("yatai-grafana")
 	if err != nil {
 		return nil, err
 	}
 
-	utd, err := client.Resource(schema.GroupVersionResource{
-		Group:    v1alpha1.GroupVersion.Group,
-		Version:  v1alpha1.GroupVersion.Version,
-		Resource: "grafanas",
-	}).Namespace(consts.KubeNamespaceYataiComponents).Get(ctx, "yatai-grafana", metav1.GetOptions{})
+	_, secretLister, err := GetSecretInformer(ctx, cluster, consts.KubeNamespaceYataiComponents)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := utd.MarshalJSON()
+	secret, err := secretLister.Get("yatai-grafana")
 	if err != nil {
 		return nil, err
 	}
 
-	var grafana v1alpha1.Grafana
+	password := secret.Data["admin-password"]
+	user := secret.Data["admin-user"]
 
-	err = json.Unmarshal(data, &grafana)
+	grafanaConfig := v1alpha1.GrafanaConfig{
+		Security: &v1alpha1.GrafanaConfigSecurity{
+			AdminPassword: string(password),
+			AdminUser:     string(user),
+		},
+	}
 
-	return &grafana, err
+	return &v1alpha1.Grafana{
+		Spec: v1alpha1.GrafanaSpec{
+			Config: grafanaConfig,
+			Ingress: &v1alpha1.GrafanaIngress{
+				Hostname: ing.Spec.Rules[0].Host,
+			},
+		},
+	}, err
 }
 
 type IClusterAssociate interface {

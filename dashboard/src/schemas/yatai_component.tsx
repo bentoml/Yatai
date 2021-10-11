@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { IHelmChart } from './helm_chart'
+
 export type YataiComponentType = 'logging' | 'monitoring'
 export type YataiComponentReleaseStatus =
     | 'unknown'
@@ -23,9 +25,7 @@ export interface IYataiComponentSchema {
             status: YataiComponentReleaseStatus
             notes: string
         }
-        chart: {
-            values: Record<string, any>
-        }
+        chart: IHelmChart
         config: Record<string, any>
         version: number
         namespace: string

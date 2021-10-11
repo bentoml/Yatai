@@ -107,6 +107,11 @@ func NewRouter() (*fizz.Fizz, error) {
 	apiRootGroup := fizzApp.Group("/api/v1", "api v1", "api v1")
 
 	// Setup routes.
+	apiRootGroup.GET("/yatai_component_operator_helm_charts", []fizz.OperationOption{
+		fizz.ID("List yatai component operator helm charts"),
+		fizz.Summary("List yatai component operator helm charts"),
+	}, requireLogin, tonic.Handler(controllersv1.YataiComponentController.ListOperatorHelmCharts, 200))
+
 	authRoutes(apiRootGroup)
 	userRoutes(apiRootGroup)
 	organizationRoutes(apiRootGroup)

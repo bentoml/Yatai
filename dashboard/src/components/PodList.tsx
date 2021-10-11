@@ -11,6 +11,8 @@ import { MdEventNote } from 'react-icons/md'
 import React, { useState } from 'react'
 import { StatefulTooltip } from 'baseui/tooltip'
 import { Button } from 'baseui/button'
+import { AiOutlineDashboard, AiOutlineQuestionCircle } from 'react-icons/ai'
+import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
 import Log from './Log'
 import { PodStatus } from './PodsStatus'
 import Table from './Table'
@@ -19,6 +21,7 @@ import DeploymentKubeEvents from './DeploymentKubeEvents'
 import Toggle from './Toggle'
 import Label from './Label'
 import LokiLog from './LokiLog'
+import PodMonitor from './PodMonitor'
 
 export interface IPodListProps {
     loading?: boolean
@@ -32,8 +35,12 @@ export default ({ loading = false, pods }: IPodListProps) => {
     const { deployment } = useDeployment()
     const [desiredShowLogsPod, setDesiredShowLogsPod] = useState<IKubePodSchema>()
     const [desiredShowKubeEventsPod, setDesiredShowKubeEventsPod] = useState<IKubePodSchema>()
+    const [desiredShowMonitorPod, setDesiredShowMonitorPod] = useState<IKubePodSchema>()
     const [desiredShowTerminalPod, setDesiredShowTerminalPod] = useState<IKubePodSchema>()
     const [advancedLog, setAdvancedLog] = useState(false)
+    const { yataiComponentsInfo } = useFetchYataiComponents(organization?.name, cluster?.name)
+
+    const hasMonitoring = yataiComponentsInfo.data?.find((x) => x.type === 'monitoring') !== undefined
 
     return (
         <>
@@ -78,6 +85,47 @@ export default ({ loading = false, pods }: IPodListProps) => {
                                 <GoTerminal />
                             </Button>
                         </StatefulTooltip>
+                        {hasMonitoring ? (
+                            <StatefulTooltip content={t('monitor')} showArrow>
+                                <Button
+                                    disabled={!hasMonitoring}
+                                    size='mini'
+                                    shape='circle'
+                                    onClick={() => setDesiredShowMonitorPod(pod)}
+                                >
+                                    <AiOutlineDashboard />
+                                </Button>
+                            </StatefulTooltip>
+                        ) : (
+                            <StatefulTooltip
+                                content={t('please install yatai component first', [t('monitoring')])}
+                                showArrow
+                            >
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 2,
+                                    }}
+                                >
+                                    <Button
+                                        disabled
+                                        size='mini'
+                                        shape='circle'
+                                        onClick={() => setDesiredShowMonitorPod(pod)}
+                                    >
+                                        <AiOutlineDashboard />
+                                    </Button>
+                                    <div
+                                        style={{
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        <AiOutlineQuestionCircle size={10} />
+                                    </div>
+                                </div>
+                            </StatefulTooltip>
+                        )}
                     </div>,
                 ])}
             />
@@ -163,6 +211,28 @@ export default ({ loading = false, pods }: IPodListProps) => {
                             width='auto'
                             height='calc(80vh - 200px)'
                         />
+                    )}
+                </ModalBody>
+            </Modal>
+            <Modal
+                overrides={{
+                    Dialog: {
+                        style: {
+                            width: '80vw',
+                        },
+                    },
+                }}
+                isOpen={desiredShowMonitorPod !== undefined}
+                onClose={() => setDesiredShowMonitorPod(undefined)}
+                closeable
+                animate
+                size='default'
+                autoFocus
+            >
+                <ModalHeader>{t('monitor')}</ModalHeader>
+                <ModalBody>
+                    {organization && cluster && deployment && desiredShowMonitorPod && (
+                        <PodMonitor pod={desiredShowMonitorPod} />
                     )}
                 </ModalBody>
             </Modal>

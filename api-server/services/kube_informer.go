@@ -16,8 +16,10 @@ import (
 	"k8s.io/client-go/informers"
 	informerAppsV1 "k8s.io/client-go/informers/apps/v1"
 	informerCoreV1 "k8s.io/client-go/informers/core/v1"
+	informerNetworkingV1 "k8s.io/client-go/informers/networking/v1"
 	listerAppsV1 "k8s.io/client-go/listers/apps/v1"
 	listerCoreV1 "k8s.io/client-go/listers/core/v1"
+	listerNetworkingV1 "k8s.io/client-go/listers/networking/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -41,6 +43,11 @@ var (
 	statefulSetInformerMuCache      = make(map[CacheKey]*lock.CASMutex)
 	statefulSetInformerCacheRW      = lock.NewCASMutex()
 
+	ingressInformerCache        = make(map[CacheKey]informerNetworkingV1.IngressInformer)
+	ingressNamespaceListerCache = make(map[CacheKey]listerNetworkingV1.IngressNamespaceLister)
+	ingressInformerMuCache      = make(map[CacheKey]*lock.CASMutex)
+	ingressInformerCacheRW      = lock.NewCASMutex()
+
 	daemonSetInformerCache        = make(map[CacheKey]informerAppsV1.DaemonSetInformer)
 	daemonSetNamespaceListerCache = make(map[CacheKey]listerAppsV1.DaemonSetNamespaceLister)
 	daemonSetInformerMuCache      = make(map[CacheKey]*lock.CASMutex)
@@ -60,6 +67,11 @@ var (
 	secretNamespaceListerCache = make(map[CacheKey]listerCoreV1.SecretNamespaceLister)
 	secretInformerMuCache      = make(map[CacheKey]*lock.CASMutex)
 	secretInformerCacheRW      = lock.NewCASMutex()
+
+	configMapInformerCache        = make(map[CacheKey]informerCoreV1.ConfigMapInformer)
+	configMapNamespaceListerCache = make(map[CacheKey]listerCoreV1.ConfigMapNamespaceLister)
+	configMapInformerMuCache      = make(map[CacheKey]*lock.CASMutex)
+	configMapInformerCacheRW      = lock.NewCASMutex()
 
 	nodeInformerCache   = make(map[CacheKey]informerCoreV1.NodeInformer)
 	nodeListerCache     = make(map[CacheKey]listerCoreV1.NodeLister)
@@ -281,6 +293,41 @@ func GetStatefulSetInformer(ctx context.Context, kubeCluster *models.Cluster, na
 	return informer.(informerAppsV1.StatefulSetInformer), lister.(listerAppsV1.StatefulSetNamespaceLister), nil
 }
 
+func GetIngressInformer(ctx context.Context, kubeCluster *models.Cluster, namespace string) (informerNetworkingV1.IngressInformer, listerNetworkingV1.IngressNamespaceLister, error) {
+	informer, lister, err := makeGetInformer(ctx, &makeGetInformerOption{
+		cluster:         kubeCluster,
+		namespace:       utils.StringPtr(namespace),
+		informerCacheRW: ingressInformerCacheRW,
+		getInformerFromCache: func(cacheKey CacheKey) (interface{}, bool) {
+			informer, ok := ingressInformerCache[cacheKey]
+			return informer, ok
+		},
+		getListerFromCache: func(cacheKey CacheKey) (interface{}, bool) {
+			lister, ok := ingressNamespaceListerCache[cacheKey]
+			return lister, ok
+		},
+		setInformerToCache: func(cacheKey CacheKey, v interface{}) {
+			ingressInformerCache[cacheKey] = v.(informerNetworkingV1.IngressInformer)
+		},
+		setListerToCache: func(cacheKey CacheKey, v interface{}) {
+			ingressNamespaceListerCache[cacheKey] = v.(listerNetworkingV1.IngressNamespaceLister)
+		},
+		informerMuCache: ingressInformerMuCache,
+		informerGetter: func(factory informers.SharedInformerFactory) interface {
+			Informer() cache.SharedIndexInformer
+		} {
+			return factory.Networking().V1().Ingresses()
+		},
+		listerGetter: func(informer interface{}) interface{} {
+			return informer.(informerNetworkingV1.IngressInformer).Lister().Ingresses(namespace)
+		},
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return informer.(informerNetworkingV1.IngressInformer), lister.(listerNetworkingV1.IngressNamespaceLister), nil
+}
+
 func GetDaemonSetInformer(ctx context.Context, kubeCluster *models.Cluster, namespace string) (informerAppsV1.DaemonSetInformer, listerAppsV1.DaemonSetNamespaceLister, error) {
 	informer, lister, err := makeGetInformer(ctx, &makeGetInformerOption{
 		cluster:         kubeCluster,
@@ -418,6 +465,41 @@ func GetSecretInformer(ctx context.Context, kubeCluster *models.Cluster, namespa
 		return nil, nil, err
 	}
 	return informer.(informerCoreV1.SecretInformer), lister.(listerCoreV1.SecretNamespaceLister), nil
+}
+
+func GetConfigMapInformer(ctx context.Context, kubeCluster *models.Cluster, namespace string) (informerCoreV1.ConfigMapInformer, listerCoreV1.ConfigMapNamespaceLister, error) {
+	informer, lister, err := makeGetInformer(ctx, &makeGetInformerOption{
+		cluster:         kubeCluster,
+		namespace:       utils.StringPtr(namespace),
+		informerCacheRW: configMapInformerCacheRW,
+		getInformerFromCache: func(cacheKey CacheKey) (interface{}, bool) {
+			informer, ok := configMapInformerCache[cacheKey]
+			return informer, ok
+		},
+		getListerFromCache: func(cacheKey CacheKey) (interface{}, bool) {
+			lister, ok := configMapNamespaceListerCache[cacheKey]
+			return lister, ok
+		},
+		setInformerToCache: func(cacheKey CacheKey, v interface{}) {
+			configMapInformerCache[cacheKey] = v.(informerCoreV1.ConfigMapInformer)
+		},
+		setListerToCache: func(cacheKey CacheKey, v interface{}) {
+			configMapNamespaceListerCache[cacheKey] = v.(listerCoreV1.ConfigMapNamespaceLister)
+		},
+		informerMuCache: configMapInformerMuCache,
+		informerGetter: func(factory informers.SharedInformerFactory) interface {
+			Informer() cache.SharedIndexInformer
+		} {
+			return factory.Core().V1().ConfigMaps()
+		},
+		listerGetter: func(informer interface{}) interface{} {
+			return informer.(informerCoreV1.ConfigMapInformer).Lister().ConfigMaps(namespace)
+		},
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return informer.(informerCoreV1.ConfigMapInformer), lister.(listerCoreV1.ConfigMapNamespaceLister), nil
 }
 
 func GetNodeInformer(ctx context.Context, kubeCluster *models.Cluster) (informerCoreV1.NodeInformer, listerCoreV1.NodeLister, error) {

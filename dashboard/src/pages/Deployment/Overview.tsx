@@ -7,7 +7,7 @@ import { useDeployment, useDeploymentLoading } from '@/hooks/useDeployment'
 import Card from '@/components/Card'
 import { formatTime } from '@/utils/datetime'
 import User from '@/components/User'
-import { AiOutlineHistory, AiOutlineQuestionCircle } from 'react-icons/ai'
+import { AiOutlineDashboard, AiOutlineHistory, AiOutlineQuestionCircle } from 'react-icons/ai'
 import { IKubePodSchema } from '@/schemas/kube_pod'
 import { useFetchDeploymentPods } from '@/hooks/useFetchDeploymentPods'
 import { useHistory, useParams } from 'react-router-dom'
@@ -19,6 +19,8 @@ import { FaJournalWhills } from 'react-icons/fa'
 import DeploymentTerminalRecordList from '@/components/DeploymentTerminalRecordList'
 import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
 import { StatefulTooltip } from 'baseui/tooltip'
+import DeploymentMonitor from '@/components/DeploymentMonitor'
+import { Skeleton } from 'baseui/skeleton'
 
 export default function DeploymentOverview() {
     const { orgName, clusterName, deploymentName } =
@@ -30,6 +32,7 @@ export default function DeploymentOverview() {
     const { yataiComponentsInfo } = useFetchYataiComponents(orgName, clusterName)
 
     const hasLogging = yataiComponentsInfo.data?.find((x) => x.type === 'logging') !== undefined
+    const hasMonitoring = yataiComponentsInfo.data?.find((x) => x.type === 'monitoring') !== undefined
 
     useFetchDeploymentPods({
         orgName,
@@ -132,6 +135,11 @@ export default function DeploymentOverview() {
                     ]}
                 />
             </Card>
+            {hasMonitoring && (
+                <Card title={t('monitor')} titleIcon={AiOutlineDashboard}>
+                    {deployment ? <DeploymentMonitor deployment={deployment} /> : <Skeleton rows={3} />}
+                </Card>
+            )}
             <Card title={t('replicas')} titleIcon={VscServerProcess}>
                 <PodList loading={podsLoading} pods={pods ?? []} />
             </Card>

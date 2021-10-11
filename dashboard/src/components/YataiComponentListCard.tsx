@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from 'react-query'
 import Card from '@/components/Card'
-import { createYataiComponent } from '@/services/yatai_component'
+import { createYataiComponent, deleteYataiComponent } from '@/services/yatai_component'
 import {
     ICreateYataiComponentSchema,
     IYataiComponentSchema,
     YataiComponentReleaseStatus,
+    YataiComponentType,
 } from '@/schemas/yatai_component'
 import YataiComponentForm from '@/components/YataiComponentForm'
 import { formatTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
-import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
+import { Modal, ModalHeader, ModalBody, ModalFooter, ModalButton } from 'baseui/modal'
 import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
@@ -20,6 +21,10 @@ import { IListSchema } from '@/schemas/list'
 import { useSubscription } from '@/hooks/useSubscription'
 import { StyledSpinnerNext } from 'baseui/spinner'
 import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
+import { useFetchYataiComponentOperatorHelmCharts } from '@/hooks/useFetchYataiComponentOperatorHelmCharts'
+import semver from 'semver'
+import { useStyletron } from 'baseui'
+import YataiComponentTypeRender from './YataiComponentTypeRender'
 
 export interface IYataiComponentListCardProps {
     orgName: string
@@ -29,6 +34,14 @@ export interface IYataiComponentListCardProps {
 export default function YataiComponentListCard({ orgName, clusterName }: IYataiComponentListCardProps) {
     const { yataiComponentsInfo, queryKey } = useFetchYataiComponents(orgName, clusterName)
     const [isCreateYataiComponentOpen, setIsCreateYataiComponentOpen] = useState(false)
+    const [wishToUpgradeType, setWishToUpgradeType] = useState<YataiComponentType>()
+    const [wishToDeleteType, setWishToDeleteType] = useState<YataiComponentType>()
+    const [wishToUpgradeTargetVersion, setWishToUpgradeTargetVersion] = useState<string>()
+    const [t] = useTranslation()
+    const { yataiComponentOperatorHelmChartsInfo } = useFetchYataiComponentOperatorHelmCharts()
+    const [upgradeYataiComponentLoading, setUpgradeYataiComponentLoading] = useState(false)
+    const [deleteYataiComponentLoading, setDeleteYataiComponentLoading] = useState(false)
+
     const handleCreateYataiComponent = useCallback(
         async (data: ICreateYataiComponentSchema) => {
             await createYataiComponent(orgName, clusterName, data)
@@ -37,7 +50,35 @@ export default function YataiComponentListCard({ orgName, clusterName }: IYataiC
         },
         [orgName, clusterName, yataiComponentsInfo]
     )
-    const [t] = useTranslation()
+
+    const handleUpgradeYataiComponent = useCallback(
+        async (type_: YataiComponentType) => {
+            setUpgradeYataiComponentLoading(true)
+            try {
+                await handleCreateYataiComponent({
+                    type: type_,
+                })
+                setWishToUpgradeType(undefined)
+            } finally {
+                setUpgradeYataiComponentLoading(false)
+            }
+        },
+        [handleCreateYataiComponent]
+    )
+
+    const handleDeleteYataiComponent = useCallback(
+        async (type: YataiComponentType) => {
+            setDeleteYataiComponentLoading(true)
+            try {
+                await deleteYataiComponent(orgName, clusterName, type)
+                await yataiComponentsInfo.refetch()
+                setWishToDeleteType(undefined)
+            } finally {
+                setDeleteYataiComponentLoading(false)
+            }
+        },
+        [orgName, clusterName, yataiComponentsInfo]
+    )
 
     const statusColorMap: Record<YataiComponentReleaseStatus, keyof TagKind> = useMemo(() => {
         return {
@@ -108,6 +149,8 @@ export default function YataiComponentListCard({ orgName, clusterName }: IYataiC
         }
     }, [subscribe, subscribeCb, componentTypes, unsubscribe])
 
+    const [, theme] = useStyletron()
+
     return (
         <Card
             title={t('sth list', [t('yatai component')])}
@@ -120,38 +163,86 @@ export default function YataiComponentListCard({ orgName, clusterName }: IYataiC
         >
             <Table
                 isLoading={yataiComponentsInfo.isLoading}
-                columns={[t('type'), t('status'), t('created_at')]}
+                columns={[t('type'), t('status'), t('version'), t('created_at'), t('operation')]}
                 data={
-                    yataiComponentsInfo.data?.map((yataiComponent) => [
-                        <Link
-                            key={yataiComponent.type}
-                            to={`/orgs/${orgName}/clusters/${clusterName}/yatai_components/${yataiComponent.type}`}
-                        >
-                            {yataiComponent.type}
-                        </Link>,
-                        <Tag
-                            key={yataiComponent.type}
-                            closeable={false}
-                            variant={TagVariant.light}
-                            kind={
-                                yataiComponent.release ? statusColorMap[yataiComponent.release.info.status] : undefined
-                            }
-                        >
+                    yataiComponentsInfo.data?.map((yataiComponent) => {
+                        const chartName = `yatai-${yataiComponent.type}-comp-operator`
+                        const chart = yataiComponentOperatorHelmChartsInfo.data?.find(
+                            (x) => x.metadata.name === chartName
+                        )
+
+                        return [
+                            <Link
+                                key={yataiComponent.type}
+                                to={`/orgs/${orgName}/clusters/${clusterName}/yatai_components/${yataiComponent.type}`}
+                            >
+                                <YataiComponentTypeRender type={yataiComponent.type} />
+                            </Link>,
+                            <Tag
+                                key={yataiComponent.type}
+                                closeable={false}
+                                variant={TagVariant.light}
+                                kind={
+                                    yataiComponent.release
+                                        ? statusColorMap[yataiComponent.release.info.status]
+                                        : undefined
+                                }
+                            >
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 4,
+                                    }}
+                                >
+                                    {['deploying'].indexOf(yataiComponent.release?.info.status ?? '') >= 0 && (
+                                        <StyledSpinnerNext $size={100} />
+                                    )}
+                                    {yataiComponent.release ? t(yataiComponent.release.info.status) : '-'}
+                                </div>
+                            </Tag>,
+                            yataiComponent.release ? yataiComponent.release.chart.metadata.version : '-',
+                            yataiComponent.release ? formatTime(yataiComponent.release.info.last_deployed) : '-',
                             <div
+                                key={yataiComponent.type}
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 4,
+                                    gap: 10,
                                 }}
                             >
-                                {['deploying'].indexOf(yataiComponent.release?.info.status ?? '') >= 0 && (
-                                    <StyledSpinnerNext $size={100} />
+                                {semver.lt(
+                                    yataiComponent.release?.chart.metadata.version ?? '0.0.0',
+                                    chart?.metadata.version ?? '0.0.0'
+                                ) && (
+                                    <Button
+                                        size='compact'
+                                        onClick={() => {
+                                            setWishToUpgradeType(yataiComponent.type)
+                                            setWishToUpgradeTargetVersion(chart?.metadata.version)
+                                        }}
+                                    >
+                                        {t('upgrade to sth', [chart?.metadata.version])}
+                                    </Button>
                                 )}
-                                {yataiComponent.release ? t(yataiComponent.release.info.status) : '-'}
-                            </div>
-                        </Tag>,
-                        yataiComponent.release ? formatTime(yataiComponent.release.info.last_deployed) : '-',
-                    ]) ?? []
+                                <Button
+                                    overrides={{
+                                        Root: {
+                                            style: {
+                                                background: theme.colors.negative,
+                                            },
+                                        },
+                                    }}
+                                    size='compact'
+                                    onClick={() => {
+                                        setWishToDeleteType(yataiComponent.type)
+                                    }}
+                                >
+                                    {t('delete')}
+                                </Button>
+                            </div>,
+                        ]
+                    }) ?? []
                 }
             />
             <Modal
@@ -169,6 +260,74 @@ export default function YataiComponentListCard({ orgName, clusterName }: IYataiC
                         clusterName={clusterName}
                     />
                 </ModalBody>
+            </Modal>
+            <Modal
+                isOpen={wishToUpgradeType !== undefined}
+                onClose={() => setWishToUpgradeType(undefined)}
+                closeable
+                animate
+                autoFocus
+            >
+                <ModalHeader>
+                    {t('do you want to upgrade yatai component sth to some version', [
+                        wishToUpgradeType ? t(wishToUpgradeType) : '',
+                        wishToUpgradeTargetVersion,
+                    ])}
+                </ModalHeader>
+                <ModalFooter>
+                    <ModalButton size='compact' kind='tertiary' onClick={() => setWishToUpgradeType(undefined)}>
+                        {t('cancel')}
+                    </ModalButton>
+                    <ModalButton
+                        size='compact'
+                        onClick={(e) => {
+                            e.preventDefault()
+                            if (!wishToUpgradeType) {
+                                return
+                            }
+                            handleUpgradeYataiComponent(wishToUpgradeType)
+                        }}
+                        isLoading={upgradeYataiComponentLoading}
+                    >
+                        {t('ok')}
+                    </ModalButton>
+                </ModalFooter>
+            </Modal>
+            <Modal
+                isOpen={wishToDeleteType !== undefined}
+                onClose={() => setWishToDeleteType(undefined)}
+                closeable
+                animate
+                autoFocus
+            >
+                <ModalHeader>
+                    {t('do you want to delete yatai component sth', [wishToDeleteType ? t(wishToDeleteType) : ''])}
+                </ModalHeader>
+                <ModalFooter>
+                    <ModalButton size='compact' kind='tertiary' onClick={() => setWishToDeleteType(undefined)}>
+                        {t('cancel')}
+                    </ModalButton>
+                    <ModalButton
+                        size='compact'
+                        overrides={{
+                            BaseButton: {
+                                style: {
+                                    background: theme.colors.negative,
+                                },
+                            },
+                        }}
+                        onClick={(e) => {
+                            e.preventDefault()
+                            if (!wishToDeleteType) {
+                                return
+                            }
+                            handleDeleteYataiComponent(wishToDeleteType)
+                        }}
+                        isLoading={deleteYataiComponentLoading}
+                    >
+                        {t('ok')}
+                    </ModalButton>
+                </ModalFooter>
             </Modal>
         </Card>
     )

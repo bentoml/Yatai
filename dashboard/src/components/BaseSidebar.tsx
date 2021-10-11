@@ -110,6 +110,7 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
             style={{
                 width,
                 display: 'flex',
+                flexShrink: 0,
                 flexDirection: 'column',
                 flexBasis: width,
                 overflow: 'hidden',

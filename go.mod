@@ -4,8 +4,6 @@ go 1.16
 
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
-	github.com/PuerkitoBio/goquery v1.7.1
-	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
 	github.com/docker/docker v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 	github.com/elastic/go-sysinfo v1.7.0 // indirect
