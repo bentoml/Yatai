@@ -3,4 +3,6 @@ kind: Logging
 metadata:
   name: logging
 spec:
-  grafana_hostname: {{ .Values.logging.grafanaHostname }}
+  grafana:
+    hostname: "{{ .Values.logging.grafana.hostname }}"
+    rootUrl: "{{ .Values.logging.grafana.rootUrl }}"

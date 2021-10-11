@@ -10,7 +10,7 @@ image:
   repository: yetone/yatai-logging-comp-operator
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.0.6"
+  tag: "v0.0.13"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -84,4 +84,6 @@ tolerations: []
 affinity: {}
 
 logging:
-  grafanaHostname: ""
+  grafana:
+    hostname: ""
+    rootUrl: ""

@@ -85,14 +85,23 @@ func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiCompo
 		install.CreateNamespace = true
 
 		var grafanaHostname string
-		grafanaHostname, err = ClusterService.GetGrafanaHostname(ctx, cluster)
+		grafanaHostname, err = ClusterService.GenerateGrafanaHostname(ctx, cluster)
+		if err != nil {
+			return
+		}
+
+		var grafanaRootPath string
+		grafanaRootPath, err = ClusterService.GetGrafanaRootPath(ctx, cluster)
 		if err != nil {
 			return
 		}
 
 		release_, err = install.Run(chart_, map[string]interface{}{
 			"logging": map[string]interface{}{
-				"grafanaHostname": grafanaHostname,
+				"grafana": map[string]interface{}{
+					"hostname": grafanaHostname,
+					"rootUrl":  fmt.Sprintf("%%(protocol)s://%%(domain)s:%%(http_port)s%s", grafanaRootPath),
+				},
 			},
 		})
 	}

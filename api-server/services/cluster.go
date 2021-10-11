@@ -7,6 +7,11 @@ import (
 	"net"
 	"strings"
 
+	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
+
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
 	"github.com/ghodss/yaml"
@@ -276,12 +281,66 @@ func (s *clusterService) GetIngressIp(ctx context.Context, cluster *models.Clust
 	return ip, nil
 }
 
-func (s *clusterService) GetGrafanaHostname(ctx context.Context, cluster *models.Cluster) (string, error) {
+func (s *clusterService) GenerateGrafanaHostname(ctx context.Context, cluster *models.Cluster) (string, error) {
 	ip, err := ClusterService.GetIngressIp(ctx, cluster)
 	if err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("grafana.yatai-infra.%s.sslip.io", ip), nil
+}
+
+func (s *clusterService) GetGrafanaRootPath(ctx context.Context, cluster *models.Cluster) (string, error) {
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("/api/v1/orgs/%s/clusters/%s/grafana/", org.Name, cluster.Name), nil
+}
+
+func (s *clusterService) GetGrafana(ctx context.Context, cluster *models.Cluster) (*v1alpha1.Grafana, error) {
+	_, restConf, err := s.GetKubeCliSet(ctx, cluster)
+	if err != nil {
+		return nil, err
+	}
+	//
+	//restConf.ContentConfig.GroupVersion = &v1alpha1.GroupVersion
+	//restConf.APIPath = "/apis"
+	//restConf.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
+	//restConf.UserAgent = rest.DefaultKubernetesUserAgent()
+	//
+	//restClient, err := rest.RESTClientFor(restConf)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//grafana := &v1alpha1.Grafana{}
+	//
+	//err = restClient.Get().
+	//	Namespace(consts.KubeNamespaceYataiComponents).
+	//	Resource("grafanas").
+	//	Name("yatai-grafana").
+	//	VersionedParams(&metav1.GetOptions{}, scheme.ParameterCodec).
+	//	Do(ctx).
+	//	Into(grafana)
+
+	client, err := dynamic.NewForConfig(restConf)
+
+	utd, err := client.Resource(schema.GroupVersionResource{
+		Group:    v1alpha1.GroupVersion.Group,
+		Version:  v1alpha1.GroupVersion.Version,
+		Resource: "grafanas",
+	}).Namespace(consts.KubeNamespaceYataiComponents).Get(ctx, "yatai-grafana", metav1.GetOptions{})
+
+	data, err := utd.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	var grafana v1alpha1.Grafana
+
+	err = json.Unmarshal(data, &grafana)
+
+	return &grafana, err
 }
 
 type IClusterAssociate interface {

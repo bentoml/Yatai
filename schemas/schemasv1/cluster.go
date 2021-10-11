@@ -17,9 +17,10 @@ type ClusterListSchema struct {
 
 type ClusterFullSchema struct {
 	ClusterSchema
-	Organization *OrganizationSchema                `json:"organization"`
-	KubeConfig   *string                            `json:"kube_config"`
-	Config       **modelschemas.ClusterConfigSchema `json:"config"`
+	Organization    *OrganizationSchema                `json:"organization"`
+	KubeConfig      *string                            `json:"kube_config"`
+	Config          **modelschemas.ClusterConfigSchema `json:"config"`
+	GrafanaRootPath string                             `json:"grafana_root_path"`
 }
 
 type UpdateClusterSchema struct {

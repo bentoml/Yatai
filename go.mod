@@ -4,6 +4,9 @@ go 1.16
 
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
+	github.com/PuerkitoBio/goquery v1.7.1
+	github.com/andybalholm/cascadia v1.3.1 // indirect
+	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
 	github.com/docker/docker v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 	github.com/elastic/go-sysinfo v1.7.0 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
@@ -17,6 +20,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/huandu/xstrings v1.3.2
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jackc/pgx/v4 v4.13.0 // indirect
 	github.com/juju/errors v0.0.0-20200330140219-3fe23663418f
@@ -45,7 +49,7 @@ require (
 	go.elastic.co/apm/module/apmgormv2 v1.13.0
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
-	golang.org/x/net v0.0.0-20210908191846-a5e095526f91 // indirect
+	golang.org/x/net v0.0.0-20211008194852-3b03d305991f // indirect
 	golang.org/x/oauth2 v0.0.0-20210805134026-6f1e6394065a
 	golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 // indirect
 	golang.org/x/text v0.3.7 // indirect
@@ -64,3 +68,5 @@ require (
 	k8s.io/kubernetes v1.13.4
 	k8s.io/utils v0.0.0-20210707171843-4b05e18ac7d9
 )
+
+replace github.com/bentoml/grafana-operator => github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
