@@ -178,12 +178,12 @@ func (s *deploymentSnapshotService) GetKubeName(ctx context.Context, deploymentS
 	return kubeName, nil
 }
 
-func (s *deploymentSnapshotService) GetIngressHost(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot) (string, error) {
+func (s *deploymentSnapshotService) GenerateIngressHost(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot) (string, error) {
 	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
 	if err != nil {
 		return "", err
 	}
-	return DeploymentService.GetDefaultHostname(ctx, deployment)
+	return DeploymentService.GenerateDefaultHostname(ctx, deployment)
 }
 
 func (s *deploymentSnapshotService) GetKubeLabels(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot) (map[string]string, error) {

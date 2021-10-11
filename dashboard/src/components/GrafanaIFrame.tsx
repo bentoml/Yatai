@@ -76,7 +76,7 @@ export default ({
                     .css-ytckdi-exploreMain {
                         margin-top: 0px;
                     }
-                    .sidemenu, .navbar-page-btn, .explore-toolbar-header-title, .explore-ds-picker, .css-kj45dn-queryContainer, .css-hz279r-collapse__header--collapsed, .css-1ugehg8-collapse__header--collapsed {
+                    .sidemenu, .navbar-page-btn, .explore-toolbar-header-title, .explore-ds-picker, .css-kj45dn-queryContainer, .css-18dr9jf-queryContainer, .css-hz279r-collapse__header--collapsed, .css-1ugehg8-collapse__header--collapsed {
                         display: none !important;
                     }
                     .panel-container, .explore, body, .main-view {
@@ -105,8 +105,11 @@ export default ({
                             }
                             `
                             : `
-                    .react-calendar, .css-1lwgu2p, .css-iq0sfc, .dropdown-menu--menu, .dropdown-menu--navbar, .dropdown-menu--sidemenu, .css-ajr8sn, .gf-form-select-box__menu {
+                    .react-calendar, .css-1767p2b, .css-1lwgu2p, .css-iq0sfc, .dropdown-menu--menu, .dropdown-menu--navbar, .dropdown-menu--sidemenu, .css-ajr8sn, .gf-form-select-box__menu {
                         background-color: ${color(theme.colors.background).darken(0.3).rgb().string()} !important;
+                    }
+                    .css-uwlvbv {
+                        border-width: 0px !important;
                     }
                     .explore-wrapper .panel-container, button, input, .navbar-button {
                         background-color: ${color(theme.colors.background).darken(0.1).rgb().string()} !important;

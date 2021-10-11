@@ -20,6 +20,7 @@ export interface IKubePodStatusSchema {
 
 export interface IKubePodSchema {
     name: string
+    namespace: string
     node_name: string
     image: string
     commit_id: string

@@ -119,6 +119,7 @@ func ToPodSchemas(ctx context.Context, pods []*models.KubePodWithStatus) (vs []*
 		}
 		vs = append(vs, &schemasv1.KubePodSchema{
 			Name:               p.Pod.Name,
+			Namespace:          p.Pod.Namespace,
 			NodeName:           p.Pod.Spec.NodeName,
 			Status:             status,
 			RawStatus:          p.Pod.Status,

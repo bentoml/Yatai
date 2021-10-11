@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useQuery } from 'react-query'
 import Card from '@/components/Card'
 import { updateDeployment } from '@/services/deployment'
@@ -129,7 +129,7 @@ export default function DeploymentSnapshotListCard({
                 animate
                 autoFocus
             >
-                <ModalHeader>{t('create sth', [t('version')])}</ModalHeader>
+                <ModalHeader>{t('create sth', [t('deployment snapshot')])}</ModalHeader>
                 <ModalBody>
                     <DeploymentForm
                         clusterName={clusterName}

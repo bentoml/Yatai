@@ -6,6 +6,11 @@ import (
 	"strings"
 	"time"
 
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/bentoml/yatai/common/utils"
+
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
 	"github.com/rs/xid"
@@ -21,7 +26,7 @@ import (
 	batchtypev1 "k8s.io/client-go/kubernetes/typed/batch/v1"
 	batchtypev1beta "k8s.io/client-go/kubernetes/typed/batch/v1beta1"
 	apitypev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	exttypev1beta "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
+	networkingtypev1 "k8s.io/client-go/kubernetes/typed/networking/v1"
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
@@ -292,13 +297,13 @@ func (s *deploymentService) GetKubeStatefulSetsCli(ctx context.Context, d *model
 	return servicesCli, nil
 }
 
-func (s *deploymentService) GetKubeIngressesCli(ctx context.Context, d *models.Deployment) (exttypev1beta.IngressInterface, error) {
+func (s *deploymentService) GetKubeIngressesCli(ctx context.Context, d *models.Deployment) (networkingtypev1.IngressInterface, error) {
 	cliset, _, err := s.GetKubeCliSet(ctx, d)
 	if err != nil {
 		return nil, errors.Wrap(err, "get k8s cliset")
 	}
 	ns := s.GetKubeNamespace(d)
-	ingressesCli := cliset.ExtensionsV1beta1().Ingresses(ns)
+	ingressesCli := cliset.NetworkingV1().Ingresses(ns)
 	return ingressesCli, nil
 }
 
@@ -422,7 +427,7 @@ func (s *deploymentService) GetKubeName(deployment *models.Deployment) string {
 	return fmt.Sprintf("yatai-%s", deployment.Name)
 }
 
-func (s *deploymentService) GetDefaultHostname(ctx context.Context, deployment *models.Deployment) (string, error) {
+func (s *deploymentService) GenerateDefaultHostname(ctx context.Context, deployment *models.Deployment) (string, error) {
 	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
 	if err != nil {
 		return "", err
@@ -435,9 +440,42 @@ func (s *deploymentService) GetDefaultHostname(ctx context.Context, deployment *
 }
 
 func (s *deploymentService) GetURLs(ctx context.Context, deployment *models.Deployment) ([]string, error) {
-	host, err := s.GetDefaultHostname(ctx, deployment)
+	type_ := modelschemas.DeploymentSnapshotTypeStable
+	status := modelschemas.DeploymentSnapshotStatusActive
+	deploymentSnapshots, _, err := DeploymentSnapshotService.List(ctx, ListDeploymentSnapshotOption{
+		BaseListOption: BaseListOption{
+			Start: utils.UintPtr(0),
+			Count: utils.UintPtr(1),
+		},
+		DeploymentId: deployment.ID,
+		Type:         &type_,
+		Status:       &status,
+	})
 	if err != nil {
 		return nil, err
 	}
-	return []string{fmt.Sprintf("http://%s", host)}, nil
+	if len(deploymentSnapshots) == 0 {
+		return []string{}, nil
+	}
+	kubeName, err := DeploymentSnapshotService.GetKubeName(ctx, deploymentSnapshots[0])
+	if err != nil {
+		return nil, err
+	}
+	ingCli, err := s.GetKubeIngressesCli(ctx, deployment)
+	if err != nil {
+		return nil, err
+	}
+	ing, err := ingCli.Get(ctx, kubeName, metav1.GetOptions{})
+	ingIsNotFound := k8serrors.IsNotFound(err)
+	if err != nil && !ingIsNotFound {
+		return nil, err
+	}
+	if ingIsNotFound {
+		return []string{}, nil
+	}
+	urls := make([]string, 0, len(ing.Spec.Rules))
+	for _, rule := range ing.Spec.Rules {
+		urls = append(urls, fmt.Sprintf("http://%s", rule.Host))
+	}
+	return urls, nil
 }

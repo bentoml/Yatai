@@ -18,6 +18,7 @@ type KubePodStatusSchema struct {
 
 type KubePodSchema struct {
 	Name               string                     `json:"name"`
+	Namespace          string                     `json:"namespace"`
 	NodeName           string                     `json:"node_name"`
 	DeploymentSnapshot *DeploymentSnapshotSchema  `json:"deployment_snapshot"`
 	CommitId           string                     `json:"commit_id"`

@@ -1,9 +1,10 @@
-import { ICreateYataiComponentSchema, IYataiComponentSchema } from '@/schemas/yatai_component'
-import { useCallback, useEffect, useState } from 'react'
+import { ICreateYataiComponentSchema, IYataiComponentSchema, YataiComponentType } from '@/schemas/yatai_component'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createForm } from '@/components/Form'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
+import { yataiComponentIconMapping } from '@/consts'
 import YataiComponentTypeSelector from './YataiComponentTypeSelector'
 
 const { Form, FormItem, useForm } = createForm<ICreateYataiComponentSchema>()
@@ -32,6 +33,21 @@ export default function YataiComponentForm({
     useEffect(() => {
         form.setFieldsValue(values)
     }, [form, values])
+
+    const installedTypes = useMemo(() => yataiComponentsInfo.data?.map((x) => x.type) ?? [], [yataiComponentsInfo.data])
+
+    useEffect(() => {
+        const type = Object.keys(yataiComponentIconMapping).find(
+            (x) => installedTypes.indexOf(x as YataiComponentType) < 0
+        )
+        if (!type) {
+            return
+        }
+        setValues((values_) => ({
+            ...values_,
+            type: type as YataiComponentType,
+        }))
+    }, [installedTypes])
 
     useEffect(() => {
         if (!yataiComponent) {
@@ -65,7 +81,7 @@ export default function YataiComponentForm({
     return (
         <Form form={form} initialValues={values} onFinish={handleFinish} onValuesChange={handleChange}>
             <FormItem required name='type' label={t('type')}>
-                <YataiComponentTypeSelector excludes={yataiComponentsInfo.data?.map((x) => x.type)} />
+                <YataiComponentTypeSelector excludes={installedTypes} />
             </FormItem>
             <FormItem>
                 <div style={{ display: 'flex' }}>

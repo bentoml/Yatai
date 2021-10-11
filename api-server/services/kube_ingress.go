@@ -38,7 +38,7 @@ func (s *kubeIngressService) ToKubeIngresses(ctx context.Context, deploymentSnap
 		return
 	}
 
-	internalHost, err := DeploymentSnapshotService.GetIngressHost(ctx, deploymentSnapshot)
+	internalHost, err := DeploymentSnapshotService.GenerateIngressHost(ctx, deploymentSnapshot)
 	if err != nil {
 		return
 	}
@@ -127,19 +127,16 @@ more_set_headers "X-Yatai-Bento-Version: %s";
 }
 
 func (s *kubeIngressService) DeployDeploymentSnapshotAsKubeIngresses(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot, deployOption *models.DeployOption) error {
-	kubeCli, _, err := DeploymentSnapshotService.GetKubeCliSet(ctx, deploymentSnapshot)
-	if err != nil {
-		return err
-	}
-
 	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
 	if err != nil {
 		return errors.Wrap(err, "get deployment")
 	}
 
-	kubeNs := DeploymentService.GetKubeNamespace(deployment)
+	ingressesCli, err := DeploymentService.GetKubeIngressesCli(ctx, deployment)
+	if err != nil {
+		return errors.Wrap(err, "get kube ingresses cli")
+	}
 
-	ingressesCli := kubeCli.NetworkingV1().Ingresses(kubeNs)
 	kubeIngresses, err := s.ToKubeIngresses(ctx, deploymentSnapshot, deployOption)
 	if err != nil {
 		return err

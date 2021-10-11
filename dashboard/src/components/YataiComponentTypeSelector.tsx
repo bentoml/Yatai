@@ -1,7 +1,7 @@
 import React from 'react'
-import useTranslation from '@/hooks/useTranslation'
 import { YataiComponentType } from '@/schemas/yatai_component'
 import { Select } from 'baseui/select'
+import YataiComponentTypeRender from './YataiComponentTypeRender'
 
 export interface IYataiComponentTypeSelectorProps {
     value?: YataiComponentType
@@ -14,21 +14,19 @@ export default function YataiComponentTypeSelector({
     onChange,
     excludes = [],
 }: IYataiComponentTypeSelectorProps) {
-    const [t] = useTranslation()
-
     return (
         <Select
             options={(
                 [
                     {
                         id: 'logging',
-                        label: t('logging'),
+                        label: <YataiComponentTypeRender type='logging' />,
                     },
                     {
                         id: 'monitoring',
-                        label: t('monitoring'),
+                        label: <YataiComponentTypeRender type='monitoring' />,
                     },
-                ] as { id: YataiComponentType; label: string }[]
+                ] as { id: YataiComponentType; label: React.ReactNode }[]
             ).filter((x) => excludes.indexOf(x.id) < 0)}
             onChange={(params) => {
                 if (!params.option) {

@@ -10,7 +10,7 @@ image:
   repository: yetone/yatai-monitoring-comp-operator
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.0.1"
+  tag: "v0.0.13"
 
 imagePullSecrets: []
 nameOverride: ""
