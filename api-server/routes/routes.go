@@ -7,6 +7,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/bentoml/yatai/api-server/controllers/web"
 
 	"github.com/bentoml/yatai/api-server/config"
@@ -177,6 +179,13 @@ func getLoginUser(ctx *gin.Context) (user *models.User, err error) {
 }
 
 func requireLogin(ctx *gin.Context) {
+	defer func() {
+		if err := recover(); err != nil {
+			logrus.Errorf("recover panic: %s", err)
+			return
+		}
+	}()
+
 	_, loginErr := getLoginUser(ctx)
 	if loginErr != nil {
 		msg := schemasv1.MsgSchema{Message: loginErr.Error()}

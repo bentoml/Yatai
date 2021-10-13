@@ -1,6 +1,7 @@
 package controllersv1
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -33,9 +34,18 @@ type ProxyGrafanaSchema struct {
 var (
 	staticSuffixes    = []string{"js", "css", "svg", "png", "woff2"}
 	pathPrefixPattern = regexp.MustCompile("^/")
-	grafanasCache     sync.Map
 	clustersCache     sync.Map
 )
+
+func getGrafanaCacheKey(orgName, clusterName string) string {
+	return fmt.Sprintf("grafana:%s:%s", orgName, clusterName)
+}
+
+func clearGrafanaCache(ctx context.Context, orgName, clusterName string) error {
+	key := getGrafanaCacheKey(orgName, clusterName)
+	_, err := services.CacheService.Delete(ctx, key)
+	return err
+}
 
 func (c *grafanaController) Proxy(ctx *gin.Context) {
 	schema := &ProxyGrafanaSchema{
@@ -61,12 +71,12 @@ func (c *grafanaController) Proxy(ctx *gin.Context) {
 	var cluster *models.Cluster
 	var err error
 
-	clusterCacheKey := fmt.Sprintf("%s:%s", schema.OrgName, schema.ClusterName)
+	clusterCacheKey := fmt.Sprintf("cluster:%s:%s", schema.OrgName, schema.ClusterName)
 	cluster_, ok := clustersCache.Load(clusterCacheKey)
 	if !ok {
 		cluster, err = schema.GetCluster(ctx)
 		if err != nil {
-			_ = ctx.AbortWithError(400, err)
+			_ = ctx.AbortWithError(500, err)
 			return
 		}
 		clustersCache.Store(clusterCacheKey, cluster)
@@ -81,17 +91,24 @@ func (c *grafanaController) Proxy(ctx *gin.Context) {
 		}
 	}
 
-	var grafana *v1alpha1.Grafana
-	grafana_, ok := grafanasCache.Load(cluster.ID)
-	if !ok {
+	grafanaCacheKey := getGrafanaCacheKey(schema.OrgName, schema.ClusterName)
+	grafana := &v1alpha1.Grafana{}
+	exists, err := services.CacheService.Get(ctx, grafanaCacheKey, grafana)
+	if err != nil {
+		_ = ctx.AbortWithError(500, err)
+		return
+	}
+	if !exists {
 		grafana, err = services.ClusterService.GetGrafana(ctx, cluster)
 		if err != nil {
-			_ = ctx.AbortWithError(400, err)
+			_ = ctx.AbortWithError(500, err)
 			return
 		}
-		grafanasCache.Store(cluster.ID, grafana)
-	} else {
-		grafana = grafana_.(*v1alpha1.Grafana)
+		err = services.CacheService.Set(ctx, grafanaCacheKey, grafana)
+		if err != nil {
+			_ = ctx.AbortWithError(500, err)
+			return
+		}
 	}
 
 	grafanaHostname := grafana.Spec.Ingress.Hostname

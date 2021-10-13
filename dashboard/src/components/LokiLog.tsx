@@ -104,7 +104,7 @@ export default function LokiLog({ deployment: deployment_, podName, style }: ILo
     const [maxLines, setMaxLines] = useState(tempMaxLines)
 
     if (!deployment) {
-        return <Skeleton rows={3} />
+        return <Skeleton animation rows={3} />
     }
 
     const grafanaRootPath = cluster?.grafana_root_path

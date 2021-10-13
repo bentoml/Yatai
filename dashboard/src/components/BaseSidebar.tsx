@@ -37,6 +37,9 @@ function transformNavItems(navItems: INavItem[], expanded = true): Item[] {
                         gap: 12,
                         lineHeight: '24px',
                         height: 24,
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
                     }}
                 >
                     {Icon && <Icon size={12} />}

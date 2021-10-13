@@ -25,7 +25,7 @@ export default function ClusterSettings() {
 
     return (
         <Card title={t('settings')} titleIcon={AiOutlineSetting}>
-            {cluster ? <ClusterForm cluster={cluster} onSubmit={handleUpdate} /> : <Skeleton rows={3} />}
+            {cluster ? <ClusterForm cluster={cluster} onSubmit={handleUpdate} /> : <Skeleton animation rows={3} />}
         </Card>
     )
 }

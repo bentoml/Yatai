@@ -204,7 +204,7 @@ export default ({
                     display: show ? 'none' : 'block',
                 }}
             >
-                <Skeleton rows={3} />
+                <Skeleton animation rows={3} />
             </div>
         </div>
     )
