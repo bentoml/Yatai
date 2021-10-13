@@ -280,7 +280,7 @@ func (s *yataiComponentService) Delete(ctx context.Context, opt DeleteYataiCompo
 				return
 			}
 			// FIXME: wait yatai component operator to cleanup resources
-			time.Sleep(time.Second)
+			time.Sleep(3 * time.Second)
 		}
 	}
 

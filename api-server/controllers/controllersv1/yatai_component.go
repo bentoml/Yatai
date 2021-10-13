@@ -56,6 +56,10 @@ func (c *yataiComponentController) Create(ctx *gin.Context, schema *CreateYataiC
 	if err != nil {
 		return nil, err
 	}
+	err = clearGrafanaCache(ctx, schema.OrgName, schema.ClusterName)
+	if err != nil {
+		return nil, errors.Wrap(err, "clear grafana cache")
+	}
 	return transformersv1.ToYataiComponentSchema(ctx, comp)
 }
 
@@ -78,6 +82,10 @@ func (c *yataiComponentController) Delete(ctx *gin.Context, schema *GetYataiComp
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create yatai component")
+	}
+	err = clearGrafanaCache(ctx, schema.OrgName, schema.ClusterName)
+	if err != nil {
+		return nil, errors.Wrap(err, "clear grafana cache")
 	}
 	return transformersv1.ToYataiComponentSchema(ctx, comp)
 }

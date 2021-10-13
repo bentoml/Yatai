@@ -137,7 +137,7 @@ export default function DeploymentOverview() {
             </Card>
             {hasMonitoring && (
                 <Card title={t('monitor')} titleIcon={AiOutlineDashboard}>
-                    {deployment ? <DeploymentMonitor deployment={deployment} /> : <Skeleton rows={3} />}
+                    {deployment ? <DeploymentMonitor deployment={deployment} /> : <Skeleton animation rows={3} />}
                 </Card>
             )}
             <Card title={t('replicas')} titleIcon={VscServerProcess}>
