@@ -147,11 +147,17 @@ func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiCompo
 		install.Namespace = consts.KubeNamespaceYataiOperators
 		install.ReleaseName = operatorReleaseName
 		install.CreateNamespace = true
+		install.Wait = true
+		install.Timeout = time.Minute * 5
+
 		release_, err = install.Run(chart_, values)
 	} else if release_.Chart.Metadata.Version != chart_.Metadata.Version {
 		upgrade := action.NewUpgrade(actionConfig)
 
 		upgrade.Namespace = consts.KubeNamespaceYataiOperators
+		upgrade.Wait = true
+		upgrade.Timeout = time.Minute * 5
+
 		release_, err = upgrade.Run(release_.Name, chart_, values)
 	}
 
