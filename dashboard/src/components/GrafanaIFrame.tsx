@@ -79,26 +79,37 @@ export default ({
                     .sidemenu, .navbar-page-btn, .explore-toolbar-header-title, .explore-ds-picker, .css-kj45dn-queryContainer, .css-18dr9jf-queryContainer, .css-hz279r-collapse__header--collapsed, .css-1ugehg8-collapse__header--collapsed {
                         display: none !important;
                     }
+                    .panel-container {
+                        border: 0 !important;
+                    }
+                    .css-1baakqg,
+                    .css-uwlvbv {
+                        border-color: ${theme.borders.border100.borderColor} !important;
+                    }
+                    .css-122caa4-button {
+                        background: ${theme.colors.backgroundLightAccent} !important;
+                        color: ${theme.colors.contentAccent} !important;
+                    }
                     .panel-container, .explore, body, .main-view {
-                        background-color: ${theme.colors.background} !important;
+                        background-color: ${theme.colors.backgroundPrimary} !important;
                     }
                     ${
                         themeType === 'light'
                             ? `
                             .explore-container .panel-container {
-                                background-color: ${color(theme.colors.background)
+                                background-color: ${color(theme.colors.backgroundPrimary)
                                     .darken(0.001)
                                     .rgb()
                                     .string()} !important;
                             }
                             .explore-wrapper .logs-panel-options {
-                                background-color: ${color(theme.colors.background)
+                                background-color: ${color(theme.colors.backgroundPrimary)
                                     .darken(0.01)
                                     .rgb()
                                     .string()} !important;
                             }
                             main.css-1rxjq6w-logsMain {
-                                background-color: ${color(theme.colors.background)
+                                background-color: ${color(theme.colors.backgroundPrimary)
                                     .darken(0.01)
                                     .rgb()
                                     .string()} !important;
@@ -106,37 +117,64 @@ export default ({
                             `
                             : `
                     .react-calendar, .css-1767p2b, .css-1lwgu2p, .css-iq0sfc, .dropdown-menu--menu, .dropdown-menu--navbar, .dropdown-menu--sidemenu, .css-ajr8sn, .gf-form-select-box__menu {
-                        background-color: ${color(theme.colors.background).darken(0.3).rgb().string()} !important;
+                        background-color: ${color(theme.colors.backgroundPrimary)
+                            .darken(0.3)
+                            .rgb()
+                            .string()} !important;
                     }
                     .css-uwlvbv {
                         border-width: 0px !important;
                     }
                     .explore-wrapper .panel-container, button, input, .navbar-button {
-                        background-color: ${color(theme.colors.background).darken(0.1).rgb().string()} !important;
+                        background-color: ${color(theme.colors.backgroundPrimary)
+                            .darken(0.1)
+                            .rgb()
+                            .string()} !important;
                     }
                     .explore-wrapper .panel-container {
-                        border-color: ${color(theme.colors.background).darken(0.2).rgb().string()} !important;
+                        border-color: ${color(theme.colors.backgroundPrimary).darken(0.2).rgb().string()} !important;
                     }
                     .explore-wrapper .logs-panel-options {
-                        background-color: ${color(theme.colors.background).darken(0.3).rgb().string()} !important;
+                        background-color: ${color(theme.colors.backgroundPrimary)
+                            .darken(0.3)
+                            .rgb()
+                            .string()} !important;
                     }
                     .logs-panel tr:hover, .panel-header:hover {
-                        background-color: ${color(theme.colors.background).darken(0.2).rgb().string()} !important;
+                        background-color: ${color(theme.colors.backgroundPrimary)
+                            .darken(0.2)
+                            .rgb()
+                            .string()} !important;
                     }
                     .css-cssveg {
-                        background-color: ${color(theme.colors.background).darken(0.2).rgb().string()} !important;
+                        background-color: ${color(theme.colors.backgroundPrimary)
+                            .darken(0.2)
+                            .rgb()
+                            .string()} !important;
                     }
                     .css-thhc72-nameWrapper {
-                        background-color: ${color(theme.colors.background).darken(0.3).rgb().string()} !important;
+                        background-color: ${color(theme.colors.backgroundPrimary)
+                            .darken(0.3)
+                            .rgb()
+                            .string()} !important;
                     }
                     .css-f2mhmw-SpanTreeOffsetParent:hover {
-                        background-color: ${color(theme.colors.background).darken(0.2).rgb().string()} !important;
+                        background-color: ${color(theme.colors.backgroundPrimary)
+                            .darken(0.2)
+                            .rgb()
+                            .string()} !important;
                     }
                     .css-cj34uv-logs-row-hoverBackground {
-                        background-color: ${color(theme.colors.background).darken(0.2).rgb().string()} !important;
+                        background-color: ${color(theme.colors.backgroundPrimary)
+                            .darken(0.2)
+                            .rgb()
+                            .string()} !important;
                     }
                     .css-1xl0vdh-logs-row-hoverBackground-logDetailsDefaultCursor {
-                        background-color: ${color(theme.colors.background).darken(0.2).rgb().string()} !important;
+                        background-color: ${color(theme.colors.backgroundPrimary)
+                            .darken(0.2)
+                            .rgb()
+                            .string()} !important;
                     }
                     ${iframeCSS ? String(iframeCSS) : ''}
 `
