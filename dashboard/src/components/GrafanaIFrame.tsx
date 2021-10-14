@@ -90,7 +90,9 @@ export default ({
                         background: ${theme.colors.backgroundLightAccent} !important;
                         color: ${theme.colors.contentAccent} !important;
                     }
-                    .panel-container, .explore, body, .main-view {
+                    .css-1i8hcrs,
+                    .css-1767p2b,
+                    .explore-wrapper, .panel-container, .explore, body, .main-view {
                         background-color: ${theme.colors.backgroundPrimary} !important;
                     }
                     ${
@@ -116,7 +118,7 @@ export default ({
                             }
                             `
                             : `
-                    .react-calendar, .css-1767p2b, .css-1lwgu2p, .css-iq0sfc, .dropdown-menu--menu, .dropdown-menu--navbar, .dropdown-menu--sidemenu, .css-ajr8sn, .gf-form-select-box__menu {
+                    .react-calendar, .css-1lwgu2p, .css-iq0sfc, .dropdown-menu--menu, .dropdown-menu--navbar, .dropdown-menu--sidemenu, .css-ajr8sn, .gf-form-select-box__menu {
                         background-color: ${color(theme.colors.backgroundPrimary)
                             .darken(0.3)
                             .rgb()
@@ -125,7 +127,7 @@ export default ({
                     .css-uwlvbv {
                         border-width: 0px !important;
                     }
-                    .explore-wrapper .panel-container, button, input, .navbar-button {
+                    button, input, .navbar-button {
                         background-color: ${color(theme.colors.backgroundPrimary)
                             .darken(0.1)
                             .rgb()
