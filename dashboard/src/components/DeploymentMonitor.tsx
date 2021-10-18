@@ -31,6 +31,7 @@ export default function DeploymentMonitor({ deployment }: IDeploymentMonitorProp
         'var-pod': `yatai-${deployment.name}-stb`,
         'var-container': 'All',
         'fullscreen': true,
+        'refresh': '30s',
     }
 
     return (
