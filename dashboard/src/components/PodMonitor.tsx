@@ -29,6 +29,7 @@ export default function PodMonitor({ pod }: IPodMonitorProps) {
         'var-pod': pod.name,
         'var-container': 'All',
         'fullscreen': true,
+        'refresh': '30s',
     }
 
     return (

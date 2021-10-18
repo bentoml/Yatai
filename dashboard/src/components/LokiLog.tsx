@@ -3,7 +3,6 @@ import useTranslation, { Translator } from '@/hooks/useTranslation'
 import { ILokiFilter } from '@/interfaces/ILoki'
 import { IDeploymentSchema } from '@/schemas/deployment'
 import { useStyletron } from 'baseui'
-import { Skeleton } from 'baseui/skeleton'
 import { FaJournalWhills } from 'react-icons/fa'
 import { useCluster } from '@/hooks/useCluster'
 
@@ -71,10 +70,11 @@ const useStyles = createUseStyles({
 interface ILokiLogProps {
     deployment?: IDeploymentSchema
     podName?: string
+    namespace?: string
     style?: React.CSSProperties
 }
 
-export default function LokiLog({ deployment: deployment_, podName, style }: ILokiLogProps) {
+export default function LokiLog({ deployment: deployment_, podName, namespace, style }: ILokiLogProps) {
     const styles = useStyles()
 
     const [t] = useTranslation()
@@ -103,10 +103,6 @@ export default function LokiLog({ deployment: deployment_, podName, style }: ILo
     const [tempMaxLines, setTempMaxLines] = useState(1000)
     const [maxLines, setMaxLines] = useState(tempMaxLines)
 
-    if (!deployment) {
-        return <Skeleton animation rows={3} />
-    }
-
     const grafanaRootPath = cluster?.grafana_root_path
     const dataSource = 'Loki'
 
@@ -129,6 +125,10 @@ export default function LokiLog({ deployment: deployment_, podName, style }: ILo
 
     if (podName) {
         labels = [...labels, `pod="${podName}"`]
+    }
+
+    if (namespace) {
+        labels = [...labels, `namespace="${namespace}"`]
     }
 
     if (keyword) {

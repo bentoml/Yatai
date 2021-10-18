@@ -46,6 +46,26 @@ func (s *kubePodService) ListPodsByDeployment(ctx context.Context, podLister v1.
 	return s.MapKubePodsToKubePodWithStatuses(ctx, pods, events), nil
 }
 
+func (s *kubePodService) ListPodsBySelector(ctx context.Context, cluster *models.Cluster, namespace string, podLister v1.PodNamespaceLister, selector labels.Selector) ([]*models.KubePodWithStatus, error) {
+	pods_, err := podLister.List(selector)
+	if err != nil {
+		return nil, err
+	}
+	pods := make([]apiv1.Pod, 0, len(pods_))
+	for _, p := range pods_ {
+		pods = append(pods, *p)
+	}
+
+	events, err := KubeEventService.ListAllKubeEvents(ctx, cluster, namespace, func(event *apiv1.Event) bool {
+		return true
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return s.MapKubePodsToKubePodWithStatuses(ctx, pods, events), nil
+}
+
 func (s *kubePodService) MapKubePodsToKubePodWithStatuses(ctx context.Context, pods []apiv1.Pod, events []apiv1.Event) []*models.KubePodWithStatus {
 	warningsMapping := KubeEventService.GetKubePodsWarningEventsMapping(events, pods)
 	res := make([]*models.KubePodWithStatus, 0, len(pods))

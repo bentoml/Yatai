@@ -2,6 +2,15 @@ package controllersv1
 
 import (
 	"context"
+	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
+	"go.uber.org/atomic"
+	apiv1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/tools/cache"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -164,4 +173,142 @@ func (c *clusterController) List(ctx *gin.Context, schema *ListClusterSchema) (*
 		},
 		Items: clusterSchemas,
 	}, err
+}
+
+func (c *clusterController) WsPods(ctx *gin.Context, schema *GetClusterSchema) (err error) {
+	ctx.Request.Header.Del("Origin")
+	conn, err := wsUpgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		logrus.Errorf("ws connect failed: %q", err.Error())
+		return
+	}
+	defer conn.Close()
+
+	cluster, err := schema.GetCluster(ctx)
+	if err != nil {
+		return
+	}
+	if err = c.canView(ctx, cluster); err != nil {
+		return
+	}
+
+	defer func() {
+		if err != nil {
+			msg := schemasv1.WsRespSchema{
+				Type:    schemasv1.WsRespTypeError,
+				Message: err.Error(),
+				Payload: nil,
+			}
+			_ = conn.WriteJSON(&msg)
+		}
+	}()
+
+	namespace := ctx.Query("namespace")
+	selector_ := ctx.Query("selector")
+	selector, err := labels.Parse(selector_)
+	if err != nil {
+		return
+	}
+
+	podInformer, podLister, err := services.GetPodInformer(ctx, cluster, namespace)
+	if err != nil {
+		return
+	}
+
+	pollingCtx, cancel := context.WithCancel(ctx)
+	go func() {
+		for {
+			mt, _, err := conn.ReadMessage()
+
+			if err != nil || mt == websocket.CloseMessage || mt == -1 {
+				cancel()
+				break
+			}
+		}
+	}()
+
+	failedCount := atomic.NewInt64(0)
+	maxFailed := int64(10)
+
+	fail := func() {
+		failedCount.Inc()
+	}
+
+	send := func() {
+		var err error
+		defer func() {
+			if err != nil {
+				fail()
+			}
+		}()
+		pods, err := services.KubePodService.ListPodsBySelector(ctx, cluster, namespace, podLister, selector)
+		if err != nil {
+			return
+		}
+		podSchemas, err := transformersv1.ToKubePodSchemas(ctx, pods)
+		if err != nil {
+			return
+		}
+		err = conn.WriteJSON(schemasv1.WsRespSchema{
+			Type:    schemasv1.WsRespTypeSuccess,
+			Message: "",
+			Payload: podSchemas,
+		})
+	}
+
+	send()
+
+	informer := podInformer.Informer()
+	defer runtime.HandleCrash()
+
+	checkPod := func(obj interface{}) bool {
+		pod, ok := obj.(*apiv1.Pod)
+		if !ok {
+			return false
+		}
+		return selector.Matches(labels.Set(pod.Labels))
+	}
+
+	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			if !checkPod(obj) {
+				return
+			}
+			send()
+		},
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			if !checkPod(newObj) {
+				return
+			}
+			send()
+		},
+		DeleteFunc: func(obj interface{}) {
+			if !checkPod(obj) {
+				return
+			}
+			send()
+		},
+	})
+
+	func() {
+		ticker := time.NewTicker(time.Second * 10)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-pollingCtx.Done():
+				return
+			default:
+			}
+
+			if failedCount.Load() > maxFailed {
+				logrus.Error("ws pods failed too frequently!")
+				break
+			}
+
+			<-ticker.C
+		}
+	}()
+
+	return
 }

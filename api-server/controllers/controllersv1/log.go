@@ -264,7 +264,7 @@ type logController struct {
 
 var LogController = logController{}
 
-func (c *logController) TailPodsLog(ctx *gin.Context, schema *GetDeploymentSchema) error {
+func (c *logController) TailDeploymentPodLog(ctx *gin.Context, schema *GetDeploymentSchema) error {
 	var err error
 
 	ctx.Request.Header.Del("Origin")
@@ -322,6 +322,67 @@ func (c *logController) TailPodsLog(ctx *gin.Context, schema *GetDeploymentSchem
 
 		if pod.Labels[consts.KubeLabelYataiDeployment] != deployment.Name {
 			return errors.Errorf("pod %s not in this deployment", podName)
+		}
+
+		if containerName == "" {
+			containerName = pod.Status.ContainerStatuses[0].Name
+		}
+	}
+
+	t := NewTail(conn, kubeNs, podNames, containerName, true, false)
+
+	return t.Start(ctx, cliset)
+}
+
+func (c *logController) TailClusterPodLog(ctx *gin.Context, schema *GetClusterSchema) error {
+	var err error
+
+	ctx.Request.Header.Del("Origin")
+	conn, err := wsUpgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		logrus.Errorf("ws connect failed: %q", err.Error())
+		return err
+	}
+	defer conn.Close()
+
+	defer func() {
+		if err != nil {
+			msg := schemasv1.WsRespSchema{
+				Type:    schemasv1.WsRespTypeError,
+				Message: err.Error(),
+				Payload: nil,
+			}
+			_ = conn.WriteJSON(&msg)
+		}
+	}()
+
+	cluster, err := schema.GetCluster(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err = ClusterController.canView(ctx, cluster); err != nil {
+		return err
+	}
+
+	cliset, _, err := services.ClusterService.GetKubeCliSet(ctx, cluster)
+	if err != nil {
+		return err
+	}
+
+	podName := ctx.Query("pod_name")
+	var podNames []string
+	containerName := ctx.Query("container_name")
+
+	kubeNs := ctx.Query("namespace")
+
+	if podName != "" {
+		podNames = append(podNames, podName)
+		podsCli := cliset.CoreV1().Pods(kubeNs)
+
+		pod, err := podsCli.Get(ctx, podName, metav1.GetOptions{})
+		if err != nil {
+			return err
 		}
 
 		if containerName == "" {

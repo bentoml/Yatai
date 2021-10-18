@@ -20,23 +20,40 @@ interface ITailRequest {
 interface ILogProps {
     orgName: string
     clusterName: string
-    deploymentName: string
+    deploymentName?: string
+    namespace?: string
     podName: string
     open?: boolean
     width?: number | 'auto'
     height?: number | string
 }
 
-export default ({ orgName, clusterName, deploymentName, podName, open, width = 300, height = 300 }: ILogProps) => {
+export default ({
+    orgName,
+    clusterName,
+    deploymentName,
+    namespace,
+    podName,
+    open,
+    width = 300,
+    height = 300,
+}: ILogProps) => {
     const [scroll, setScroll] = useState(true)
 
     const [t] = useTranslation()
 
-    const wsUrl = `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
-        window.location.host
-    }/ws/v1/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/tail?${qs.stringify({
-        pod_name: podName,
-    })}`
+    const wsUrl = deploymentName
+        ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
+              window.location.host
+          }/ws/v1/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/tail?${qs.stringify({
+              pod_name: podName,
+          })}`
+        : `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
+              window.location.host
+          }/ws/v1/orgs/${orgName}/clusters/${clusterName}/tail?${qs.stringify({
+              namespace,
+              pod_name: podName,
+          })}`
 
     const [items, setItems] = useState<string[]>([])
     const [tailLines, setTailLines] = useState(50)

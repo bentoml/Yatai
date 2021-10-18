@@ -190,7 +190,15 @@ export default ({
                 onLoad?.()
             }, 600)
         },
-        [iframeCSS, onLoad, theme.colors.background, themeType]
+        [
+            iframeCSS,
+            onLoad,
+            theme.borders.border100.borderColor,
+            theme.colors.backgroundLightAccent,
+            theme.colors.backgroundPrimary,
+            theme.colors.contentAccent,
+            themeType,
+        ]
     )
 
     const baseUrl = processUrl(_baseUrl)

@@ -25,6 +25,7 @@ import { useFetchYataiComponentOperatorHelmCharts } from '@/hooks/useFetchYataiC
 import semver from 'semver'
 import { useStyletron } from 'baseui'
 import YataiComponentTypeRender from './YataiComponentTypeRender'
+import { YataiComponentPodStatuses } from './YataiComponentPodStatuses'
 
 export interface IYataiComponentListCardProps {
     orgName: string
@@ -163,7 +164,7 @@ export default function YataiComponentListCard({ orgName, clusterName }: IYataiC
         >
             <Table
                 isLoading={yataiComponentsInfo.isLoading}
-                columns={[t('type'), t('status'), t('version'), t('created_at'), t('operation')]}
+                columns={[t('type'), t('status'), 'Pods', t('version'), t('created_at'), t('operation')]}
                 data={
                     yataiComponentsInfo.data?.map((yataiComponent) => {
                         const chartName = `yatai-${yataiComponent.type}-comp-operator`
@@ -201,6 +202,12 @@ export default function YataiComponentListCard({ orgName, clusterName }: IYataiC
                                     {yataiComponent.release ? t(yataiComponent.release.info.status) : '-'}
                                 </div>
                             </Tag>,
+                            <YataiComponentPodStatuses
+                                key={yataiComponent.type}
+                                orgName={orgName}
+                                clusterName={clusterName}
+                                componentType={yataiComponent.type}
+                            />,
                             yataiComponent.release ? yataiComponent.release.chart.metadata.version : '-',
                             yataiComponent.release ? formatTime(yataiComponent.release.info.last_deployed) : '-',
                             <div
