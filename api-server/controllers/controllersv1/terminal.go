@@ -281,7 +281,7 @@ func (t *WebTerminal) Handle(ctx context.Context, cliset *kubernetes.Clientset, 
 	return t.Safe(f)
 }
 
-func (c *terminalController) GetDeploymentTerminal(ctx *gin.Context, schema *GetDeploymentSchema) error {
+func (c *terminalController) GetDeploymentPodTerminal(ctx *gin.Context, schema *GetDeploymentSchema) error {
 	var err error
 
 	ctx.Request.Header.Del("Origin")
@@ -360,6 +360,96 @@ func (c *terminalController) GetDeploymentTerminal(ctx *gin.Context, schema *Get
 		ClusterId:      utils.UintPtr(cluster.ID),
 		DeploymentId:   utils.UintPtr(deployment.ID),
 		Resource:       deployment,
+		Shell:          "/bin/bash",
+		PodName:        podName,
+		ContainerName:  containerName,
+	})
+	if err != nil {
+		return err
+	}
+
+	t, err := NewWebTerminal(ctx, conn, kubeNs, podName, containerName, recorder)
+	if err != nil {
+		return err
+	}
+
+	if debug == "1" {
+		return t.HandleDebug(ctx, cliset, restConfig, fork == "1")
+	}
+
+	return t.Handle(ctx, cliset, restConfig, cmd)
+}
+
+func (c *terminalController) GetClusterPodTerminal(ctx *gin.Context, schema *GetClusterSchema) error {
+	var err error
+
+	ctx.Request.Header.Del("Origin")
+	conn, err := wsUpgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		logrus.Errorf("ws connect failed: %q", err.Error())
+		return err
+	}
+	defer conn.Close()
+
+	defer func() {
+		if err != nil {
+			msg := schemasv1.WsRespSchema{
+				Type:    schemasv1.WsRespTypeError,
+				Message: err.Error(),
+				Payload: nil,
+			}
+			_ = conn.WriteJSON(&msg)
+		}
+	}()
+
+	cluster, err := schema.GetCluster(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err = ClusterController.canUpdate(ctx, cluster); err != nil {
+		return err
+	}
+
+	cliset, restConfig, err := services.ClusterService.GetKubeCliSet(ctx, cluster)
+	if err != nil {
+		return err
+	}
+
+	podName := ctx.Query("pod_name")
+	containerName := ctx.Query("container_name")
+
+	kubeNs := ctx.Query("namespace")
+
+	if podName != "" {
+		podsCli := cliset.CoreV1().Pods(kubeNs)
+
+		var pod *corev1.Pod
+		pod, err = podsCli.Get(ctx, podName, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+
+		if containerName == "" {
+			containerName = pod.Spec.Containers[0].Name
+		}
+	}
+
+	debug := ctx.Query("debug")
+	fork := ctx.Query("fork")
+
+	currentUser, err := services.GetCurrentUser(ctx)
+	if err != nil {
+		return err
+	}
+
+	cmd := []string{"sh", "-c", "bash || sh"}
+
+	recorder, err := services.TerminalRecordService.Create(ctx, services.CreateTerminalRecordOption{
+		CreatorId:      currentUser.ID,
+		OrganizationId: utils.UintPtr(cluster.OrganizationId),
+		ClusterId:      utils.UintPtr(cluster.ID),
+		Resource:       cluster,
 		Shell:          "/bin/bash",
 		PodName:        podName,
 		ContainerName:  containerName,

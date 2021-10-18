@@ -8,35 +8,49 @@ import { useEffect, useRef, useState } from 'react'
 import { toaster } from 'baseui/toast'
 import LazyLog from './LazyLog'
 
-interface IDeploymentKubeEventsProps {
+interface IKubePodEventsProps {
     orgName: string
     clusterName: string
-    deploymentName: string
+    deploymentName?: string
+    namespace?: string
     podName?: string
     open?: boolean
     width?: number | 'auto'
     height?: number | string
 }
 
-export default function DeploymentKubeEvents({
+export default function KubePodEvents({
     orgName,
     clusterName,
     deploymentName,
+    namespace,
     podName,
     open,
     width,
     height,
-}: IDeploymentKubeEventsProps) {
-    const wsUrl = `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
-        window.location.host
-    }/ws/v1/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/kube_events${qs.stringify(
-        {
-            pod_name: podName,
-        },
-        {
-            addQueryPrefix: true,
-        }
-    )}`
+}: IKubePodEventsProps) {
+    const wsUrl = deploymentName
+        ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
+              window.location.host
+          }/ws/v1/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/kube_events${qs.stringify(
+              {
+                  pod_name: podName,
+              },
+              {
+                  addQueryPrefix: true,
+              }
+          )}`
+        : `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
+              window.location.host
+          }/ws/v1/orgs/${orgName}/clusters/${clusterName}/kube_events${qs.stringify(
+              {
+                  namespace,
+                  pod_name: podName,
+              },
+              {
+                  addQueryPrefix: true,
+              }
+          )}`
 
     const [t] = useTranslation()
 

@@ -17,15 +17,15 @@ import (
 	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
-func ToPodSchema(ctx context.Context, pod *models.KubePodWithStatus) (v *schemasv1.KubePodSchema, err error) {
-	vs, err := ToPodSchemas(ctx, []*models.KubePodWithStatus{pod})
+func ToKubePodSchema(ctx context.Context, pod *models.KubePodWithStatus) (v *schemasv1.KubePodSchema, err error) {
+	vs, err := ToKubePodSchemas(ctx, []*models.KubePodWithStatus{pod})
 	if err != nil {
 		return nil, err
 	}
 	return vs[0], nil
 }
 
-func ToPodSchemas(ctx context.Context, pods []*models.KubePodWithStatus) (vs []*schemasv1.KubePodSchema, err error) {
+func ToKubePodSchemas(ctx context.Context, pods []*models.KubePodWithStatus) (vs []*schemasv1.KubePodSchema, err error) {
 	sort.SliceStable(pods, func(i, j int) bool {
 		iName := pods[i].Pod.Name
 		jName := pods[j].Pod.Name

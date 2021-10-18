@@ -5,11 +5,13 @@ export interface IToggleProps {
     value?: boolean
     onChange?: (newView: boolean) => void
     overrides?: CheckboxOverrides
+    disabled?: boolean
 }
 
-export default function Toggle({ value, onChange, overrides }: IToggleProps) {
+export default function Toggle({ value, onChange, overrides, disabled }: IToggleProps) {
     return (
         <Checkbox
+            disabled={disabled}
             checked={value}
             overrides={overrides}
             checkmarkType={STYLE_TYPE.toggle_round}

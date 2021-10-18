@@ -190,7 +190,7 @@ interface IPodsStatusProps {
     style?: React.CSSProperties
 }
 
-const PodsStatus = ({ pods, replicas, style }: IPodsStatusProps) => {
+const PodStatuses = ({ pods, replicas, style }: IPodsStatusProps) => {
     const styles = useStyles()
     const lacking = replicas - pods.length
     return (
@@ -222,9 +222,9 @@ export default React.memo(
         const canaryPods = pods.filter((pod) => pod.status.is_canary)
         return (
             <div style={style}>
-                <PodsStatus pods={productionPods} replicas={replicas} />
+                <PodStatuses pods={productionPods} replicas={replicas} />
                 {canaryPods.length > 0 && (
-                    <PodsStatus pods={canaryPods} replicas={replicas} style={{ marginTop: 10 }} />
+                    <PodStatuses pods={canaryPods} replicas={replicas} style={{ marginTop: 10 }} />
                 )}
             </div>
         )

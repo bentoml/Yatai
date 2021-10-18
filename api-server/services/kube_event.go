@@ -150,7 +150,9 @@ func (s *kubeEventService) ListAllKubeEventsByDeployment(ctx context.Context, de
 	return s.ListAllKubeEventsByDeploymentSnapshot(ctx, deployment, nil)
 }
 
-func (s *kubeEventService) MakeKubeEventFilter(ctx context.Context, deployment *models.Deployment, deploymentSnapshot **models.DeploymentSnapshot) (func(event *apiv1.Event) bool, error) {
+type KubeEventFilter func(event *apiv1.Event) bool
+
+func (s *kubeEventService) MakeDeploymentKubeEventFilter(ctx context.Context, deployment *models.Deployment, deploymentSnapshot **models.DeploymentSnapshot) (KubeEventFilter, error) {
 	var err error
 	var kubeName string
 
@@ -179,19 +181,25 @@ func (s *kubeEventService) ListAllKubeEventsByDeploymentSnapshot(ctx context.Con
 		return nil, errors.Wrap(err, "get cluster")
 	}
 
-	_, eventLister, err := GetEventInformer(ctx, cluster, DeploymentService.GetKubeNamespace(deployment))
+	namespace := DeploymentService.GetKubeNamespace(deployment)
+
+	filter, err := s.MakeDeploymentKubeEventFilter(ctx, deployment, deploymentSnapshot)
 	if err != nil {
-		return nil, errors.Wrap(err, "get app pool event informer")
+		return nil, err
+	}
+
+	return s.ListAllKubeEvents(ctx, cluster, namespace, filter)
+}
+
+func (s *kubeEventService) ListAllKubeEvents(ctx context.Context, cluster *models.Cluster, namespace string, filter KubeEventFilter) ([]apiv1.Event, error) {
+	_, eventLister, err := GetEventInformer(ctx, cluster, namespace)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get the event informer of cluster %s", cluster.Name)
 	}
 
 	_events, err := eventLister.List(labels.Everything())
 	if err != nil {
-		return nil, errors.Wrap(err, "list events from app pool event informer")
-	}
-
-	filter, err := s.MakeKubeEventFilter(ctx, deployment, deploymentSnapshot)
-	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "list the events from cluster event informer")
 	}
 
 	events := make([]apiv1.Event, 0, len(_events))
@@ -208,7 +216,7 @@ func (s *kubeEventService) ListAllKubeEventsByDeploymentSnapshot(ctx context.Con
 	return s.FillKubeEventsType(events), nil
 }
 
-func (s *kubeEventService) ListKubeEventsByResourceName(ctx context.Context, deployment *models.Deployment, resourceKind, resourceName string) ([]apiv1.Event, error) {
+func (s *kubeEventService) ListKubeEventsByDeploymentAndResourceName(ctx context.Context, deployment *models.Deployment, resourceKind, resourceName string) ([]apiv1.Event, error) {
 	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
 	if err != nil {
 		return nil, errors.Wrap(err, "get cluster")
@@ -237,7 +245,7 @@ func (s *kubeEventService) ListKubeEventsByResourceName(ctx context.Context, dep
 	return s.FillKubeEventsType(list.Items), nil
 }
 
-func (s *kubeEventService) ListKubePodsEvents(ctx context.Context, deployment *models.Deployment, pods []apiv1.Pod) ([]apiv1.Event, error) {
+func (s *kubeEventService) ListKubePodsEventsByDeployment(ctx context.Context, deployment *models.Deployment, pods []apiv1.Pod) ([]apiv1.Event, error) {
 	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
 	if err != nil {
 		return nil, errors.Wrap(err, "get cluster")

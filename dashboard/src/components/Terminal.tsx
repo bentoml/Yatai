@@ -10,9 +10,10 @@ import { IWsRespSchema } from '@/schemas/websocket'
 import { toaster } from 'baseui/toast'
 
 interface ITerminalProps {
-    orgName?: string
-    clusterName?: string
+    orgName: string
+    clusterName: string
     deploymentName?: string
+    namespace?: string
     podName: string
     containerName: string
     open?: boolean
@@ -27,6 +28,7 @@ export default function Terminal({
     orgName,
     clusterName,
     deploymentName,
+    namespace,
     podName,
     containerName,
     open,
@@ -75,14 +77,24 @@ export default function Terminal({
             ws?.send(JSON.stringify(msg))
         }
 
-        const wsUrl = `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
-            window.location.host
-        }/ws/v1/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/terminal?${qs.stringify({
-            pod_name: podName,
-            container_name: containerName,
-            debug: debug ? 1 : 0,
-            fork: fork ? 1 : 0,
-        })}`
+        const wsUrl = deploymentName
+            ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
+                  window.location.host
+              }/ws/v1/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/terminal?${qs.stringify({
+                  pod_name: podName,
+                  container_name: containerName,
+                  debug: debug ? 1 : 0,
+                  fork: fork ? 1 : 0,
+              })}`
+            : `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
+                  window.location.host
+              }/ws/v1/orgs/${orgName}/clusters/${clusterName}/terminal?${qs.stringify({
+                  namespace,
+                  pod_name: podName,
+                  container_name: containerName,
+                  debug: debug ? 1 : 0,
+                  fork: fork ? 1 : 0,
+              })}`
         ws = new WebSocket(wsUrl)
         wsRef.current = ws
         ws.onopen = () => {
@@ -143,7 +155,7 @@ export default function Terminal({
             window.removeEventListener('resize', resizeHandler)
             ws?.close()
         }
-    }, [clusterName, containerName, debug, deploymentName, fork, onGetGeneratedPod, open, orgName, podName])
+    }, [clusterName, containerName, debug, deploymentName, fork, namespace, onGetGeneratedPod, open, orgName, podName])
 
     return (
         <div

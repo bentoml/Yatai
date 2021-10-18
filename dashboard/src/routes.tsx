@@ -14,6 +14,7 @@ import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
 import OrganizationDeployments from '@/pages/Organization/Deployments'
 import ClusterYataiComponents from '@/pages/Cluster/YataiComponents'
+import ClusterYataiComponentDetail from '@/pages/Cluster/YataiComponentDetail'
 import ClusterDeployments from '@/pages/Cluster/Deployments'
 import ClusterMembers from '@/pages/Cluster/Members'
 import ClusterSettings from '@/pages/Cluster/Settings'
@@ -117,6 +118,11 @@ const Routes = () => {
                                     exact
                                     path='/orgs/:orgName/clusters/:clusterName/yatai_components'
                                     component={ClusterYataiComponents}
+                                />
+                                <Route
+                                    exact
+                                    path='/orgs/:orgName/clusters/:clusterName/yatai_components/:componentType'
+                                    component={ClusterYataiComponentDetail}
                                 />
                                 <Route
                                     exact

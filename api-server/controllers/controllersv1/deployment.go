@@ -338,6 +338,17 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 	}
 	defer conn.Close()
 
+	defer func() {
+		if err != nil {
+			msg := schemasv1.WsRespSchema{
+				Type:    schemasv1.WsRespTypeError,
+				Message: err.Error(),
+				Payload: nil,
+			}
+			_ = conn.WriteJSON(&msg)
+		}
+	}()
+
 	deployment, err := schema.GetDeployment(ctx)
 	if err != nil {
 		return err
@@ -389,7 +400,7 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 
 	var podSchemas []*schemasv1.KubePodSchema
 
-	podSchemas, err = transformersv1.ToPodSchemas(ctx, pods)
+	podSchemas, err = transformersv1.ToKubePodSchemas(ctx, pods)
 	if err != nil {
 		err = errors.Wrap(err, "get app all components with pods")
 		return err
@@ -473,7 +484,7 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 			return err
 		}
 
-		newPodSchemas, err := transformersv1.ToPodSchemas(ctx, pods)
+		newPodSchemas, err := transformersv1.ToKubePodSchemas(ctx, pods)
 		if err != nil {
 			logrus.Errorf("get app pods failed: %q", err.Error())
 			failed()

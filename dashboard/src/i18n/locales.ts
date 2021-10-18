@@ -548,6 +548,22 @@ const locales0 = {
         cn: '删除',
         en: 'Delete',
     },
+    'kube resources': {
+        cn: 'K8S 资源列表',
+        en: 'K8S Resources',
+    },
+    'helm release name': {
+        cn: 'HELM 发布名称',
+        en: 'HELM Release Name',
+    },
+    'helm chart name': {
+        cn: 'HELM Chart 名称',
+        en: 'HELM Chart Name',
+    },
+    'helm chart description': {
+        cn: 'HELM Chart 详情',
+        en: 'HELM Chart Description',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

@@ -231,7 +231,7 @@ func (o *DebugOptions) Run() error {
 		// copy pod and run
 		pod = copyAndStripPod(pod, containerName, podLabels)
 		pod_ := services.KubePodService.MapKubePodsToKubePodWithStatuses(ctx, []corev1.Pod{*pod}, nil)[0]
-		podView, err := transformersv1.ToPodSchema(ctx, pod_)
+		podView, err := transformersv1.ToKubePodSchema(ctx, pod_)
 		if err != nil {
 			return err
 		}
