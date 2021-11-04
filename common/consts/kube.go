@@ -10,11 +10,14 @@ const (
 	KubeLabelYataiSelector     = "yatai.io/selector"
 	KubeLabelYataiBento        = "yatai.io/bento"
 	KubeLabelYataiBentoVersion = "yatai.io/bento-version"
+	KubeLabelYataiModel        = "yatai.io/model"
+	KubeLabelYataiModelVersion = "yatai.io/model-version"
 
 	KubeHPAQPSMetric = "http_request"
 	KubeHPAGPUMetric = "container_accelerator_duty_cycle"
 
 	KubeNamespaceYataiBentoVersionImageBuilder = "yatai-builders"
+	KubeNamespaceYataiModelVersionImageBuilder = "yatai-builders"
 	KubeNamespaceYataiDeployment               = "yatai-deployments"
 	KubeNamespaceYataiOperators                = "yatai-operators"
 	KubeNamespaceYataiComponents               = "yatai-components"

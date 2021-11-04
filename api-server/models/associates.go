@@ -186,3 +186,37 @@ func (a *NullableDeploymentAssociate) GetAssociatedDeploymentCache() *Deployment
 func (a *NullableDeploymentAssociate) SetAssociatedDeploymentCache(deployment *Deployment) {
 	a.AssociatedDeploymentCache = deployment
 }
+
+type ModelAssociate struct {
+	ModelId              uint   `json:"model_id"`
+	AssociatedModelCache *Model `gorm:"foreignkey:ModelId"`
+}
+
+func (a *ModelAssociate) GetAssociatedModelId() uint {
+	return a.ModelId
+}
+
+func (a *ModelAssociate) GetAssociatedModelCache() *Model {
+	return a.AssociatedModelCache
+}
+
+func (a *ModelAssociate) SetAssociatedModelCache(model *Model) {
+	a.AssociatedModelCache = model
+}
+
+type ModelVersionAssociate struct {
+	ModelVersionId              uint          `json:"model_version_id"`
+	AssociatedModelVersionCache *ModelVersion `gorm:"foreignkey:ModelVersionId"`
+}
+
+func (a *ModelVersionAssociate) GetAssociatedModelVersionId() uint {
+	return a.ModelVersionId
+}
+
+func (a *ModelVersionAssociate) GetAssociatedModelVersionCache() *ModelVersion {
+	return a.AssociatedModelVersionCache
+}
+
+func (a *ModelVersionAssociate) SetAssociatedModelVersionCache(modelVersion *ModelVersion) {
+	a.AssociatedModelVersionCache = modelVersion
+}

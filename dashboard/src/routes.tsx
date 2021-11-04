@@ -29,6 +29,10 @@ import DeploymentLog from '@/pages/Deployment/Log'
 import BentoLayout from '@/components/BentoLayout'
 import UserProfile from '@/pages/Yatai/UserProfile'
 import DeploymentLayout from '@/components/DeploymentLayout'
+import ModelLayout from '@/components/ModelLayout'
+import ModelOverview from '@/pages/Model/Overview'
+import ModelVersions from '@/pages/Model/Versions'
+import OrganizationModels from '@/pages/Organization/Models'
 
 const useStyles = createUseStyles({
     'root': ({ theme }: IThemedStyleProps) => ({
@@ -142,6 +146,18 @@ const Routes = () => {
                             </Switch>
                         </ClusterLayout>
                     </Route>
+                    <Route exact path='/orgs/:orgName/models/:modelName/:path?/:path?'>
+                        <ModelLayout>
+                            <Switch>
+                                <Route exact path='/orgs/:orgName/models/:modelName' component={ModelOverview} />
+                                <Route
+                                    exact
+                                    path='/orgs/:orgName/models/:modelName/versions'
+                                    component={ModelVersions}
+                                />
+                            </Switch>
+                        </ModelLayout>
+                    </Route>
                     <Route exact path='/orgs/:orgName/:path?/:path?'>
                         <OrganizationLayout>
                             <Switch>
@@ -149,6 +165,7 @@ const Routes = () => {
                                 <Route exact path='/orgs/:orgName/bentos' component={OrganizationBentos} />
                                 <Route exact path='/orgs/:orgName/clusters' component={OrganizationClusters} />
                                 <Route exact path='/orgs/:orgName/members' component={OrganizationMembers} />
+                                <Route exact path='/orgs/:orgName/models' component={OrganizationModels} />
                                 <Route exact path='/orgs/:orgName/deployments' component={OrganizationDeployments} />
                             </Switch>
                         </OrganizationLayout>

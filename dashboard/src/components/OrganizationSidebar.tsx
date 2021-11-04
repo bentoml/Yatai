@@ -32,6 +32,11 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
                 icon: RiSurveyLine,
             },
             {
+                title: t('sth list', [t('model')]),
+                path: `/orgs/${orgName}/models`,
+                icon: resourceIconMapping.model,
+            },
+            {
                 title: t('sth list', [t('bento')]),
                 path: `/orgs/${orgName}/bentos`,
                 icon: resourceIconMapping.bento,

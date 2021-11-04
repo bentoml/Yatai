@@ -11,4 +11,6 @@ const (
 	ResourceTypeDeployment         ResourceType = "deployment"
 	ResourceTypeDeploymentSnapshot ResourceType = "deployment_snapshot"
 	ResourceTypeTerminalRecord     ResourceType = "terminal_record"
+	ResourceTypeModel              ResourceType = "model"
+	ResourceTypeModelVersion       ResourceType = "model_version"
 )

@@ -564,6 +564,14 @@ const locales0 = {
         cn: 'HELM Chart 详情',
         en: 'HELM Chart Description',
     },
+    'model': {
+        cn: '模型',
+        en: 'Model',
+    },
+    'model versions': {
+        cn: '模型版本',
+        en: 'Model Versions',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
