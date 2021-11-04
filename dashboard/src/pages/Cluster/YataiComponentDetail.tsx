@@ -14,21 +14,19 @@ import { RiSurveyLine } from 'react-icons/ri'
 import { useParams } from 'react-router-dom'
 
 export default function YataiComponentDetail() {
-    const { orgName, clusterName, componentType } =
-        useParams<{ orgName: string; clusterName: string; componentType: YataiComponentType }>()
+    const { clusterName, componentType } = useParams<{ clusterName: string; componentType: YataiComponentType }>()
 
     const [kubeResources, setKubeResources] = useState<IKubeResourceSchema[]>([])
     const [kubeResourcesLoading, setKubeResourcesLoading] = useState(true)
 
     useFetchYataiComponentHelmChartReleaseResources(
-        orgName,
         clusterName,
         componentType,
         setKubeResources,
         setKubeResourcesLoading
     )
 
-    const { yataiComponentInfo } = useFetchYataiComponent(orgName, clusterName, componentType)
+    const { yataiComponentInfo } = useFetchYataiComponent(clusterName, componentType)
 
     const [t] = useTranslation()
 
@@ -74,7 +72,6 @@ export default function YataiComponentDetail() {
                         <KubeResourceDetail
                             key={idx}
                             resource={resource}
-                            orgName={orgName}
                             clusterName={clusterName}
                             style={{
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

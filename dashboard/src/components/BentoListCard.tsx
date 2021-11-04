@@ -14,21 +14,17 @@ import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 
-export interface IBentoListCardProps {
-    orgName: string
-}
-
-export default function BentoListCard({ orgName }: IBentoListCardProps) {
+export default function BentoListCard() {
     const [page, setPage] = usePage()
-    const bentosInfo = useQuery(`fetchClusterBentos:${orgName}`, () => listBentos(orgName, page))
+    const bentosInfo = useQuery('fetchClusterBentos', () => listBentos(page))
     const [isCreateBentoOpen, setIsCreateBentoOpen] = useState(false)
     const handleCreateBento = useCallback(
         async (data: ICreateBentoSchema) => {
-            await createBento(orgName, data)
+            await createBento(data)
             await bentosInfo.refetch()
             setIsCreateBentoOpen(false)
         },
-        [bentosInfo, orgName]
+        [bentosInfo]
     )
     const [t] = useTranslation()
 
@@ -47,7 +43,7 @@ export default function BentoListCard({ orgName }: IBentoListCardProps) {
                 columns={[t('name'), t('latest version'), t('creator'), t('created_at')]}
                 data={
                     bentosInfo.data?.items.map((bento) => [
-                        <Link key={bento.uid} to={`/orgs/${orgName}/bentos/${bento.name}`}>
+                        <Link key={bento.uid} to={`/bentos/${bento.name}`}>
                             {bento.name}
                         </Link>,
                         bento.latest_version?.version,

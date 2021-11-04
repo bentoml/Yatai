@@ -23,19 +23,17 @@ import DeploymentMonitor from '@/components/DeploymentMonitor'
 import { Skeleton } from 'baseui/skeleton'
 
 export default function DeploymentOverview() {
-    const { orgName, clusterName, deploymentName } =
-        useParams<{ orgName: string; clusterName: string; deploymentName: string }>()
+    const { clusterName, deploymentName } = useParams<{ clusterName: string; deploymentName: string }>()
     const { deployment } = useDeployment()
     const { deploymentLoading } = useDeploymentLoading()
     const [pods, setPods] = useState<IKubePodSchema[]>()
     const [podsLoading, setPodsLoading] = useState(false)
-    const { yataiComponentsInfo } = useFetchYataiComponents(orgName, clusterName)
+    const { yataiComponentsInfo } = useFetchYataiComponents(clusterName)
 
     const hasLogging = yataiComponentsInfo.data?.find((x) => x.type === 'logging') !== undefined
     const hasMonitoring = yataiComponentsInfo.data?.find((x) => x.type === 'monitoring') !== undefined
 
     useFetchDeploymentPods({
-        orgName,
         clusterName,
         deploymentName,
         setPods,
@@ -71,9 +69,7 @@ export default function DeploymentOverview() {
                                 size='mini'
                                 startEnhancer={<FaJournalWhills />}
                                 onClick={() => {
-                                    history.push(
-                                        `/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/log`
-                                    )
+                                    history.push(`/clusters/${clusterName}/deployments/${deploymentName}/log`)
                                 }}
                             >
                                 {t('view log')}
@@ -91,9 +87,7 @@ export default function DeploymentOverview() {
                                     size='mini'
                                     startEnhancer={<FaJournalWhills />}
                                     onClick={() => {
-                                        history.push(
-                                            `/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/log`
-                                        )
+                                        history.push(`/clusters/${clusterName}/deployments/${deploymentName}/log`)
                                     }}
                                 >
                                     {t('view log')}
@@ -154,11 +148,7 @@ export default function DeploymentOverview() {
                 <ModalHeader>{t('view terminal history')}</ModalHeader>
                 <ModalBody style={{ flex: '1 1 0' }}>
                     {deployment && (
-                        <DeploymentTerminalRecordList
-                            orgName={orgName}
-                            clusterName={clusterName}
-                            deploymentName={deployment.name}
-                        />
+                        <DeploymentTerminalRecordList clusterName={clusterName} deploymentName={deployment.name} />
                     )}
                 </ModalBody>
             </Modal>

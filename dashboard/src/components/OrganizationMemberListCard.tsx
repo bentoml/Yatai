@@ -11,21 +11,17 @@ import User from '@/components/User'
 import Table from '@/components/Table'
 import { resourceIconMapping } from '@/consts'
 
-export interface IOrganizationMemberListCardProps {
-    orgName: string
-}
-
-export default function OrganizationMemberListCard({ orgName }: IOrganizationMemberListCardProps) {
-    const membersInfo = useQuery(`fetchOrgMembers:${orgName}`, () => listOrganizationMembers(orgName))
+export default function OrganizationMemberListCard() {
+    const membersInfo = useQuery('fetchOrgMembers', () => listOrganizationMembers())
     const [t] = useTranslation()
     const [isCreateMembersOpen, setIsCreateMembersOpen] = useState(false)
     const handleCreateMember = useCallback(
         async (data: ICreateMembersSchema) => {
-            await createOrganizationMembers(orgName, data)
+            await createOrganizationMembers(data)
             await membersInfo.refetch()
             setIsCreateMembersOpen(false)
         },
-        [membersInfo, orgName]
+        [membersInfo]
     )
 
     return (

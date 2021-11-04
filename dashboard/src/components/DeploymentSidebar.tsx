@@ -11,10 +11,9 @@ import { resourceIconMapping } from '@/consts'
 import { useCluster } from '@/hooks/useCluster'
 
 export default function DeploymentSidebar({ style }: IComposedSidebarProps) {
-    const { orgName, clusterName, deploymentName } =
-        useParams<{ orgName: string; clusterName: string; deploymentName: string }>()
-    const deploymentInfo = useQuery(`fetchDeployment:${orgName}:${clusterName}:${deploymentName}`, () =>
-        fetchDeployment(orgName, clusterName, deploymentName)
+    const { clusterName, deploymentName } = useParams<{ clusterName: string; deploymentName: string }>()
+    const deploymentInfo = useQuery(`fetchDeployment:${clusterName}:${deploymentName}`, () =>
+        fetchDeployment(clusterName, deploymentName)
     )
     const { deployment, setDeployment } = useDeployment()
     const { organization, setOrganization } = useOrganization()
@@ -54,16 +53,16 @@ export default function DeploymentSidebar({ style }: IComposedSidebarProps) {
         () => [
             {
                 title: t('overview'),
-                path: `/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}`,
+                path: `/clusters/${clusterName}/deployments/${deploymentName}`,
                 icon: RiSurveyLine,
             },
             {
                 title: t('sth list', [t('snapshot')]),
-                path: `/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/snapshots`,
+                path: `/clusters/${clusterName}/deployments/${deploymentName}/snapshots`,
                 icon: resourceIconMapping.deployment_snapshot,
             },
         ],
-        [clusterName, deploymentName, orgName, t]
+        [clusterName, deploymentName, t]
     )
     return (
         <BaseSidebar title={deploymentName} icon={resourceIconMapping.deployment} navItems={navItems} style={style} />

@@ -10,19 +10,13 @@ import YataiComponentTypeSelector from './YataiComponentTypeSelector'
 const { Form, FormItem, useForm } = createForm<ICreateYataiComponentSchema>()
 
 export interface IYataiComponentFormProps {
-    orgName: string
     clusterName: string
     yataiComponent?: IYataiComponentSchema
     onSubmit: (data: ICreateYataiComponentSchema) => Promise<void>
 }
 
-export default function YataiComponentForm({
-    orgName,
-    clusterName,
-    yataiComponent,
-    onSubmit,
-}: IYataiComponentFormProps) {
-    const { yataiComponentsInfo } = useFetchYataiComponents(orgName, clusterName)
+export default function YataiComponentForm({ clusterName, yataiComponent, onSubmit }: IYataiComponentFormProps) {
+    const { yataiComponentsInfo } = useFetchYataiComponents(clusterName)
 
     const [form] = useForm()
 

@@ -2,7 +2,6 @@ import React from 'react'
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
 import Header from '@/components/Header'
 import YataiLayout from '@/components/YataiLayout'
-import Home from '@/pages/Yatai/Home'
 import OrganizationLayout from '@/components/OrganizationLayout'
 import OrganizationOverview from '@/pages/Organization/Overview'
 import ClusterOverview from '@/pages/Cluster/Overview'
@@ -76,105 +75,82 @@ const Routes = () => {
             >
                 <Header />
                 <Switch>
-                    <Route exact path='/orgs/:orgName/bentos/:bentoName/:path?/:path?'>
+                    <Route exact path='/bentos/:bentoName/:path?/:path?'>
                         <BentoLayout>
                             <Switch>
-                                <Route exact path='/orgs/:orgName/bentos/:bentoName' component={BentoOverview} />
-                                <Route
-                                    exact
-                                    path='/orgs/:orgName/bentos/:bentoName/versions'
-                                    component={BentoVersions}
-                                />
+                                <Route exact path='/bentos/:bentoName' component={BentoOverview} />
+                                <Route exact path='/bentos/:bentoName/versions' component={BentoVersions} />
                             </Switch>
                         </BentoLayout>
                     </Route>
-                    <Route exact path='/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/:path?/:path?'>
+                    <Route exact path='/clusters/:clusterName/deployments/:deploymentName/:path?/:path?'>
                         <DeploymentLayout>
                             <Switch>
                                 <Route
                                     exact
-                                    path='/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName'
+                                    path='/clusters/:clusterName/deployments/:deploymentName'
                                     component={DeploymentOverview}
                                 />
                                 <Route
                                     exact
-                                    path='/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/snapshots'
+                                    path='/clusters/:clusterName/deployments/:deploymentName/snapshots'
                                     component={DeploymentSnapshots}
                                 />
                                 <Route
                                     exact
-                                    path='/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/log'
+                                    path='/clusters/:clusterName/deployments/:deploymentName/log'
                                     component={DeploymentLog}
                                 />
                                 <Route
                                     exact
-                                    path='/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/terminal_records/:uid'
+                                    path='/clusters/:clusterName/deployments/:deploymentName/terminal_records/:uid'
                                     component={DeploymentTerminalRecordPlayer}
                                 />
                             </Switch>
                         </DeploymentLayout>
                     </Route>
-                    <Route exact path='/orgs/:orgName/clusters/:clusterName/:path?/:path?'>
+                    <Route exact path='/clusters/:clusterName/:path?/:path?'>
                         <ClusterLayout>
                             <Switch>
-                                <Route exact path='/orgs/:orgName/clusters/:clusterName' component={ClusterOverview} />
+                                <Route exact path='/clusters/:clusterName' component={ClusterOverview} />
                                 <Route
                                     exact
-                                    path='/orgs/:orgName/clusters/:clusterName/yatai_components'
+                                    path='/clusters/:clusterName/yatai_components'
                                     component={ClusterYataiComponents}
                                 />
                                 <Route
                                     exact
-                                    path='/orgs/:orgName/clusters/:clusterName/yatai_components/:componentType'
+                                    path='/clusters/:clusterName/yatai_components/:componentType'
                                     component={ClusterYataiComponentDetail}
                                 />
-                                <Route
-                                    exact
-                                    path='/orgs/:orgName/clusters/:clusterName/deployments'
-                                    component={ClusterDeployments}
-                                />
-                                <Route
-                                    exact
-                                    path='/orgs/:orgName/clusters/:clusterName/members'
-                                    component={ClusterMembers}
-                                />
-                                <Route
-                                    exact
-                                    path='/orgs/:orgName/clusters/:clusterName/settings'
-                                    component={ClusterSettings}
-                                />
+                                <Route exact path='/clusters/:clusterName/deployments' component={ClusterDeployments} />
+                                <Route exact path='/clusters/:clusterName/members' component={ClusterMembers} />
+                                <Route exact path='/clusters/:clusterName/settings' component={ClusterSettings} />
                             </Switch>
                         </ClusterLayout>
                     </Route>
-                    <Route exact path='/orgs/:orgName/models/:modelName/:path?/:path?'>
+                    <Route exact path='/models/:modelName/:path?/:path?'>
                         <ModelLayout>
                             <Switch>
-                                <Route exact path='/orgs/:orgName/models/:modelName' component={ModelOverview} />
-                                <Route
-                                    exact
-                                    path='/orgs/:orgName/models/:modelName/versions'
-                                    component={ModelVersions}
-                                />
+                                <Route exact path='/models/:modelName' component={ModelOverview} />
+                                <Route exact path='/models/:modelName/versions' component={ModelVersions} />
                             </Switch>
                         </ModelLayout>
                     </Route>
-                    <Route exact path='/orgs/:orgName/:path?/:path?'>
+                    <Route>
                         <OrganizationLayout>
                             <Switch>
-                                <Route exact path='/orgs/:orgName' component={OrganizationOverview} />
-                                <Route exact path='/orgs/:orgName/bentos' component={OrganizationBentos} />
-                                <Route exact path='/orgs/:orgName/clusters' component={OrganizationClusters} />
-                                <Route exact path='/orgs/:orgName/members' component={OrganizationMembers} />
-                                <Route exact path='/orgs/:orgName/models' component={OrganizationModels} />
-                                <Route exact path='/orgs/:orgName/deployments' component={OrganizationDeployments} />
+                                <Route exact path='/' component={OrganizationOverview} />
+                                <Route exact path='/bentos' component={OrganizationBentos} />
+                                <Route exact path='/clusters' component={OrganizationClusters} />
+                                <Route exact path='/members' component={OrganizationMembers} />
+                                <Route exact path='/models' component={OrganizationModels} />
+                                <Route exact path='/deployments' component={OrganizationDeployments} />
                             </Switch>
                         </OrganizationLayout>
-                    </Route>
-                    <Route>
                         <YataiLayout>
                             <Switch>
                                 <Route exact path='/user' component={UserProfile} />
-                                <Route exact path='/' component={Home} />
                             </Switch>
                         </YataiLayout>
                     </Route>

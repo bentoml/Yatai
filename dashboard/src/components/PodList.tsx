@@ -38,7 +38,7 @@ export default ({ loading = false, pods }: IPodListProps) => {
     const [desiredShowMonitorPod, setDesiredShowMonitorPod] = useState<IKubePodSchema>()
     const [desiredShowTerminalPod, setDesiredShowTerminalPod] = useState<IKubePodSchema>()
     const [advancedLog, setAdvancedLog] = useState(false)
-    const { yataiComponentsInfo } = useFetchYataiComponents(organization?.name, cluster?.name)
+    const { yataiComponentsInfo } = useFetchYataiComponents(cluster?.name)
 
     const hasLogging = yataiComponentsInfo.data?.find((x) => x.type === 'logging') !== undefined
     const hasMonitoring = yataiComponentsInfo.data?.find((x) => x.type === 'monitoring') !== undefined
@@ -174,7 +174,6 @@ export default ({ loading = false, pods }: IPodListProps) => {
                         ) : (
                             <Log
                                 open={desiredShowLogsPod !== undefined}
-                                orgName={organization.name}
                                 clusterName={cluster.name}
                                 deploymentName={deployment?.name}
                                 namespace={desiredShowLogsPod.namespace}
@@ -205,7 +204,6 @@ export default ({ loading = false, pods }: IPodListProps) => {
                     {organization && cluster && desiredShowKubeEventsPod && (
                         <KubePodEvents
                             open={desiredShowKubeEventsPod !== undefined}
-                            orgName={organization.name}
                             clusterName={cluster.name}
                             deploymentName={deployment?.name}
                             namespace={desiredShowKubeEventsPod.namespace}
@@ -258,7 +256,6 @@ export default ({ loading = false, pods }: IPodListProps) => {
                     {organization && cluster && desiredShowTerminalPod && (
                         <Terminal
                             open={desiredShowTerminalPod !== undefined}
-                            orgName={organization.name}
                             clusterName={cluster.name}
                             deploymentName={deployment?.name}
                             namespace={desiredShowTerminalPod.namespace}

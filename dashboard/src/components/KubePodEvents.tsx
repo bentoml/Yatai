@@ -9,7 +9,6 @@ import { toaster } from 'baseui/toast'
 import LazyLog from './LazyLog'
 
 interface IKubePodEventsProps {
-    orgName: string
     clusterName: string
     deploymentName?: string
     namespace?: string
@@ -20,7 +19,6 @@ interface IKubePodEventsProps {
 }
 
 export default function KubePodEvents({
-    orgName,
     clusterName,
     deploymentName,
     namespace,
@@ -32,7 +30,7 @@ export default function KubePodEvents({
     const wsUrl = deploymentName
         ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
               window.location.host
-          }/ws/v1/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/kube_events${qs.stringify(
+          }/ws/v1/clusters/${clusterName}/deployments/${deploymentName}/kube_events${qs.stringify(
               {
                   pod_name: podName,
               },
@@ -42,7 +40,7 @@ export default function KubePodEvents({
           )}`
         : `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
               window.location.host
-          }/ws/v1/orgs/${orgName}/clusters/${clusterName}/kube_events${qs.stringify(
+          }/ws/v1/clusters/${clusterName}/kube_events${qs.stringify(
               {
                   namespace,
                   pod_name: podName,

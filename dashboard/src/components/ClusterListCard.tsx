@@ -14,21 +14,17 @@ import { Link } from 'react-router-dom'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
 import { resourceIconMapping } from '@/consts'
 
-export interface IClusterListCardProps {
-    orgName: string
-}
-
-export default function ClusterListCard({ orgName }: IClusterListCardProps) {
+export default function ClusterListCard() {
     const [page, setPage] = usePage()
-    const clustersInfo = useFetchClusters(orgName, page)
+    const clustersInfo = useFetchClusters(page)
     const [isCreateClusterOpen, setIsCreateClusterOpen] = useState(false)
     const handleCreateCluster = useCallback(
         async (data: ICreateClusterSchema) => {
-            await createCluster(orgName, data)
+            await createCluster(data)
             await clustersInfo.refetch()
             setIsCreateClusterOpen(false)
         },
-        [clustersInfo, orgName]
+        [clustersInfo]
     )
     const [t] = useTranslation()
 
@@ -47,7 +43,7 @@ export default function ClusterListCard({ orgName }: IClusterListCardProps) {
                 columns={[t('name'), t('description'), t('creator'), t('created_at')]}
                 data={
                     clustersInfo.data?.items.map((cluster) => [
-                        <Link key={cluster.uid} to={`/orgs/${orgName}/clusters/${cluster.name}`}>
+                        <Link key={cluster.uid} to={`/clusters/${cluster.name}`}>
                             {cluster.name}
                         </Link>,
                         cluster.description,

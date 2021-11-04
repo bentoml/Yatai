@@ -7,20 +7,18 @@ import useTranslation from '@/hooks/useTranslation'
 import { MdEventNote } from 'react-icons/md'
 
 export default function DeploymentSnapshots() {
-    const { orgName, clusterName, deploymentName } =
-        useParams<{ orgName: string; clusterName: string; deploymentName: string }>()
+    const { clusterName, deploymentName } = useParams<{ clusterName: string; deploymentName: string }>()
 
     const [t] = useTranslation()
 
     return (
         <>
-            <DeploymentSnapshotListCard orgName={orgName} clusterName={clusterName} deploymentName={deploymentName} />
+            <DeploymentSnapshotListCard clusterName={clusterName} deploymentName={deploymentName} />
             <Card title={t('events')} titleIcon={MdEventNote}>
                 <KubePodEvents
                     open
                     width='auto'
                     height={200}
-                    orgName={orgName}
                     clusterName={clusterName}
                     deploymentName={deploymentName}
                 />

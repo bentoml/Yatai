@@ -23,7 +23,6 @@ import ClusterSelector from './ClusterSelector'
 const { Form, FormItem, useForm } = createForm<ICreateDeploymentSchema>()
 
 export interface IDeploymentFormProps {
-    orgName: string
     clusterName?: string
     deployment?: IDeploymentSchema
     deploymentSnapshot?: IDeploymentSnapshotSchema
@@ -31,7 +30,6 @@ export interface IDeploymentFormProps {
 }
 
 export default function DeploymentForm({
-    orgName,
     clusterName,
     deployment,
     deploymentSnapshot,
@@ -117,7 +115,7 @@ export default function DeploymentForm({
                 label={t('cluster')}
                 style={{ display: clusterName ? 'none' : 'block' }}
             >
-                <ClusterSelector orgName={orgName} />
+                <ClusterSelector />
             </FormItem>
             {!deployment && (
                 <FormItem required name='name' label={t('name')}>
@@ -140,11 +138,11 @@ export default function DeploymentForm({
                 </FormItem>
             )}
             <FormItem required name='bento_name' label={t('bento')}>
-                <BentoSelector orgName={orgName} />
+                <BentoSelector />
             </FormItem>
             {values?.bento_name && (
                 <FormItem required name='bento_version' label={t('bento version')}>
-                    <BentoVersionSelector orgName={orgName} bentoName={values.bento_name} />
+                    <BentoVersionSelector bentoName={values.bento_name} />
                 </FormItem>
             )}
             <Accordion

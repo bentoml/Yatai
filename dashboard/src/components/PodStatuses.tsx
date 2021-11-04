@@ -163,7 +163,6 @@ export const PodStatus = React.memo(
                         {organization && cluster && deployment && (
                             <Log
                                 open={showLogModal}
-                                orgName={organization.name}
                                 clusterName={cluster.name}
                                 deploymentName={deployment.name}
                                 podName={pod.name}

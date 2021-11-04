@@ -5,17 +5,14 @@ import React, { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
 
 export interface IBentoSelectorProps {
-    orgName: string
     value?: string
     onChange?: (newValue: string) => void
 }
 
-export default function BentoSelector({ orgName, value, onChange }: IBentoSelectorProps) {
+export default function BentoSelector({ value, onChange }: IBentoSelectorProps) {
     const [keyword, setKeyword] = useState<string>()
     const [options, setOptions] = useState<{ id: string; label: React.ReactNode }[]>([])
-    const bentosInfo = useQuery(`listBentos:${keyword}`, () =>
-        listBentos(orgName, { start: 0, count: 100, search: keyword })
-    )
+    const bentosInfo = useQuery(`listBentos:${keyword}`, () => listBentos({ start: 0, count: 100, search: keyword }))
 
     const handleBentoInputChange = _.debounce((term: string) => {
         if (!term) {

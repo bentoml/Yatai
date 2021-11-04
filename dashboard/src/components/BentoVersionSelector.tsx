@@ -6,17 +6,16 @@ import { useQuery } from 'react-query'
 import BentoVersionImageBuildStatusTag from './BentoVersionImageBuildStatus'
 
 export interface IBentoVersionSelectorProps {
-    orgName: string
     bentoName: string
     value?: string
     onChange?: (newValue: string) => void
 }
 
-export default function BentoVersionSelector({ orgName, bentoName, value, onChange }: IBentoVersionSelectorProps) {
+export default function BentoVersionSelector({ bentoName, value, onChange }: IBentoVersionSelectorProps) {
     const [keyword, setKeyword] = useState<string>()
     const [options, setOptions] = useState<{ id: string; label: React.ReactNode }[]>([])
     const bentosInfo = useQuery(`listBentoVersions:${keyword}`, () =>
-        listBentoVersions(orgName, bentoName, { start: 0, count: 100, search: keyword })
+        listBentoVersions(bentoName, { start: 0, count: 100, search: keyword })
     )
 
     const handleBentoInputChange = _.debounce((term: string) => {

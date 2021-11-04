@@ -1,5 +1,4 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { fetchCurrentUser } from '@/services/user'
 import { useQuery } from 'react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -8,7 +7,7 @@ import { toaster } from 'baseui/toast'
 import { getErrMsg } from '@/utils/error'
 import qs from 'qs'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
-import { Link, useHistory, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useStyletron } from 'baseui'
 import { headerHeight, resourceIconMapping } from '@/consts'
 import { SidebarContext } from '@/contexts/SidebarContext'
@@ -17,7 +16,7 @@ import logo from '@/assets/logo.svg'
 import logoDark from '@/assets/logo-dark.svg'
 import useTranslation from '@/hooks/useTranslation'
 import { createOrganization } from '@/services/organization'
-import { Select, SIZE as SelectSize } from 'baseui/select'
+import { Select } from 'baseui/select'
 import { useOrganization } from '@/hooks/useOrganization'
 import OrganizationForm from '@/components/OrganizationForm'
 import { ICreateOrganizationSchema } from '@/schemas/organization'
@@ -34,8 +33,6 @@ import { ICreateClusterSchema } from '@/schemas/cluster'
 import { createCluster } from '@/services/cluster'
 import { useCluster } from '@/hooks/useCluster'
 import ClusterForm from '@/components/ClusterForm'
-import { useFetchClusters } from '@/hooks/useFetchClusters'
-import { useFetchOrganizations } from '@/hooks/useFetchOrganizations'
 import ReactCountryFlag from 'react-country-flag'
 import i18n from '@/i18n'
 
@@ -109,16 +106,12 @@ const ThemeToggle = ({ className }: IThemeToggleProps) => {
     )
 }
 
-const orgPathPattern = /(\/orgs\/)([^/]+)(.*)/
-const clusterPathPattern = /\/orgs\/[^/]+\/clusters\/([^/]+).*/
+const clusterPathPattern = /\/clusters\/([^/]+).*/
 
 export default function Header() {
     const location = useLocation()
-    const history = useHistory()
     // FIXME: can not use useParams, because of Header is not under the Route component
-    const orgMatch = useMemo(() => location.pathname.match(orgPathPattern), [location.pathname])
     const clusterMatch = useMemo(() => location.pathname.match(clusterPathPattern), [location.pathname])
-    const orgName = orgMatch ? orgMatch[2] : undefined
     const clusterName = clusterMatch ? clusterMatch[1] : undefined
 
     const errMsgExpireTimeSeconds = 5
@@ -175,21 +168,9 @@ export default function Header() {
         }
     }, [userInfo.data, userInfo.isSuccess, setCurrentUser])
 
-    const { organization, setOrganization } = useOrganization()
-    useEffect(() => {
-        if (!orgName) {
-            setOrganization(undefined)
-        }
-    }, [orgName, setOrganization])
+    const { organization } = useOrganization()
 
-    const orgsInfo = useFetchOrganizations({
-        start: 0,
-        count: 100,
-    })
-
-    const clustersInfo = useFetchClusters(orgName, { start: 0, count: 1000 })
-
-    const { cluster, setCluster } = useCluster()
+    const { setCluster } = useCluster()
     useEffect(() => {
         if (!clusterName) {
             setCluster(undefined)
@@ -199,28 +180,6 @@ export default function Header() {
     const [css, theme] = useStyletron()
     const ctx = useContext(SidebarContext)
     const [t] = useTranslation()
-    const generateLinkStyle = (path: string): React.CSSProperties => {
-        const baseStyle = {
-            textDecoration: 'none',
-            marginBottom: -9,
-            padding: '0px 6px 6px 6px',
-            color: theme.colors.contentPrimary,
-            borderBottom: '3px solid transparent',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-        }
-        if (location.pathname.startsWith(path)) {
-            return {
-                ...baseStyle,
-                borderBottomColor: theme.colors.contentPrimary,
-            }
-        }
-        return {
-            ...baseStyle,
-            borderBottomColor: 'transparent',
-        }
-    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleRenderLanguageOption = useCallback(({ option }: any) => {
@@ -234,28 +193,17 @@ export default function Header() {
 
     const [isCreateOrgModalOpen, setIsCreateOrgModalOpen] = useState(false)
 
-    const handleCreateOrg = useCallback(
-        async (data: ICreateOrganizationSchema) => {
-            await createOrganization(data)
-            await orgsInfo.refetch()
-            setIsCreateOrgModalOpen(false)
-        },
-        [orgsInfo]
-    )
+    const handleCreateOrg = useCallback(async (data: ICreateOrganizationSchema) => {
+        await createOrganization(data)
+        setIsCreateOrgModalOpen(false)
+    }, [])
 
     const [isCreateClusterModalOpen, setIsCreateClusterModalOpen] = useState(false)
 
-    const handleCreateCluster = useCallback(
-        async (data: ICreateClusterSchema) => {
-            if (!orgName) {
-                return
-            }
-            await createCluster(orgName, data)
-            await orgsInfo.refetch()
-            setIsCreateClusterModalOpen(false)
-        },
-        [orgName, orgsInfo]
-    )
+    const handleCreateCluster = useCallback(async (data: ICreateClusterSchema) => {
+        await createCluster(data)
+        setIsCreateClusterModalOpen(false)
+    }, [])
 
     const currentThemeType = useCurrentThemeType()
 
@@ -345,149 +293,15 @@ export default function Header() {
                         textDecoration: 'none',
                         gap: 8,
                         alignItems: 'center',
-                        fontSize: '12px',
+                        fontWeight: 700,
+                        fontSize: '16px',
                     }}
-                    to={orgName ? `/orgs/${orgName}` : '/'}
+                    to='/'
                 >
-                    {React.createElement(resourceIconMapping.organization, { size: 12 })}
-                    <Text>{t('organization')}</Text>
+                    {React.createElement(resourceIconMapping.organization, { size: 14 })}
+                    <Text>{organization?.name}</Text>
                 </Link>
-                <div
-                    style={{
-                        width: 140,
-                        flexShrink: 0,
-                    }}
-                >
-                    <Select
-                        isLoading={orgsInfo.isLoading}
-                        clearable={false}
-                        searchable={false}
-                        options={
-                            orgsInfo.data?.items.map((item) => ({
-                                id: item.uid,
-                                label: item.name,
-                            })) ?? []
-                        }
-                        size={SelectSize.mini}
-                        placeholder={t('select sth', [t('organization')])}
-                        value={
-                            organization && [
-                                {
-                                    id: organization.uid,
-                                    label: organization.name,
-                                },
-                            ]
-                        }
-                        onChange={(v) => {
-                            const org = orgsInfo.data?.items.find((item) => item.uid === v.option?.id)
-                            if (org) {
-                                history.push(`/orgs/${org.name}`)
-                            }
-                        }}
-                    />
-                </div>
-                <Button
-                    overrides={{
-                        Root: {
-                            style: {
-                                flexShrink: 0,
-                            },
-                        },
-                    }}
-                    size={ButtonSize.mini}
-                    onClick={() => {
-                        setIsCreateOrgModalOpen(true)
-                    }}
-                >
-                    {t('create')}
-                </Button>
             </div>
-            {cluster && (
-                <>
-                    <div
-                        style={{
-                            flexBasis: 1,
-                            height: 20,
-                            background: theme.colors.borderAlt,
-                            margin: '0 20px',
-                        }}
-                    />
-                    <Link
-                        style={{
-                            display: 'flex',
-                            flexShrink: 0,
-                            textDecoration: 'none',
-                            gap: 8,
-                            alignItems: 'center',
-                            fontSize: '12px',
-                        }}
-                        to={orgName ? `/orgs/${orgName}/clusters/${cluster.name}` : '/'}
-                    >
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexShrink: 0,
-                                gap: 8,
-                                alignItems: 'center',
-                                fontSize: '12px',
-                            }}
-                        >
-                            {React.createElement(resourceIconMapping.cluster, { size: 12 })}
-                            <Text>{t('cluster')}</Text>
-                        </div>
-                        <div
-                            style={{
-                                flexShrink: 0,
-                                width: 140,
-                            }}
-                        >
-                            <Select
-                                isLoading={clustersInfo.isLoading}
-                                clearable={false}
-                                searchable={false}
-                                options={
-                                    clustersInfo.data?.items.map((item) => ({
-                                        id: item.uid,
-                                        label: item.name,
-                                    })) ?? []
-                                }
-                                size={SelectSize.mini}
-                                placeholder={t('select sth', [t('cluster')])}
-                                value={
-                                    cluster && [
-                                        {
-                                            id: cluster.uid,
-                                            label: cluster.name,
-                                        },
-                                    ]
-                                }
-                                onChange={(v) => {
-                                    const cluster_ = clustersInfo.data?.items.find((item) => item.uid === v.option?.id)
-                                    if (cluster_) {
-                                        history.push(`/orgs/${orgName}/clusters/${cluster_.name}`)
-                                    }
-                                }}
-                            />
-                        </div>
-                        <Button
-                            overrides={{
-                                Root: {
-                                    style: {
-                                        flexShrink: 0,
-                                        display: 'none',
-                                    },
-                                },
-                            }}
-                            size={ButtonSize.mini}
-                            onClick={() => {
-                                setIsCreateClusterModalOpen(true)
-                            }}
-                        >
-                            {t('create')}
-                        </Button>
-                    </Link>
-                </>
-            )}
             <div style={{ flexGrow: 1 }} />
             <div
                 className={css({
@@ -501,43 +315,6 @@ export default function Header() {
                     'gap': '30px',
                 })}
             >
-                {organization && (
-                    <Link
-                        style={generateLinkStyle(`/orgs/${organization.name}/models`)}
-                        to={`/orgs/${organization.name}/models`}
-                    >
-                        {React.createElement(resourceIconMapping.model, { size: 12 })}
-                        {t('model')}
-                    </Link>
-                )}
-                {organization && (
-                    <Link
-                        style={generateLinkStyle(`/orgs/${organization.name}/bentos`)}
-                        to={`/orgs/${organization.name}/bentos`}
-                    >
-                        {React.createElement(resourceIconMapping.bento, { size: 12 })}
-                        {t('bento')}
-                    </Link>
-                )}
-                {cluster ? (
-                    <Link
-                        style={generateLinkStyle(`/orgs/${orgName}/clusters/${cluster.name}/deployments`)}
-                        to={`/orgs/${orgName}/clusters/${cluster.name}/deployments`}
-                    >
-                        {React.createElement(resourceIconMapping.deployment, { size: 12 })}
-                        {t('deployment')}
-                    </Link>
-                ) : (
-                    organization && (
-                        <Link
-                            style={generateLinkStyle(`/orgs/${orgName}/deployments`)}
-                            to={`/orgs/${orgName}/deployments`}
-                        >
-                            {React.createElement(resourceIconMapping.deployment, { size: 12 })}
-                            {t('deployment')}
-                        </Link>
-                    )
-                )}
                 <ThemeToggle />
                 <div
                     style={{

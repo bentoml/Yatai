@@ -145,6 +145,23 @@ func (s *organizationService) List(ctx context.Context, opt ListOrganizationOpti
 	return orgs, uint(total), err
 }
 
+func (s *organizationService) GetUserOrganization(ctx context.Context, userId uint) (*models.Organization, error) {
+	orgs, _, err := s.List(ctx, ListOrganizationOption{
+		BaseListOption: BaseListOption{
+			Start: utils.UintPtr(0),
+			Count: utils.UintPtr(1),
+		},
+		VisitorId: utils.UintPtr(userId),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(orgs) == 0 {
+		return nil, errors.Wrap(consts.ErrNotFound, "cannot found organization")
+	}
+	return orgs[0], nil
+}
+
 type IOrganizationAssociate interface {
 	GetAssociatedOrganizationId() uint
 	GetAssociatedOrganizationCache() *models.Organization

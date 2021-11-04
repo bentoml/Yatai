@@ -13,22 +13,18 @@ import User from '@/components/User'
 import { formatTime } from '@/utils/datetime'
 import { Link } from 'react-router-dom'
 
-export interface IModelListCardProps {
-    orgName: string
-}
-
-export default function ModelListCard({ orgName }: IModelListCardProps) {
+export default function ModelListCard() {
     const [page, setPage] = usePage()
-    const modelInfo = useQuery(`fetchClusterModel"${orgName}`, () => listModels(orgName, page))
+    const modelInfo = useQuery('fetchClusterModel', () => listModels(page))
     const [isCreateModelOpen, setIsCreateModelOpen] = useState(false)
     // eslint-disable-next-line
     const handleCreateModel = useCallback(
         async (data: ICreateModelSchema) => {
-            await createModel(orgName, data)
+            await createModel(data)
             await modelInfo.refetch()
             setIsCreateModelOpen(false)
         },
-        [modelInfo, orgName]
+        [modelInfo]
     )
     const [t] = useTranslation()
     return (
@@ -46,7 +42,7 @@ export default function ModelListCard({ orgName }: IModelListCardProps) {
                 columns={[t('name'), t('version'), t('created_at')]}
                 data={
                     modelInfo.data?.items?.map((model) => [
-                        <Link key={model.uid} to={`/orgs/${orgName}/models/${model.name}`}>
+                        <Link key={model.uid} to={`/models/${model.name}`}>
                             {model.name}
                         </Link>,
                         model.latest_version?.version,
