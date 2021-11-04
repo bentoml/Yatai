@@ -250,3 +250,19 @@ CREATE TABLE IF NOT EXISTS "cache" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+
+CREATE TYPE "label_resource_type" as ENUM ('bento', 'bento_version', 'deployment', 'deployment_snapshot', "model", "model_version");
+
+CREATE TABLE IF NOT EXISTS "label" (
+    id SERIAL PRIMARY KEY,
+    resource_type label_resource_type NOT NULL,
+    resource_id INTEGER NOT NULL,
+    key VARCHAR(128) NOT NULL,
+    value VARCHAR(128) NOT NULL,
+    creator_id INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE UNIQUE INDEX "uk_resoure_type_id_key" on "label" ("resource_type", "resource_id", "key");
+
