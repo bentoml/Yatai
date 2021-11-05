@@ -2,11 +2,11 @@ import { IYataiComponentSchema } from '@/schemas/yatai_component'
 import { listClusterYataiComponents } from '@/services/yatai_component'
 import { useQuery } from 'react-query'
 
-export function useFetchYataiComponents(orgName?: string, clusterName?: string) {
-    const queryKey = `fetchYataiComponents:${orgName}:${clusterName}`
+export function useFetchYataiComponents(clusterName?: string) {
+    const queryKey = `fetchYataiComponents:${clusterName}`
     const yataiComponentsInfo = useQuery(queryKey, () =>
-        orgName && clusterName
-            ? listClusterYataiComponents(orgName, clusterName)
+        clusterName
+            ? listClusterYataiComponents(clusterName)
             : (new Promise((resolve) => {
                   resolve([] as IYataiComponentSchema[])
               }) as Promise<IYataiComponentSchema[]>)

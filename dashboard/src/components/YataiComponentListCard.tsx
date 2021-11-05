@@ -28,12 +28,11 @@ import YataiComponentTypeRender from './YataiComponentTypeRender'
 import { YataiComponentPodStatuses } from './YataiComponentPodStatuses'
 
 export interface IYataiComponentListCardProps {
-    orgName: string
     clusterName: string
 }
 
-export default function YataiComponentListCard({ orgName, clusterName }: IYataiComponentListCardProps) {
-    const { yataiComponentsInfo, queryKey } = useFetchYataiComponents(orgName, clusterName)
+export default function YataiComponentListCard({ clusterName }: IYataiComponentListCardProps) {
+    const { yataiComponentsInfo, queryKey } = useFetchYataiComponents(clusterName)
     const [isCreateYataiComponentOpen, setIsCreateYataiComponentOpen] = useState(false)
     const [wishToUpgradeType, setWishToUpgradeType] = useState<YataiComponentType>()
     const [wishToDeleteType, setWishToDeleteType] = useState<YataiComponentType>()
@@ -45,11 +44,11 @@ export default function YataiComponentListCard({ orgName, clusterName }: IYataiC
 
     const handleCreateYataiComponent = useCallback(
         async (data: ICreateYataiComponentSchema) => {
-            await createYataiComponent(orgName, clusterName, data)
+            await createYataiComponent(clusterName, data)
             await yataiComponentsInfo.refetch()
             setIsCreateYataiComponentOpen(false)
         },
-        [orgName, clusterName, yataiComponentsInfo]
+        [clusterName, yataiComponentsInfo]
     )
 
     const handleUpgradeYataiComponent = useCallback(
@@ -71,14 +70,14 @@ export default function YataiComponentListCard({ orgName, clusterName }: IYataiC
         async (type: YataiComponentType) => {
             setDeleteYataiComponentLoading(true)
             try {
-                await deleteYataiComponent(orgName, clusterName, type)
+                await deleteYataiComponent(clusterName, type)
                 await yataiComponentsInfo.refetch()
                 setWishToDeleteType(undefined)
             } finally {
                 setDeleteYataiComponentLoading(false)
             }
         },
-        [orgName, clusterName, yataiComponentsInfo]
+        [clusterName, yataiComponentsInfo]
     )
 
     const statusColorMap: Record<YataiComponentReleaseStatus, keyof TagKind> = useMemo(() => {
@@ -175,7 +174,7 @@ export default function YataiComponentListCard({ orgName, clusterName }: IYataiC
                         return [
                             <Link
                                 key={yataiComponent.type}
-                                to={`/orgs/${orgName}/clusters/${clusterName}/yatai_components/${yataiComponent.type}`}
+                                to={`/clusters/${clusterName}/yatai_components/${yataiComponent.type}`}
                             >
                                 <YataiComponentTypeRender type={yataiComponent.type} />
                             </Link>,
@@ -204,7 +203,6 @@ export default function YataiComponentListCard({ orgName, clusterName }: IYataiC
                             </Tag>,
                             <YataiComponentPodStatuses
                                 key={yataiComponent.type}
-                                orgName={orgName}
                                 clusterName={clusterName}
                                 componentType={yataiComponent.type}
                             />,
@@ -261,11 +259,7 @@ export default function YataiComponentListCard({ orgName, clusterName }: IYataiC
             >
                 <ModalHeader>{t('create sth', [t('yatai component')])}</ModalHeader>
                 <ModalBody>
-                    <YataiComponentForm
-                        onSubmit={handleCreateYataiComponent}
-                        orgName={orgName}
-                        clusterName={clusterName}
-                    />
+                    <YataiComponentForm onSubmit={handleCreateYataiComponent} clusterName={clusterName} />
                 </ModalBody>
             </Modal>
             <Modal

@@ -12,23 +12,20 @@ import Table from '@/components/Table'
 import { resourceIconMapping } from '@/consts'
 
 export interface IClusterMemberListCardProps {
-    orgName: string
     clusterName: string
 }
 
-export default function ClusterMemberListCard({ orgName, clusterName }: IClusterMemberListCardProps) {
-    const membersInfo = useQuery(`fetchClusterMembers:${orgName}:${clusterName}`, () =>
-        listClusterMembers(orgName, clusterName)
-    )
+export default function ClusterMemberListCard({ clusterName }: IClusterMemberListCardProps) {
+    const membersInfo = useQuery(`fetchClusterMembers:${clusterName}`, () => listClusterMembers(clusterName))
     const [t] = useTranslation()
     const [isCreateMembersOpen, setIsCreateMembersOpen] = useState(false)
     const handleCreateMember = useCallback(
         async (data: ICreateMembersSchema) => {
-            await createClusterMembers(orgName, clusterName, data)
+            await createClusterMembers(clusterName, data)
             await membersInfo.refetch()
             setIsCreateMembersOpen(false)
         },
-        [clusterName, membersInfo, orgName]
+        [clusterName, membersInfo]
     )
 
     return (

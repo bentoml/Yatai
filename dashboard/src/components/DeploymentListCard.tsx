@@ -19,15 +19,14 @@ import { useSubscription } from '@/hooks/useSubscription'
 import { StyledSpinnerNext } from 'baseui/spinner'
 
 export interface IDeploymentListCardProps {
-    orgName: string
     clusterName?: string
 }
 
-export default function DeploymentListCard({ orgName, clusterName }: IDeploymentListCardProps) {
+export default function DeploymentListCard({ clusterName }: IDeploymentListCardProps) {
     const [page, setPage] = usePage()
-    const queryKey = `fetchClusterDeployments:${orgName}:${clusterName ?? ''}`
+    const queryKey = `fetchClusterDeployments:${clusterName ?? ''}`
     const deploymentsInfo = useQuery(queryKey, () =>
-        clusterName ? listClusterDeployments(orgName, clusterName, page) : listOrganizationDeployments(orgName, page)
+        clusterName ? listClusterDeployments(clusterName, page) : listOrganizationDeployments(page)
     )
     const [isCreateDeploymentOpen, setIsCreateDeploymentOpen] = useState(false)
     const handleCreateDeployment = useCallback(
@@ -35,11 +34,11 @@ export default function DeploymentListCard({ orgName, clusterName }: IDeployment
             if (!data.cluster_name) {
                 return
             }
-            await createDeployment(orgName, data.cluster_name, data)
+            await createDeployment(data.cluster_name, data)
             await deploymentsInfo.refetch()
             setIsCreateDeploymentOpen(false)
         },
-        [deploymentsInfo, orgName]
+        [deploymentsInfo]
     )
     const [t] = useTranslation()
 
@@ -129,15 +128,12 @@ export default function DeploymentListCard({ orgName, clusterName }: IDeployment
                     deploymentsInfo.data?.items.map((deployment) => [
                         <Link
                             key={deployment.uid}
-                            to={`/orgs/${orgName}/clusters/${deployment.cluster?.name}/deployments/${deployment.name}`}
+                            to={`/clusters/${deployment.cluster?.name}/deployments/${deployment.name}`}
                         >
                             {deployment.name}
                         </Link>,
                         clusterName ? undefined : (
-                            <Link
-                                key={deployment.cluster?.uid}
-                                to={`/orgs/${orgName}/clusters/${deployment.cluster?.name}`}
-                            >
+                            <Link key={deployment.cluster?.uid} to={`/clusters/${deployment.cluster?.name}`}>
                                 {deployment.cluster?.name}
                             </Link>
                         ),
@@ -184,7 +180,7 @@ export default function DeploymentListCard({ orgName, clusterName }: IDeployment
             >
                 <ModalHeader>{t('create sth', [t('deployment')])}</ModalHeader>
                 <ModalBody>
-                    <DeploymentForm onSubmit={handleCreateDeployment} orgName={orgName} clusterName={clusterName} />
+                    <DeploymentForm onSubmit={handleCreateDeployment} clusterName={clusterName} />
                 </ModalBody>
             </Modal>
         </Card>

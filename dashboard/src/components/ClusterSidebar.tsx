@@ -10,8 +10,8 @@ import { useOrganization } from '@/hooks/useOrganization'
 import { resourceIconMapping } from '@/consts'
 
 export default function ClusterSidebar({ style }: IComposedSidebarProps) {
-    const { orgName, clusterName } = useParams<{ orgName: string; clusterName: string }>()
-    const clusterInfo = useQuery(`fetchCluster:${orgName}:${clusterName}`, () => fetchCluster(orgName, clusterName))
+    const { clusterName } = useParams<{ clusterName: string }>()
+    const clusterInfo = useQuery(`fetchCluster:${clusterName}`, () => fetchCluster(clusterName))
     const { cluster, setCluster } = useCluster()
     const { organization, setOrganization } = useOrganization()
     const { setClusterLoading } = useClusterLoading()
@@ -44,26 +44,26 @@ export default function ClusterSidebar({ style }: IComposedSidebarProps) {
         () => [
             {
                 title: t('overview'),
-                path: `/orgs/${orgName}/clusters/${clusterName}`,
+                path: `/clusters/${clusterName}`,
                 icon: RiSurveyLine,
             },
             {
                 title: t('sth list', [t('yatai component')]),
-                path: `/orgs/${orgName}/clusters/${clusterName}/yatai_components`,
+                path: `/clusters/${clusterName}/yatai_components`,
                 icon: resourceIconMapping.yatai_component,
             },
             {
                 title: t('sth list', [t('deployment')]),
-                path: `/orgs/${orgName}/clusters/${clusterName}/deployments`,
+                path: `/clusters/${clusterName}/deployments`,
                 icon: resourceIconMapping.deployment,
             },
             {
                 title: t('sth list', [t('member')]),
-                path: `/orgs/${orgName}/clusters/${clusterName}/members`,
+                path: `/clusters/${clusterName}/members`,
                 icon: resourceIconMapping.user_group,
             },
         ],
-        [clusterName, orgName, t]
+        [clusterName, t]
     )
     return (
         <BaseSidebar
@@ -71,7 +71,7 @@ export default function ClusterSidebar({ style }: IComposedSidebarProps) {
             icon={resourceIconMapping.cluster}
             navItems={navItems}
             style={style}
-            settingsPath={`/orgs/${orgName}/clusters/${clusterName}/settings`}
+            settingsPath={`/clusters/${clusterName}/settings`}
         />
     )
 }

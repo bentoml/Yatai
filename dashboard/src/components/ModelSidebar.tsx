@@ -9,9 +9,10 @@ import { resourceIconMapping } from '@/consts'
 import useTranslation from '@/hooks/useTranslation'
 import { RiSurveyLine } from 'react-icons/ri'
 
-export default function ModelSidebar({ style }: IComposedSidebarProps) { // eslint-disable-line
-    const { orgName, modelName } = useParams<{ orgName: string; modelName: string }>()
-    const modelInfo = useQuery(`fetchModel:${orgName}:${modelName}`, () => fetchModel(orgName, modelName))
+export default function ModelSidebar({ style }: IComposedSidebarProps) {
+    // eslint-disable-line
+    const { modelName } = useParams<{ modelName: string }>()
+    const modelInfo = useQuery(`fetchModel:${modelName}`, () => fetchModel(modelName))
     const { model, setModel } = useModel()
     const { organization, setOrganization } = useOrganization()
     const { setModelLoading } = useModelLoading()
@@ -43,17 +44,17 @@ export default function ModelSidebar({ style }: IComposedSidebarProps) { // esli
         () => [
             {
                 title: t('overview'),
-                path: `/orgs/${orgName}/models/${modelName}`,
+                path: `/models/${modelName}`,
                 icon: RiSurveyLine,
             },
             {
                 title: t('sth list', [t('version')]),
-                path: `/orgs/${orgName}/models/${modelName}/versions`,
+                path: `/models/${modelName}/versions`,
                 icon: resourceIconMapping.bento_version,
             },
         ],
-        [modelName, orgName, t]
+        [modelName, t]
     )
 
-    return <BaseSidebar title={modelName} icon={resourceIconMapping.bento} navItems={navItems} />
+    return <BaseSidebar style={style} title={modelName} icon={resourceIconMapping.bento} navItems={navItems} />
 }

@@ -287,11 +287,7 @@ func (s *clusterService) GenerateGrafanaHostname(ctx context.Context, cluster *m
 }
 
 func (s *clusterService) GetGrafanaRootPath(ctx context.Context, cluster *models.Cluster) (string, error) {
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("/api/v1/orgs/%s/clusters/%s/grafana/", org.Name, cluster.Name), nil
+	return fmt.Sprintf("/api/v1/clusters/%s/grafana/", cluster.Name), nil
 }
 
 func (s *clusterService) GetGrafana(ctx context.Context, cluster *models.Cluster) (*v1alpha1.Grafana, error) {

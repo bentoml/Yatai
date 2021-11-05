@@ -16,23 +16,22 @@ import { Link } from 'react-router-dom'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 
 export interface IModelVersionListCardProps {
-    orgName: string
     modelName: string
 }
 
-export default function ModelVersionListCard({ orgName, modelName }: IModelVersionListCardProps) {
+export default function ModelVersionListCard({ modelName }: IModelVersionListCardProps) {
     const [page, setPage] = usePage()
-    const queryKey = `fetchClusterModelVersions:${orgName}:${modelName}`
-    const modelVersionsInfo = useQuery(queryKey, () => listModelVersions(orgName, modelName, page))
+    const queryKey = `fetchClusterModelVersions:${modelName}`
+    const modelVersionsInfo = useQuery(queryKey, () => listModelVersions(modelName, page))
     const [isCreateModelVersionOpen, setIsCreateModelVersionOpen] = useState(false)
     // eslint-disable-next-line
     const handleCreateModelVersionOpen = useCallback(
         async (data: ICreateModelVersionSchema) => {
-            await createModelVersion(orgName, modelName, data)
+            await createModelVersion(modelName, data)
             await modelVersionsInfo.refetch()
             setIsCreateModelVersionOpen(false)
         },
-        [modelName, modelVersionsInfo, orgName]
+        [modelName, modelVersionsInfo]
     )
     const [t] = useTranslation()
 
@@ -106,10 +105,7 @@ export default function ModelVersionListCard({ orgName, modelName }: IModelVersi
                 columns={[t('version'), t('creator'), t('created_at')]}
                 data={
                     modelVersionsInfo.data?.items.map((modelVersion) => [
-                        <Link
-                            key={modelVersion.uid}
-                            to={`/orgs/${orgName}/models/${modelName}/versions/${modelVersion.version}`}
-                        >
+                        <Link key={modelVersion.uid} to={`/models/${modelName}/versions/${modelVersion.version}`}>
                             {modelVersion.version}
                         </Link>,
                         modelVersion.creator && <User user={modelVersion.creator} />,

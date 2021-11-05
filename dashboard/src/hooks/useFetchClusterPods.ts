@@ -5,7 +5,6 @@ import { toaster } from 'baseui/toast'
 import qs from 'qs'
 
 export function useFetchClusterPods({
-    orgName,
     clusterName,
     namespace,
     selector,
@@ -13,7 +12,6 @@ export function useFetchClusterPods({
     setPodsLoading,
     getErr,
 }: {
-    orgName: string
     clusterName: string
     namespace: string
     selector: string
@@ -23,7 +21,7 @@ export function useFetchClusterPods({
 }) {
     const wsUrl = `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
         window.location.host
-    }/ws/v1/orgs/${orgName}/clusters/${clusterName}/pods${qs.stringify(
+    }/ws/v1/clusters/${clusterName}/pods${qs.stringify(
         {
             namespace,
             selector,

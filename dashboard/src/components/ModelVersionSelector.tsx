@@ -5,17 +5,16 @@ import React, { useState } from 'react'
 import { useQuery } from 'react-query'
 
 export interface IModelVersionSelectorProps {
-    orgName: string
     modelName: string
     value?: string
     onChange?: (newValue: string) => void
 }
 
-export default function ModelVersionSelector({ orgName, modelName, value, onChange }: IModelVersionSelectorProps) {
+export default function ModelVersionSelector({ modelName, value, onChange }: IModelVersionSelectorProps) {
     const [keyword, setKeyword] = useState<string>()
     const [options, setOptions] = useState<{ id: string; label: React.ReactNode }[]>([])
     const modelsInfo = useQuery(`listModelVersions:${keyword}`, () => {
-        listModelVersions(orgName, modelName, { start: 0, count: 100, search: keyword })
+        listModelVersions(modelName, { start: 0, count: 100, search: keyword })
     })
 
     const handleModelInputChange = _.debounce((term: string) => {

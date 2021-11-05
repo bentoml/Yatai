@@ -8,18 +8,16 @@ import { GiMatterStates, GiDaemonPull } from 'react-icons/gi'
 import PodList from './PodList'
 
 interface IKubeResourceDetailProps {
-    orgName: string
     clusterName: string
     resource: IKubeResourceSchema
     style?: React.CSSProperties
 }
 
-export default function KubeResourceDetail({ orgName, clusterName, resource, style }: IKubeResourceDetailProps) {
+export default function KubeResourceDetail({ clusterName, resource, style }: IKubeResourceDetailProps) {
     const [pods, setPods] = useState<IKubePodSchema[]>([])
     const [podsLoading, setPodsLoading] = useState(false)
 
     useFetchClusterPods({
-        orgName,
         clusterName,
         namespace: resource.namespace,
         selector: Object.keys(resource.match_labels)

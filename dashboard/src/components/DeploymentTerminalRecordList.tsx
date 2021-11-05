@@ -11,20 +11,18 @@ import { Button } from 'baseui/button'
 import { StatefulTooltip } from 'baseui/tooltip'
 
 export interface IDeploymentTerminalRecordListProps {
-    orgName: string
     clusterName: string
     deploymentName: string
 }
 
 export default function DeploymentTerminalRecordList({
-    orgName,
     clusterName,
     deploymentName,
 }: IDeploymentTerminalRecordListProps) {
     const [page, setPage] = usePage()
-    const queryKey = `fetchDeploymentTerminalRecords:${orgName}:${clusterName}:${deploymentName}`
+    const queryKey = `fetchDeploymentTerminalRecords:${clusterName}:${deploymentName}`
     const deploymentTerminalRecordsInfo = useQuery(queryKey, () =>
-        listDeploymentTerminalRecords(orgName, clusterName, deploymentName, page)
+        listDeploymentTerminalRecords(clusterName, deploymentName, page)
     )
 
     const [t] = useTranslation()
@@ -46,7 +44,7 @@ export default function DeploymentTerminalRecordList({
                                 size='mini'
                                 onClick={() => {
                                     window.open(
-                                        `/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/terminal_records/${terminalRecord.uid}`
+                                        `/clusters/${clusterName}/deployments/${deploymentName}/terminal_records/${terminalRecord.uid}`
                                     )
                                 }}
                             >

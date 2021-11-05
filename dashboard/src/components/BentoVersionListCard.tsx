@@ -18,22 +18,21 @@ import { IListSchema } from '@/schemas/list'
 import BentoVersionImageBuildStatusTag from '@/components/BentoVersionImageBuildStatus'
 
 export interface IBentoVersionListCardProps {
-    orgName: string
     bentoName: string
 }
 
-export default function BentoVersionListCard({ orgName, bentoName }: IBentoVersionListCardProps) {
+export default function BentoVersionListCard({ bentoName }: IBentoVersionListCardProps) {
     const [page, setPage] = usePage()
-    const queryKey = `fetchClusterBentoVersions:${orgName}:${bentoName}`
-    const bentoVersionsInfo = useQuery(queryKey, () => listBentoVersions(orgName, bentoName, page))
+    const queryKey = `fetchClusterBentoVersions:${bentoName}`
+    const bentoVersionsInfo = useQuery(queryKey, () => listBentoVersions(bentoName, page))
     const [isCreateBentoVersionOpen, setIsCreateBentoVersionOpen] = useState(false)
     const handleCreateBentoVersion = useCallback(
         async (data: ICreateBentoVersionSchema) => {
-            await createBentoVersion(orgName, bentoName, data)
+            await createBentoVersion(bentoName, data)
             await bentoVersionsInfo.refetch()
             setIsCreateBentoVersionOpen(false)
         },
-        [bentoName, bentoVersionsInfo, orgName]
+        [bentoName, bentoVersionsInfo]
     )
     const [t] = useTranslation()
 
@@ -104,10 +103,7 @@ export default function BentoVersionListCard({ orgName, bentoName }: IBentoVersi
                 columns={[t('name'), t('image build status'), t('description'), t('creator'), t('created_at')]}
                 data={
                     bentoVersionsInfo.data?.items.map((bentoVersion) => [
-                        <Link
-                            key={bentoVersion.uid}
-                            to={`/orgs/${orgName}/bentos/${bentoName}/versions/${bentoVersion.version}`}
-                        >
+                        <Link key={bentoVersion.uid} to={`/bentos/${bentoName}/versions/${bentoVersion.version}`}>
                             {bentoVersion.version}
                         </Link>,
                         <BentoVersionImageBuildStatusTag

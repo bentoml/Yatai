@@ -10,7 +10,6 @@ import { IWsRespSchema } from '@/schemas/websocket'
 import { toaster } from 'baseui/toast'
 
 interface ITerminalProps {
-    orgName: string
     clusterName: string
     deploymentName?: string
     namespace?: string
@@ -25,7 +24,6 @@ interface ITerminalProps {
 }
 
 export default function Terminal({
-    orgName,
     clusterName,
     deploymentName,
     namespace,
@@ -80,7 +78,7 @@ export default function Terminal({
         const wsUrl = deploymentName
             ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
                   window.location.host
-              }/ws/v1/orgs/${orgName}/clusters/${clusterName}/deployments/${deploymentName}/terminal?${qs.stringify({
+              }/ws/v1/clusters/${clusterName}/deployments/${deploymentName}/terminal?${qs.stringify({
                   pod_name: podName,
                   container_name: containerName,
                   debug: debug ? 1 : 0,
@@ -88,7 +86,7 @@ export default function Terminal({
               })}`
             : `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
                   window.location.host
-              }/ws/v1/orgs/${orgName}/clusters/${clusterName}/terminal?${qs.stringify({
+              }/ws/v1/clusters/${clusterName}/terminal?${qs.stringify({
                   namespace,
                   pod_name: podName,
                   container_name: containerName,
@@ -155,7 +153,7 @@ export default function Terminal({
             window.removeEventListener('resize', resizeHandler)
             ws?.close()
         }
-    }, [clusterName, containerName, debug, deploymentName, fork, namespace, onGetGeneratedPod, open, orgName, podName])
+    }, [clusterName, containerName, debug, deploymentName, fork, namespace, onGetGeneratedPod, open, podName])
 
     return (
         <div

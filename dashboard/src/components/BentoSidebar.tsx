@@ -10,8 +10,8 @@ import { useOrganization } from '@/hooks/useOrganization'
 import { resourceIconMapping } from '@/consts'
 
 export default function BentoSidebar({ style }: IComposedSidebarProps) {
-    const { orgName, bentoName } = useParams<{ orgName: string; bentoName: string }>()
-    const bentoInfo = useQuery(`fetchBento:${orgName}:${bentoName}`, () => fetchBento(orgName, bentoName))
+    const { bentoName } = useParams<{ bentoName: string }>()
+    const bentoInfo = useQuery(`fetchBento:${bentoName}`, () => fetchBento(bentoName))
     const { bento, setBento } = useBento()
     const { organization, setOrganization } = useOrganization()
     const { setBentoLoading } = useBentoLoading()
@@ -44,16 +44,16 @@ export default function BentoSidebar({ style }: IComposedSidebarProps) {
         () => [
             {
                 title: t('overview'),
-                path: `/orgs/${orgName}/bentos/${bentoName}`,
+                path: `/bentos/${bentoName}`,
                 icon: RiSurveyLine,
             },
             {
                 title: t('sth list', [t('version')]),
-                path: `/orgs/${orgName}/bentos/${bentoName}/versions`,
+                path: `/bentos/${bentoName}/versions`,
                 icon: resourceIconMapping.bento_version,
             },
         ],
-        [bentoName, orgName, t]
+        [bentoName, t]
     )
     return <BaseSidebar title={bentoName} icon={resourceIconMapping.bento} navItems={navItems} style={style} />
 }

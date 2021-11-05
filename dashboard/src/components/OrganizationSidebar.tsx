@@ -4,13 +4,11 @@ import { fetchOrganization } from '@/services/organization'
 import { RiSurveyLine } from 'react-icons/ri'
 import React, { useEffect, useMemo } from 'react'
 import { useQuery } from 'react-query'
-import { useParams } from 'react-router-dom'
 import BaseSidebar, { IComposedSidebarProps, INavItem } from '@/components/BaseSidebar'
 import { resourceIconMapping } from '@/consts'
 
 export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
-    const { orgName } = useParams<{ orgName: string }>()
-    const orgInfo = useQuery(`fetchOrg:${orgName}`, () => fetchOrganization(orgName))
+    const orgInfo = useQuery('fetchOrg', () => fetchOrganization())
     const { organization, setOrganization } = useOrganization()
     const { setOrganizationLoading } = useOrganizationLoading()
     useEffect(() => {
@@ -28,36 +26,36 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
         () => [
             {
                 title: t('overview'),
-                path: `/orgs/${orgName}`,
+                path: '/',
                 icon: RiSurveyLine,
             },
             {
                 title: t('sth list', [t('model')]),
-                path: `/orgs/${orgName}/models`,
+                path: '/models',
                 icon: resourceIconMapping.model,
             },
             {
                 title: t('sth list', [t('bento')]),
-                path: `/orgs/${orgName}/bentos`,
+                path: '/bentos',
                 icon: resourceIconMapping.bento,
             },
             {
                 title: t('sth list', [t('deployment')]),
-                path: `/orgs/${orgName}/deployments`,
+                path: '/deployments',
                 icon: resourceIconMapping.deployment,
             },
             {
                 title: t('sth list', [t('cluster')]),
-                path: `/orgs/${orgName}/clusters`,
+                path: '/clusters',
                 icon: resourceIconMapping.cluster,
             },
             {
                 title: t('sth list', [t('member')]),
-                path: `/orgs/${orgName}/members`,
+                path: '/members',
                 icon: resourceIconMapping.user_group,
             },
         ],
-        [orgName, t]
+        [t]
     )
-    return <BaseSidebar title={orgName} icon={resourceIconMapping.organization} navItems={navItems} style={style} />
+    return <BaseSidebar navItems={navItems} style={style} />
 }

@@ -77,52 +77,52 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("Subscribe resource"),
 	}, requireLogin, tonic.Handler(controllersv1.SubscriptionController.SubscribeResource, 200))
 
-	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/tail", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/deployments/:deploymentName/tail", []fizz.OperationOption{
 		fizz.ID("Tail deployment pod log"),
 		fizz.Summary("Tail deployment pod log"),
 	}, requireLogin, tonic.Handler(controllersv1.LogController.TailDeploymentPodLog, 200))
 
-	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/tail", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/tail", []fizz.OperationOption{
 		fizz.ID("Tail cluster pod log"),
 		fizz.Summary("Tail cluster pod log"),
 	}, requireLogin, tonic.Handler(controllersv1.LogController.TailClusterPodLog, 200))
 
-	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/terminal", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/deployments/:deploymentName/terminal", []fizz.OperationOption{
 		fizz.ID("Deployment pod terminal"),
 		fizz.Summary("Deployment pod terminal"),
 	}, requireLogin, tonic.Handler(controllersv1.TerminalController.GetDeploymentPodTerminal, 200))
 
-	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/terminal", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/terminal", []fizz.OperationOption{
 		fizz.ID("Cluster pod terminal"),
 		fizz.Summary("Cluster pod terminal"),
 	}, requireLogin, tonic.Handler(controllersv1.TerminalController.GetClusterPodTerminal, 200))
 
-	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/kube_events", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/deployments/:deploymentName/kube_events", []fizz.OperationOption{
 		fizz.ID("Deployment kube events"),
 		fizz.Summary("Deployment kube events"),
 	}, requireLogin, tonic.Handler(controllersv1.KubeController.GetDeploymentKubeEvents, 200))
 
-	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/kube_events", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/kube_events", []fizz.OperationOption{
 		fizz.ID("Cluster kube events"),
 		fizz.Summary("Cluster kube events"),
 	}, requireLogin, tonic.Handler(controllersv1.KubeController.GetPodKubeEvents, 200))
 
-	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/deployments/:deploymentName/pods", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/deployments/:deploymentName/pods", []fizz.OperationOption{
 		fizz.ID("Ws deployment pods"),
 		fizz.Summary("Ws deployment pods"),
 	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.WsPods, 200))
 
-	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/pods", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/pods", []fizz.OperationOption{
 		fizz.ID("Ws cluster pods"),
 		fizz.Summary("Ws cluster pods"),
 	}, requireLogin, tonic.Handler(controllersv1.ClusterController.WsPods, 200))
 
-	wsRootGroup.GET("/orgs/:orgName/clusters/:clusterName/yatai_components/:componentType/helm_chart_release_resources", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/yatai_components/:componentType/helm_chart_release_resources", []fizz.OperationOption{
 		fizz.ID("List yatai component helm chart release resources"),
 		fizz.Summary("List yatai component helm chart release resources"),
 	}, requireLogin, tonic.Handler(controllersv1.YataiComponentController.ListHelmChartReleaseResources, 200))
 
-	ginGroup := engine.Group("/api/v1/orgs/:orgName/clusters/:clusterName")
+	ginGroup := engine.Group("/api/v1/clusters/:clusterName")
 
 	ginGroup.GET("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
 	ginGroup.POST("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
@@ -142,6 +142,9 @@ func NewRouter() (*fizz.Fizz, error) {
 	authRoutes(apiRootGroup)
 	userRoutes(apiRootGroup)
 	organizationRoutes(apiRootGroup)
+	clusterRoutes(apiRootGroup)
+	bentoRoutes(apiRootGroup)
+	modelRoutes(apiRootGroup)
 	terminalRecordRoutes(apiRootGroup)
 
 	if len(fizzApp.Errors()) != 0 {
@@ -264,9 +267,7 @@ func userRoutes(grp *fizz.RouterGroup) {
 }
 
 func organizationRoutes(grp *fizz.RouterGroup) {
-	grp = grp.Group("/orgs", "organizations", "organizations")
-
-	resourceGrp := grp.Group("/:orgName", "organization resource", "organization resource")
+	resourceGrp := grp.Group("/orgs/current", "organization resource", "organization resource")
 
 	resourceGrp.GET("", []fizz.OperationOption{
 		fizz.ID("Get an organization"),
@@ -278,39 +279,39 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Update an organization"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.Update, 200))
 
-	resourceGrp.GET("/members", []fizz.OperationOption{
+	grp.GET("/members", []fizz.OperationOption{
 		fizz.ID("List organization members"),
 		fizz.Summary("Get organization members"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationMemberController.List, 200))
 
-	resourceGrp.POST("/members", []fizz.OperationOption{
+	grp.POST("/members", []fizz.OperationOption{
 		fizz.ID("Create an organization member"),
 		fizz.Summary("Create an organization member"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationMemberController.Create, 200))
 
-	resourceGrp.DELETE("/members", []fizz.OperationOption{
+	grp.DELETE("/members", []fizz.OperationOption{
 		fizz.ID("Remove an organization member"),
 		fizz.Summary("Remove an organization member"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationMemberController.Delete, 200))
 
-	resourceGrp.GET("/deployments", []fizz.OperationOption{
+	grp.GET("/deployments", []fizz.OperationOption{
 		fizz.ID("List organization deployments"),
 		fizz.Summary("List organization deployments"),
 	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.ListOrganizationDeployments, 200))
 
-	grp.GET("", []fizz.OperationOption{
+	grp.GET("/orgs", []fizz.OperationOption{
 		fizz.ID("List organizations"),
 		fizz.Summary("List organizations"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.List, 200))
 
-	grp.POST("", []fizz.OperationOption{
+	grp.POST("/orgs", []fizz.OperationOption{
 		fizz.ID("Create organization"),
 		fizz.Summary("Create organization"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.Create, 200))
 
-	clusterRoutes(resourceGrp)
-	bentoRoutes(resourceGrp)
-	modelRoutes(resourceGrp)
+	// clusterRoutes(resourceGrp)
+	// bentoRoutes(resourceGrp)
+	// modelRoutes(resourceGrp)
 }
 
 func clusterRoutes(grp *fizz.RouterGroup) {

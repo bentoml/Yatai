@@ -6,23 +6,16 @@ import { useState } from 'react'
 import PodStatuses from './PodStatuses'
 
 interface IKubeResourcePodStatusesProps {
-    orgName: string
     clusterName: string
     resource: IKubeResourceSchema
     style?: React.CSSProperties
 }
 
-export default function KubeResourcePodStatuses({
-    orgName,
-    clusterName,
-    resource,
-    style,
-}: IKubeResourcePodStatusesProps) {
+export default function KubeResourcePodStatuses({ clusterName, resource, style }: IKubeResourcePodStatusesProps) {
     const [pods, setPods] = useState<IKubePodSchema[]>([])
     const [podsLoading, setPodsLoading] = useState(true)
 
     useFetchClusterPods({
-        orgName,
         clusterName,
         namespace: resource.namespace,
         selector: Object.keys(resource.match_labels)

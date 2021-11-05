@@ -5,16 +5,15 @@ import React, { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
 
 export interface IClusterSelectorProps {
-    orgName: string
     value?: string
     onChange?: (newValue: string) => void
 }
 
-export default function ClusterSelector({ orgName, value, onChange }: IClusterSelectorProps) {
+export default function ClusterSelector({ value, onChange }: IClusterSelectorProps) {
     const [keyword, setKeyword] = useState<string>()
     const [options, setOptions] = useState<{ id: string; label: React.ReactNode }[]>([])
     const clustersInfo = useQuery(`listClusters:${keyword}`, () =>
-        listClusters(orgName, { start: 0, count: 100, search: keyword })
+        listClusters({ start: 0, count: 100, search: keyword })
     )
 
     const handleClusterInputChange = _.debounce((term: string) => {

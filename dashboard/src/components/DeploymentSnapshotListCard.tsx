@@ -22,31 +22,24 @@ import { IDeploymentSnapshotSchema } from '@/schemas/deployment_snapshot'
 import DeploymentSnapshotDetail from './DeploymentSnapshotDetail'
 
 export interface IDeploymentSnapshotListCardProps {
-    orgName: string
     clusterName: string
     deploymentName: string
 }
 
-export default function DeploymentSnapshotListCard({
-    orgName,
-    clusterName,
-    deploymentName,
-}: IDeploymentSnapshotListCardProps) {
+export default function DeploymentSnapshotListCard({ clusterName, deploymentName }: IDeploymentSnapshotListCardProps) {
     const [page, setPage] = usePage()
     const { deployment } = useDeployment()
     const [desiredShowDeploymentSnapshot, setDesiredShowDeploymentSnapshot] = useState<IDeploymentSnapshotSchema>()
-    const queryKey = `fetchDeploymentSnapshots:${orgName}:${clusterName}:${deploymentName}`
-    const deploymentSnapshotsInfo = useQuery(queryKey, () =>
-        listDeploymentSnapshots(orgName, clusterName, deploymentName, page)
-    )
+    const queryKey = `fetchDeploymentSnapshots:${clusterName}:${deploymentName}`
+    const deploymentSnapshotsInfo = useQuery(queryKey, () => listDeploymentSnapshots(clusterName, deploymentName, page))
     const [isCreateDeploymentSnapshotOpen, setIsCreateDeploymentSnapshotOpen] = useState(false)
     const handleCreateDeploymentSnapshot = useCallback(
         async (data: IUpdateDeploymentSchema) => {
-            await updateDeployment(orgName, clusterName, deploymentName, data)
+            await updateDeployment(clusterName, deploymentName, data)
             await deploymentSnapshotsInfo.refetch()
             setIsCreateDeploymentSnapshotOpen(false)
         },
-        [deploymentSnapshotsInfo, clusterName, deploymentName, orgName]
+        [deploymentSnapshotsInfo, clusterName, deploymentName]
     )
 
     const [t] = useTranslation()
@@ -78,7 +71,7 @@ export default function DeploymentSnapshotListCard({
                         </StyledLink>,
                         <Link
                             key={deploymentSnapshot.uid}
-                            to={`/orgs/${orgName}/bentos/${deploymentSnapshot.bento_version.bento.name}/versions/${deploymentSnapshot.bento_version.version}`}
+                            to={`/bentos/${deploymentSnapshot.bento_version.bento.name}/versions/${deploymentSnapshot.bento_version.version}`}
                         >
                             {deploymentSnapshot.bento_version.bento.name}:{deploymentSnapshot.bento_version.version}
                         </Link>,
@@ -139,7 +132,6 @@ export default function DeploymentSnapshotListCard({
                                 (snapshot) => snapshot.type === 'stable' && snapshot.status === 'active'
                             )?.[0]
                         }
-                        orgName={orgName}
                         onSubmit={handleCreateDeploymentSnapshot}
                     />
                 </ModalBody>

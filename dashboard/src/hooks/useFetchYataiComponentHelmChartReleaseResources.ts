@@ -5,7 +5,6 @@ import { YataiComponentType } from '@/schemas/yatai_component'
 import { toaster } from 'baseui/toast'
 
 export function useFetchYataiComponentHelmChartReleaseResources(
-    orgName: string,
     clusterName: string,
     compType: YataiComponentType,
     setKubeResources: (pods: IKubeResourceSchema[]) => void,
@@ -13,7 +12,7 @@ export function useFetchYataiComponentHelmChartReleaseResources(
 ) {
     const wsUrl = `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
         window.location.host
-    }/ws/v1/orgs/${orgName}/clusters/${clusterName}/yatai_components/${compType}/helm_chart_release_resources`
+    }/ws/v1/clusters/${clusterName}/yatai_components/${compType}/helm_chart_release_resources`
 
     const wsRef = useRef(undefined as undefined | WebSocket)
     const wsHeartbeatTimerRef = useRef(undefined as undefined | number)

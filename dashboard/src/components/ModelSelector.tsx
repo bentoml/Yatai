@@ -5,17 +5,14 @@ import _ from 'lodash'
 import { Select } from 'baseui/select'
 
 export interface IModelSelectorProps {
-    orgName: string
     value?: string
     onChange?: (newValue: string) => void
 }
 
-export default function ModelSelector({ orgName, value, onChange }: IModelSelectorProps) {
+export default function ModelSelector({ value, onChange }: IModelSelectorProps) {
     const [keyword, setKeyword] = useState<string>()
     const [options, setOptions] = useState<{ id: string; label: React.ReactNode }[]>([])
-    const modelsInfo = useQuery(`listModels:${keyword}`, () =>
-        listModels(orgName, { start: 0, count: 100, search: keyword })
-    )
+    const modelsInfo = useQuery(`listModels:${keyword}`, () => listModels({ start: 0, count: 100, search: keyword }))
     const handleModelInputChange = _.debounce((term: string) => {
         if (!term) {
             setOptions([])

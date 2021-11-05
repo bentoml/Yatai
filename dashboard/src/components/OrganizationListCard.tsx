@@ -42,14 +42,17 @@ export default function OrganizationListCard() {
                 isLoading={organizationsInfo.isLoading}
                 columns={[t('name'), t('description'), t('creator'), t('created_at')]}
                 data={
-                    organizationsInfo.data?.items.map((organization) => [
-                        <Link key={organization.uid} to={`/orgs/${organization.name}`}>
-                            {organization.name}
-                        </Link>,
-                        organization.description,
-                        organization.creator && <User user={organization.creator} />,
-                        formatTime(organization.created_at),
-                    ]) ?? []
+                    organizationsInfo.data?.items.map((organization) => {
+                        return [
+                            // TODO
+                            <Link key={organization.uid} to='i dont known'>
+                                {organization.name}
+                            </Link>,
+                            organization.description,
+                            organization.creator && <User user={organization.creator} />,
+                            formatTime(organization.created_at),
+                        ]
+                    }) ?? []
                 }
                 paginationProps={{
                     start: organizationsInfo.data?.start,
