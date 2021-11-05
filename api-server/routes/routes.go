@@ -49,6 +49,7 @@ func NewRouter() (*fizz.Fizz, error) {
 	store := cookie.NewStore([]byte(config.YataiConfig.Server.SessionSecretKey))
 	engine.Use(sessions.Sessions("yatai-session-v1", store))
 
+	engine.GET("/logout", web.Logout)
 	oauthGrp := engine.Group("oauth")
 	oauthGrp.GET("/github", controllersv1.GithubOAuthLogin)
 

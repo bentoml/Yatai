@@ -6,9 +6,10 @@ export interface IBaseLayoutProps {
     children: React.ReactNode
     sidebar?: React.ComponentType<IComposedSidebarProps>
     contentStyle?: React.CSSProperties
+    style?: React.CSSProperties
 }
 
-export default function BaseLayout({ children, sidebar: Sidebar, contentStyle }: IBaseLayoutProps) {
+export default function BaseLayout({ children, sidebar: Sidebar, style, contentStyle }: IBaseLayoutProps) {
     return (
         <main
             style={{
@@ -16,6 +17,7 @@ export default function BaseLayout({ children, sidebar: Sidebar, contentStyle }:
                 display: 'flex',
                 flexFlow: 'row nowrap',
                 justifyContent: 'space-between',
+                ...style,
             }}
         >
             {Sidebar && <Sidebar style={{ marginTop: headerHeight }} />}

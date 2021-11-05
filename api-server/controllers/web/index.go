@@ -2,8 +2,11 @@ package web
 
 import (
 	"io/ioutil"
+	"net/http"
 	"path"
 	"sync"
+
+	"github.com/bentoml/yatai/common/scookie"
 
 	"github.com/bentoml/yatai/api-server/config"
 
@@ -25,4 +28,9 @@ func Index(ctx *gin.Context) {
 		}
 	})
 	ctx.Data(200, "text/html; charset=utf-8", indexContent)
+}
+
+func Logout(ctx *gin.Context) {
+	_ = scookie.SetUsernameToCookie(ctx, "")
+	ctx.Redirect(http.StatusFound, "/login")
 }

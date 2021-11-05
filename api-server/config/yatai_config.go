@@ -34,6 +34,7 @@ type YataiOAuthConfigYaml struct {
 }
 
 type YataiConfigYaml struct {
+	IsSass     bool                      `yaml:"is_sass"`
 	Server     YataiServerConfigYaml     `yaml:"server"`
 	Postgresql YataiPostgresqlConfigYaml `yaml:"postgresql"`
 	OAuth      YataiOAuthConfigYaml      `yaml:"oauth"`

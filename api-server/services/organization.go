@@ -40,6 +40,7 @@ type ListOrganizationOption struct {
 	BaseListOption
 	VisitorId *uint
 	Ids       *[]uint
+	Order     *string
 }
 
 func (s *organizationService) Create(ctx context.Context, opt CreateOrganizationOption) (*models.Organization, error) {
@@ -139,7 +140,11 @@ func (s *organizationService) List(ctx context.Context, opt ListOrganizationOpti
 		return nil, 0, err
 	}
 	if opt.Ids == nil {
-		query = query.Order("id DESC")
+		if opt.Order != nil {
+			query = query.Order(*opt.Order)
+		} else {
+			query = query.Order("id DESC")
+		}
 	}
 	err = opt.BindQuery(query).Find(&orgs).Error
 	return orgs, uint(total), err

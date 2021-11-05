@@ -11,7 +11,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { useStyletron } from 'baseui'
 import { headerHeight, resourceIconMapping } from '@/consts'
 import { SidebarContext } from '@/contexts/SidebarContext'
-import { StyledSpinnerNext } from 'baseui/spinner'
 import logo from '@/assets/logo.svg'
 import logoDark from '@/assets/logo-dark.svg'
 import useTranslation from '@/hooks/useTranslation'
@@ -146,9 +145,11 @@ export default function Header() {
                     } else {
                         redirect = '/'
                     }
-                    window.location.href = `${window.location.protocol}//${
-                        window.location.host
-                    }/oauth/github?redirect=${encodeURIComponent(redirect)}`
+                    if (location.pathname !== '/login') {
+                        window.location.href = `${window.location.protocol}//${
+                            window.location.host
+                        }/login?redirect=${encodeURIComponent(redirect)}`
+                    }
                 } else if (Date.now() - (lastErrMsgRef.current[errMsg] || 0) > errMsgExpireTimeSeconds * 1000) {
                     toaster.negative(errMsg, { autoHideDuration: (errMsgExpireTimeSeconds + 1) * 1000 })
                     lastErrMsgRef.current[errMsg] = Date.now()
@@ -361,7 +362,7 @@ export default function Header() {
                     />
                 </div>
             </div>
-            {currentUser ? <User user={currentUser} /> : <StyledSpinnerNext />}
+            {currentUser && <User user={currentUser} />}
             <Modal
                 isOpen={isCreateOrgModalOpen}
                 onClose={() => setIsCreateOrgModalOpen(false)}

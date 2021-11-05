@@ -7,6 +7,14 @@ import (
 	"net"
 	"strings"
 
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+
+	"github.com/bentoml/yatai/common/helmchart"
+
+	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/bentoml/yatai/api-server/config"
+
 	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
 
 	"github.com/bentoml/yatai/schemas/modelschemas"
@@ -225,39 +233,62 @@ func (s *clusterService) List(ctx context.Context, opt ListClusterOption) ([]*mo
 	return clusters, uint(total), err
 }
 
-func (s *clusterService) GetKubeCliSet(ctx context.Context, c *models.Cluster) (*kubernetes.Clientset, *rest.Config, error) {
-	configV1 := clientcmdapiv1.Config{}
-	jsonBytes, err := yaml.YAMLToJSON([]byte(c.KubeConfig))
+func (s *clusterService) GetRESTClientGetter(ctx context.Context, c *models.Cluster, namespace string) (genericclioptions.RESTClientGetter, error) {
+	_, restConfig, err := s.GetKubeCliSet(ctx, c)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "k8s cluster config yaml to json")
+		return nil, errors.Wrap(err, "get kube cli set")
 	}
-	err = json.Unmarshal(jsonBytes, &configV1)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "yaml unmarshal k8s cluster config")
+	return helmchart.NewRESTClientGetter(namespace, nil, &restConfig), nil
+}
+
+func (s *clusterService) GetKubeCliSet(ctx context.Context, c *models.Cluster) (clientSet *kubernetes.Clientset, restConfig *rest.Config, err error) {
+	if !config.YataiConfig.IsSass && c.KubeConfig == "" {
+		restConfig, err = rest.InClusterConfig()
+		if err != nil {
+			kubeConfig :=
+				clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()
+			restConfig, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
+			if err != nil {
+				return nil, nil, errors.Wrap(err, "get in-cluster rest config")
+			}
+		}
+	} else {
+		configV1 := clientcmdapiv1.Config{}
+		var jsonBytes []byte
+		jsonBytes, err = yaml.YAMLToJSON([]byte(c.KubeConfig))
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "k8s cluster config yaml to json")
+		}
+		err = json.Unmarshal(jsonBytes, &configV1)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "yaml unmarshal k8s cluster config")
+		}
+
+		var configObject runtime.Object
+		configObject, err = clientcmdlatest.Scheme.ConvertToVersion(&configV1, clientcmdapi.SchemeGroupVersion)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "scheme convert to version")
+		}
+		configInternal := configObject.(*clientcmdapi.Config)
+
+		restConfig, err = clientcmd.NewDefaultClientConfig(*configInternal, &clientcmd.ConfigOverrides{
+			ClusterDefaults: clientcmdapi.Cluster{Server: ""},
+		}).ClientConfig()
+
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "new default k8s client config")
+		}
 	}
-	configObject, err := clientcmdlatest.Scheme.ConvertToVersion(&configV1, clientcmdapi.SchemeGroupVersion)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "scheme convert to version")
-	}
-	configInternal := configObject.(*clientcmdapi.Config)
 
-	clientConfig, err := clientcmd.NewDefaultClientConfig(*configInternal, &clientcmd.ConfigOverrides{
-		ClusterDefaults: clientcmdapi.Cluster{Server: ""},
-	}).ClientConfig()
+	restConfig.QPS = defaultQPS
+	restConfig.Burst = defaultBurst
 
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "new default k8s client config")
-	}
-
-	clientConfig.QPS = defaultQPS
-	clientConfig.Burst = defaultBurst
-
-	clientSet, err := kubernetes.NewForConfig(clientConfig)
+	clientSet, err = kubernetes.NewForConfig(restConfig)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "new for k8s config")
 	}
 
-	return clientSet, clientConfig, nil
+	return clientSet, restConfig, nil
 }
 
 func (s *clusterService) GetIngressIp(ctx context.Context, cluster *models.Cluster) (string, error) {

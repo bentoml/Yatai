@@ -572,6 +572,14 @@ const locales0 = {
         cn: '模型版本',
         en: 'Model Versions',
     },
+    'name or email': {
+        cn: '用户名或者邮箱地址',
+        en: 'Name or Email',
+    },
+    'password': {
+        cn: '密码',
+        en: 'Password',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

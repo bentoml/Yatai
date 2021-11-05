@@ -50,7 +50,9 @@ func ToUserSchemas(ctx context.Context, users []*models.User) ([]*schemasv1.User
 	res := make([]*schemasv1.UserSchema, 0, len(users))
 	currentUser, err := services.GetCurrentUser(ctx)
 	if err != nil {
-		return nil, err
+		if !utils.IsNotFound(err) {
+			return nil, err
+		}
 	}
 	for _, u := range users {
 		avatarUrl, err := getAvatarUrl(u)
@@ -62,7 +64,7 @@ func ToUserSchemas(ctx context.Context, users []*models.User) ([]*schemasv1.User
 			email = *u.Email
 		}
 		var apiToken *string
-		if u.ID == currentUser.ID {
+		if currentUser != nil && u.ID == currentUser.ID {
 			apiToken = utils.StringPtr(u.ApiToken)
 		}
 		res = append(res, &schemasv1.UserSchema{
