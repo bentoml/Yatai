@@ -63,7 +63,6 @@ export default function Login() {
                 <div
                     style={{
                         display: 'flex',
-                        height: '100vh',
                         flexDirection: 'column',
                         justifyContent: 'center',
                     }}
