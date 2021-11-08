@@ -292,6 +292,9 @@ func (s *clusterService) GetKubeCliSet(ctx context.Context, c *models.Cluster) (
 }
 
 func (s *clusterService) GetIngressIp(ctx context.Context, cluster *models.Cluster) (string, error) {
+	if cluster.Config == nil {
+		return "", errors.Errorf("please specify the ingress ip or hostname in cluster %s", cluster.Name)
+	}
 	ip := cluster.Config.IngressIp
 	if ip == "" {
 		return "", errors.Errorf("please specify the ingress ip or hostname in cluster %s", cluster.Name)
