@@ -5,6 +5,7 @@ import { Input } from 'baseui/input'
 import { Textarea } from 'baseui/textarea'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
+import { isModified } from '@/utils'
 
 const { Form, FormItem } = createForm<ICreateOrganizationSchema>()
 
@@ -14,13 +15,13 @@ export interface IOrganizationFormProps {
 }
 
 export default function OrganizationForm({ organization, onSubmit }: IOrganizationFormProps) {
-    const [initialValue, setInitialValue] = useState<ICreateOrganizationSchema | undefined>()
+    const [values, setValues] = useState<ICreateOrganizationSchema | undefined>(organization)
 
     useEffect(() => {
         if (!organization) {
             return
         }
-        setInitialValue({
+        setValues({
             name: organization.name,
             description: organization.description,
             config: organization.config,
@@ -29,11 +30,15 @@ export default function OrganizationForm({ organization, onSubmit }: IOrganizati
 
     const [loading, setLoading] = useState(false)
 
+    const handleValuesChange = useCallback((_changes, values_) => {
+        setValues(values_)
+    }, [])
+
     const handleFinish = useCallback(
-        async (values) => {
+        async (values_) => {
             setLoading(true)
             try {
-                await onSubmit(values)
+                await onSubmit(values_)
             } finally {
                 setLoading(false)
             }
@@ -44,9 +49,9 @@ export default function OrganizationForm({ organization, onSubmit }: IOrganizati
     const [t] = useTranslation()
 
     return (
-        <Form initialValues={initialValue} onFinish={handleFinish}>
+        <Form initialValues={values} onFinish={handleFinish} onValuesChange={handleValuesChange}>
             <FormItem name='name' label={t('name')}>
-                <Input />
+                <Input disabled={organization !== undefined} />
             </FormItem>
             <FormItem name='description' label={t('description')}>
                 <Textarea />
@@ -72,7 +77,7 @@ export default function OrganizationForm({ organization, onSubmit }: IOrganizati
             <FormItem>
                 <div style={{ display: 'flex' }}>
                     <div style={{ flexGrow: 1 }} />
-                    <Button isLoading={loading} size={ButtonSize.compact}>
+                    <Button isLoading={loading} size={ButtonSize.compact} disabled={!isModified(organization, values)}>
                         {t('submit')}
                     </Button>
                 </div>

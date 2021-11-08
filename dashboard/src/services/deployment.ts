@@ -1,6 +1,11 @@
 import { ITerminalRecordSchema } from '@/schemas/terminal_record'
 import axios from 'axios'
-import { ICreateDeploymentSchema, IDeploymentSchema, IUpdateDeploymentSchema } from '@/schemas/deployment'
+import {
+    ICreateDeploymentSchema,
+    IDeploymentFullSchema,
+    IDeploymentSchema,
+    IUpdateDeploymentSchema,
+} from '@/schemas/deployment'
 import { IListQuerySchema, IListSchema } from '@/schemas/list'
 
 export async function listClusterDeployments(
@@ -34,13 +39,16 @@ export async function listDeploymentTerminalRecords(
     return resp.data
 }
 
-export async function fetchDeployment(clusterName: string, deploymentName: string): Promise<IDeploymentSchema> {
-    const resp = await axios.get<IDeploymentSchema>(`/api/v1/clusters/${clusterName}/deployments/${deploymentName}`)
+export async function fetchDeployment(clusterName: string, deploymentName: string): Promise<IDeploymentFullSchema> {
+    const resp = await axios.get<IDeploymentFullSchema>(`/api/v1/clusters/${clusterName}/deployments/${deploymentName}`)
     return resp.data
 }
 
-export async function createDeployment(clusterName: string, data: ICreateDeploymentSchema): Promise<IDeploymentSchema> {
-    const resp = await axios.post<IDeploymentSchema>(`/api/v1/clusters/${clusterName}/deployments`, data)
+export async function createDeployment(
+    clusterName: string,
+    data: ICreateDeploymentSchema
+): Promise<IDeploymentFullSchema> {
+    const resp = await axios.post<IDeploymentFullSchema>(`/api/v1/clusters/${clusterName}/deployments`, data)
     return resp.data
 }
 
@@ -48,8 +56,8 @@ export async function updateDeployment(
     clusterName: string,
     deploymentName: string,
     data: IUpdateDeploymentSchema
-): Promise<IDeploymentSchema> {
-    const resp = await axios.patch<IDeploymentSchema>(
+): Promise<IDeploymentFullSchema> {
+    const resp = await axios.patch<IDeploymentFullSchema>(
         `/api/v1/clusters/${clusterName}/deployments/${deploymentName}`,
         data
     )

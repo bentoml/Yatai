@@ -580,6 +580,14 @@ const locales0 = {
         cn: '密码',
         en: 'Password',
     },
+    'update': {
+        cn: '更新',
+        en: 'Update',
+    },
+    'update sth': {
+        cn: '更新 {{0}}',
+        en: 'Update {{0}}',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

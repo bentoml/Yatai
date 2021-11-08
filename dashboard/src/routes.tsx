@@ -12,6 +12,7 @@ import Login from '@/pages/Yatai/Login'
 import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
 import OrganizationDeployments from '@/pages/Organization/Deployments'
+import OrganizationSettings from '@/pages/Organization/Settings'
 import ClusterYataiComponents from '@/pages/Cluster/YataiComponents'
 import ClusterYataiComponentDetail from '@/pages/Cluster/YataiComponentDetail'
 import ClusterDeployments from '@/pages/Cluster/Deployments'
@@ -24,7 +25,9 @@ import BentoVersions from '@/pages/Bento/Versions'
 import DeploymentOverview from '@/pages/Deployment/Overview'
 import DeploymentSnapshots from '@/pages/Deployment/Snapshots'
 import DeploymentTerminalRecordPlayer from '@/pages/Deployment/TerminalRecordPlayer'
+import DeploymentReplicas from '@/pages/Deployment/Replicas'
 import DeploymentLog from '@/pages/Deployment/Log'
+import DeploymentMonitor from '@/pages/Deployment/Monitor'
 import BentoLayout from '@/components/BentoLayout'
 import DeploymentLayout from '@/components/DeploymentLayout'
 import ModelLayout from '@/components/ModelLayout'
@@ -97,8 +100,18 @@ const Routes = () => {
                                 />
                                 <Route
                                     exact
+                                    path='/clusters/:clusterName/deployments/:deploymentName/replicas'
+                                    component={DeploymentReplicas}
+                                />
+                                <Route
+                                    exact
                                     path='/clusters/:clusterName/deployments/:deploymentName/log'
                                     component={DeploymentLog}
+                                />
+                                <Route
+                                    exact
+                                    path='/clusters/:clusterName/deployments/:deploymentName/monitor'
+                                    component={DeploymentMonitor}
                                 />
                                 <Route
                                     exact
@@ -146,6 +159,7 @@ const Routes = () => {
                                 <Route exact path='/members' component={OrganizationMembers} />
                                 <Route exact path='/models' component={OrganizationModels} />
                                 <Route exact path='/deployments' component={OrganizationDeployments} />
+                                <Route exact path='/settings' component={OrganizationSettings} />
                             </Switch>
                         </OrganizationLayout>
                     </Route>

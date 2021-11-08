@@ -23,6 +23,8 @@ export interface INavItem {
     icon?: React.ComponentType<IconBaseProps>
     path: string
     children?: INavItem[]
+    disabled?: boolean
+    helpMessage?: React.ReactNode
 }
 
 function transformNavItems(navItems: INavItem[], expanded = true): Item[] {

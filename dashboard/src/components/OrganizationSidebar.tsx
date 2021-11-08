@@ -57,5 +57,5 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
         ],
         [t]
     )
-    return <BaseSidebar navItems={navItems} style={style} />
+    return <BaseSidebar navItems={navItems} style={style} settingsPath='/settings' />
 }

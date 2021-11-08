@@ -80,7 +80,7 @@ type CreateDeploymentSchema struct {
 	GetClusterSchema
 }
 
-func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
+func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeploymentSchema) (*schemasv1.DeploymentFullSchema, error) {
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err
@@ -136,7 +136,7 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		return nil, errors.Wrap(err, "deploy deployment snapshot")
 	}
 
-	return transformersv1.ToDeploymentSchema(ctx, deployment)
+	return transformersv1.ToDeploymentFullSchema(ctx, deployment)
 }
 
 type UpdateDeploymentSchema struct {
@@ -144,7 +144,7 @@ type UpdateDeploymentSchema struct {
 	GetDeploymentSchema
 }
 
-func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
+func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeploymentSchema) (*schemasv1.DeploymentFullSchema, error) {
 	deployment, err := schema.GetDeployment(ctx)
 	if err != nil {
 		return nil, err
@@ -189,10 +189,10 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 		return nil, errors.Wrap(err, "deploy deployment snapshot")
 	}
 
-	return transformersv1.ToDeploymentSchema(ctx, deployment)
+	return transformersv1.ToDeploymentFullSchema(ctx, deployment)
 }
 
-func (c *deploymentController) Get(ctx *gin.Context, schema *GetDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
+func (c *deploymentController) Get(ctx *gin.Context, schema *GetDeploymentSchema) (*schemasv1.DeploymentFullSchema, error) {
 	deployment, err := schema.GetDeployment(ctx)
 	if err != nil {
 		return nil, err
@@ -200,7 +200,7 @@ func (c *deploymentController) Get(ctx *gin.Context, schema *GetDeploymentSchema
 	if err = c.canView(ctx, deployment); err != nil {
 		return nil, err
 	}
-	return transformersv1.ToDeploymentSchema(ctx, deployment)
+	return transformersv1.ToDeploymentFullSchema(ctx, deployment)
 }
 
 type ListClusterDeploymentSchema struct {
@@ -492,6 +492,11 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 		}
 
 		viewChanged := !reflect.DeepEqual(podSchemas, newPodSchemas)
+		if viewChanged {
+			go func() {
+				_, _ = services.DeploymentService.SyncStatus(ctx, deployment)
+			}()
+		}
 		podSchemas = newPodSchemas
 
 		var mu sync.Mutex

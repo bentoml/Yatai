@@ -46,11 +46,9 @@ export default function ClusterForm({ cluster, onSubmit }: IClusterFormProps) {
 
     return (
         <Form initialValues={values} onFinish={handleFinish} onValuesChange={handleValuesChange}>
-            {!cluster && (
-                <FormItem name='name' label={t('name')}>
-                    <Input />
-                </FormItem>
-            )}
+            <FormItem name='name' label={t('name')}>
+                <Input disabled={cluster !== undefined} />
+            </FormItem>
             <FormItem name='description' label={t('description')}>
                 <Textarea />
             </FormItem>

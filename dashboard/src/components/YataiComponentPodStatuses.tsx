@@ -30,7 +30,7 @@ export function YataiComponentPodStatuses({ clusterName, componentType }: IYatai
             {kubeResourcesLoading ? (
                 <Skeleton rows={3} animation />
             ) : (
-                kubeResources.map((x, idx) => (
+                kubeResources?.map((x, idx) => (
                     <KubeResourcePodStatuses key={idx} clusterName={clusterName} resource={x} />
                 ))
             )}

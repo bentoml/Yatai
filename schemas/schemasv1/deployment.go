@@ -10,6 +10,11 @@ type DeploymentSchema struct {
 	URLs    []string                      `json:"urls"`
 }
 
+type DeploymentFullSchema struct {
+	DeploymentSchema
+	LatestSnapshot **DeploymentSnapshotSchema `json:"latest_snapshot"`
+}
+
 type DeploymentListSchema struct {
 	BaseListSchema
 	Items []*DeploymentSchema `json:"items"`
