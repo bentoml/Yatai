@@ -270,44 +270,48 @@ export default function Header() {
                     </Text>
                 )}
             </Link>
-            <div
-                style={{
-                    flexBasis: 1,
-                    flexShrink: 0,
-                    height: 20,
-                    background: theme.colors.borderAlt,
-                    margin: '0 20px',
-                }}
-            />
-            <div
-                style={{
-                    flexShrink: 0,
-                    display: 'flex',
-                    gap: 10,
-                    alignItems: 'center',
-                }}
-            >
-                <Link
-                    style={{
-                        display: 'flex',
-                        flexShrink: 0,
-                        textDecoration: 'none',
-                        gap: 6,
-                        alignItems: 'center',
-                    }}
-                    to='/'
-                >
-                    {React.createElement(resourceIconMapping.organization, { size: 12 })}
-                    <Text
+            {organization && (
+                <>
+                    <div
                         style={{
-                            fontFamily: 'Teko',
-                            fontSize: '18px',
+                            flexBasis: 1,
+                            flexShrink: 0,
+                            height: 20,
+                            background: theme.colors.borderAlt,
+                            margin: '0 20px',
+                        }}
+                    />
+                    <div
+                        style={{
+                            flexShrink: 0,
+                            display: 'flex',
+                            gap: 10,
+                            alignItems: 'center',
                         }}
                     >
-                        {organization?.name}
-                    </Text>
-                </Link>
-            </div>
+                        <Link
+                            style={{
+                                display: 'flex',
+                                flexShrink: 0,
+                                textDecoration: 'none',
+                                gap: 6,
+                                alignItems: 'center',
+                            }}
+                            to='/'
+                        >
+                            {React.createElement(resourceIconMapping.organization, { size: 12 })}
+                            <Text
+                                style={{
+                                    fontFamily: 'Teko',
+                                    fontSize: '18px',
+                                }}
+                            >
+                                {organization?.name}
+                            </Text>
+                        </Link>
+                    </div>
+                </>
+            )}
             <div style={{ flexGrow: 1 }} />
             <div
                 className={css({
