@@ -50,7 +50,7 @@ func (*authController) Login(ctx *gin.Context, schema *schemasv1.LoginUserSchema
 		user, err = services.UserService.GetByName(ctx, schema.NameOrEmail)
 	}
 	if err != nil {
-		return nil, errors.Wrap(err, "get user")
+		return nil, errors.New("invalid username or password")
 	}
 	if err = services.UserService.CheckPassword(ctx, user, schema.Password); err != nil {
 		return nil, err

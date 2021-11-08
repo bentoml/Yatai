@@ -46,6 +46,8 @@ type UpdateUserOption struct {
 
 type ListUserOption struct {
 	BaseListOption
+	Perm  *modelschemas.UserPerm
+	Order *string
 }
 
 func (s *userService) Create(ctx context.Context, opt CreateUserOption) (*models.User, error) {
@@ -68,10 +70,11 @@ func (s *userService) Create(ctx context.Context, opt CreateUserOption) (*models
 		user.Perm = *opt.Perm
 	} else {
 		_, total, err := s.List(ctx, ListUserOption{
-			BaseListOption{
+			BaseListOption: BaseListOption{
 				Start: utils.UintPtr(0),
 				Count: utils.UintPtr(0),
 			},
+			Perm: modelschemas.UserPermPtr(modelschemas.UserPermAdmin),
 		})
 		if err != nil {
 			return nil, errors.Wrap(err, "get user total count")
@@ -172,6 +175,13 @@ func generateHashedPassword(rawPassword string) ([]byte, error) {
 	return hashedPassword, nil
 }
 
+func (*userService) GetUserDisplayName(user *models.User) string {
+	if user.FirstName == "" && user.LastName == "" {
+		return user.Name
+	}
+	return fmt.Sprintf("%s %s", user.FirstName, user.LastName)
+}
+
 func (*userService) Get(ctx context.Context, id uint) (*models.User, error) {
 	var user models.User
 	err := mustGetSession(ctx).Where("id = ?", id).First(&user).Error
@@ -219,13 +229,20 @@ func (s *userService) List(ctx context.Context, opt ListUserOption) ([]*models.U
 	if opt.Search != nil && *opt.Search != "" {
 		query = query.Where("name like ?", fmt.Sprintf("%%%s%%", *opt.Search))
 	}
+	if opt.Perm != nil {
+		query = query.Where("perm = ?", *opt.Perm)
+	}
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
 	users := make([]*models.User, 0)
-	query = query.Order("id DESC")
+	if opt.Order != nil {
+		query = query.Order(*opt.Order)
+	} else {
+		query = query.Order("id DESC")
+	}
 	err = opt.BindQuery(query).Find(&users).Error
 	return users, uint(total), err
 }
@@ -299,7 +316,11 @@ func SetLoginUser(ctx *gin.Context, user *models.User) {
 }
 
 func GetCurrentUser(ctx context.Context) (*models.User, error) {
-	user, ok := ctx.Value(LoginUserKey).(*models.User)
+	user_ := ctx.Value(LoginUserKey)
+	if user_ == nil {
+		return nil, errors.Wrap(consts.ErrNotFound, "cannot find current user")
+	}
+	user, ok := user_.(*models.User)
 	if !ok {
 		return nil, errors.New("get login user err")
 	}

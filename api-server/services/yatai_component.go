@@ -41,7 +41,6 @@ import (
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
-	"github.com/bentoml/yatai/common/helmchart"
 	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
@@ -99,7 +98,10 @@ func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiCompo
 		return
 	}
 
-	clientGetter := helmchart.NewRESTClientGetter(consts.KubeNamespaceYataiOperators, cluster.KubeConfig)
+	clientGetter, err := ClusterService.GetRESTClientGetter(ctx, cluster, consts.KubeNamespaceYataiOperators)
+	if err != nil {
+		return
+	}
 	actionConfig := new(action.Configuration)
 	err = actionConfig.Init(clientGetter, consts.KubeNamespaceYataiOperators, "", func(format string, v ...interface{}) {
 		logrus.Infof(format, v...)
@@ -199,7 +201,10 @@ func (s *yataiComponentService) List(ctx context.Context, clusterId uint) (comps
 		return
 	}
 
-	clientGetter := helmchart.NewRESTClientGetter(consts.KubeNamespaceYataiOperators, cluster.KubeConfig)
+	clientGetter, err := ClusterService.GetRESTClientGetter(ctx, cluster, consts.KubeNamespaceYataiOperators)
+	if err != nil {
+		return
+	}
 	actionConfig := new(action.Configuration)
 	err = actionConfig.Init(clientGetter, consts.KubeNamespaceYataiOperators, "", func(format string, v ...interface{}) {
 		logrus.Infof(format, v...)
@@ -338,7 +343,10 @@ func (s *yataiComponentService) Get(ctx context.Context, opt GetYataiComponentRe
 		return
 	}
 
-	clientGetter := helmchart.NewRESTClientGetter(consts.KubeNamespaceYataiOperators, cluster.KubeConfig)
+	clientGetter, err := ClusterService.GetRESTClientGetter(ctx, cluster, consts.KubeNamespaceYataiOperators)
+	if err != nil {
+		return
+	}
 	actionConfig := new(action.Configuration)
 	err = actionConfig.Init(clientGetter, consts.KubeNamespaceYataiOperators, "", func(format string, v ...interface{}) {
 		logrus.Infof(format, v...)
@@ -421,7 +429,10 @@ func (s *yataiComponentService) Delete(ctx context.Context, opt DeleteYataiCompo
 		return
 	}
 
-	clientGetter := helmchart.NewRESTClientGetter(consts.KubeNamespaceYataiOperators, cluster.KubeConfig)
+	clientGetter, err := ClusterService.GetRESTClientGetter(ctx, cluster, consts.KubeNamespaceYataiOperators)
+	if err != nil {
+		return
+	}
 	actionConfig := new(action.Configuration)
 	err = actionConfig.Init(clientGetter, consts.KubeNamespaceYataiOperators, "", func(format string, v ...interface{}) {
 		logrus.Infof(format, v...)

@@ -1,6 +1,7 @@
 package helmchart
 
 import (
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/discovery/cached/memory"
@@ -10,23 +11,31 @@ import (
 )
 
 type HelmRESTClientGetter struct {
-	Namespace  string
-	KubeConfig string
+	namespace  string
+	kubeConfig *string
+	restConfig **rest.Config
 }
 
-func NewRESTClientGetter(namespace, kubeConfig string) *HelmRESTClientGetter {
+func NewRESTClientGetter(namespace string, kubeConfig *string, restConfig **rest.Config) *HelmRESTClientGetter {
 	return &HelmRESTClientGetter{
-		Namespace:  namespace,
-		KubeConfig: kubeConfig,
+		namespace:  namespace,
+		kubeConfig: kubeConfig,
+		restConfig: restConfig,
 	}
 }
 
 func (c *HelmRESTClientGetter) ToRESTConfig() (*rest.Config, error) {
-	config, err := clientcmd.RESTConfigFromKubeConfig([]byte(c.KubeConfig))
-	if err != nil {
-		return nil, err
+	if c.kubeConfig != nil {
+		config, err := clientcmd.RESTConfigFromKubeConfig([]byte(*c.kubeConfig))
+		if err != nil {
+			return nil, err
+		}
+		return config, nil
 	}
-	return config, nil
+	if c.restConfig != nil {
+		return *c.restConfig, nil
+	}
+	return nil, errors.New("please specify the kubeConfig or restConfig for HelmRESTClientGetter")
 }
 
 func (c *HelmRESTClientGetter) ToDiscoveryClient() (discovery.CachedDiscoveryInterface, error) {
@@ -62,7 +71,7 @@ func (c *HelmRESTClientGetter) ToRawKubeConfigLoader() clientcmd.ClientConfig {
 	loadingRules.DefaultClientConfig = &clientcmd.DefaultClientConfig
 
 	overrides := &clientcmd.ConfigOverrides{ClusterDefaults: clientcmd.ClusterDefaults}
-	overrides.Context.Namespace = c.Namespace
+	overrides.Context.Namespace = c.namespace
 
 	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, overrides)
 }

@@ -1,7 +1,6 @@
 import React from 'react'
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
 import Header from '@/components/Header'
-import YataiLayout from '@/components/YataiLayout'
 import OrganizationLayout from '@/components/OrganizationLayout'
 import OrganizationOverview from '@/pages/Organization/Overview'
 import ClusterOverview from '@/pages/Cluster/Overview'
@@ -9,6 +8,7 @@ import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
+import Login from '@/pages/Yatai/Login'
 import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
 import OrganizationDeployments from '@/pages/Organization/Deployments'
@@ -26,7 +26,6 @@ import DeploymentSnapshots from '@/pages/Deployment/Snapshots'
 import DeploymentTerminalRecordPlayer from '@/pages/Deployment/TerminalRecordPlayer'
 import DeploymentLog from '@/pages/Deployment/Log'
 import BentoLayout from '@/components/BentoLayout'
-import UserProfile from '@/pages/Yatai/UserProfile'
 import DeploymentLayout from '@/components/DeploymentLayout'
 import ModelLayout from '@/components/ModelLayout'
 import ModelOverview from '@/pages/Model/Overview'
@@ -137,6 +136,7 @@ const Routes = () => {
                             </Switch>
                         </ModelLayout>
                     </Route>
+                    <Route exact path='/login' component={Login} />
                     <Route>
                         <OrganizationLayout>
                             <Switch>
@@ -148,11 +148,6 @@ const Routes = () => {
                                 <Route exact path='/deployments' component={OrganizationDeployments} />
                             </Switch>
                         </OrganizationLayout>
-                        <YataiLayout>
-                            <Switch>
-                                <Route exact path='/user' component={UserProfile} />
-                            </Switch>
-                        </YataiLayout>
                     </Route>
                 </Switch>
             </div>
