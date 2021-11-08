@@ -2,6 +2,7 @@ import {
     DeploymentSnapshotType,
     IDeploymentSnapshotCanaryRule,
     IDeploymentSnapshotConfigSchema,
+    IDeploymentSnapshotSchema,
 } from './deployment_snapshot'
 import { IUserSchema } from './user'
 import { IResourceSchema } from './resource'
@@ -15,6 +16,10 @@ export interface IDeploymentSchema extends IResourceSchema {
     cluster?: IClusterFullSchema
     status: DeploymentStatus
     urls: string[]
+}
+
+export interface IDeploymentFullSchema extends IDeploymentSchema {
+    latest_snapshot?: IDeploymentSnapshotSchema
 }
 
 export interface IUpdateDeploymentSchema {

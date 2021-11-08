@@ -1,13 +1,10 @@
 import { useCallback, useState } from 'react'
-import { useQuery } from 'react-query'
 import Card from '@/components/Card'
 import { updateDeployment } from '@/services/deployment'
-import { listDeploymentSnapshots } from '@/services/deployment_snapshot'
 import { usePage } from '@/hooks/usePage'
 import DeploymentForm from '@/components/DeploymentForm'
 import { formatTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
-import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
@@ -19,6 +16,7 @@ import { Theme } from 'baseui/theme'
 import color from 'color'
 import { StyledLink } from 'baseui/link'
 import { IDeploymentSnapshotSchema } from '@/schemas/deployment_snapshot'
+import { useFetchDeploymentSnapshots } from '@/hooks/useFetchDeploymentSnapshots'
 import DeploymentSnapshotDetail from './DeploymentSnapshotDetail'
 
 export interface IDeploymentSnapshotListCardProps {
@@ -30,8 +28,7 @@ export default function DeploymentSnapshotListCard({ clusterName, deploymentName
     const [page, setPage] = usePage()
     const { deployment } = useDeployment()
     const [desiredShowDeploymentSnapshot, setDesiredShowDeploymentSnapshot] = useState<IDeploymentSnapshotSchema>()
-    const queryKey = `fetchDeploymentSnapshots:${clusterName}:${deploymentName}`
-    const deploymentSnapshotsInfo = useQuery(queryKey, () => listDeploymentSnapshots(clusterName, deploymentName, page))
+    const { deploymentSnapshotsInfo } = useFetchDeploymentSnapshots(clusterName, deploymentName, page)
     const [isCreateDeploymentSnapshotOpen, setIsCreateDeploymentSnapshotOpen] = useState(false)
     const handleCreateDeploymentSnapshot = useCallback(
         async (data: IUpdateDeploymentSchema) => {
@@ -45,15 +42,7 @@ export default function DeploymentSnapshotListCard({ clusterName, deploymentName
     const [t] = useTranslation()
 
     return (
-        <Card
-            title={t('sth list', [t('snapshot')])}
-            titleIcon={resourceIconMapping.deployment_snapshot}
-            extra={
-                <Button size={ButtonSize.compact} onClick={() => setIsCreateDeploymentSnapshotOpen(true)}>
-                    {t('create')}
-                </Button>
-            }
-        >
+        <Card title={t('sth list', [t('snapshot')])} titleIcon={resourceIconMapping.deployment_snapshot}>
             <Table
                 isLoading={deploymentSnapshotsInfo.isLoading}
                 columns={['ID', t('type'), t('bento version'), t('creator'), t('created_at')]}
@@ -127,11 +116,7 @@ export default function DeploymentSnapshotListCard({ clusterName, deploymentName
                     <DeploymentForm
                         clusterName={clusterName}
                         deployment={deployment}
-                        deploymentSnapshot={
-                            deploymentSnapshotsInfo.data?.items.filter(
-                                (snapshot) => snapshot.type === 'stable' && snapshot.status === 'active'
-                            )?.[0]
-                        }
+                        deploymentSnapshot={deployment?.latest_snapshot}
                         onSubmit={handleCreateDeploymentSnapshot}
                     />
                 </ModalBody>

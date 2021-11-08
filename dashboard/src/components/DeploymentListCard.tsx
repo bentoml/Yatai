@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
 import { createDeployment, listClusterDeployments, listOrganizationDeployments } from '@/services/deployment'
 import { usePage } from '@/hooks/usePage'
-import { DeploymentStatus, ICreateDeploymentSchema, IDeploymentSchema } from '@/schemas/deployment'
+import { ICreateDeploymentSchema, IDeploymentSchema } from '@/schemas/deployment'
 import DeploymentForm from '@/components/DeploymentForm'
 import { formatTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
@@ -13,10 +13,9 @@ import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
-import { Tag, KIND as TagKind, VARIANT as TagVariant } from 'baseui/tag'
 import { IListSchema } from '@/schemas/list'
 import { useSubscription } from '@/hooks/useSubscription'
-import { StyledSpinnerNext } from 'baseui/spinner'
+import DeploymentStatusTag from './DeploymentStatusTag'
 
 export interface IDeploymentListCardProps {
     clusterName?: string
@@ -41,17 +40,6 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
         [deploymentsInfo]
     )
     const [t] = useTranslation()
-
-    const statusColorMap: Record<DeploymentStatus, keyof TagKind> = useMemo(() => {
-        return {
-            'unknown': TagKind.black,
-            'non-deployed': TagKind.primary,
-            'running': TagKind.positive,
-            'unhealthy': TagKind.warning,
-            'failed': TagKind.negative,
-            'deploying': TagKind.accent,
-        }
-    }, [])
 
     const uids = useMemo(
         () => deploymentsInfo.data?.items.map((deployment) => deployment.uid) ?? [],
@@ -137,23 +125,7 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                                 {deployment.cluster?.name}
                             </Link>
                         ),
-                        <Tag
-                            key={deployment.uid}
-                            closeable={false}
-                            variant={TagVariant.light}
-                            kind={statusColorMap[deployment.status]}
-                        >
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                }}
-                            >
-                                {['deploying'].indexOf(deployment.status) >= 0 && <StyledSpinnerNext $size={100} />}
-                                {t(deployment.status)}
-                            </div>
-                        </Tag>,
+                        <DeploymentStatusTag key={deployment.uid} status={deployment.status} />,
                         deployment.creator && <User user={deployment.creator} />,
                         formatTime(deployment.created_at),
                     ]) ?? []

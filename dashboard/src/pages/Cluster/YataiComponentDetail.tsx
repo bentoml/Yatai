@@ -68,7 +68,7 @@ export default function YataiComponentDetail() {
                 {kubeResourcesLoading ? (
                     <Skeleton rows={3} animation />
                 ) : (
-                    kubeResources.map((resource, idx) => (
+                    kubeResources?.map((resource, idx) => (
                         <KubeResourceDetail
                             key={idx}
                             resource={resource}

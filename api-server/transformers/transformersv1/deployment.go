@@ -3,12 +3,56 @@ package transformersv1
 import (
 	"context"
 
+	"github.com/bentoml/yatai/common/utils"
+	"github.com/bentoml/yatai/schemas/modelschemas"
+
 	"github.com/pkg/errors"
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/schemas/schemasv1"
 )
+
+func ToDeploymentFullSchema(ctx context.Context, deployment *models.Deployment) (*schemasv1.DeploymentFullSchema, error) {
+	s, err := ToDeploymentSchema(ctx, deployment)
+	if err != nil {
+		return nil, err
+	}
+	status_ := modelschemas.DeploymentSnapshotStatusActive
+	type_ := modelschemas.DeploymentSnapshotTypeStable
+
+	deploymentSnapshots, _, err := services.DeploymentSnapshotService.List(ctx, services.ListDeploymentSnapshotOption{
+		BaseListOption: services.BaseListOption{
+			Start: utils.UintPtr(0),
+			Count: utils.UintPtr(1),
+		},
+		DeploymentId: deployment.ID,
+		Type:         &type_,
+		Status:       &status_,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var latestDeploymentSnapshot *models.DeploymentSnapshot
+	if len(deploymentSnapshots) != 0 {
+		latestDeploymentSnapshot = deploymentSnapshots[0]
+	}
+
+	var latestDeploymentSnapshotSchema **schemasv1.DeploymentSnapshotSchema
+	if latestDeploymentSnapshot != nil {
+		latestDeploymentSnapshotSchema_, err := ToDeploymentSnapshotSchema(ctx, latestDeploymentSnapshot)
+		if err != nil {
+			return nil, err
+		}
+		latestDeploymentSnapshotSchema = &latestDeploymentSnapshotSchema_
+	}
+
+	return &schemasv1.DeploymentFullSchema{
+		DeploymentSchema: *s,
+		LatestSnapshot:   latestDeploymentSnapshotSchema,
+	}, nil
+}
 
 func ToDeploymentSchema(ctx context.Context, deployment *models.Deployment) (*schemasv1.DeploymentSchema, error) {
 	if deployment == nil {

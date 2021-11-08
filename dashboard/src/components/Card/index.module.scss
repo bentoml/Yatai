@@ -18,6 +18,10 @@
     margin-bottom: 16px;
     display: flex;
     flex-direction: column;
+
+    .card {
+        box-shadow: none;
+    }
 }
 
 @for $i from 1 through 10 {

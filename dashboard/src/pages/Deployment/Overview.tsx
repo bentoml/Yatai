@@ -1,51 +1,28 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { RiSurveyLine } from 'react-icons/ri'
-import { VscServerProcess } from 'react-icons/vsc'
 import Table from '@/components/Table'
 import useTranslation from '@/hooks/useTranslation'
 import { useDeployment, useDeploymentLoading } from '@/hooks/useDeployment'
 import Card from '@/components/Card'
 import { formatTime } from '@/utils/datetime'
 import User from '@/components/User'
-import { AiOutlineDashboard, AiOutlineHistory, AiOutlineQuestionCircle } from 'react-icons/ai'
-import { IKubePodSchema } from '@/schemas/kube_pod'
-import { useFetchDeploymentPods } from '@/hooks/useFetchDeploymentPods'
-import { useHistory, useParams } from 'react-router-dom'
+import { AiOutlineHistory } from 'react-icons/ai'
+import { useParams } from 'react-router-dom'
 import { StyledLink } from 'baseui/link'
-import PodList from '@/components/PodList'
 import { Button } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
-import { FaJournalWhills } from 'react-icons/fa'
 import DeploymentTerminalRecordList from '@/components/DeploymentTerminalRecordList'
-import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
-import { StatefulTooltip } from 'baseui/tooltip'
-import DeploymentMonitor from '@/components/DeploymentMonitor'
-import { Skeleton } from 'baseui/skeleton'
 
 export default function DeploymentOverview() {
-    const { clusterName, deploymentName } = useParams<{ clusterName: string; deploymentName: string }>()
+    const { clusterName } = useParams<{ clusterName: string; deploymentName: string }>()
     const { deployment } = useDeployment()
     const { deploymentLoading } = useDeploymentLoading()
-    const [pods, setPods] = useState<IKubePodSchema[]>()
-    const [podsLoading, setPodsLoading] = useState(false)
-    const { yataiComponentsInfo } = useFetchYataiComponents(clusterName)
-
-    const hasLogging = yataiComponentsInfo.data?.find((x) => x.type === 'logging') !== undefined
-    const hasMonitoring = yataiComponentsInfo.data?.find((x) => x.type === 'monitoring') !== undefined
-
-    useFetchDeploymentPods({
-        clusterName,
-        deploymentName,
-        setPods,
-        setPodsLoading,
-    })
 
     const [t] = useTranslation()
     const [showTerminalRecordsModal, setShowTerminalRecordsModal] = useState(false)
-    const history = useHistory()
 
     return (
-        <>
+        <div>
             <Card
                 title={t('overview')}
                 titleIcon={RiSurveyLine}
@@ -64,48 +41,6 @@ export default function DeploymentOverview() {
                         >
                             {t('view terminal history')}
                         </Button>
-                        {hasLogging ? (
-                            <Button
-                                size='mini'
-                                startEnhancer={<FaJournalWhills />}
-                                onClick={() => {
-                                    history.push(`/clusters/${clusterName}/deployments/${deploymentName}/log`)
-                                }}
-                            >
-                                {t('view log')}
-                            </Button>
-                        ) : (
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 5,
-                                }}
-                            >
-                                <Button
-                                    disabled
-                                    size='mini'
-                                    startEnhancer={<FaJournalWhills />}
-                                    onClick={() => {
-                                        history.push(`/clusters/${clusterName}/deployments/${deploymentName}/log`)
-                                    }}
-                                >
-                                    {t('view log')}
-                                </Button>
-                                <StatefulTooltip
-                                    content={t('please install yatai component first', [t('logging')])}
-                                    showArrow
-                                >
-                                    <div
-                                        style={{
-                                            cursor: 'pointer',
-                                        }}
-                                    >
-                                        <AiOutlineQuestionCircle />
-                                    </div>
-                                </StatefulTooltip>
-                            </div>
-                        )}
                     </div>
                 }
             >
@@ -129,14 +64,6 @@ export default function DeploymentOverview() {
                     ]}
                 />
             </Card>
-            {hasMonitoring && (
-                <Card title={t('monitor')} titleIcon={AiOutlineDashboard}>
-                    {deployment ? <DeploymentMonitor deployment={deployment} /> : <Skeleton animation rows={3} />}
-                </Card>
-            )}
-            <Card title={t('replicas')} titleIcon={VscServerProcess}>
-                <PodList loading={podsLoading} pods={pods ?? []} />
-            </Card>
             <Modal
                 size='auto'
                 isOpen={showTerminalRecordsModal}
@@ -152,6 +79,6 @@ export default function DeploymentOverview() {
                     )}
                 </ModalBody>
             </Modal>
-        </>
+        </div>
     )
 }

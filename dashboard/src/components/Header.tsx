@@ -292,15 +292,20 @@ export default function Header() {
                         display: 'flex',
                         flexShrink: 0,
                         textDecoration: 'none',
-                        gap: 8,
+                        gap: 6,
                         alignItems: 'center',
-                        fontWeight: 700,
-                        fontSize: '16px',
                     }}
                     to='/'
                 >
-                    {React.createElement(resourceIconMapping.organization, { size: 14 })}
-                    <Text>{organization?.name}</Text>
+                    {React.createElement(resourceIconMapping.organization, { size: 12 })}
+                    <Text
+                        style={{
+                            fontFamily: 'Teko',
+                            fontSize: '18px',
+                        }}
+                    >
+                        {organization?.name}
+                    </Text>
                 </Link>
             </div>
             <div style={{ flexGrow: 1 }} />
