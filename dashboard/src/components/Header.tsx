@@ -145,7 +145,7 @@ export default function Header() {
                     } else {
                         redirect = '/'
                     }
-                    if (location.pathname !== '/login') {
+                    if (location.pathname !== '/login' && location.pathname !== '/login/') {
                         window.location.href = `${window.location.protocol}//${
                             window.location.host
                         }/login?redirect=${encodeURIComponent(redirect)}`
