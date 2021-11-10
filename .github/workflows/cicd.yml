@@ -20,11 +20,11 @@ jobs:
         with:
           filters: |
             golang:
-              - **/*.go
+              - api-server/**
+              - common/**
+              - schemas/**
             js:
-              - **/*.ts
-              - **/*.d.ts
-              - **/*.js
+              - dashboard/**
 
   build-ui-builder:
     runs-on: ubuntu-latest
