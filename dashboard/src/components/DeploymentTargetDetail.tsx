@@ -1,9 +1,7 @@
 import React from 'react'
 import useTranslation from '@/hooks/useTranslation'
-import { formatTime } from '@/utils/datetime'
 import { createUseStyles } from 'react-jss'
-import { IDeploymentSnapshotSchema } from '@/schemas/deployment_snapshot'
-import User from './User'
+import { IDeploymentTargetSchema } from '@/schemas/deployment_target'
 import Label from './Label'
 
 const useStyles = createUseStyles({
@@ -26,11 +24,11 @@ const useStyles = createUseStyles({
     },
 })
 
-interface IDeploymentSnapshotDetailProps {
-    deploymentSnapshot: IDeploymentSnapshotSchema
+interface IDeploymentTargetDetailProps {
+    deploymentTarget: IDeploymentTargetSchema
 }
 
-export default function DeploymentSnapshotDetail({ deploymentSnapshot }: IDeploymentSnapshotDetailProps) {
+export default function DeploymentTargetDetail({ deploymentTarget }: IDeploymentTargetDetailProps) {
     const labelStyle: React.CSSProperties = {
         width: 100,
         marginRight: 10,
@@ -57,13 +55,13 @@ export default function DeploymentSnapshotDetail({ deploymentSnapshot }: IDeploy
         <div style={{ width: 900 }}>
             <div style={itemStyle}>
                 <Label style={labelStyle}>{t('type')}:</Label>
-                <span style={valueStyle}>{t(deploymentSnapshot.type)}</span>
+                <span style={valueStyle}>{t(deploymentTarget.type)}</span>
             </div>
-            {deploymentSnapshot.type === 'canary' && (
+            {deploymentTarget.type === 'canary' && (
                 <div style={itemStyle}>
                     <Label style={labelStyle}>{t('canary rules')}:</Label>
                     <ul className={styles.rulesWrapper}>
-                        {deploymentSnapshot.canary_rules?.map((r, idx) => {
+                        {deploymentTarget.canary_rules?.map((r, idx) => {
                             let desc
                             switch (r.type) {
                                 case 'weight':
@@ -90,15 +88,26 @@ export default function DeploymentSnapshotDetail({ deploymentSnapshot }: IDeploy
                     </ul>
                 </div>
             )}
-            {deploymentSnapshot.creator && (
-                <div style={itemStyle}>
-                    <Label style={labelStyle}>{t('creator')}:</Label>
-                    <User style={valueStyle} user={deploymentSnapshot.creator} size='16px' />
-                </div>
-            )}
             <div style={itemStyle}>
-                <Label style={labelStyle}>{t('created_at')}:</Label>
-                <span style={valueStyle}>{formatTime(deploymentSnapshot.created_at)}</span>
+                <Label style={labelStyle}>{t('replicas')}:</Label>
+                <span style={valueStyle}>
+                    {deploymentTarget.config?.hpa_conf?.min_replicas} ~{' '}
+                    {deploymentTarget.config?.hpa_conf?.max_replicas}
+                </span>
+            </div>
+            <div style={itemStyle}>
+                <Label style={labelStyle}>{t('cpu')}:</Label>
+                <span style={valueStyle}>
+                    {deploymentTarget.config?.resources?.requests?.cpu} ~{' '}
+                    {deploymentTarget.config?.resources?.limits?.cpu}
+                </span>
+            </div>
+            <div style={itemStyle}>
+                <Label style={labelStyle}>{t('memory')}:</Label>
+                <span style={valueStyle}>
+                    {deploymentTarget.config?.resources?.requests?.memory} ~{' '}
+                    {deploymentTarget.config?.resources?.limits?.memory}
+                </span>
             </div>
         </div>
     )

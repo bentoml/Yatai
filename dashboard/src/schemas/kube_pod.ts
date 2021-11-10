@@ -1,4 +1,4 @@
-import { IDeploymentSnapshotSchema } from './deployment_snapshot'
+import { IDeploymentTargetSchema } from './deployment_target'
 import { IKubeEventSchema } from './kube_event'
 
 export type PodStatusPhase = 'Running' | 'Unknown' | 'ContainerCreating' | 'Pending' | 'Terminating'
@@ -27,7 +27,7 @@ export interface IKubePodSchema {
     status: IPodStatusSchema
     pod_status: IKubePodStatusSchema
     warnings?: IKubeEventSchema[]
-    deployment_snapshot?: IDeploymentSnapshotSchema
+    deployment_target?: IDeploymentTargetSchema
     raw_status?: {
         podIP?: string
         containerStatuses?: {

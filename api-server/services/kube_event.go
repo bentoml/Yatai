@@ -147,17 +147,17 @@ func (s *kubeEventService) isKubeEventFailedReason(reason string, partials ...st
 }
 
 func (s *kubeEventService) ListAllKubeEventsByDeployment(ctx context.Context, deployment *models.Deployment) ([]apiv1.Event, error) {
-	return s.ListAllKubeEventsByDeploymentSnapshot(ctx, deployment, nil)
+	return s.ListAllKubeEventsByDeploymentTarget(ctx, deployment, nil)
 }
 
 type KubeEventFilter func(event *apiv1.Event) bool
 
-func (s *kubeEventService) MakeDeploymentKubeEventFilter(ctx context.Context, deployment *models.Deployment, deploymentSnapshot **models.DeploymentSnapshot) (KubeEventFilter, error) {
+func (s *kubeEventService) MakeDeploymentKubeEventFilter(ctx context.Context, deployment *models.Deployment, deploymentTarget **models.DeploymentTarget) (KubeEventFilter, error) {
 	var err error
 	var kubeName string
 
-	if deploymentSnapshot != nil {
-		kubeName, err = DeploymentSnapshotService.GetKubeName(ctx, *deploymentSnapshot)
+	if deploymentTarget != nil {
+		kubeName, err = DeploymentTargetService.GetKubeName(ctx, *deploymentTarget)
 		if err != nil {
 			return nil, err
 		}
@@ -175,7 +175,7 @@ func (s *kubeEventService) MakeDeploymentKubeEventFilter(ctx context.Context, de
 	}, nil
 }
 
-func (s *kubeEventService) ListAllKubeEventsByDeploymentSnapshot(ctx context.Context, deployment *models.Deployment, deploymentSnapshot **models.DeploymentSnapshot) ([]apiv1.Event, error) {
+func (s *kubeEventService) ListAllKubeEventsByDeploymentTarget(ctx context.Context, deployment *models.Deployment, deploymentTarget **models.DeploymentTarget) ([]apiv1.Event, error) {
 	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
 	if err != nil {
 		return nil, errors.Wrap(err, "get cluster")
@@ -183,7 +183,7 @@ func (s *kubeEventService) ListAllKubeEventsByDeploymentSnapshot(ctx context.Con
 
 	namespace := DeploymentService.GetKubeNamespace(deployment)
 
-	filter, err := s.MakeDeploymentKubeEventFilter(ctx, deployment, deploymentSnapshot)
+	filter, err := s.MakeDeploymentKubeEventFilter(ctx, deployment, deploymentTarget)
 	if err != nil {
 		return nil, err
 	}

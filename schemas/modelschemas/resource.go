@@ -9,7 +9,7 @@ const (
 	ResourceTypeBento              ResourceType = "bento"
 	ResourceTypeBentoVersion       ResourceType = "bento_version"
 	ResourceTypeDeployment         ResourceType = "deployment"
-	ResourceTypeDeploymentSnapshot ResourceType = "deployment_snapshot"
+	ResourceTypeDeploymentRevision ResourceType = "deployment_revision"
 	ResourceTypeTerminalRecord     ResourceType = "terminal_record"
 	ResourceTypeModel              ResourceType = "model"
 	ResourceTypeModelVersion       ResourceType = "model_version"

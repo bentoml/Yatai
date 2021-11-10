@@ -12,7 +12,7 @@ type DeploymentSchema struct {
 
 type DeploymentFullSchema struct {
 	DeploymentSchema
-	LatestSnapshot **DeploymentSnapshotSchema `json:"latest_snapshot"`
+	LatestRevision **DeploymentRevisionSchema `json:"latest_revision"`
 }
 
 type DeploymentListSchema struct {
@@ -21,11 +21,7 @@ type DeploymentListSchema struct {
 }
 
 type UpdateDeploymentSchema struct {
-	Type         modelschemas.DeploymentSnapshotType         `json:"type"`
-	BentoName    string                                      `json:"bento_name"`
-	BentoVersion string                                      `json:"bento_version"`
-	CanaryRules  *modelschemas.DeploymentSnapshotCanaryRules `json:"canary_rules"`
-	Config       *modelschemas.DeploymentSnapshotConfig      `json:"config"`
+	Targets []*CreateDeploymentTargetSchema `json:"targets"`
 }
 
 type CreateDeploymentSchema struct {

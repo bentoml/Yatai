@@ -17,13 +17,13 @@ type KubePodStatusSchema struct {
 }
 
 type KubePodSchema struct {
-	Name               string                     `json:"name"`
-	Namespace          string                     `json:"namespace"`
-	NodeName           string                     `json:"node_name"`
-	DeploymentSnapshot *DeploymentSnapshotSchema  `json:"deployment_snapshot"`
-	CommitId           string                     `json:"commit_id"`
-	Status             KubePodStatusSchema        `json:"status"`
-	RawStatus          apiv1.PodStatus            `json:"raw_status"`
-	PodStatus          modelschemas.KubePodStatus `json:"pod_status"`
-	Warnings           []apiv1.Event              `json:"warnings"`
+	Name             string                     `json:"name"`
+	Namespace        string                     `json:"namespace"`
+	NodeName         string                     `json:"node_name"`
+	DeploymentTarget *DeploymentTargetSchema    `json:"deployment_target"`
+	CommitId         string                     `json:"commit_id"`
+	Status           KubePodStatusSchema        `json:"status"`
+	RawStatus        apiv1.PodStatus            `json:"raw_status"`
+	PodStatus        modelschemas.KubePodStatus `json:"pod_status"`
+	Warnings         []apiv1.Event              `json:"warnings"`
 }

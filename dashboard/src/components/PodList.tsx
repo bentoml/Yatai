@@ -60,7 +60,7 @@ export default ({ loading = false, pods }: IPodListProps) => {
                     pod.name,
                     <PodStatus key={pod.name} pod={pod} pods={pods} />,
                     t(pod.pod_status.status),
-                    pod.deployment_snapshot ? t(pod.deployment_snapshot.type) : '-',
+                    pod.deployment_target ? t(pod.deployment_target.type) : '-',
                     pod.node_name,
                     formatTime(pod.status.start_time),
                     <div

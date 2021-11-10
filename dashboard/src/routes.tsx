@@ -23,7 +23,7 @@ import OrganizationBentos from '@/pages/Organization/Bentos'
 import BentoOverview from '@/pages/Bento/Overview'
 import BentoVersions from '@/pages/Bento/Versions'
 import DeploymentOverview from '@/pages/Deployment/Overview'
-import DeploymentSnapshots from '@/pages/Deployment/Snapshots'
+import DeploymentRevisions from '@/pages/Deployment/Revisions'
 import DeploymentTerminalRecordPlayer from '@/pages/Deployment/TerminalRecordPlayer'
 import DeploymentReplicas from '@/pages/Deployment/Replicas'
 import DeploymentLog from '@/pages/Deployment/Log'
@@ -95,8 +95,8 @@ const Routes = () => {
                                 />
                                 <Route
                                     exact
-                                    path='/clusters/:clusterName/deployments/:deploymentName/snapshots'
-                                    component={DeploymentSnapshots}
+                                    path='/clusters/:clusterName/deployments/:deploymentName/revisions'
+                                    component={DeploymentRevisions}
                                 />
                                 <Route
                                     exact

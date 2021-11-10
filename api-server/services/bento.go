@@ -32,6 +32,7 @@ type UpdateBentoOption struct {
 type ListBentoOption struct {
 	BaseListOption
 	OrganizationId *uint
+	Names          *[]string
 }
 
 func (*bentoService) Create(ctx context.Context, opt CreateBentoOption) (*models.Bento, error) {
@@ -105,6 +106,9 @@ func (s *bentoService) List(ctx context.Context, opt ListBentoOption) ([]*models
 	query := getBaseQuery(ctx, s)
 	if opt.OrganizationId != nil {
 		query = query.Where("organization_id = ?", *opt.OrganizationId)
+	}
+	if opt.Names != nil {
+		query = query.Where("name in (?)", *opt.Names)
 	}
 	var total int64
 	err := query.Count(&total).Error

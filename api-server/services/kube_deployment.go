@@ -53,8 +53,8 @@ func (s *kubeDeploymentService) MapKubeDeploymentsToKubeDeploymentWithPodses(ctx
 	return res
 }
 
-func (s *kubeDeploymentService) DeploymentSnapshotToKubeDeployment(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot, deployOption *models.DeployOption) (kubeDeployment *appsv1.Deployment, err error) {
-	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+func (s *kubeDeploymentService) DeploymentTargetToKubeDeployment(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (kubeDeployment *appsv1.Deployment, err error) {
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
@@ -71,22 +71,22 @@ func (s *kubeDeploymentService) DeploymentSnapshotToKubeDeployment(ctx context.C
 		return
 	}
 
-	podTemplateSpec, err := KubePodService.DeploymentSnapshotToPodTemplateSpec(ctx, deploymentSnapshot)
+	podTemplateSpec, err := KubePodService.DeploymentTargetToPodTemplateSpec(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
 
-	labels, err := DeploymentSnapshotService.GetKubeLabels(ctx, deploymentSnapshot)
+	labels, err := DeploymentTargetService.GetKubeLabels(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
 
-	annotations, err := DeploymentSnapshotService.GetKubeAnnotations(ctx, deploymentSnapshot)
+	annotations, err := DeploymentTargetService.GetKubeAnnotations(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
 
-	kubeName, err := DeploymentSnapshotService.GetKubeName(ctx, deploymentSnapshot)
+	kubeName, err := DeploymentTargetService.GetKubeName(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
@@ -125,12 +125,12 @@ func (s *kubeDeploymentService) DeploymentSnapshotToKubeDeployment(ctx context.C
 	return
 }
 
-func (s *kubeDeploymentService) DeployDeploymentSnapshotAsKubeDeployment(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot, deployOption *models.DeployOption) error {
-	kubeDeployment, err := s.DeploymentSnapshotToKubeDeployment(ctx, deploymentSnapshot, deployOption)
+func (s *kubeDeploymentService) DeployDeploymentTargetAsKubeDeployment(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) error {
+	kubeDeployment, err := s.DeploymentTargetToKubeDeployment(ctx, deploymentTarget, deployOption)
 	if err != nil {
 		return errors.Wrap(err, "to k8s deployment")
 	}
-	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
 	if err != nil {
 		return err
 	}
@@ -158,5 +158,5 @@ func (s *kubeDeploymentService) DeployDeploymentSnapshotAsKubeDeployment(ctx con
 		}
 	}
 
-	return KubeHPAService.DeployDeploymentSnapshotAsKubeHPA(ctx, deploymentSnapshot, deployOption)
+	return KubeHPAService.DeployDeploymentTargetAsKubeHPA(ctx, deploymentTarget, deployOption)
 }

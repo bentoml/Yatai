@@ -8,7 +8,7 @@ export type ResourceType =
     | 'bento'
     | 'bento_version'
     | 'deployment'
-    | 'deployment_snapshot'
+    | 'deployment_revision'
     | 'yatai_component'
     | 'model'
     | 'model_version'

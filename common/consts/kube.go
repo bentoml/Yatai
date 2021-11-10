@@ -22,14 +22,14 @@ const (
 	KubeNamespaceYataiOperators                = "yatai-operators"
 	KubeNamespaceYataiComponents               = "yatai-components"
 
-	KubeLabelMcdInfraCli                 = "mcd-infra-cli"
-	KubeLabelMcdKubectl                  = "mcd-kubectl"
-	KubeLabelMcdUser                     = "mcd-user"
-	KubeLabelMcdAppPool                  = "mcd-app-pool"
-	KubeLabelYataiDeployment             = "yatai.io/deployment"
-	KubeLabelYataiDeploymentId           = "yatai.io/deployment-id"
-	KubeLabelYataiDeploymentSnapshotType = "yatai.io/deployment-snapshot-type"
-	KubeLabelCreator                     = "creator"
+	KubeLabelMcdInfraCli               = "mcd-infra-cli"
+	KubeLabelMcdKubectl                = "mcd-kubectl"
+	KubeLabelMcdUser                   = "mcd-user"
+	KubeLabelMcdAppPool                = "mcd-app-pool"
+	KubeLabelYataiDeployment           = "yatai.io/deployment"
+	KubeLabelYataiDeploymentId         = "yatai.io/deployment-id"
+	KubeLabelYataiDeploymentTargetType = "yatai.io/deployment-target-type"
+	KubeLabelCreator                   = "creator"
 	// nolint: gosec
 	KubeLabelYataiDeployToken = "yatai.io/deploy-token"
 

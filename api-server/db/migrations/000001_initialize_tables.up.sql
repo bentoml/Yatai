@@ -229,15 +229,28 @@ CREATE TABLE IF NOT EXISTS "deployment" (
 
 CREATE UNIQUE INDEX "uk_deployment_clusterId_name" ON "deployment" ("cluster_id", "name");
 
-CREATE TYPE "deployment_snapshot_type" AS ENUM ('stable', 'canary');
-CREATE TYPE "deployment_snapshot_status" AS ENUM ('active', 'inactive');
+CREATE TYPE deployment_revision_status AS ENUM ('active', 'inactive');
 
-CREATE TABLE IF NOT EXISTS "deployment_snapshot" (
+CREATE TABLE IF NOT EXISTS deployment_revision (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
-    type deployment_snapshot_type NOT NULL DEFAULT 'stable',
-    status deployment_snapshot_status NOT NULL DEFAULT 'active',
+    status deployment_revision_status NOT NULL DEFAULT 'active',
+    deployment_id INTEGER NOT NULL REFERENCES "deployment"("id") ON DELETE CASCADE,
+    config TEXT DEFAULT '{}',
+    creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TYPE deployment_target_type AS ENUM ('stable', 'canary');
+
+CREATE TABLE IF NOT EXISTS deployment_target (
+    id SERIAL PRIMARY KEY,
+    uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
+    type deployment_target_type NOT NULL DEFAULT 'stable',
     canary_rules TEXT,
+    deployment_revision_id INTEGER NOT NULL REFERENCES "deployment_revision"("id") ON DELETE CASCADE,
     deployment_id INTEGER NOT NULL REFERENCES "deployment"("id") ON DELETE CASCADE,
     bento_version_id INTEGER REFERENCES "bento_version"("id") ON DELETE CASCADE,
     config TEXT DEFAULT '{}',
@@ -247,7 +260,7 @@ CREATE TABLE IF NOT EXISTS "deployment_snapshot" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TYPE "resource_type" AS ENUM ('organization', 'cluster', 'bento', 'bento_version', 'deployment', 'deployment_snapshot', 'model', 'model_version');
+CREATE TYPE "resource_type" AS ENUM ('organization', 'cluster', 'bento', 'bento_version', 'deployment', 'deployment_revision', 'model', 'model_version');
 
 CREATE TABLE IF NOT EXISTS "event" (
     id SERIAL PRIMARY KEY,

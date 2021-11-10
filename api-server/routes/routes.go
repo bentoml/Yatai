@@ -479,16 +479,16 @@ func deploymentRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Create deployment"),
 	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.Create, 200))
 
-	deploymentSnapshotRoutes(resourceGrp)
+	deploymentRevisionRoutes(resourceGrp)
 }
 
-func deploymentSnapshotRoutes(grp *fizz.RouterGroup) {
-	grp = grp.Group("/snapshots", "deployment snapshots", "deployment snapshots")
+func deploymentRevisionRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/revisions", "deployment revisions", "deployment revisions")
 
 	grp.GET("", []fizz.OperationOption{
-		fizz.ID("List deployment snapshots"),
-		fizz.Summary("List deployment snapshots"),
-	}, requireLogin, tonic.Handler(controllersv1.DeploymentSnapshotController.List, 200))
+		fizz.ID("List deployment revisions"),
+		fizz.Summary("List deployment revisions"),
+	}, requireLogin, tonic.Handler(controllersv1.DeploymentRevisionController.List, 200))
 }
 
 func terminalRecordRoutes(grp *fizz.RouterGroup) {
