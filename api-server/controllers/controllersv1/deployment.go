@@ -108,35 +108,7 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		return nil, errors.Wrap(err, "create deployment")
 	}
 
-	bento, err := services.BentoService.GetByName(ctx, org.ID, schema.BentoName)
-	if err != nil {
-		return nil, errors.Wrapf(err, "get bento %s from organization %s", schema.BentoName, org.Name)
-	}
-
-	bentoVersion, err := services.BentoVersionService.GetByVersion(ctx, bento.ID, schema.BentoVersion)
-	if err != nil {
-		return nil, errors.Wrapf(err, "get bento %s version %s from organization %s", schema.BentoName, schema.BentoVersion, org.Name)
-	}
-
-	deploymentSnapshot, err := services.DeploymentSnapshotService.Create(ctx, services.CreateDeploymentSnapshotOption{
-		CreatorId:      user.ID,
-		DeploymentId:   deployment.ID,
-		BentoVersionId: bentoVersion.ID,
-		Type:           schema.Type,
-		Status:         modelschemas.DeploymentSnapshotStatusActive,
-		CanaryRules:    schema.CanaryRules,
-		Config:         schema.Config,
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "create deployment snapshot")
-	}
-
-	err = services.DeploymentSnapshotService.Deploy(ctx, deploymentSnapshot, false)
-	if err != nil {
-		return nil, errors.Wrap(err, "deploy deployment snapshot")
-	}
-
-	return transformersv1.ToDeploymentFullSchema(ctx, deployment)
+	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
 }
 
 type UpdateDeploymentSchema struct {
@@ -149,10 +121,6 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	if err != nil {
 		return nil, err
 	}
-	user, err := services.GetCurrentUser(ctx)
-	if err != nil {
-		return nil, err
-	}
 	org, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
@@ -161,32 +129,93 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 		return nil, err
 	}
 
-	bento, err := services.BentoService.GetByName(ctx, org.ID, schema.BentoName)
+	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
+}
+
+func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.UpdateDeploymentSchema, org *models.Organization, deployment *models.Deployment) (*schemasv1.DeploymentFullSchema, error) {
+	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get bento %s from organization %s", schema.BentoName, org.Name)
+		return nil, err
+	}
+	bentoNames := make([]string, 0, len(schema.Targets))
+	bentoNamesSeen := make(map[string]struct{}, len(schema.Targets))
+
+	bentoVersionVersionsMapping := make(map[string][]string, len(schema.Targets))
+
+	for _, createDeploymentTargetSchema := range schema.Targets {
+		if _, ok := bentoNamesSeen[createDeploymentTargetSchema.BentoName]; !ok {
+			bentoNames = append(bentoNames, createDeploymentTargetSchema.BentoName)
+			bentoNamesSeen[createDeploymentTargetSchema.BentoName] = struct{}{}
+		}
+		bentoVersionVersions, ok := bentoVersionVersionsMapping[createDeploymentTargetSchema.BentoName]
+		if !ok {
+			bentoVersionVersions = make([]string, 0, 1)
+		}
+		bentoVersionVersions = append(bentoVersionVersions, createDeploymentTargetSchema.BentoVersion)
+		bentoVersionVersionsMapping[createDeploymentTargetSchema.BentoName] = bentoVersionVersions
 	}
 
-	bentoVersion, err := services.BentoVersionService.GetByVersion(ctx, bento.ID, schema.BentoVersion)
-	if err != nil {
-		return nil, errors.Wrapf(err, "get bento %s version %s from organization %s", schema.BentoName, schema.BentoVersion, org.Name)
-	}
-
-	deploymentSnapshot, err := services.DeploymentSnapshotService.Create(ctx, services.CreateDeploymentSnapshotOption{
-		CreatorId:      user.ID,
-		DeploymentId:   deployment.ID,
-		BentoVersionId: bentoVersion.ID,
-		Type:           schema.Type,
-		Status:         modelschemas.DeploymentSnapshotStatusActive,
-		CanaryRules:    schema.CanaryRules,
-		Config:         schema.Config,
+	bentos, _, err := services.BentoService.List(ctx, services.ListBentoOption{
+		OrganizationId: utils.UintPtr(org.ID),
+		Names:          &bentoNames,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "create deployment snapshot")
+		return nil, err
+	}
+	bentosMapping := make(map[string]*models.Bento, len(bentos))
+	for _, bento := range bentos {
+		bentosMapping[bento.Name] = bento
 	}
 
-	err = services.DeploymentSnapshotService.Deploy(ctx, deploymentSnapshot, false)
+	bentoVersionsMapping := make(map[string]*models.BentoVersion)
+	for _, bento := range bentos {
+		versions := bentoVersionVersionsMapping[bento.Name]
+		bentoVersions, _, err := services.BentoVersionService.List(ctx, services.ListBentoVersionOption{
+			BentoId:  utils.UintPtr(bento.ID),
+			Versions: &versions,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, bentoVersion := range bentoVersions {
+			bentoVersionsMapping[fmt.Sprintf("%s:%s", bento.Name, bentoVersion.Version)] = bentoVersion
+		}
+	}
+
+	deploymentRevision, err := services.DeploymentRevisionService.Create(ctx, services.CreateDeploymentRevisionOption{
+		CreatorId:    user.ID,
+		DeploymentId: deployment.ID,
+		Status:       modelschemas.DeploymentRevisionStatusActive,
+	})
 	if err != nil {
-		return nil, errors.Wrap(err, "deploy deployment snapshot")
+		return nil, errors.Wrap(err, "create deployment revision")
+	}
+
+	deploymentTargets := make([]*models.DeploymentTarget, 0, len(schema.Targets))
+	for _, createDeploymentTargetSchema := range schema.Targets {
+		bentoVersion := bentoVersionsMapping[fmt.Sprintf("%s:%s", createDeploymentTargetSchema.BentoName, createDeploymentTargetSchema.BentoVersion)]
+		if bentoVersion == nil {
+			return nil, errors.Errorf("can't find bento version: %s:%s", createDeploymentTargetSchema.BentoName, createDeploymentTargetSchema.BentoVersion)
+		}
+
+		deploymentTarget, err := services.DeploymentTargetService.Create(ctx, services.CreateDeploymentTargetOption{
+			CreatorId:            user.ID,
+			DeploymentId:         deployment.ID,
+			DeploymentRevisionId: deploymentRevision.ID,
+			BentoVersionId:       bentoVersion.ID,
+			Type:                 createDeploymentTargetSchema.Type,
+			CanaryRules:          createDeploymentTargetSchema.CanaryRules,
+			Config:               createDeploymentTargetSchema.Config,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "create deployment target")
+		}
+		deploymentTargets = append(deploymentTargets, deploymentTarget)
+	}
+
+	err = services.DeploymentRevisionService.Deploy(ctx, deploymentRevision, deploymentTargets, false)
+	if err != nil {
+		return nil, errors.Wrap(err, "deploy deployment revision")
 	}
 
 	return transformersv1.ToDeploymentFullSchema(ctx, deployment)

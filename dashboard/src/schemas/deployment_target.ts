@@ -2,26 +2,32 @@ import { IUserSchema } from './user'
 import { IBentoVersionFullSchema } from './bento_version'
 import { IResourceSchema } from './resource'
 
-export type DeploymentSnapshotStatus = 'active' | 'inactive'
-export type DeploymentSnapshotType = 'stable' | 'canary'
-export const DeploymentSnapshotTypeAddrs: { [k in DeploymentSnapshotType]: string } = {
+export type DeploymentTargetType = 'stable' | 'canary'
+export const DeploymentTargetTypeAddrs: { [k in DeploymentTargetType]: string } = {
     stable: 'stb',
     canary: 'cnr',
 }
 
-export interface IDeploymentSnapshotSchema extends IResourceSchema {
+export interface IDeploymentTargetSchema extends IResourceSchema {
     creator?: IUserSchema
-    type: DeploymentSnapshotType
-    status: DeploymentSnapshotStatus
+    type: DeploymentTargetType
     bento_version: IBentoVersionFullSchema
-    canary_rules?: IDeploymentSnapshotCanaryRule[]
-    config?: IDeploymentSnapshotConfigSchema
+    canary_rules?: IDeploymentTargetCanaryRule[]
+    config?: IDeploymentTargetConfigSchema
 }
 
-export type DeploymentSnapshotCanaryRuleType = 'weight' | 'header' | 'cookie'
+export interface ICreateDeploymentTargetSchema {
+    type: DeploymentTargetType
+    bento_name: string
+    bento_version: string
+    canary_rules?: IDeploymentTargetCanaryRule[]
+    config?: IDeploymentTargetConfigSchema
+}
 
-export interface IDeploymentSnapshotCanaryRule {
-    type: DeploymentSnapshotCanaryRuleType
+export type DeploymentTargetCanaryRuleType = 'weight' | 'header' | 'cookie'
+
+export interface IDeploymentTargetCanaryRule {
+    type: DeploymentTargetCanaryRuleType
     weight?: number
     header?: string
     cookie?: string
@@ -53,7 +59,7 @@ export interface IKubeHPAConf {
     min_replicas?: number
 }
 
-export interface IDeploymentSnapshotConfigSchema {
+export interface IDeploymentTargetConfigSchema {
     resources?: IKubeResources
     hpa_conf?: IKubeHPAConf
 }

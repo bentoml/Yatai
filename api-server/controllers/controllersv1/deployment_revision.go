@@ -10,18 +10,18 @@ import (
 	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
-type deploymentSnapshotController struct {
+type deploymentRevisionController struct {
 	baseController
 }
 
-var DeploymentSnapshotController = deploymentSnapshotController{}
+var DeploymentRevisionController = deploymentRevisionController{}
 
-type ListDeploymentSnapshotSchema struct {
+type ListDeploymentRevisionSchema struct {
 	schemasv1.ListQuerySchema
 	GetDeploymentSchema
 }
 
-func (c *deploymentSnapshotController) List(ctx *gin.Context, schema *ListDeploymentSnapshotSchema) (*schemasv1.DeploymentSnapshotListSchema, error) {
+func (c *deploymentRevisionController) List(ctx *gin.Context, schema *ListDeploymentRevisionSchema) (*schemasv1.DeploymentRevisionListSchema, error) {
 	deployment, err := schema.GetDeployment(ctx)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (c *deploymentSnapshotController) List(ctx *gin.Context, schema *ListDeploy
 		return nil, err
 	}
 
-	deploymentSnapshots, total, err := services.DeploymentSnapshotService.List(ctx, services.ListDeploymentSnapshotOption{
+	deploymentRevisions, total, err := services.DeploymentRevisionService.List(ctx, services.ListDeploymentRevisionOption{
 		BaseListOption: services.BaseListOption{
 			Start:  utils.UintPtr(schema.Start),
 			Count:  utils.UintPtr(schema.Count),
@@ -40,16 +40,16 @@ func (c *deploymentSnapshotController) List(ctx *gin.Context, schema *ListDeploy
 		DeploymentId: deployment.ID,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "list deploymentSnapshots")
+		return nil, errors.Wrap(err, "list deploymentRevisions")
 	}
 
-	deploymentSchemas, err := transformersv1.ToDeploymentSnapshotSchemas(ctx, deploymentSnapshots)
-	return &schemasv1.DeploymentSnapshotListSchema{
+	deploymentRevisionSchemas, err := transformersv1.ToDeploymentRevisionSchemas(ctx, deploymentRevisions)
+	return &schemasv1.DeploymentRevisionListSchema{
 		BaseListSchema: schemasv1.BaseListSchema{
 			Total: total,
 			Start: schema.Start,
 			Count: schema.Count,
 		},
-		Items: deploymentSchemas,
+		Items: deploymentRevisionSchemas,
 	}, err
 }

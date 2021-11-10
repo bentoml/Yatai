@@ -22,8 +22,8 @@ type kubeHPAService struct{}
 
 var KubeHPAService = kubeHPAService{}
 
-func (s *kubeHPAService) DeploymentSnapshotToKubeHPA(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot, deployOption *models.DeployOption) (hpa *v2beta2.HorizontalPodAutoscaler, err error) {
-	conf := deploymentSnapshot.Config
+func (s *kubeHPAService) DeploymentTargetToKubeHPA(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (hpa *v2beta2.HorizontalPodAutoscaler, err error) {
+	conf := deploymentTarget.Config
 	if conf == nil {
 		return
 	}
@@ -31,17 +31,17 @@ func (s *kubeHPAService) DeploymentSnapshotToKubeHPA(ctx context.Context, deploy
 		return
 	}
 
-	labels, err := DeploymentSnapshotService.GetKubeLabels(ctx, deploymentSnapshot)
+	labels, err := DeploymentTargetService.GetKubeLabels(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
 
-	annotations, err := DeploymentSnapshotService.GetKubeAnnotations(ctx, deploymentSnapshot)
+	annotations, err := DeploymentTargetService.GetKubeAnnotations(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
 
-	kubeName, err := DeploymentSnapshotService.GetKubeName(ctx, deploymentSnapshot)
+	kubeName, err := DeploymentTargetService.GetKubeName(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
@@ -99,7 +99,7 @@ func (s *kubeHPAService) DeploymentSnapshotToKubeHPA(ctx context.Context, deploy
 		maxReplicas = *hpaConf.MaxReplicas
 	}
 
-	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
 	if err != nil {
 		return nil, err
 	}
@@ -129,16 +129,16 @@ func (s *kubeHPAService) DeploymentSnapshotToKubeHPA(ctx context.Context, deploy
 	return kubeHpa, err
 }
 
-func (s *kubeHPAService) DeployDeploymentSnapshotAsKubeHPA(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot, deployOption *models.DeployOption) error {
-	kubeHpa, err := s.DeploymentSnapshotToKubeHPA(ctx, deploymentSnapshot, deployOption)
+func (s *kubeHPAService) DeployDeploymentTargetAsKubeHPA(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) error {
+	kubeHpa, err := s.DeploymentTargetToKubeHPA(ctx, deploymentTarget, deployOption)
 	if err != nil {
 		return errors.Wrap(err, "failed convert comp to hpa failed")
 	}
-	kubeCli, _, err := DeploymentSnapshotService.GetKubeCliSet(ctx, deploymentSnapshot)
+	kubeCli, _, err := DeploymentTargetService.GetKubeCliSet(ctx, deploymentTarget)
 	if err != nil {
 		return errors.Wrap(err, "get kube cli set")
 	}
-	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
 	if err != nil {
 		return errors.Wrap(err, "get deployment")
 	}
@@ -187,7 +187,7 @@ func (s *kubeHPAService) DeployDeploymentSnapshotAsKubeHPA(ctx context.Context, 
 			}
 		}
 	} else {
-		kubeName, err := DeploymentSnapshotService.GetKubeName(ctx, deploymentSnapshot)
+		kubeName, err := DeploymentTargetService.GetKubeName(ctx, deploymentTarget)
 		if err != nil {
 			return errors.Wrap(err, "get app comp kube name")
 		}

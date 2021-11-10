@@ -18,39 +18,37 @@ func ToDeploymentFullSchema(ctx context.Context, deployment *models.Deployment) 
 	if err != nil {
 		return nil, err
 	}
-	status_ := modelschemas.DeploymentSnapshotStatusActive
-	type_ := modelschemas.DeploymentSnapshotTypeStable
+	status_ := modelschemas.DeploymentRevisionStatusActive
 
-	deploymentSnapshots, _, err := services.DeploymentSnapshotService.List(ctx, services.ListDeploymentSnapshotOption{
+	deploymentRevisions, _, err := services.DeploymentRevisionService.List(ctx, services.ListDeploymentRevisionOption{
 		BaseListOption: services.BaseListOption{
 			Start: utils.UintPtr(0),
 			Count: utils.UintPtr(1),
 		},
 		DeploymentId: deployment.ID,
-		Type:         &type_,
 		Status:       &status_,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	var latestDeploymentSnapshot *models.DeploymentSnapshot
-	if len(deploymentSnapshots) != 0 {
-		latestDeploymentSnapshot = deploymentSnapshots[0]
+	var latestDeploymentRevision *models.DeploymentRevision
+	if len(deploymentRevisions) != 0 {
+		latestDeploymentRevision = deploymentRevisions[0]
 	}
 
-	var latestDeploymentSnapshotSchema **schemasv1.DeploymentSnapshotSchema
-	if latestDeploymentSnapshot != nil {
-		latestDeploymentSnapshotSchema_, err := ToDeploymentSnapshotSchema(ctx, latestDeploymentSnapshot)
+	var latestDeploymentRevisionSchema **schemasv1.DeploymentRevisionSchema
+	if latestDeploymentRevision != nil {
+		latestDeploymentRevisionSchema_, err := ToDeploymentRevisionSchema(ctx, latestDeploymentRevision)
 		if err != nil {
 			return nil, err
 		}
-		latestDeploymentSnapshotSchema = &latestDeploymentSnapshotSchema_
+		latestDeploymentRevisionSchema = &latestDeploymentRevisionSchema_
 	}
 
 	return &schemasv1.DeploymentFullSchema{
 		DeploymentSchema: *s,
-		LatestSnapshot:   latestDeploymentSnapshotSchema,
+		LatestRevision:   latestDeploymentRevisionSchema,
 	}, nil
 }
 

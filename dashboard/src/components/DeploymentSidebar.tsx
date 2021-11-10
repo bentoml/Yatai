@@ -57,9 +57,9 @@ export default function DeploymentSidebar({ style }: IComposedSidebarProps) {
                 icon: RiSurveyLine,
             },
             {
-                title: t('sth list', [t('snapshot')]),
-                path: `/clusters/${clusterName}/deployments/${deploymentName}/snapshots`,
-                icon: resourceIconMapping.deployment_snapshot,
+                title: t('sth list', [t('revision')]),
+                path: `/clusters/${clusterName}/deployments/${deploymentName}/revisions`,
+                icon: resourceIconMapping.deployment_revision,
             },
         ],
         [clusterName, deploymentName, t]

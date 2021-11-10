@@ -440,42 +440,52 @@ func (s *deploymentService) GenerateDefaultHostname(ctx context.Context, deploym
 }
 
 func (s *deploymentService) GetURLs(ctx context.Context, deployment *models.Deployment) ([]string, error) {
-	type_ := modelschemas.DeploymentSnapshotTypeStable
-	status := modelschemas.DeploymentSnapshotStatusActive
-	deploymentSnapshots, _, err := DeploymentSnapshotService.List(ctx, ListDeploymentSnapshotOption{
+	type_ := modelschemas.DeploymentTargetTypeStable
+	status := modelschemas.DeploymentRevisionStatusActive
+	deploymentRevisions, _, err := DeploymentRevisionService.List(ctx, ListDeploymentRevisionOption{
 		BaseListOption: BaseListOption{
 			Start: utils.UintPtr(0),
 			Count: utils.UintPtr(1),
 		},
 		DeploymentId: deployment.ID,
-		Type:         &type_,
 		Status:       &status,
 	})
 	if err != nil {
 		return nil, err
 	}
-	if len(deploymentSnapshots) == 0 {
+	if len(deploymentRevisions) == 0 {
 		return []string{}, nil
 	}
-	kubeName, err := DeploymentSnapshotService.GetKubeName(ctx, deploymentSnapshots[0])
-	if err != nil {
-		return nil, err
-	}
-	ingCli, err := s.GetKubeIngressesCli(ctx, deployment)
-	if err != nil {
-		return nil, err
-	}
-	ing, err := ingCli.Get(ctx, kubeName, metav1.GetOptions{})
-	ingIsNotFound := k8serrors.IsNotFound(err)
-	if err != nil && !ingIsNotFound {
-		return nil, err
-	}
-	if ingIsNotFound {
-		return []string{}, nil
-	}
-	urls := make([]string, 0, len(ing.Spec.Rules))
-	for _, rule := range ing.Spec.Rules {
-		urls = append(urls, fmt.Sprintf("http://%s", rule.Host))
+	urls := make([]string, 0)
+	for _, deploymentRevision := range deploymentRevisions {
+		deploymentTargets, _, err := DeploymentTargetService.List(ctx, ListDeploymentTargetOption{
+			DeploymentRevisionId: utils.UintPtr(deploymentRevision.ID),
+			Type:                 &type_,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, deploymentTarget := range deploymentTargets {
+			kubeName, err := DeploymentTargetService.GetKubeName(ctx, deploymentTarget)
+			if err != nil {
+				return nil, err
+			}
+			ingCli, err := s.GetKubeIngressesCli(ctx, deployment)
+			if err != nil {
+				return nil, err
+			}
+			ing, err := ingCli.Get(ctx, kubeName, metav1.GetOptions{})
+			ingIsNotFound := k8serrors.IsNotFound(err)
+			if err != nil && !ingIsNotFound {
+				return nil, err
+			}
+			if ingIsNotFound {
+				return []string{}, nil
+			}
+			for _, rule := range ing.Spec.Rules {
+				urls = append(urls, fmt.Sprintf("http://%s", rule.Host))
+			}
+		}
 	}
 	return urls, nil
 }

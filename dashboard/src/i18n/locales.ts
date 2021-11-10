@@ -100,13 +100,17 @@ const locales0 = {
         en: 'Deployment',
         cn: '部署',
     },
-    'deployment snapshot': {
-        en: 'Deployment Snapshot',
-        cn: '部署快照',
+    'deployment revision': {
+        en: 'Deployment Revision',
+        cn: '部署版本',
     },
-    'snapshot': {
-        en: 'Snapshot',
-        cn: '快照',
+    'revision': {
+        en: 'Revision',
+        cn: '版本',
+    },
+    'rollback': {
+        en: 'Rollback',
+        cn: '回滚',
     },
     'bento': {
         en: 'Bento',
@@ -587,6 +591,14 @@ const locales0 = {
     'update sth': {
         cn: '更新 {{0}}',
         en: 'Update {{0}}',
+    },
+    'deployment target': {
+        cn: '部署对象',
+        en: 'Deployment Target',
+    },
+    'add sth': {
+        cn: '添加{{0}}',
+        en: 'Add {{0}}',
     },
 }
 

@@ -23,7 +23,7 @@ export const resourceIconMapping: Record<ResourceType, React.ComponentType<IconB
     bento: GoPackage,
     bento_version: AiOutlineCodeSandbox,
     deployment: GrDeploy,
-    deployment_snapshot: BiRevision,
+    deployment_revision: BiRevision,
     yatai_component: BiExtension,
     model: VscFileBinary,
     model_version: VscFileBinary,
