@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for file in $(git diff --cached --name-only --diff-filter=ACMRTUXB | grep "\.go"); do
+  echo "(gofmt) $file"
+  gofmt -w "$file"
+  goimports -w -local github.com/bentoml/yatai "$file"
+  git add "$file"
+done
