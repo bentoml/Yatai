@@ -306,3 +306,4 @@ CREATE TABLE IF NOT EXISTS "label" (
 );
 
 CREATE UNIQUE INDEX "uk_resoure_type_id_key" on "label" ("resource_type", "resource_id", "key");
+
