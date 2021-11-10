@@ -270,3 +270,7 @@ jobs:
             scripts/manifests/deployment.yml
           images: |
             192023623294.dkr.ecr.ap-northeast-1.amazonaws.com/yatai:${{ steps.vars.outputs.sha_short }}
+
+concurrency:
+  group: yatai${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
