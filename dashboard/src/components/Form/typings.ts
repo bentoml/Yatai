@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/ban-types */
-type ValueOf<T> = T[keyof T]
 
 type Cons<H, T> = T extends readonly any[]
     ? ((h: H, ...t: T) => void) extends (...r: infer R) => void
@@ -14,13 +13,9 @@ type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17
 // https://stackoverflow.com/a/58436959
 export type Paths<T, D extends number = 10> = [D] extends [never]
     ? never
-    : T extends any[] // for array
-    ? [number]
     : T extends object
     ? {
-          [K in keyof T]-?: K extends keyof T[K] & keyof ValueOf<T[K]>
-              ? (keyof T)[] // this turn [string, string, string] into string[]
-              : [K] | (Paths<T[K], Prev[D]> extends infer P ? (P extends [] ? never : Cons<K, P>) : never)
+          [K in keyof T]-?: [K] | (Paths<T[K], Prev[D]> extends infer P ? (P extends [] ? never : Cons<K, P>) : never)
       }[keyof T]
     : []
 
