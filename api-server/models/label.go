@@ -1,15 +1,10 @@
 package models
 
-import (
-	"sync"
-
-	"gibhub.com/lib/pq"
-	
-	"gibhub.com/bentoml/yatai/schemas/modelschemas"
-)
+import "gibhub.com/bentoml/yatai/schemas/modelschemas"
 
 type Label struct {
 	BaseModel
+	CreatorAssociate
 	ResourceType modelschemas.ResourceType 		`json:"resource_type"`
 	ResourceId    uint						   `json:"resource_id"`
 	Key 		  string `json:"key"`
