@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
+// FIXME: fix the rc-field-form FormList type checking !!!!
 import { ICreateDeploymentSchema, IDeploymentSchema } from '@/schemas/deployment'
 import { DeleteAlt } from 'baseui/icon'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -263,14 +264,22 @@ export default function DeploymentForm({
                                                                 setValues((values_) => {
                                                                     return {
                                                                         ...values_,
-                                                                        config: {
-                                                                            ...target.config,
-                                                                            hpa_conf: {
-                                                                                ...target.config?.hpa_conf,
-                                                                                min_replicas: value[0],
-                                                                                max_replicas: value[1],
-                                                                            },
-                                                                        },
+                                                                        targets: values_.targets.map((target_, idx) => {
+                                                                            if (idx !== name) {
+                                                                                return target_
+                                                                            }
+                                                                            return {
+                                                                                ...target_,
+                                                                                config: {
+                                                                                    ...target_,
+                                                                                    hpa_conf: {
+                                                                                        ...target_.config?.hpa_conf,
+                                                                                        min_replicas: value[0],
+                                                                                        max_replicas: value[1],
+                                                                                    },
+                                                                                },
+                                                                            }
+                                                                        }),
                                                                     } as ICreateDeploymentSchema
                                                                 })
                                                             }}
