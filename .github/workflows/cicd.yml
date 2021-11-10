@@ -61,7 +61,7 @@ jobs:
       - build-ui-builder
       - diff
 
-    if: ${{ github.even_name == 'pull_request' && needs.diff.outputs.js == 'true' }}
+    if: ${{ github.even_name == 'pull_request' && needs.diff.outputs.js == 'true' || github.event_name == 'push' }}
 
     steps:
       - uses: actions/checkout@v2
@@ -86,7 +86,7 @@ jobs:
     needs:
       - diff
 
-    if: ${{ github.event_name == 'pull_request' && needs.diff.outputs.golang == 'true' }}
+    if: ${{ github.event_name == 'pull_request' && needs.diff.outputs.golang == 'true' || github.event_name == 'push' }}
 
     steps:
       - uses: actions/checkout@v2
