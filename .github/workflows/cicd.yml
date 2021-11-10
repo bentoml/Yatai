@@ -15,16 +15,18 @@ jobs:
       golang: ${{ steps.filter.outputs.golang }}
       js: ${{ steps.filter.outputs.js }}
     steps:
+      - uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
         id: filter
         with:
+          base: 'main'
           filters: |
             golang:
-              - api-server/**
-              - common/**
-              - schemas/**
+              - "api-server/**"
+              - "common/**"
+              - "schemas/**"
             js:
-              - dashboard/**
+              - "dashboard/**"
 
   build-ui-builder:
     runs-on: ubuntu-latest
