@@ -37,10 +37,10 @@ func ToLabelSchemas(ctx context.Context, labels []*models.Label) ([]*schemasv1.L
 		}
 		ss = append(ss, &schemasv1.LabelSchema{
 			ResourceSchema: ToResourceSchema(r),
-			Creator: 		creatorSchema,
-			Resource: 		rs,
-			Key:			r.Key,
-			Value:			r.Value,
+			Creator:        creatorSchema,
+			Resource:       rs,
+			Key:            r.Key,
+			Value:          r.Value,
 		})
 	}
 

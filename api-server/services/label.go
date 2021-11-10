@@ -1,4 +1,4 @@
-package services 
+package services
 
 import (
 	"context"
@@ -18,10 +18,10 @@ func (s *labelService) getBaseDB(ctx context.Context) *gorm.DB {
 }
 
 type CreateLabelOption struct {
-	CreatorId 	uint
-	Resource models.IResource
-	Key 		string
-	Value 		string
+	CreatorId uint
+	Resource  models.IResource
+	Key       string
+	Value     string
 }
 
 type ListLabelOption struct {
@@ -35,14 +35,14 @@ func (*labelService) Create(ctx context.Context, opt CreateLabelOption) (*models
 		CreatorAssociate: models.CreatorAssociate{
 			CreatorId: opt.CreatorId,
 		},
-		ResourceType: 	opt.Resource.GetResourceType(),
-		ResourceId: 	opt.Resource.GetId(),
-		Key:			opt.Key,
-		Value:	 		opt.Value,
+		ResourceType: opt.Resource.GetResourceType(),
+		ResourceId:   opt.Resource.GetId(),
+		Key:          opt.Key,
+		Value:        opt.Value,
 	}
 
 	label.CreatedAt = n
-	
+
 	err := mustGetSession(ctx).Create(label).Error
 	if err != nil {
 		return nil, err
@@ -62,10 +62,10 @@ func (s *labelService) List(ctx context.Context, opt ListLabelOption) ([]*models
 	return label, uint(total), err
 }
 
-func Delete {
+func Delete() {
 	//TODO
 }
 
-func FilterQuery {
+func FilterQuery() {
 	//TODO
 }

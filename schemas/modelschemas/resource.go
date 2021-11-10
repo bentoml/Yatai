@@ -13,5 +13,5 @@ const (
 	ResourceTypeTerminalRecord     ResourceType = "terminal_record"
 	ResourceTypeModel              ResourceType = "model"
 	ResourceTypeModelVersion       ResourceType = "model_version"
-	ResourceTypeLabel			   ResourceType = "label"
+	ResourceTypeLabel              ResourceType = "label"
 )

@@ -5,10 +5,10 @@ import "gibhub.com/bentoml/yatai/schemas/modelschemas"
 type Label struct {
 	BaseModel
 	CreatorAssociate
-	ResourceType modelschemas.ResourceType 		`json:"resource_type"`
-	ResourceId    uint						   `json:"resource_id"`
-	Key 		  string `json:"key"`
-	Value 		  string `json:"value"`
+	ResourceType modelschemas.ResourceType `json:"resource_type"`
+	ResourceId   uint                      `json:"resource_id"`
+	Key          string                    `json:"key"`
+	Value        string                    `json:"value"`
 }
 
 func (r *Label) GetName() string {
