@@ -6,13 +6,13 @@ type DeploymentSchema struct {
 	ResourceSchema
 	Creator *UserSchema                   `json:"creator"`
 	Cluster *ClusterFullSchema            `json:"cluster"`
-	Status  modelschemas.DeploymentStatus `json:"status"`
+	Status  modelschemas.DeploymentStatus `json:"status" enum:"unknown,non-deployed,running,unhealthy,failed,deploying"`
 	URLs    []string                      `json:"urls"`
 }
 
 type DeploymentFullSchema struct {
 	DeploymentSchema
-	LatestRevision **DeploymentRevisionSchema `json:"latest_revision"`
+	LatestRevision *DeploymentRevisionSchema `json:"latest_revision"`
 }
 
 type DeploymentListSchema struct {
