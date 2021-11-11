@@ -37,13 +37,13 @@ func ToDeploymentFullSchema(ctx context.Context, deployment *models.Deployment) 
 		latestDeploymentRevision = deploymentRevisions[0]
 	}
 
-	var latestDeploymentRevisionSchema **schemasv1.DeploymentRevisionSchema
+	var latestDeploymentRevisionSchema *schemasv1.DeploymentRevisionSchema
 	if latestDeploymentRevision != nil {
 		latestDeploymentRevisionSchema_, err := ToDeploymentRevisionSchema(ctx, latestDeploymentRevision)
 		if err != nil {
 			return nil, err
 		}
-		latestDeploymentRevisionSchema = &latestDeploymentRevisionSchema_
+		latestDeploymentRevisionSchema = latestDeploymentRevisionSchema_
 	}
 
 	return &schemasv1.DeploymentFullSchema{

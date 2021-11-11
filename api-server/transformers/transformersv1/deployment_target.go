@@ -33,11 +33,13 @@ func ToDeploymentTargetSchemas(ctx context.Context, deploymentTargets []*models.
 		}
 		res = append(res, &schemasv1.DeploymentTargetSchema{
 			ResourceSchema: ToResourceSchema(deploymentTarget),
-			Creator:        creatorSchema,
-			Type:           deploymentTarget.Type,
-			BentoVersion:   bentoVersionFullSchema,
-			CanaryRules:    deploymentTarget.CanaryRules,
-			Config:         deploymentTarget.Config,
+			DeploymentTargetTypeSchema: schemasv1.DeploymentTargetTypeSchema{
+				Type: deploymentTarget.Type,
+			},
+			Creator:      creatorSchema,
+			BentoVersion: bentoVersionFullSchema,
+			CanaryRules:  deploymentTarget.CanaryRules,
+			Config:       deploymentTarget.Config,
 		})
 	}
 	return res, nil

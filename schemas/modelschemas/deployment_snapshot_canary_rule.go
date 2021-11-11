@@ -14,7 +14,7 @@ const (
 )
 
 type DeploymentTargetCanaryRule struct {
-	Type DeploymentTargetCanaryRuleType `json:"type"`
+	Type DeploymentTargetCanaryRuleType `json:"type" enum:"weight,header,cookie"`
 
 	Weight      *uint   `json:"weight"`
 	Header      *string `json:"header"`
