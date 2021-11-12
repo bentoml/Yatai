@@ -600,6 +600,70 @@ const locales0 = {
         cn: '添加{{0}}',
         en: 'Add {{0}}',
     },
+    'api': {
+        cn: 'API',
+        en: 'API',
+    },
+    'read_organization': {
+        cn: '读取组织',
+        en: 'Read Organization',
+    },
+    'write_organization': {
+        cn: '写入组织',
+        en: 'Write Organization',
+    },
+    'read_cluster': {
+        cn: '读取集群',
+        en: 'Read Cluster',
+    },
+    'write_cluster': {
+        cn: '写入集群',
+        en: 'Write Cluster',
+    },
+    'scope api description': {
+        en: 'Grants complete read/write access to the API, including all organizations and clusters and deployments.',
+        cn: '授予对 API 的完全读/写权限，包括所有组织和集群。',
+    },
+    'scope read organization description': {
+        en: 'Grants read access to the organization, including all clusters and deployments.',
+        cn: '授予对组织的读权限，包括所有集群和部署。',
+    },
+    'scope write organization description': {
+        en: 'Grants read-write access to the organization, including all clusters and deployments.',
+        cn: '授予对组织的读/写权限，包括所有集群和部署。',
+    },
+    'scope read cluster description': {
+        en: 'Grants read access to the cluster, including all deployments.',
+        cn: '授予对集群的读权限，包括所有部署。',
+    },
+    'scope write cluster description': {
+        en: 'Grants read-write access to the cluster, including all deployments.',
+        cn: '授予对集群的读/写权限，包括所有部署。',
+    },
+    'scopes': {
+        cn: '权限',
+        en: 'Scopes',
+    },
+    'expired_at': {
+        cn: '过期时间',
+        en: 'Expired At',
+    },
+    'last_used_at': {
+        cn: '最后使用时间',
+        en: 'Last Used At',
+    },
+    'api token only show once time tips': {
+        cn: 'API Token 只会显示一次，请保存好且不要泄露此 Token',
+        en: 'API Token will only show once, please save it and do not disclose it.',
+    },
+    'copy': {
+        cn: '复制',
+        en: 'Copy',
+    },
+    'copied to clipboard': {
+        cn: '已复制到剪贴板',
+        en: 'Copied to clipboard',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

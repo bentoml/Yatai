@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS "cluster";
 DROP TABLE IF EXISTS "user_group_user_relation";
 DROP TABLE IF EXISTS "organization_member";
 DROP TABLE IF EXISTS "user_group";
+DROP TABLE IF EXISTS "api_token";
 DROP TABLE IF EXISTS "organization";
 DROP TABLE IF EXISTS "user";
 DROP TYPE IF EXISTS "member_role";

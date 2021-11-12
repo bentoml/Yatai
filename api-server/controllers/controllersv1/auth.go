@@ -74,29 +74,3 @@ func (*authController) GetCurrentUser(ctx *gin.Context) (*schemasv1.UserSchema, 
 	}
 	return transformersv1.ToUserSchema(ctx, user)
 }
-
-func (*authController) GenerateApiToken(ctx *gin.Context) (*schemasv1.UserSchema, error) {
-	user, err := services.GetCurrentUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-	user, err = services.UserService.GenerateApiToken(ctx, user)
-	if err != nil {
-		err = errors.Wrap(err, "generate api_token failed")
-		return nil, err
-	}
-	return transformersv1.ToUserSchema(ctx, user)
-}
-
-func (*authController) DeleteApiToken(ctx *gin.Context) (*schemasv1.UserSchema, error) {
-	user, err := services.GetCurrentUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-	user, err = services.UserService.DeleteApiToken(ctx, user)
-	if err != nil {
-		err = errors.Wrap(err, "generate api_token failed")
-		return nil, err
-	}
-	return transformersv1.ToUserSchema(ctx, user)
-}

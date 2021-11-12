@@ -37,11 +37,6 @@ type ListOrganizationMemberOption struct {
 }
 
 func (s *organizationMemberService) Create(ctx context.Context, operatorId uint, opt CreateOrganizationMemberOption) (*models.OrganizationMember, error) {
-	err := MemberService.CanOperate(ctx, s, operatorId, opt.OrganizationId)
-	if err != nil {
-		return nil, err
-	}
-
 	oldMember, err := s.GetBy(ctx, opt.UserId, opt.OrganizationId)
 	if err != nil && !utils.IsNotFound(err) {
 		return nil, err
@@ -132,11 +127,7 @@ func (s *organizationMemberService) CheckRoles(ctx context.Context, userId, reso
 }
 
 func (s *organizationMemberService) Update(ctx context.Context, m *models.OrganizationMember, operatorId uint, opt UpdateOrganizationMemberOption) (*models.OrganizationMember, error) {
-	err := MemberService.CanOperate(ctx, s, operatorId, m.OrganizationId)
-	if err != nil {
-		return nil, err
-	}
-	err = s.getBaseDB(ctx).Where("id = ?", m.ID).Updates(map[string]interface{}{
+	err := s.getBaseDB(ctx).Where("id = ?", m.ID).Updates(map[string]interface{}{
 		"role": opt.Role,
 	}).Error
 	if err == nil {
@@ -146,10 +137,6 @@ func (s *organizationMemberService) Update(ctx context.Context, m *models.Organi
 }
 
 func (s *organizationMemberService) Delete(ctx context.Context, m *models.OrganizationMember, operatorId uint) (*models.OrganizationMember, error) {
-	err := MemberService.CanOperate(ctx, s, operatorId, m.OrganizationId)
-	if err != nil {
-		return nil, err
-	}
-	err = mustGetSession(ctx).Unscoped().Delete(m).Error
+	err := mustGetSession(ctx).Unscoped().Delete(m).Error
 	return m, err
 }

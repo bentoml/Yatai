@@ -42,11 +42,6 @@ type ListClusterMemberOption struct {
 }
 
 func (s *clusterMemberService) Create(ctx context.Context, operatorId uint, opt CreateClusterMemberOption) (*models.ClusterMember, error) {
-	err := MemberService.CanOperate(ctx, &ClusterMemberService, operatorId, opt.ClusterId)
-	if err != nil {
-		return nil, err
-	}
-
 	oldMember, err := s.GetBy(ctx, opt.UserId, opt.ClusterId)
 	if err != nil && !utils.IsNotFound(err) {
 		return nil, err
@@ -83,11 +78,7 @@ func (s *clusterMemberService) Create(ctx context.Context, operatorId uint, opt 
 }
 
 func (s *clusterMemberService) Update(ctx context.Context, m *models.ClusterMember, operatorId uint, opt UpdateClusterMemberOption) (*models.ClusterMember, error) {
-	err := MemberService.CanOperate(ctx, s, operatorId, m.ClusterId)
-	if err != nil {
-		return nil, err
-	}
-	err = s.getBaseDB(ctx).Where("id = ?", m.ID).Updates(map[string]interface{}{
+	err := s.getBaseDB(ctx).Where("id = ?", m.ID).Updates(map[string]interface{}{
 		"role": opt.Role,
 	}).Error
 	if err == nil {
@@ -151,10 +142,6 @@ func (s *clusterMemberService) CheckRoles(ctx context.Context, userId, resourceI
 }
 
 func (s *clusterMemberService) Delete(ctx context.Context, m *models.ClusterMember, operatorId uint) (*models.ClusterMember, error) {
-	err := MemberService.CanOperate(ctx, &ClusterMemberService, operatorId, m.ClusterId)
-	if err != nil {
-		return nil, err
-	}
-	err = s.getBaseDB(ctx).Unscoped().Delete(m).Error
+	err := s.getBaseDB(ctx).Unscoped().Delete(m).Error
 	return m, err
 }
