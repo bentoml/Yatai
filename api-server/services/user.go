@@ -11,7 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/rs/xid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
@@ -138,32 +137,6 @@ func (s *userService) CheckPassword(ctx context.Context, u *models.User, passwor
 	return nil
 }
 
-func (s *userService) GenerateApiToken(ctx context.Context, u *models.User) (*models.User, error) {
-	guid := xid.New()
-	token := guid.String()
-	err := s.getBaseDB(ctx).Where("id = ?", u.ID).Updates(map[string]interface{}{
-		"api_token": token,
-	}).Error
-	if err == nil {
-		u.ApiToken = token
-	}
-	return u, err
-}
-
-func (s *userService) DeleteApiToken(ctx context.Context, u *models.User) (*models.User, error) {
-	err := s.getBaseDB(ctx).Where("id = ?", u.ID).Updates(map[string]interface{}{"api_token": ""}).Error
-	if err == nil {
-		u.ApiToken = ""
-	}
-	return u, err
-}
-
-func (s *userService) GetByApiToken(ctx context.Context, token string) (*models.User, error) {
-	var u = models.User{}
-	err := s.getBaseDB(ctx).Where("api_token = ?", token).First(&u).Error
-	return &u, err
-}
-
 func generateHashedPassword(rawPassword string) ([]byte, error) {
 	if len(rawPassword) == 0 {
 		return []byte(""), nil
@@ -272,7 +245,7 @@ func (*userService) IsAdmin(ctx context.Context, user *models.User, organization
 	if organization == nil {
 		return user.IsSuperAdmin()
 	}
-	err := MemberService.CanOperate(ctx, &OrganizationMemberService, user.ID, organization.ID)
+	err := MemberService.CanOperate(ctx, &OrganizationMemberService, user, organization.ID)
 	return err == nil
 }
 

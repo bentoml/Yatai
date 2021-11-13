@@ -43,7 +43,7 @@ func (c *organizationController) canView(ctx context.Context, organization *mode
 	if err != nil {
 		return err
 	}
-	return services.MemberService.CanView(ctx, &services.OrganizationMemberService, user.ID, organization.ID)
+	return services.MemberService.CanView(ctx, &services.OrganizationMemberService, user, organization.ID)
 }
 
 func (c *organizationController) canUpdate(ctx context.Context, organization *models.Organization) error {
@@ -51,7 +51,7 @@ func (c *organizationController) canUpdate(ctx context.Context, organization *mo
 	if err != nil {
 		return err
 	}
-	return services.MemberService.CanUpdate(ctx, &services.OrganizationMemberService, user.ID, organization.ID)
+	return services.MemberService.CanUpdate(ctx, &services.OrganizationMemberService, user, organization.ID)
 }
 
 func (c *organizationController) canOperate(ctx context.Context, organization *models.Organization) error {
@@ -59,7 +59,7 @@ func (c *organizationController) canOperate(ctx context.Context, organization *m
 	if err != nil {
 		return err
 	}
-	return services.MemberService.CanOperate(ctx, &services.OrganizationMemberService, user.ID, organization.ID)
+	return services.MemberService.CanOperate(ctx, &services.OrganizationMemberService, user, organization.ID)
 }
 
 func (c *organizationController) Create(ctx *gin.Context, schema *schemasv1.CreateOrganizationSchema) (*schemasv1.OrganizationFullSchema, error) {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -143,6 +144,7 @@ func NewRouter() (*fizz.Fizz, error) {
 	authRoutes(apiRootGroup)
 	userRoutes(apiRootGroup)
 	organizationRoutes(apiRootGroup)
+	apiTokenRoutes(apiRootGroup)
 	clusterRoutes(apiRootGroup)
 	bentoRoutes(apiRootGroup)
 	modelRoutes(apiRootGroup)
@@ -180,15 +182,35 @@ func NewRouter() (*fizz.Fizz, error) {
 }
 
 func getLoginUser(ctx *gin.Context) (user *models.User, err error) {
-	apiToken := ctx.GetHeader(consts.YataiApiTokenHeaderName)
+	apiTokenStr := ctx.GetHeader(consts.YataiApiTokenHeaderName)
 
 	// nolint: gocritic
-	if apiToken != "" {
-		user, err = services.UserService.GetByApiToken(ctx, apiToken)
+	if apiTokenStr != "" {
+		var apiToken *models.ApiToken
+		apiToken, err = services.ApiTokenService.GetByToken(ctx, apiTokenStr)
+		if err != nil {
+			err = errors.Wrap(err, "get api token")
+			return
+		}
+		if apiToken.IsExpired() {
+			err = errors.New("the api token is expired")
+			return
+		}
+		user, err = services.UserService.GetAssociatedUser(ctx, apiToken)
 		if err != nil {
 			err = errors.Wrap(err, "get user by api token")
 			return
 		}
+		now := time.Now()
+		now_ := &now
+		apiToken, err = services.ApiTokenService.Update(ctx, apiToken, services.UpdateApiTokenOption{
+			LastUsedAt: &now_,
+		})
+		if err != nil {
+			err = errors.Wrap(err, "update api token")
+			return
+		}
+		user.ApiToken = apiToken
 	} else {
 		username := scookie.GetUsernameFromCookie(ctx)
 		if username == "" {
@@ -241,14 +263,6 @@ func authRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Get current user"),
 		fizz.Summary("Get current user"),
 	}, requireLogin, tonic.Handler(controllersv1.AuthController.GetCurrentUser, 200))
-
-	grp.PUT("/current/api_token", []fizz.OperationOption{
-		fizz.ID("Generate current user api_token"),
-	}, requireLogin, tonic.Handler(controllersv1.AuthController.GenerateApiToken, 200))
-
-	grp.DELETE("/current/api_token", []fizz.OperationOption{
-		fizz.ID("Delete current user api_token"),
-	}, requireLogin, tonic.Handler(controllersv1.AuthController.DeleteApiToken, 200))
 }
 
 func userRoutes(grp *fizz.RouterGroup) {
@@ -268,7 +282,7 @@ func userRoutes(grp *fizz.RouterGroup) {
 }
 
 func organizationRoutes(grp *fizz.RouterGroup) {
-	resourceGrp := grp.Group("/orgs/current", "organization resource", "organization resource")
+	resourceGrp := grp.Group("/current_org", "organization resource", "organization resource")
 
 	resourceGrp.GET("", []fizz.OperationOption{
 		fizz.ID("Get an organization"),
@@ -313,6 +327,37 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 	// clusterRoutes(resourceGrp)
 	// bentoRoutes(resourceGrp)
 	// modelRoutes(resourceGrp)
+}
+
+func apiTokenRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/api_tokens", "api tokens", "api tokens")
+
+	resourceGrp := grp.Group("/:apiTokenUid", "api token resource", "api token resource")
+
+	resourceGrp.GET("", []fizz.OperationOption{
+		fizz.ID("Get a api token"),
+		fizz.Summary("Get a api token"),
+	}, requireLogin, tonic.Handler(controllersv1.ApiTokenController.Get, 200))
+
+	resourceGrp.PATCH("", []fizz.OperationOption{
+		fizz.ID("Update a api token"),
+		fizz.Summary("Update a api token"),
+	}, requireLogin, tonic.Handler(controllersv1.ApiTokenController.Update, 200))
+
+	resourceGrp.DELETE("", []fizz.OperationOption{
+		fizz.ID("Delete a api token"),
+		fizz.Summary("Delete a api token"),
+	}, requireLogin, tonic.Handler(controllersv1.ApiTokenController.Delete, 200))
+
+	grp.GET("", []fizz.OperationOption{
+		fizz.ID("List api tokens"),
+		fizz.Summary("List api tokens"),
+	}, requireLogin, tonic.Handler(controllersv1.ApiTokenController.List, 200))
+
+	grp.POST("", []fizz.OperationOption{
+		fizz.ID("Create api token"),
+		fizz.Summary("Create api token"),
+	}, requireLogin, tonic.Handler(controllersv1.ApiTokenController.Create, 200))
 }
 
 func clusterRoutes(grp *fizz.RouterGroup) {

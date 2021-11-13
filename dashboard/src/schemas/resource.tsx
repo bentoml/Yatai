@@ -12,6 +12,7 @@ export type ResourceType =
     | 'yatai_component'
     | 'model'
     | 'model_version'
+    | 'api_token'
 
 export interface IResourceSchema extends IBaseSchema {
     name: string

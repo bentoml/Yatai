@@ -9,6 +9,7 @@ import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import Login from '@/pages/Yatai/Login'
+import OrganizationApiTokens from '@/pages/Organization/ApiTokens'
 import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
 import OrganizationDeployments from '@/pages/Organization/Deployments'
@@ -155,6 +156,7 @@ const Routes = () => {
                             <Switch>
                                 <Route exact path='/' component={OrganizationOverview} />
                                 <Route exact path='/bentos' component={OrganizationBentos} />
+                                <Route exact path='/api_tokens' component={OrganizationApiTokens} />
                                 <Route exact path='/clusters' component={OrganizationClusters} />
                                 <Route exact path='/members' component={OrganizationMembers} />
                                 <Route exact path='/models' component={OrganizationModels} />

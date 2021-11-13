@@ -48,12 +48,6 @@ func ToUserSchema(ctx context.Context, user *models.User) (*schemasv1.UserSchema
 
 func ToUserSchemas(ctx context.Context, users []*models.User) ([]*schemasv1.UserSchema, error) {
 	res := make([]*schemasv1.UserSchema, 0, len(users))
-	currentUser, err := services.GetCurrentUser(ctx)
-	if err != nil {
-		if !utils.IsNotFound(err) {
-			return nil, err
-		}
-	}
 	for _, u := range users {
 		avatarUrl, err := getAvatarUrl(u)
 		if err != nil {
@@ -63,17 +57,12 @@ func ToUserSchemas(ctx context.Context, users []*models.User) ([]*schemasv1.User
 		if u.Email != nil {
 			email = *u.Email
 		}
-		var apiToken *string
-		if currentUser != nil && u.ID == currentUser.ID {
-			apiToken = utils.StringPtr(u.ApiToken)
-		}
 		res = append(res, &schemasv1.UserSchema{
 			ResourceSchema: ToResourceSchema(u),
 			FirstName:      u.FirstName,
 			LastName:       u.LastName,
 			Email:          email,
 			AvatarUrl:      avatarUrl,
-			ApiToken:       apiToken,
 		})
 	}
 	return res, nil
@@ -88,6 +77,23 @@ func GetAssociatedCreatorSchema(ctx context.Context, associate ICreatorAssociate
 	user, err := services.UserService.GetAssociatedCreator(ctx, associate)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get %s %s associated creator", associate.GetResourceType(), associate.GetName())
+	}
+	userSchema, err := ToUserSchema(ctx, user)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToUserSchema")
+	}
+	return userSchema, nil
+}
+
+type IUserAssociate interface {
+	services.IUserAssociate
+	models.IResource
+}
+
+func GetAssociatedUserSchema(ctx context.Context, associate IUserAssociate) (*schemasv1.UserSchema, error) {
+	user, err := services.UserService.GetAssociatedUser(ctx, associate)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get %s %s associated user", associate.GetResourceType(), associate.GetName())
 	}
 	userSchema, err := ToUserSchema(ctx, user)
 	if err != nil {

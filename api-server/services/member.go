@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
@@ -21,7 +23,33 @@ type memberService struct{}
 
 var MemberService = memberService{}
 
-func (s *memberService) CanView(ctx context.Context, m IMemberManager, userId, resourceId uint) error {
+func (s *memberService) checkApiToken(m IMemberManager, user *models.User, ops []modelschemas.ApiTokenScopeOp) error {
+	if user.ApiToken == nil {
+		return nil
+	}
+	if user.ApiToken.Scopes.Contains(modelschemas.ApiTokenScopeApi) {
+		return nil
+	}
+	resourceType := m.GetResourceType()
+	scopeStrs := make([]string, 0, len(ops))
+	for _, op := range ops {
+		scopeStr := fmt.Sprintf("%s_%s", op, resourceType)
+		scopeStrs = append(scopeStrs, scopeStr)
+	}
+	for _, scopeStr := range scopeStrs {
+		scope := modelschemas.ApiTokenScope(scopeStr)
+		if user.ApiToken.Scopes.Contains(scope) {
+			return nil
+		}
+	}
+	return errors.Errorf("the api_token need the scopes: %s", strings.Join(scopeStrs, " or "))
+}
+
+func (s *memberService) CanView(ctx context.Context, m IMemberManager, user *models.User, resourceId uint) error {
+	if err := s.checkApiToken(m, user, []modelschemas.ApiTokenScopeOp{modelschemas.ApiTokenScopeOpRead, modelschemas.ApiTokenScopeOpWrite, modelschemas.ApiTokenScopeOpOperate}); err != nil {
+		return err
+	}
+	userId := user.ID
 	resourceType := m.GetResourceType()
 	resource, err := ResourceService.Get(ctx, resourceType, resourceId)
 	if err != nil {
@@ -35,10 +63,6 @@ func (s *memberService) CanView(ctx context.Context, m IMemberManager, userId, r
 		return nil
 	}
 
-	user, err := UserService.Get(ctx, userId)
-	if err != nil {
-		return errors.Wrapf(err, "check can view")
-	}
 	if UserService.IsAdmin(ctx, user, organization) {
 		return nil
 	}
@@ -56,7 +80,11 @@ func (s *memberService) CanView(ctx context.Context, m IMemberManager, userId, r
 	return nil
 }
 
-func (s *memberService) CanUpdate(ctx context.Context, m IMemberManager, userId, resourceId uint) error {
+func (s *memberService) CanUpdate(ctx context.Context, m IMemberManager, user *models.User, resourceId uint) error {
+	if err := s.checkApiToken(m, user, []modelschemas.ApiTokenScopeOp{modelschemas.ApiTokenScopeOpWrite, modelschemas.ApiTokenScopeOpOperate}); err != nil {
+		return err
+	}
+	userId := user.ID
 	resourceType := m.GetResourceType()
 	resource, err := ResourceService.Get(ctx, resourceType, resourceId)
 	if err != nil {
@@ -70,10 +98,6 @@ func (s *memberService) CanUpdate(ctx context.Context, m IMemberManager, userId,
 		return nil
 	}
 
-	user, err := UserService.Get(ctx, userId)
-	if err != nil {
-		return errors.Wrapf(err, "check can update")
-	}
 	if UserService.IsAdmin(ctx, user, organization) {
 		return nil
 	}
@@ -90,7 +114,11 @@ func (s *memberService) CanUpdate(ctx context.Context, m IMemberManager, userId,
 	return nil
 }
 
-func (s *memberService) CanOperate(ctx context.Context, m IMemberManager, userId, resourceId uint) error {
+func (s *memberService) CanOperate(ctx context.Context, m IMemberManager, user *models.User, resourceId uint) error {
+	if err := s.checkApiToken(m, user, []modelschemas.ApiTokenScopeOp{modelschemas.ApiTokenScopeOpOperate}); err != nil {
+		return err
+	}
+	userId := user.ID
 	resourceType := m.GetResourceType()
 	resource, err := ResourceService.Get(ctx, resourceType, resourceId)
 	if err != nil {
@@ -104,10 +132,6 @@ func (s *memberService) CanOperate(ctx context.Context, m IMemberManager, userId
 		return nil
 	}
 
-	user, err := UserService.Get(ctx, userId)
-	if err != nil {
-		return errors.Wrapf(err, "check can operate")
-	}
 	if user.IsSuperAdmin() {
 		return nil
 	}

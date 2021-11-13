@@ -233,3 +233,10 @@ export function getReadableStorageQuantityStr(bytes?: number): string {
 export function numberToPercentStr(v: number): string {
     return `${(v * 100).toFixed(2)}%`
 }
+
+export const copyToClipboard = (text: string) => {
+    if ('clipboard' in navigator) {
+        return navigator.clipboard.writeText(text)
+    }
+    return document.execCommand('copy', true, text)
+}

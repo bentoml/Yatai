@@ -38,7 +38,7 @@ func ToOrganizationFullSchema(ctx context.Context, org *models.Organization) (*s
 	if err != nil {
 		return nil, errors.Wrap(err, "get current user")
 	}
-	if err = services.MemberService.CanUpdate(ctx, &services.OrganizationMemberService, currentUser.ID, org.ID); err != nil {
+	if err = services.MemberService.CanUpdate(ctx, &services.OrganizationMemberService, currentUser, org.ID); err != nil {
 		if !jujuerrors.IsForbidden(err) {
 			return nil, err
 		}

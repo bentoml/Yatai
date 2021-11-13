@@ -50,7 +50,7 @@ func (c *clusterController) canView(ctx context.Context, cluster *models.Cluster
 	if err != nil {
 		return err
 	}
-	return services.MemberService.CanView(ctx, &services.ClusterMemberService, user.ID, cluster.ID)
+	return services.MemberService.CanView(ctx, &services.ClusterMemberService, user, cluster.ID)
 }
 
 func (c *clusterController) canUpdate(ctx context.Context, cluster *models.Cluster) error {
@@ -58,7 +58,7 @@ func (c *clusterController) canUpdate(ctx context.Context, cluster *models.Clust
 	if err != nil {
 		return err
 	}
-	return services.MemberService.CanUpdate(ctx, &services.ClusterMemberService, user.ID, cluster.ID)
+	return services.MemberService.CanUpdate(ctx, &services.ClusterMemberService, user, cluster.ID)
 }
 
 func (c *clusterController) canOperate(ctx context.Context, cluster *models.Cluster) error {
@@ -66,7 +66,7 @@ func (c *clusterController) canOperate(ctx context.Context, cluster *models.Clus
 	if err != nil {
 		return err
 	}
-	return services.MemberService.CanOperate(ctx, &services.ClusterMemberService, user.ID, cluster.ID)
+	return services.MemberService.CanOperate(ctx, &services.ClusterMemberService, user, cluster.ID)
 }
 
 type CreateClusterSchema struct {
