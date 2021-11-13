@@ -14,9 +14,9 @@ import { useFetchApiTokens } from '@/hooks/useFetchApiTokens'
 import { resourceIconMapping } from '@/consts'
 import { useStyletron } from 'baseui'
 import { Input } from 'baseui/input'
-import { copyToClipboard } from '@/utils'
 import { TiClipboard } from 'react-icons/ti'
 import { Notification } from 'baseui/notification'
+import CopyToClipboard from 'react-copy-to-clipboard'
 
 export default function ApiTokenListCard() {
     const [page, setPage] = usePage()
@@ -27,6 +27,7 @@ export default function ApiTokenListCard() {
     const handleCreateApiToken = useCallback(
         async (data: ICreateApiTokenSchema) => {
             const apiToken = await createApiToken(data)
+            setCopyNotification(undefined)
             setTheTokenWishToShow(apiToken.token)
             await apiTokensInfo.refetch()
             setIsCreateApiTokenOpen(false)
@@ -147,18 +148,16 @@ export default function ApiTokenListCard() {
                             )}
                         </div>
                         <div>
-                            <Button
-                                startEnhancer={<TiClipboard size={14} />}
-                                kind='secondary'
-                                onClick={() => {
-                                    if (theTokenWishToShow) {
-                                        copyToClipboard(theTokenWishToShow)
-                                        setCopyNotification(t('copied to clipboard'))
-                                    }
+                            <CopyToClipboard
+                                text={theTokenWishToShow ?? ''}
+                                onCopy={() => {
+                                    setCopyNotification(t('copied to clipboard'))
                                 }}
                             >
-                                {t('copy')}
-                            </Button>
+                                <Button startEnhancer={<TiClipboard size={14} />} kind='secondary'>
+                                    {t('copy')}
+                                </Button>
+                            </CopyToClipboard>
                         </div>
                     </div>
                 </ModalBody>
