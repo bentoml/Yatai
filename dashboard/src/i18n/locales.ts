@@ -830,6 +830,76 @@ const locales0 = {
         en: 'Copied to clipboard',
         ja: 'クリップボードにコピーしました',
     },
+    'newest': {
+        cn: '最新',
+        en: 'Newest',
+        ja: '最新',
+    },
+    'oldest': {
+        cn: '最旧',
+        en: 'Oldest',
+        ja: '最古',
+    },
+    'sort': {
+        cn: '排序',
+        en: 'Sort',
+        ja: 'ソート',
+    },
+    'last updater': {
+        cn: '最后更新者',
+        en: 'Last Updater',
+        ja: '最終更新者',
+    },
+    'updated_at': {
+        cn: '更新时间',
+        en: 'Updated At',
+        ja: '更新日時',
+    },
+    'newest update': {
+        cn: '最新更新',
+        en: 'Newest Update',
+        ja: '最新更新',
+    },
+    'oldest update': {
+        cn: '最旧更新',
+        en: 'Oldest Update',
+        ja: '最古更新',
+    },
+    'filter by sth': {
+        cn: '按照 {{0}} 过滤',
+        en: 'Filter by {{0}}',
+        ja: '{{0}} をフィルター',
+    },
+    'clear search keyword, filters and sorts': {
+        cn: '清除搜索关键词、过滤器和排序规则',
+        en: 'Clear search keyword, filters and sorts',
+        ja: '検索キーワード、フィルターとソートをクリア',
+    },
+    'filters': {
+        cn: '过滤器',
+        en: 'Filters',
+        ja: 'フィルター',
+    },
+    'the deployments I created': {
+        cn: '我创建的部署',
+        en: 'The deployments I created',
+        ja: '私が作成した部署',
+    },
+    'my last updated deployments': {
+        cn: '我最后更新的部署',
+        en: 'My Last Updated Deployments',
+        ja: 'マイ・最終更新デプロイ',
+    },
+    'the bentos I created': {
+        cn: '我创建的 Bento',
+        en: 'The Bentos I created',
+        ja: '私が作成したベント',
+    },
+    'my last updated bentos': {
+        cn: '我最后更新的 Bento',
+        en: 'My Last Updated Bentos',
+        ja: 'マイ・最終更新ベント',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

@@ -43,6 +43,7 @@ export interface ICardProps {
     bodyClassName?: string
     children?: React.ReactNode
     className?: string
+    middle?: React.ReactNode
     extra?: React.ReactNode
     loading?: boolean
     onMountCard?: React.RefCallback<HTMLDivElement>
@@ -53,6 +54,7 @@ export default function Card({
     title,
     titleIcon: TitleIcon,
     titleTail,
+    middle,
     extra,
     className,
     style,
@@ -96,14 +98,14 @@ export default function Card({
         >
             {(title || extra) && (
                 <div
-                    className={styles.cardHead}
+                    className={styles.cardHeadWrapper}
                     style={{
                         ...headStyle,
                         color: theme.colors.contentPrimary,
                         borderBottomColor: theme.borders.border300.borderColor,
                     }}
                 >
-                    <div className={styles.cardHeadWrapper}>
+                    <div className={styles.cardHead}>
                         {title && (
                             <div className={styles.cardHeadTitle}>
                                 {TitleIcon && <TitleIcon size={13} />}
@@ -122,7 +124,10 @@ export default function Card({
                                 {titleTail}
                             </div>
                         )}
-                        {extra && <div className={styles.cardExtra}>{extra}</div>}
+                        <div className={styles.cardHeadTail}>
+                            {middle}
+                            {extra && <div className={styles.cardExtra}>{extra}</div>}
+                        </div>
                     </div>
                 </div>
             )}

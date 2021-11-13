@@ -32,6 +32,10 @@ type UpdateBentoOption struct {
 type ListBentoOption struct {
 	BaseListOption
 	OrganizationId *uint
+	CreatorId      *uint
+	CreatorIds     *[]uint
+	LastUpdaterIds *[]uint
+	Order          *string
 	Names          *[]string
 }
 
@@ -105,19 +109,37 @@ func (s *bentoService) GetByName(ctx context.Context, organizationId uint, name 
 func (s *bentoService) List(ctx context.Context, opt ListBentoOption) ([]*models.Bento, uint, error) {
 	query := getBaseQuery(ctx, s)
 	if opt.OrganizationId != nil {
-		query = query.Where("organization_id = ?", *opt.OrganizationId)
+		query = query.Where("bento.organization_id = ?", *opt.OrganizationId)
+	}
+	if opt.CreatorId != nil {
+		query = query.Where("bento.creator_id = ?", *opt.CreatorId)
 	}
 	if opt.Names != nil {
-		query = query.Where("name in (?)", *opt.Names)
+		query = query.Where("bento.name in (?)", *opt.Names)
 	}
+	if opt.CreatorIds != nil {
+		query = query.Where("bento.creator_id in (?)", *opt.CreatorIds)
+	}
+	query = query.Joins("LEFT JOIN bento_version ON bento_version.bento_id = bento.id")
+	query = query.Joins("LEFT OUTER JOIN bento_version v2 ON v2.bento_id = bento.id AND bento_version.id < v2.id")
+	query = query.Where("v2.id IS NULL")
+	if opt.LastUpdaterIds != nil {
+		query = query.Where("bento_version.creator_id IN (?)", *opt.LastUpdaterIds)
+	}
+	query = opt.BindQueryWithKeywords(query, "bento")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
 	bentos := make([]*models.Bento, 0)
-	query = opt.BindQuery(query)
-	query = query.Order("id DESC")
+	query = query.Select("bento.*")
+	query = opt.BindQueryWithLimit(query)
+	if opt.Order != nil {
+		query = query.Order(*opt.Order)
+	} else {
+		query = query.Order("bento.id DESC")
+	}
 	err = query.Find(&bentos).Error
 	if err != nil {
 		return nil, 0, err

@@ -187,7 +187,7 @@ func (s *apiTokenService) List(ctx context.Context, opt ListApiTokenOption) ([]*
 	if err != nil {
 		return nil, 0, err
 	}
-	query = opt.BindQuery(query)
+	query = opt.BindQueryWithLimit(query)
 	if opt.Ids == nil {
 		if opt.Order == nil {
 			query = query.Order("id DESC")

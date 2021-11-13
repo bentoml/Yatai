@@ -146,7 +146,7 @@ func (s *organizationService) List(ctx context.Context, opt ListOrganizationOpti
 			query = query.Order("id DESC")
 		}
 	}
-	err = opt.BindQuery(query).Find(&orgs).Error
+	err = opt.BindQueryWithLimit(query).Find(&orgs).Error
 	return orgs, uint(total), err
 }
 

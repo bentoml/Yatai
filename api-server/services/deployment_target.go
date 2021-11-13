@@ -141,7 +141,7 @@ func (s *deploymentTargetService) List(ctx context.Context, opt ListDeploymentTa
 		return nil, 0, err
 	}
 	deploymentTargets := make([]*models.DeploymentTarget, 0)
-	query = opt.BindQuery(query)
+	query = opt.BindQueryWithLimit(query)
 	err = query.Order("deployment_target.id ASC").Find(&deploymentTargets).Error
 	if err != nil {
 		return nil, 0, err

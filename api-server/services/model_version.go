@@ -472,7 +472,7 @@ func (s *modelVersionService) List(ctx context.Context, opt ListModelVersionOpti
 		return nil, 0, err
 	}
 	modelVersions := make([]*models.ModelVersion, 0)
-	query = opt.BindQuery(query).Order("build_at DESC")
+	query = opt.BindQueryWithLimit(query).Order("build_at DESC")
 	err = query.Find(&modelVersions).Error
 	if err != nil {
 		return nil, 0, err

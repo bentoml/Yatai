@@ -10,4 +10,5 @@ type ListQuerySchema struct {
 	Start  uint    `query:"start"`
 	Count  uint    `query:"count"`
 	Search *string `query:"search"`
+	Q      Q       `query:"q"`
 }

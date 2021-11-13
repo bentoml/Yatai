@@ -4,15 +4,11 @@ import "github.com/bentoml/yatai/schemas/modelschemas"
 
 type DeploymentSchema struct {
 	ResourceSchema
-	Creator *UserSchema                   `json:"creator"`
-	Cluster *ClusterFullSchema            `json:"cluster"`
-	Status  modelschemas.DeploymentStatus `json:"status" enum:"unknown,non-deployed,running,unhealthy,failed,deploying"`
-	URLs    []string                      `json:"urls"`
-}
-
-type DeploymentFullSchema struct {
-	DeploymentSchema
-	LatestRevision *DeploymentRevisionSchema `json:"latest_revision"`
+	Creator        *UserSchema                   `json:"creator"`
+	Cluster        *ClusterFullSchema            `json:"cluster"`
+	Status         modelschemas.DeploymentStatus `json:"status" enum:"unknown,non-deployed,running,unhealthy,failed,deploying"`
+	URLs           []string                      `json:"urls"`
+	LatestRevision *DeploymentRevisionSchema     `json:"latest_revision"`
 }
 
 type DeploymentListSchema struct {

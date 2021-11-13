@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react'
 import { IListQuerySchema } from '@/schemas/list'
 import { IQueryArgs, IUpdateQueryArgs, useQueryArgs } from './useQueryArgs'
 
@@ -19,7 +20,7 @@ export function usePage(opt?: {
         updateQuery = updateQuery0
     }
 
-    const { page: pageStr = '1', search, sort_by: sortBy, sort_asc: sortAsc } = query
+    const { page: pageStr = '1', search, q, sort_by: sortBy, sort_asc: sortAsc } = query
     let pageNum = parseInt(pageStr, 10)
     // eslint-disable-next-line no-restricted-globals
     if (isNaN(pageNum) || pageNum <= 0) {
@@ -29,20 +30,28 @@ export function usePage(opt?: {
     const start = (pageNum - 1) * defaultCount
 
     return [
-        {
-            start,
-            count: defaultCount,
-            search,
-            sort_by: sortBy,
-            sort_asc: sortAsc === 'true',
-        },
-        (newPage) => {
-            updateQuery?.({
-                page: Math.floor(newPage.start / newPage.count) + 1,
-                search: newPage.search,
-                sort_by: newPage.sort_by,
-                sort_asc: newPage.sort_asc !== undefined ? String(newPage.sort_asc) : undefined,
-            })
-        },
+        useMemo(
+            () => ({
+                start,
+                count: defaultCount,
+                search,
+                q,
+                sort_by: sortBy,
+                sort_asc: sortAsc === 'true',
+            }),
+            [defaultCount, q, search, sortAsc, sortBy, start]
+        ),
+        useCallback(
+            (newPage) => {
+                updateQuery?.({
+                    page: Math.floor(newPage.start / newPage.count) + 1,
+                    search: newPage.search,
+                    q: newPage.q,
+                    sort_by: newPage.sort_by,
+                    sort_asc: newPage.sort_asc !== undefined ? String(newPage.sort_asc) : undefined,
+                })
+            },
+            [updateQuery]
+        ),
     ]
 }

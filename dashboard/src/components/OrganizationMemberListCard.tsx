@@ -1,18 +1,18 @@
 import useTranslation from '@/hooks/useTranslation'
-import { createOrganizationMembers, listOrganizationMembers } from '@/services/organization_member'
-import React, { useCallback, useState } from 'react'
+import { createOrganizationMembers } from '@/services/organization_member'
+import { useCallback, useState } from 'react'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
-import { useQuery } from 'react-query'
 import Card from '@/components/Card'
 import MemberForm from '@/components/MemberForm'
 import { ICreateMembersSchema } from '@/schemas/member'
 import User from '@/components/User'
 import Table from '@/components/Table'
 import { resourceIconMapping } from '@/consts'
+import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 
 export default function OrganizationMemberListCard() {
-    const membersInfo = useQuery('fetchOrgMembers', () => listOrganizationMembers())
+    const membersInfo = useFetchOrganizationMembers()
     const [t] = useTranslation()
     const [isCreateMembersOpen, setIsCreateMembersOpen] = useState(false)
     const handleCreateMember = useCallback(

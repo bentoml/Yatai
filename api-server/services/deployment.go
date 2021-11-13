@@ -59,8 +59,16 @@ type UpdateDeploymentStatusOption struct {
 
 type ListDeploymentOption struct {
 	BaseListOption
-	ClusterId      *uint
-	OrganizationId *uint
+	ClusterId       *uint
+	CreatorId       *uint
+	LastUpdaterId   *uint
+	OrganizationId  *uint
+	ClusterIds      *[]uint
+	CreatorIds      *[]uint
+	LastUpdaterIds  *[]uint
+	OrganizationIds *[]uint
+	Statuses        *[]modelschemas.DeploymentStatus
+	Order           *string
 }
 
 func (*deploymentService) Create(ctx context.Context, opt CreateDeploymentOption) (*models.Deployment, error) {
@@ -151,20 +159,58 @@ func (s *deploymentService) ListByUids(ctx context.Context, uids []string) ([]*m
 
 func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) ([]*models.Deployment, uint, error) {
 	query := getBaseQuery(ctx, s)
-	if opt.ClusterId != nil {
-		query = query.Where("cluster_id = ?", *opt.ClusterId)
-	}
+	joinedDeploymentRevision := false
 	if opt.OrganizationId != nil {
-		query = query.Where("cluster_id in (select id from cluster where organization_id = ?)", *opt.OrganizationId)
+		query = query.Joins("LEFT JOIN cluster ON cluster.id = deployment.cluster_id")
+		query = query.Where("cluster.organization_id = ?", *opt.OrganizationId)
 	}
+	if opt.OrganizationIds != nil {
+		query = query.Joins("LEFT JOIN cluster ON cluster.id = deployment.cluster_id")
+		query = query.Where("cluster.organization_id IN (?)", *opt.OrganizationIds)
+	}
+	if opt.LastUpdaterId != nil {
+		joinedDeploymentRevision = true
+		query = query.Joins("LEFT JOIN deployment_revision ON deployment_revision.deployment_id = deployment.id AND deployment_revision.status = ?", modelschemas.DeploymentRevisionStatusActive)
+		query = query.Where("deployment_revision.creator_id = ?", *opt.LastUpdaterId)
+	}
+	if opt.LastUpdaterIds != nil {
+		joinedDeploymentRevision = true
+		query = query.Joins("LEFT JOIN deployment_revision ON deployment_revision.deployment_id = deployment.id AND deployment_revision.status = ?", modelschemas.DeploymentRevisionStatusActive)
+		query = query.Where("deployment_revision.creator_id IN (?)", *opt.LastUpdaterIds)
+	}
+	if opt.ClusterId != nil {
+		query = query.Where("deployment.cluster_id = ?", *opt.ClusterId)
+	}
+	if opt.ClusterIds != nil {
+		query = query.Where("deployment.cluster_id IN (?)", *opt.ClusterIds)
+	}
+	if opt.CreatorId != nil {
+		query = query.Where("deployment.creator_id = ?", *opt.CreatorId)
+	}
+	if opt.CreatorIds != nil {
+		query = query.Where("deployment.creator_id IN (?)", *opt.CreatorIds)
+	}
+	if opt.Statuses != nil {
+		query = query.Where("deployment.status IN (?)", *opt.Statuses)
+	}
+	if !joinedDeploymentRevision {
+		query = query.Joins("LEFT JOIN deployment_revision ON deployment_revision.deployment_id = deployment.id")
+	}
+	query = opt.BindQueryWithKeywords(query, "deployment")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
+	query = query.Select("deployment.*")
+	query = opt.BindQueryWithLimit(query)
+	if opt.Order != nil {
+		query = query.Order(*opt.Order)
+	} else {
+		query.Order("deployment.id DESC")
+	}
 	deployments := make([]*models.Deployment, 0)
-	query = opt.BindQuery(query)
-	err = query.Order("id DESC").Find(&deployments).Error
+	err = query.Find(&deployments).Error
 	if err != nil {
 		return nil, 0, err
 	}
@@ -447,7 +493,7 @@ func (s *deploymentService) GetURLs(ctx context.Context, deployment *models.Depl
 			Start: utils.UintPtr(0),
 			Count: utils.UintPtr(1),
 		},
-		DeploymentId: deployment.ID,
+		DeploymentId: utils.UintPtr(deployment.ID),
 		Status:       &status,
 	})
 	if err != nil {

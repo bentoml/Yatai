@@ -121,7 +121,7 @@ func (s *terminalRecordService) List(ctx context.Context, opt ListTerminalRecord
 		return nil, 0, err
 	}
 	terminalRecords := make([]*models.TerminalRecord, 0)
-	query = opt.BindQuery(query)
+	query = opt.BindQueryWithLimit(query)
 	query = query.Order("id DESC")
 	err = query.Find(&terminalRecords).Error
 	if err != nil {

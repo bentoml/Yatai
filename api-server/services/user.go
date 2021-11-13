@@ -216,7 +216,7 @@ func (s *userService) List(ctx context.Context, opt ListUserOption) ([]*models.U
 	} else {
 		query = query.Order("id DESC")
 	}
-	err = opt.BindQuery(query).Find(&users).Error
+	err = opt.BindQueryWithLimit(query).Find(&users).Error
 	return users, uint(total), err
 }
 

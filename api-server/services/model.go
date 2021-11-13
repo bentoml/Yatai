@@ -109,7 +109,7 @@ func (s *modelService) List(ctx context.Context, opt ListModelOption) ([]*models
 		return nil, 0, err
 	}
 	models := make([]*models.Model, 0)
-	query = opt.BindQuery(query)
+	query = opt.BindQueryWithLimit(query)
 	query = query.Order("id DESC")
 	err = query.Find(&models).Error
 	if err != nil {

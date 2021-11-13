@@ -13,45 +13,6 @@ import (
 	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
-func ToDeploymentFullSchema(ctx context.Context, deployment *models.Deployment) (*schemasv1.DeploymentFullSchema, error) {
-	s, err := ToDeploymentSchema(ctx, deployment)
-	if err != nil {
-		return nil, err
-	}
-	status_ := modelschemas.DeploymentRevisionStatusActive
-
-	deploymentRevisions, _, err := services.DeploymentRevisionService.List(ctx, services.ListDeploymentRevisionOption{
-		BaseListOption: services.BaseListOption{
-			Start: utils.UintPtr(0),
-			Count: utils.UintPtr(1),
-		},
-		DeploymentId: deployment.ID,
-		Status:       &status_,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var latestDeploymentRevision *models.DeploymentRevision
-	if len(deploymentRevisions) != 0 {
-		latestDeploymentRevision = deploymentRevisions[0]
-	}
-
-	var latestDeploymentRevisionSchema *schemasv1.DeploymentRevisionSchema
-	if latestDeploymentRevision != nil {
-		latestDeploymentRevisionSchema_, err := ToDeploymentRevisionSchema(ctx, latestDeploymentRevision)
-		if err != nil {
-			return nil, err
-		}
-		latestDeploymentRevisionSchema = latestDeploymentRevisionSchema_
-	}
-
-	return &schemasv1.DeploymentFullSchema{
-		DeploymentSchema: *s,
-		LatestRevision:   latestDeploymentRevisionSchema,
-	}, nil
-}
-
 func ToDeploymentSchema(ctx context.Context, deployment *models.Deployment) (*schemasv1.DeploymentSchema, error) {
 	if deployment == nil {
 		return nil, nil
@@ -64,8 +25,40 @@ func ToDeploymentSchema(ctx context.Context, deployment *models.Deployment) (*sc
 }
 
 func ToDeploymentSchemas(ctx context.Context, deployments []*models.Deployment) ([]*schemasv1.DeploymentSchema, error) {
+	status_ := modelschemas.DeploymentRevisionStatusActive
+	deploymentIds := make([]uint, 0, len(deployments))
+
+	for _, deployment := range deployments {
+		deploymentIds = append(deploymentIds, deployment.ID)
+	}
+
+	deploymentRevisions, _, err := services.DeploymentRevisionService.List(ctx, services.ListDeploymentRevisionOption{
+		DeploymentIds: utils.UintSlicePtr(deploymentIds),
+		Status:        &status_,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	deploymentIdToDeploymentRevisionUid := make(map[uint]string)
+	for _, deploymentRevision := range deploymentRevisions {
+		deploymentIdToDeploymentRevisionUid[deploymentRevision.DeploymentId] = deploymentRevision.Uid
+	}
+
+	deploymentRevisionSchemas, err := ToDeploymentRevisionSchemas(ctx, deploymentRevisions)
+	if err != nil {
+		return nil, err
+	}
+
+	deploymentRevisionSchemasMap := make(map[string]*schemasv1.DeploymentRevisionSchema)
+	for _, deploymentRevisionSchema := range deploymentRevisionSchemas {
+		deploymentRevisionSchemasMap[deploymentRevisionSchema.Uid] = deploymentRevisionSchema
+	}
+
 	res := make([]*schemasv1.DeploymentSchema, 0, len(deployments))
 	for _, deployment := range deployments {
+		deploymentRevisionUid := deploymentIdToDeploymentRevisionUid[deployment.ID]
+		deploymentRevisionSchema := deploymentRevisionSchemasMap[deploymentRevisionUid]
 		creatorSchema, err := GetAssociatedCreatorSchema(ctx, deployment)
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedCreatorSchema")
@@ -83,6 +76,7 @@ func ToDeploymentSchemas(ctx context.Context, deployments []*models.Deployment) 
 			Creator:        creatorSchema,
 			Cluster:        clusterSchema,
 			Status:         deployment.Status,
+			LatestRevision: deploymentRevisionSchema,
 			URLs:           urls,
 		})
 	}

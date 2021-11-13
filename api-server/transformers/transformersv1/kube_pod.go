@@ -80,7 +80,7 @@ func ToKubePodSchemas(ctx context.Context, pods []*models.KubePodWithStatus) (vs
 				Start: utils.UintPtr(0),
 				Count: utils.UintPtr(10),
 			},
-			DeploymentId: deployment.ID,
+			DeploymentId: utils.UintPtr(deployment.ID),
 			Status:       &status,
 		})
 		if err != nil {

@@ -12,11 +12,11 @@ export interface IDeploymentSchema extends IResourceSchema {
     cluster?: IClusterFullSchema
     status: DeploymentStatus
     urls: string[]
-}
-
-export interface IDeploymentFullSchema extends IDeploymentSchema {
     latest_revision?: IDeploymentRevisionSchema
 }
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface IDeploymentFullSchema extends IDeploymentSchema {}
 
 export interface IUpdateDeploymentSchema {
     targets: ICreateDeploymentTargetSchema[]
