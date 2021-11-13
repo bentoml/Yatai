@@ -432,6 +432,11 @@ export default function Header() {
                                 text: 'English',
                                 flag: <ReactCountryFlag countryCode='US' svg />,
                             },
+                            {
+                                id: 'ja',
+                                text: '日本語',
+                                flag: <ReactCountryFlag countryCode='JP' svg />,
+                            },
                         ]}
                     />
                 </div>
