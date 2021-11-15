@@ -505,7 +505,7 @@ func (s *bentoVersionService) List(ctx context.Context, opt ListBentoVersionOpti
 		return nil, 0, err
 	}
 	bentoVersions := make([]*models.BentoVersion, 0)
-	query = opt.BindQuery(query).Order("build_at DESC")
+	query = opt.BindQueryWithLimit(query).Order("build_at DESC")
 	err = query.Find(&bentoVersions).Error
 	if err != nil {
 		return nil, 0, err

@@ -9,6 +9,7 @@ export interface IListQuerySchema {
     start: number
     count: number
     search?: string
+    q?: string
     sort_by?: string
     sort_asc?: boolean
 }

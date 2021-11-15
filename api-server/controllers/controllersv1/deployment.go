@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/huandu/xstrings"
 
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -80,7 +83,7 @@ type CreateDeploymentSchema struct {
 	GetClusterSchema
 }
 
-func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeploymentSchema) (*schemasv1.DeploymentFullSchema, error) {
+func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err
@@ -116,7 +119,7 @@ type UpdateDeploymentSchema struct {
 	GetDeploymentSchema
 }
 
-func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeploymentSchema) (*schemasv1.DeploymentFullSchema, error) {
+func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
 	deployment, err := schema.GetDeployment(ctx)
 	if err != nil {
 		return nil, err
@@ -132,7 +135,7 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
 }
 
-func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.UpdateDeploymentSchema, org *models.Organization, deployment *models.Deployment) (*schemasv1.DeploymentFullSchema, error) {
+func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.UpdateDeploymentSchema, org *models.Organization, deployment *models.Deployment) (*schemasv1.DeploymentSchema, error) {
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err
@@ -218,10 +221,10 @@ func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.Updat
 		return nil, errors.Wrap(err, "deploy deployment revision")
 	}
 
-	return transformersv1.ToDeploymentFullSchema(ctx, deployment)
+	return transformersv1.ToDeploymentSchema(ctx, deployment)
 }
 
-func (c *deploymentController) Get(ctx *gin.Context, schema *GetDeploymentSchema) (*schemasv1.DeploymentFullSchema, error) {
+func (c *deploymentController) Get(ctx *gin.Context, schema *GetDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
 	deployment, err := schema.GetDeployment(ctx)
 	if err != nil {
 		return nil, err
@@ -229,12 +232,103 @@ func (c *deploymentController) Get(ctx *gin.Context, schema *GetDeploymentSchema
 	if err = c.canView(ctx, deployment); err != nil {
 		return nil, err
 	}
-	return transformersv1.ToDeploymentFullSchema(ctx, deployment)
+	return transformersv1.ToDeploymentSchema(ctx, deployment)
 }
 
 type ListClusterDeploymentSchema struct {
 	schemasv1.ListQuerySchema
 	GetClusterSchema
+}
+
+func fillListDeploymentOption(ctx context.Context, listOpt *services.ListDeploymentOption, queryMap map[string]interface{}) error {
+	for k, v := range queryMap {
+		if k == schemasv1.KeyQIn {
+			fieldNames := make([]string, 0, len(v.([]string)))
+			for _, fieldName := range v.([]string) {
+				if _, ok := map[string]struct{}{
+					"name":        {},
+					"description": {},
+				}[fieldName]; !ok {
+					continue
+				}
+				fieldNames = append(fieldNames, fieldName)
+			}
+			listOpt.KeywordFieldNames = &fieldNames
+		}
+		if k == schemasv1.KeyQKeywords {
+			listOpt.Keywords = utils.StringSlicePtr(v.([]string))
+		}
+		if k == "cluster" {
+			clusters, _, err := services.ClusterService.List(ctx, services.ListClusterOption{
+				Names: utils.StringSlicePtr(v.([]string)),
+			})
+			if err != nil {
+				return err
+			}
+			clusterIds := make([]uint, 0, len(clusters))
+			for _, cluster := range clusters {
+				clusterIds = append(clusterIds, cluster.ID)
+			}
+			listOpt.ClusterIds = &clusterIds
+		}
+		if k == "creator" {
+			userNames, err := processUserNamesFromQ(ctx, v.([]string))
+			if err != nil {
+				return err
+			}
+			users, err := services.UserService.ListByNames(ctx, userNames)
+			if err != nil {
+				return err
+			}
+			userIds := make([]uint, 0, len(users))
+			for _, user := range users {
+				userIds = append(userIds, user.ID)
+			}
+			listOpt.CreatorIds = utils.UintSlicePtr(userIds)
+		}
+		if k == "last_updater" {
+			userNames, err := processUserNamesFromQ(ctx, v.([]string))
+			if err != nil {
+				return err
+			}
+			users, err := services.UserService.ListByNames(ctx, userNames)
+			if err != nil {
+				return err
+			}
+			userIds := make([]uint, 0, len(users))
+			for _, user := range users {
+				userIds = append(userIds, user.ID)
+			}
+			listOpt.LastUpdaterIds = utils.UintSlicePtr(userIds)
+		}
+		if k == "status" {
+			statuses := make([]modelschemas.DeploymentStatus, 0, len(v.([]string)))
+			for _, status := range v.([]string) {
+				statuses = append(statuses, modelschemas.DeploymentStatus(status))
+			}
+			listOpt.Statuses = &statuses
+		}
+		if k == "sort" {
+			fieldName, _, order := xstrings.LastPartition(v.([]string)[0], "-")
+			if _, ok := map[string]struct{}{
+				"created_at": {},
+				"updated_at": {},
+			}[fieldName]; !ok {
+				continue
+			}
+			if _, ok := map[string]struct{}{
+				"desc": {},
+				"asc":  {},
+			}[order]; !ok {
+				continue
+			}
+			if fieldName == "updated_at" {
+				fieldName = "deployment_revision.created_at"
+			}
+			listOpt.Order = utils.StringPtr(fmt.Sprintf("%s %s", fieldName, strings.ToUpper(order)))
+		}
+	}
+	return nil
 }
 
 func (c *deploymentController) ListClusterDeployments(ctx *gin.Context, schema *ListClusterDeploymentSchema) (*schemasv1.DeploymentListSchema, error) {
@@ -247,14 +341,21 @@ func (c *deploymentController) ListClusterDeployments(ctx *gin.Context, schema *
 		return nil, err
 	}
 
-	deployments, total, err := services.DeploymentService.List(ctx, services.ListDeploymentOption{
+	listOpt := services.ListDeploymentOption{
 		BaseListOption: services.BaseListOption{
 			Start:  utils.UintPtr(schema.Start),
 			Count:  utils.UintPtr(schema.Count),
 			Search: schema.Search,
 		},
 		ClusterId: utils.UintPtr(cluster.ID),
-	})
+	}
+
+	err = fillListDeploymentOption(ctx, &listOpt, schema.Q.ToMap())
+	if err != nil {
+		return nil, err
+	}
+
+	deployments, total, err := services.DeploymentService.List(ctx, listOpt)
 	if err != nil {
 		return nil, errors.Wrap(err, "list deployments")
 	}
@@ -285,14 +386,21 @@ func (c *deploymentController) ListOrganizationDeployments(ctx *gin.Context, sch
 		return nil, err
 	}
 
-	deployments, total, err := services.DeploymentService.List(ctx, services.ListDeploymentOption{
+	listOpt := services.ListDeploymentOption{
 		BaseListOption: services.BaseListOption{
 			Start:  utils.UintPtr(schema.Start),
 			Count:  utils.UintPtr(schema.Count),
 			Search: schema.Search,
 		},
 		OrganizationId: utils.UintPtr(organization.ID),
-	})
+	}
+
+	err = fillListDeploymentOption(ctx, &listOpt, schema.Q.ToMap())
+	if err != nil {
+		return nil, err
+	}
+
+	deployments, total, err := services.DeploymentService.List(ctx, listOpt)
 	if err != nil {
 		return nil, errors.Wrap(err, "list deployments")
 	}

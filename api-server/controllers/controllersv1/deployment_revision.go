@@ -37,7 +37,7 @@ func (c *deploymentRevisionController) List(ctx *gin.Context, schema *ListDeploy
 			Count:  utils.UintPtr(schema.Count),
 			Search: schema.Search,
 		},
-		DeploymentId: deployment.ID,
+		DeploymentId: utils.UintPtr(deployment.ID),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "list deploymentRevisions")
