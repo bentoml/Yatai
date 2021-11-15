@@ -4,15 +4,11 @@ import "github.com/bentoml/yatai/schemas/modelschemas"
 
 type DeploymentSchema struct {
 	ResourceSchema
-	Creator *UserSchema                   `json:"creator"`
-	Cluster *ClusterFullSchema            `json:"cluster"`
-	Status  modelschemas.DeploymentStatus `json:"status"`
-	URLs    []string                      `json:"urls"`
-}
-
-type DeploymentFullSchema struct {
-	DeploymentSchema
-	LatestSnapshot **DeploymentSnapshotSchema `json:"latest_snapshot"`
+	Creator        *UserSchema                   `json:"creator"`
+	Cluster        *ClusterFullSchema            `json:"cluster"`
+	Status         modelschemas.DeploymentStatus `json:"status" enum:"unknown,non-deployed,running,unhealthy,failed,deploying"`
+	URLs           []string                      `json:"urls"`
+	LatestRevision *DeploymentRevisionSchema     `json:"latest_revision"`
 }
 
 type DeploymentListSchema struct {
@@ -21,11 +17,7 @@ type DeploymentListSchema struct {
 }
 
 type UpdateDeploymentSchema struct {
-	Type         modelschemas.DeploymentSnapshotType         `json:"type"`
-	BentoName    string                                      `json:"bento_name"`
-	BentoVersion string                                      `json:"bento_version"`
-	CanaryRules  *modelschemas.DeploymentSnapshotCanaryRules `json:"canary_rules"`
-	Config       *modelschemas.DeploymentSnapshotConfig      `json:"config"`
+	Targets []*CreateDeploymentTargetSchema `json:"targets"`
 }
 
 type CreateDeploymentSchema struct {

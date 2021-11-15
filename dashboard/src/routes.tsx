@@ -9,6 +9,7 @@ import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import Login from '@/pages/Yatai/Login'
+import OrganizationApiTokens from '@/pages/Organization/ApiTokens'
 import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
 import OrganizationDeployments from '@/pages/Organization/Deployments'
@@ -23,7 +24,7 @@ import OrganizationBentos from '@/pages/Organization/Bentos'
 import BentoOverview from '@/pages/Bento/Overview'
 import BentoVersions from '@/pages/Bento/Versions'
 import DeploymentOverview from '@/pages/Deployment/Overview'
-import DeploymentSnapshots from '@/pages/Deployment/Snapshots'
+import DeploymentRevisions from '@/pages/Deployment/Revisions'
 import DeploymentTerminalRecordPlayer from '@/pages/Deployment/TerminalRecordPlayer'
 import DeploymentReplicas from '@/pages/Deployment/Replicas'
 import DeploymentLog from '@/pages/Deployment/Log'
@@ -95,8 +96,8 @@ const Routes = () => {
                                 />
                                 <Route
                                     exact
-                                    path='/clusters/:clusterName/deployments/:deploymentName/snapshots'
-                                    component={DeploymentSnapshots}
+                                    path='/clusters/:clusterName/deployments/:deploymentName/revisions'
+                                    component={DeploymentRevisions}
                                 />
                                 <Route
                                     exact
@@ -155,6 +156,7 @@ const Routes = () => {
                             <Switch>
                                 <Route exact path='/' component={OrganizationOverview} />
                                 <Route exact path='/bentos' component={OrganizationBentos} />
+                                <Route exact path='/api_tokens' component={OrganizationApiTokens} />
                                 <Route exact path='/clusters' component={OrganizationClusters} />
                                 <Route exact path='/members' component={OrganizationMembers} />
                                 <Route exact path='/models' component={OrganizationModels} />

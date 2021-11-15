@@ -45,7 +45,7 @@ export interface FormProps<S extends {} = Store, V = S>
 type OmittedRcFieldProps = Omit<RcFieldProps, 'name' | 'dependencies' | 'children' | 'rules'>
 
 interface BasicFormItemProps<S extends {} = Store> extends OmittedRcFieldProps {
-    name?: NamePath<S>
+    name?: NamePath<S, 10>
     children?: ReactElement | ((value: S) => ReactElement)
     validators?: Array<Validator | null> | ((value: S) => Array<Validator | null>)
     label?: ReactNode

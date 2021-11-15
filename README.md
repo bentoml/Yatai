@@ -51,6 +51,11 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
 nvm install 14.16.1
 nvm alias default 14.16.1
 
+# for Mac M1 chips(arm) only
+nvm install 14.17.1
+nvm alias default 14.17.1
+
+
 # then install yarn
 npm install -g yarn
 ```

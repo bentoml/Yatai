@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/huandu/xstrings"
 
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -80,7 +83,7 @@ type CreateDeploymentSchema struct {
 	GetClusterSchema
 }
 
-func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeploymentSchema) (*schemasv1.DeploymentFullSchema, error) {
+func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err
@@ -108,35 +111,7 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		return nil, errors.Wrap(err, "create deployment")
 	}
 
-	bento, err := services.BentoService.GetByName(ctx, org.ID, schema.BentoName)
-	if err != nil {
-		return nil, errors.Wrapf(err, "get bento %s from organization %s", schema.BentoName, org.Name)
-	}
-
-	bentoVersion, err := services.BentoVersionService.GetByVersion(ctx, bento.ID, schema.BentoVersion)
-	if err != nil {
-		return nil, errors.Wrapf(err, "get bento %s version %s from organization %s", schema.BentoName, schema.BentoVersion, org.Name)
-	}
-
-	deploymentSnapshot, err := services.DeploymentSnapshotService.Create(ctx, services.CreateDeploymentSnapshotOption{
-		CreatorId:      user.ID,
-		DeploymentId:   deployment.ID,
-		BentoVersionId: bentoVersion.ID,
-		Type:           schema.Type,
-		Status:         modelschemas.DeploymentSnapshotStatusActive,
-		CanaryRules:    schema.CanaryRules,
-		Config:         schema.Config,
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "create deployment snapshot")
-	}
-
-	err = services.DeploymentSnapshotService.Deploy(ctx, deploymentSnapshot, false)
-	if err != nil {
-		return nil, errors.Wrap(err, "deploy deployment snapshot")
-	}
-
-	return transformersv1.ToDeploymentFullSchema(ctx, deployment)
+	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
 }
 
 type UpdateDeploymentSchema struct {
@@ -144,12 +119,8 @@ type UpdateDeploymentSchema struct {
 	GetDeploymentSchema
 }
 
-func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeploymentSchema) (*schemasv1.DeploymentFullSchema, error) {
+func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
 	deployment, err := schema.GetDeployment(ctx)
-	if err != nil {
-		return nil, err
-	}
-	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -161,38 +132,99 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 		return nil, err
 	}
 
-	bento, err := services.BentoService.GetByName(ctx, org.ID, schema.BentoName)
-	if err != nil {
-		return nil, errors.Wrapf(err, "get bento %s from organization %s", schema.BentoName, org.Name)
-	}
-
-	bentoVersion, err := services.BentoVersionService.GetByVersion(ctx, bento.ID, schema.BentoVersion)
-	if err != nil {
-		return nil, errors.Wrapf(err, "get bento %s version %s from organization %s", schema.BentoName, schema.BentoVersion, org.Name)
-	}
-
-	deploymentSnapshot, err := services.DeploymentSnapshotService.Create(ctx, services.CreateDeploymentSnapshotOption{
-		CreatorId:      user.ID,
-		DeploymentId:   deployment.ID,
-		BentoVersionId: bentoVersion.ID,
-		Type:           schema.Type,
-		Status:         modelschemas.DeploymentSnapshotStatusActive,
-		CanaryRules:    schema.CanaryRules,
-		Config:         schema.Config,
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "create deployment snapshot")
-	}
-
-	err = services.DeploymentSnapshotService.Deploy(ctx, deploymentSnapshot, false)
-	if err != nil {
-		return nil, errors.Wrap(err, "deploy deployment snapshot")
-	}
-
-	return transformersv1.ToDeploymentFullSchema(ctx, deployment)
+	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
 }
 
-func (c *deploymentController) Get(ctx *gin.Context, schema *GetDeploymentSchema) (*schemasv1.DeploymentFullSchema, error) {
+func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.UpdateDeploymentSchema, org *models.Organization, deployment *models.Deployment) (*schemasv1.DeploymentSchema, error) {
+	user, err := services.GetCurrentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	bentoNames := make([]string, 0, len(schema.Targets))
+	bentoNamesSeen := make(map[string]struct{}, len(schema.Targets))
+
+	bentoVersionVersionsMapping := make(map[string][]string, len(schema.Targets))
+
+	for _, createDeploymentTargetSchema := range schema.Targets {
+		if _, ok := bentoNamesSeen[createDeploymentTargetSchema.BentoName]; !ok {
+			bentoNames = append(bentoNames, createDeploymentTargetSchema.BentoName)
+			bentoNamesSeen[createDeploymentTargetSchema.BentoName] = struct{}{}
+		}
+		bentoVersionVersions, ok := bentoVersionVersionsMapping[createDeploymentTargetSchema.BentoName]
+		if !ok {
+			bentoVersionVersions = make([]string, 0, 1)
+		}
+		bentoVersionVersions = append(bentoVersionVersions, createDeploymentTargetSchema.BentoVersion)
+		bentoVersionVersionsMapping[createDeploymentTargetSchema.BentoName] = bentoVersionVersions
+	}
+
+	bentos, _, err := services.BentoService.List(ctx, services.ListBentoOption{
+		OrganizationId: utils.UintPtr(org.ID),
+		Names:          &bentoNames,
+	})
+	if err != nil {
+		return nil, err
+	}
+	bentosMapping := make(map[string]*models.Bento, len(bentos))
+	for _, bento := range bentos {
+		bentosMapping[bento.Name] = bento
+	}
+
+	bentoVersionsMapping := make(map[string]*models.BentoVersion)
+	for _, bento := range bentos {
+		versions := bentoVersionVersionsMapping[bento.Name]
+		bentoVersions, _, err := services.BentoVersionService.List(ctx, services.ListBentoVersionOption{
+			BentoId:  utils.UintPtr(bento.ID),
+			Versions: &versions,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, bentoVersion := range bentoVersions {
+			bentoVersionsMapping[fmt.Sprintf("%s:%s", bento.Name, bentoVersion.Version)] = bentoVersion
+		}
+	}
+
+	deploymentRevision, err := services.DeploymentRevisionService.Create(ctx, services.CreateDeploymentRevisionOption{
+		CreatorId:    user.ID,
+		DeploymentId: deployment.ID,
+		Status:       modelschemas.DeploymentRevisionStatusActive,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "create deployment revision")
+	}
+
+	deploymentTargets := make([]*models.DeploymentTarget, 0, len(schema.Targets))
+	for _, createDeploymentTargetSchema := range schema.Targets {
+		bentoVersion := bentoVersionsMapping[fmt.Sprintf("%s:%s", createDeploymentTargetSchema.BentoName, createDeploymentTargetSchema.BentoVersion)]
+		if bentoVersion == nil {
+			return nil, errors.Errorf("can't find bento version: %s:%s", createDeploymentTargetSchema.BentoName, createDeploymentTargetSchema.BentoVersion)
+		}
+
+		deploymentTarget, err := services.DeploymentTargetService.Create(ctx, services.CreateDeploymentTargetOption{
+			CreatorId:            user.ID,
+			DeploymentId:         deployment.ID,
+			DeploymentRevisionId: deploymentRevision.ID,
+			BentoVersionId:       bentoVersion.ID,
+			Type:                 createDeploymentTargetSchema.Type,
+			CanaryRules:          createDeploymentTargetSchema.CanaryRules,
+			Config:               createDeploymentTargetSchema.Config,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "create deployment target")
+		}
+		deploymentTargets = append(deploymentTargets, deploymentTarget)
+	}
+
+	err = services.DeploymentRevisionService.Deploy(ctx, deploymentRevision, deploymentTargets, false)
+	if err != nil {
+		return nil, errors.Wrap(err, "deploy deployment revision")
+	}
+
+	return transformersv1.ToDeploymentSchema(ctx, deployment)
+}
+
+func (c *deploymentController) Get(ctx *gin.Context, schema *GetDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
 	deployment, err := schema.GetDeployment(ctx)
 	if err != nil {
 		return nil, err
@@ -200,12 +232,103 @@ func (c *deploymentController) Get(ctx *gin.Context, schema *GetDeploymentSchema
 	if err = c.canView(ctx, deployment); err != nil {
 		return nil, err
 	}
-	return transformersv1.ToDeploymentFullSchema(ctx, deployment)
+	return transformersv1.ToDeploymentSchema(ctx, deployment)
 }
 
 type ListClusterDeploymentSchema struct {
 	schemasv1.ListQuerySchema
 	GetClusterSchema
+}
+
+func fillListDeploymentOption(ctx context.Context, listOpt *services.ListDeploymentOption, queryMap map[string]interface{}) error {
+	for k, v := range queryMap {
+		if k == schemasv1.KeyQIn {
+			fieldNames := make([]string, 0, len(v.([]string)))
+			for _, fieldName := range v.([]string) {
+				if _, ok := map[string]struct{}{
+					"name":        {},
+					"description": {},
+				}[fieldName]; !ok {
+					continue
+				}
+				fieldNames = append(fieldNames, fieldName)
+			}
+			listOpt.KeywordFieldNames = &fieldNames
+		}
+		if k == schemasv1.KeyQKeywords {
+			listOpt.Keywords = utils.StringSlicePtr(v.([]string))
+		}
+		if k == "cluster" {
+			clusters, _, err := services.ClusterService.List(ctx, services.ListClusterOption{
+				Names: utils.StringSlicePtr(v.([]string)),
+			})
+			if err != nil {
+				return err
+			}
+			clusterIds := make([]uint, 0, len(clusters))
+			for _, cluster := range clusters {
+				clusterIds = append(clusterIds, cluster.ID)
+			}
+			listOpt.ClusterIds = &clusterIds
+		}
+		if k == "creator" {
+			userNames, err := processUserNamesFromQ(ctx, v.([]string))
+			if err != nil {
+				return err
+			}
+			users, err := services.UserService.ListByNames(ctx, userNames)
+			if err != nil {
+				return err
+			}
+			userIds := make([]uint, 0, len(users))
+			for _, user := range users {
+				userIds = append(userIds, user.ID)
+			}
+			listOpt.CreatorIds = utils.UintSlicePtr(userIds)
+		}
+		if k == "last_updater" {
+			userNames, err := processUserNamesFromQ(ctx, v.([]string))
+			if err != nil {
+				return err
+			}
+			users, err := services.UserService.ListByNames(ctx, userNames)
+			if err != nil {
+				return err
+			}
+			userIds := make([]uint, 0, len(users))
+			for _, user := range users {
+				userIds = append(userIds, user.ID)
+			}
+			listOpt.LastUpdaterIds = utils.UintSlicePtr(userIds)
+		}
+		if k == "status" {
+			statuses := make([]modelschemas.DeploymentStatus, 0, len(v.([]string)))
+			for _, status := range v.([]string) {
+				statuses = append(statuses, modelschemas.DeploymentStatus(status))
+			}
+			listOpt.Statuses = &statuses
+		}
+		if k == "sort" {
+			fieldName, _, order := xstrings.LastPartition(v.([]string)[0], "-")
+			if _, ok := map[string]struct{}{
+				"created_at": {},
+				"updated_at": {},
+			}[fieldName]; !ok {
+				continue
+			}
+			if _, ok := map[string]struct{}{
+				"desc": {},
+				"asc":  {},
+			}[order]; !ok {
+				continue
+			}
+			if fieldName == "updated_at" {
+				fieldName = "deployment_revision.created_at"
+			}
+			listOpt.Order = utils.StringPtr(fmt.Sprintf("%s %s", fieldName, strings.ToUpper(order)))
+		}
+	}
+	return nil
 }
 
 func (c *deploymentController) ListClusterDeployments(ctx *gin.Context, schema *ListClusterDeploymentSchema) (*schemasv1.DeploymentListSchema, error) {
@@ -218,14 +341,21 @@ func (c *deploymentController) ListClusterDeployments(ctx *gin.Context, schema *
 		return nil, err
 	}
 
-	deployments, total, err := services.DeploymentService.List(ctx, services.ListDeploymentOption{
+	listOpt := services.ListDeploymentOption{
 		BaseListOption: services.BaseListOption{
 			Start:  utils.UintPtr(schema.Start),
 			Count:  utils.UintPtr(schema.Count),
 			Search: schema.Search,
 		},
 		ClusterId: utils.UintPtr(cluster.ID),
-	})
+	}
+
+	err = fillListDeploymentOption(ctx, &listOpt, schema.Q.ToMap())
+	if err != nil {
+		return nil, err
+	}
+
+	deployments, total, err := services.DeploymentService.List(ctx, listOpt)
 	if err != nil {
 		return nil, errors.Wrap(err, "list deployments")
 	}
@@ -256,14 +386,21 @@ func (c *deploymentController) ListOrganizationDeployments(ctx *gin.Context, sch
 		return nil, err
 	}
 
-	deployments, total, err := services.DeploymentService.List(ctx, services.ListDeploymentOption{
+	listOpt := services.ListDeploymentOption{
 		BaseListOption: services.BaseListOption{
 			Start:  utils.UintPtr(schema.Start),
 			Count:  utils.UintPtr(schema.Count),
 			Search: schema.Search,
 		},
 		OrganizationId: utils.UintPtr(organization.ID),
-	})
+	}
+
+	err = fillListDeploymentOption(ctx, &listOpt, schema.Q.ToMap())
+	if err != nil {
+		return nil, err
+	}
+
+	deployments, total, err := services.DeploymentService.List(ctx, listOpt)
 	if err != nil {
 		return nil, errors.Wrap(err, "list deployments")
 	}

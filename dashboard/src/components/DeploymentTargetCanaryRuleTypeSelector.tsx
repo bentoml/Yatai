@@ -1,19 +1,19 @@
 import React from 'react'
 import useTranslation from '@/hooks/useTranslation'
 import { Select } from 'baseui/select'
-import { DeploymentSnapshotCanaryRuleType } from '@/schemas/deployment_snapshot'
+import { DeploymentTargetCanaryRuleType } from '@/schemas/deployment_target'
 
-interface IDeploymentSnapshotCanaryRuleTypeSelectorProps {
-    value?: DeploymentSnapshotCanaryRuleType
-    onChange?: (value: DeploymentSnapshotCanaryRuleType) => void
-    excludes?: DeploymentSnapshotCanaryRuleType[]
+interface IDeploymentTargetCanaryRuleTypeSelectorProps {
+    value?: DeploymentTargetCanaryRuleType
+    onChange?: (value: DeploymentTargetCanaryRuleType) => void
+    excludes?: DeploymentTargetCanaryRuleType[]
 }
 
-export default function DeploymentSnapshotCanaryRuleTypeSelector({
+export default function DeploymentTargetCanaryRuleTypeSelector({
     value,
     onChange,
     excludes,
-}: IDeploymentSnapshotCanaryRuleTypeSelectorProps) {
+}: IDeploymentTargetCanaryRuleTypeSelectorProps) {
     const [t] = useTranslation()
     return (
         <Select
@@ -21,7 +21,7 @@ export default function DeploymentSnapshotCanaryRuleTypeSelector({
                 if (!params.option) {
                     return
                 }
-                onChange?.(params.option.id as DeploymentSnapshotCanaryRuleType)
+                onChange?.(params.option.id as DeploymentTargetCanaryRuleType)
             }}
             value={[{ id: value }]}
             options={[
@@ -41,7 +41,7 @@ export default function DeploymentSnapshotCanaryRuleTypeSelector({
                 if (!excludes || excludes.length === 0) {
                     return true
                 }
-                return excludes.indexOf(x.id as DeploymentSnapshotCanaryRuleType) < 0
+                return excludes.indexOf(x.id as DeploymentTargetCanaryRuleType) < 0
             })}
         />
     )

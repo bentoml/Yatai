@@ -24,6 +24,14 @@ i18n.use(LanguageDetector)
                     }
                 }, {}),
             },
+            'ja': {
+                translations: Object.entries(locales).reduce((p, [k, v]) => {
+                    return {
+                        ...p,
+                        [k]: v.ja,
+                    }
+                }, {}),
+            },
         },
         fallbackLng: 'en',
         debug: false,

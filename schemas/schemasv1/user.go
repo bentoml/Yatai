@@ -2,11 +2,10 @@ package schemasv1
 
 type UserSchema struct {
 	ResourceSchema
-	ApiToken  *string `json:"api_token"`
-	FirstName string  `json:"first_name"`
-	LastName  string  `json:"last_name"`
-	Email     string  `json:"email"`
-	AvatarUrl string  `json:"avatar_url"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	AvatarUrl string `json:"avatar_url"`
 }
 
 type UserListSchema struct {

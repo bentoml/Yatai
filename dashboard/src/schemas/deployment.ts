@@ -1,9 +1,5 @@
-import {
-    DeploymentSnapshotType,
-    IDeploymentSnapshotCanaryRule,
-    IDeploymentSnapshotConfigSchema,
-    IDeploymentSnapshotSchema,
-} from './deployment_snapshot'
+import { ICreateDeploymentTargetSchema } from './deployment_target'
+import { IDeploymentRevisionSchema } from './deployment_revision'
 import { IUserSchema } from './user'
 import { IResourceSchema } from './resource'
 import { IClusterFullSchema } from './cluster'
@@ -16,18 +12,14 @@ export interface IDeploymentSchema extends IResourceSchema {
     cluster?: IClusterFullSchema
     status: DeploymentStatus
     urls: string[]
+    latest_revision?: IDeploymentRevisionSchema
 }
 
-export interface IDeploymentFullSchema extends IDeploymentSchema {
-    latest_snapshot?: IDeploymentSnapshotSchema
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface IDeploymentFullSchema extends IDeploymentSchema {}
 
 export interface IUpdateDeploymentSchema {
-    type: DeploymentSnapshotType
-    bento_name: string
-    bento_version: string
-    canary_rules?: IDeploymentSnapshotCanaryRule[]
-    config?: IDeploymentSnapshotConfigSchema
+    targets: ICreateDeploymentTargetSchema[]
 }
 
 export interface ICreateDeploymentSchema extends IUpdateDeploymentSchema {

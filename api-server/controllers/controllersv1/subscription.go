@@ -93,7 +93,7 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 							})
 							continue
 						}
-						if err = services.MemberService.CanView(ctx, &services.OrganizationMemberService, currentUser.ID, bento.OrganizationId); err != nil {
+						if err = services.MemberService.CanView(ctx, &services.OrganizationMemberService, currentUser, bento.OrganizationId); err != nil {
 							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
 								Type:    schemasv1.WsRespTypeError,
 								Message: err.Error(),
@@ -120,7 +120,7 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 							})
 							continue
 						}
-						if err = services.MemberService.CanView(ctx, &services.ClusterMemberService, currentUser.ID, cluster.ID); err != nil {
+						if err = services.MemberService.CanView(ctx, &services.ClusterMemberService, currentUser, cluster.ID); err != nil {
 							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
 								Type:    schemasv1.WsRespTypeError,
 								Message: err.Error(),

@@ -164,23 +164,23 @@ func (s *kubePodService) DeleteKubePod(ctx context.Context, deployment *models.D
 	return podsCli.Delete(ctx, kubePodName, options)
 }
 
-func (s *kubePodService) DeploymentSnapshotToPodTemplateSpec(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot) (podTemplateSpec *apiv1.PodTemplateSpec, err error) {
-	podLabels, err := DeploymentSnapshotService.GetKubeLabels(ctx, deploymentSnapshot)
+func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, deploymentTarget *models.DeploymentTarget) (podTemplateSpec *apiv1.PodTemplateSpec, err error) {
+	podLabels, err := DeploymentTargetService.GetKubeLabels(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
 
-	annotations, err := DeploymentSnapshotService.GetKubeAnnotations(ctx, deploymentSnapshot)
+	annotations, err := DeploymentTargetService.GetKubeAnnotations(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
 
-	kubeName, err := DeploymentSnapshotService.GetKubeName(ctx, deploymentSnapshot)
+	kubeName, err := DeploymentTargetService.GetKubeName(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
 
-	bentoVersion, err := BentoVersionService.GetAssociatedBentoVersion(ctx, deploymentSnapshot)
+	bentoVersion, err := BentoVersionService.GetAssociatedBentoVersion(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
@@ -243,7 +243,7 @@ func (s *kubePodService) DeploymentSnapshotToPodTemplateSpec(ctx context.Context
 }
 
 // nolint:unused,deadcode
-func getResourcesConfig(containerName string, resources *modelschemas.DeploymentSnapshotResources, resourceMap map[string]*modelschemas.DeploymentSnapshotResources, gpuNvidiaResourceRequest bool) (apiv1.ResourceRequirements, error) {
+func getResourcesConfig(containerName string, resources *modelschemas.DeploymentTargetResources, resourceMap map[string]*modelschemas.DeploymentTargetResources, gpuNvidiaResourceRequest bool) (apiv1.ResourceRequirements, error) {
 	currentResources := apiv1.ResourceRequirements{
 		Requests: apiv1.ResourceList{
 			apiv1.ResourceCPU:    resource.MustParse("300m"),

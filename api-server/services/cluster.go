@@ -70,6 +70,8 @@ type ListClusterOption struct {
 	VisitorId      *uint
 	OrganizationId *uint
 	Ids            *[]uint
+	Names          *[]string
+	CreatorIds     *[]uint
 	Order          *string
 }
 
@@ -213,12 +215,18 @@ func (s *clusterService) List(ctx context.Context, opt ListClusterOption) ([]*mo
 		}
 		query = query.Where("id in (?)", *opt.Ids)
 	}
+	if opt.Names != nil {
+		if len(*opt.Names) == 0 {
+			return clusters, 0, nil
+		}
+		query = query.Where("name in (?)", *opt.Names)
+	}
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	query = opt.BindQuery(query)
+	query = opt.BindQueryWithLimit(query)
 	if opt.Ids == nil {
 		if opt.Order == nil {
 			query = query.Order("id DESC")

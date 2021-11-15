@@ -66,7 +66,8 @@ type UpdateBentoVersionOption struct {
 
 type ListBentoVersionOption struct {
 	BaseListOption
-	BentoId *uint
+	BentoId  *uint
+	Versions *[]string
 }
 
 func (s *bentoVersionService) Create(ctx context.Context, opt CreateBentoVersionOption) (bentoVersion *models.BentoVersion, err error) {
@@ -495,13 +496,16 @@ func (s *bentoVersionService) List(ctx context.Context, opt ListBentoVersionOpti
 	if opt.BentoId != nil {
 		query = query.Where("bento_id = ?", *opt.BentoId)
 	}
+	if opt.Versions != nil {
+		query = query.Where("version in (?)", *opt.Versions)
+	}
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
 	bentoVersions := make([]*models.BentoVersion, 0)
-	query = opt.BindQuery(query).Order("build_at DESC")
+	query = opt.BindQueryWithLimit(query).Order("build_at DESC")
 	err = query.Find(&bentoVersions).Error
 	if err != nil {
 		return nil, 0, err

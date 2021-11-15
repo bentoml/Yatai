@@ -13,7 +13,7 @@ export async function listOrganizations(query: IListQuerySchema): Promise<IListS
 }
 
 export async function fetchOrganization(): Promise<IOrganizationFullSchema> {
-    const resp = await axios.get<IOrganizationFullSchema>('/api/v1/orgs/current')
+    const resp = await axios.get<IOrganizationFullSchema>('/api/v1/current_org')
     return resp.data
 }
 
@@ -23,6 +23,6 @@ export async function createOrganization(data: ICreateOrganizationSchema): Promi
 }
 
 export async function updateOrganization(data: IUpdateOrganizationSchema): Promise<IOrganizationFullSchema> {
-    const resp = await axios.patch<IOrganizationFullSchema>('/api/v1/orgs/current', data)
+    const resp = await axios.patch<IOrganizationFullSchema>('/api/v1/current_org', data)
     return resp.data
 }

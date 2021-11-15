@@ -1,7 +1,7 @@
 import { resourceIconMapping } from '@/consts'
 import { useCluster } from '@/hooks/useCluster'
 import { useDeployment, useDeploymentLoading } from '@/hooks/useDeployment'
-import { useFetchDeploymentSnapshots } from '@/hooks/useFetchDeploymentSnapshots'
+import { useFetchDeploymentRevisions } from '@/hooks/useFetchDeploymentRevisions'
 import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
 import { useOrganization } from '@/hooks/useOrganization'
 import { usePage } from '@/hooks/usePage'
@@ -103,16 +103,16 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
     const hasMonitoring = yataiComponentsInfo.data?.find((x) => x.type === 'monitoring') !== undefined
 
     const [page] = usePage()
-    const { deploymentSnapshotsInfo } = useFetchDeploymentSnapshots(clusterName, deploymentName, page)
-    const [isCreateDeploymentSnapshotOpen, setIsCreateDeploymentSnapshotOpen] = useState(false)
-    const handleCreateDeploymentSnapshot = useCallback(
+    const { deploymentRevisionsInfo } = useFetchDeploymentRevisions(clusterName, deploymentName, page)
+    const [isCreateDeploymentRevisionOpen, setIsCreateDeploymentRevisionOpen] = useState(false)
+    const handleCreateDeploymentRevision = useCallback(
         async (data: IUpdateDeploymentSchema) => {
             await updateDeployment(clusterName, deploymentName, data)
             await deploymentInfo.refetch()
-            await deploymentSnapshotsInfo.refetch()
-            setIsCreateDeploymentSnapshotOpen(false)
+            await deploymentRevisionsInfo.refetch()
+            setIsCreateDeploymentRevisionOpen(false)
         },
-        [clusterName, deploymentName, deploymentInfo, deploymentSnapshotsInfo]
+        [clusterName, deploymentName, deploymentInfo, deploymentRevisionsInfo]
     )
 
     const breadcrumbItems: INavItem[] = useMemo(
@@ -169,9 +169,9 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                         : undefined,
                 },
                 {
-                    title: t('sth list', [t('snapshot')]),
-                    path: `/clusters/${clusterName}/deployments/${deploymentName}/snapshots`,
-                    icon: resourceIconMapping.deployment_snapshot,
+                    title: t('sth list', [t('revision')]),
+                    path: `/clusters/${clusterName}/deployments/${deploymentName}/revisions`,
+                    icon: resourceIconMapping.deployment_revision,
                 },
             ] as INavItem[],
         [clusterName, deploymentName, hasLogging, hasMonitoring, t]
@@ -212,14 +212,14 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                             }}
                         >
                             <DeploymentStatusTag status={deployment?.status ?? 'unknown'} />
-                            <Button onClick={() => setIsCreateDeploymentSnapshotOpen(true)} size='compact'>
+                            <Button onClick={() => setIsCreateDeploymentRevisionOpen(true)} size='compact'>
                                 {t('update')}
                             </Button>
                         </div>
                     </div>
                     <Modal
-                        isOpen={isCreateDeploymentSnapshotOpen}
-                        onClose={() => setIsCreateDeploymentSnapshotOpen(false)}
+                        isOpen={isCreateDeploymentRevisionOpen}
+                        onClose={() => setIsCreateDeploymentRevisionOpen(false)}
                         closeable
                         animate
                         autoFocus
@@ -229,8 +229,8 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                             <DeploymentForm
                                 clusterName={clusterName}
                                 deployment={deployment}
-                                deploymentSnapshot={deployment?.latest_snapshot}
-                                onSubmit={handleCreateDeploymentSnapshot}
+                                deploymentRevision={deployment?.latest_revision}
+                                onSubmit={handleCreateDeploymentRevision}
                             />
                         </ModalBody>
                     </Modal>

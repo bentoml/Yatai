@@ -1,14 +1,14 @@
 import React from 'react'
 import useTranslation from '@/hooks/useTranslation'
 import { Select } from 'baseui/select'
-import { DeploymentSnapshotType } from '@/schemas/deployment_snapshot'
+import { DeploymentTargetType } from '@/schemas/deployment_target'
 
-export interface IDeploymentSnapshotTypeSelectorProps {
-    value?: DeploymentSnapshotType
-    onChange?: (newValue: DeploymentSnapshotType) => void
+export interface IDeploymentTargetTypeSelectorProps {
+    value?: DeploymentTargetType
+    onChange?: (newValue: DeploymentTargetType) => void
 }
 
-export default function DeploymentSnapshotTypeSelector({ value, onChange }: IDeploymentSnapshotTypeSelectorProps) {
+export default function DeploymentTargetTypeSelector({ value, onChange }: IDeploymentTargetTypeSelectorProps) {
     const [t] = useTranslation()
 
     return (
@@ -23,13 +23,13 @@ export default function DeploymentSnapshotTypeSelector({ value, onChange }: IDep
                         id: 'canary',
                         label: t('canary'),
                     },
-                ] as { id: DeploymentSnapshotType; label: string }[]
+                ] as { id: DeploymentTargetType; label: string }[]
             }
             onChange={(params) => {
                 if (!params.option) {
                     return
                 }
-                onChange?.(params.option.id as DeploymentSnapshotType)
+                onChange?.(params.option.id as DeploymentTargetType)
             }}
             value={
                 value

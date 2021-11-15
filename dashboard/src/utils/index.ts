@@ -233,3 +233,68 @@ export function getReadableStorageQuantityStr(bytes?: number): string {
 export function numberToPercentStr(v: number): string {
     return `${(v * 100).toFixed(2)}%`
 }
+
+const keyQKeywords = '__keywords'
+
+export type QKey = string
+export type QValue = string[] | boolean
+export type Q = Record<QKey, QValue>
+
+export function parseQ(q_: string): Q {
+    const q = _.trim(q_)
+    if (!q) {
+        return {}
+    }
+    return q.split(' ').reduce((acc, item_) => {
+        const item = _.trim(item_)
+        if (item === '') {
+            return acc
+        }
+        let key = ''
+        let value = ''
+        if (item.indexOf(':') < 0) {
+            key = keyQKeywords
+            value = item
+        } else {
+            ;[key, value] = item.split(':')
+        }
+        if (key === '' || value === '') {
+            return acc
+        }
+        if (key === 'is') {
+            return {
+                ...acc,
+                [value]: true,
+            }
+        }
+        if (key === 'not') {
+            return {
+                ...acc,
+                [value]: false,
+            }
+        }
+        const current = acc[key]
+        return {
+            ...acc,
+            [key]: Array.isArray(current) ? [...current, value] : [value],
+        }
+    }, {} as Q)
+}
+
+export function qToString(q: Q): string {
+    return _.trim(
+        Object.keys(q).reduce((acc, key) => {
+            const value = q[key]
+            if (value === true) {
+                return `${acc} is:${key}`
+            }
+            if (value === false) {
+                return `${acc} not:${key}`
+            }
+            if (key === keyQKeywords) {
+                return `${acc} ${value.join(' ')}`
+            }
+            return `${acc} ${value.map((v) => `${key}:${v}`).join(' ')}`
+        }, '')
+    )
+}

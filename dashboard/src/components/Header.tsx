@@ -34,6 +34,70 @@ import { useCluster } from '@/hooks/useCluster'
 import ClusterForm from '@/components/ClusterForm'
 import ReactCountryFlag from 'react-country-flag'
 import i18n from '@/i18n'
+import { simulationJump } from '@/utils'
+import { FiLogOut } from 'react-icons/fi'
+
+const useStyles = createUseStyles({
+    userWrapper: {
+        'position': 'relative',
+        'cursor': 'pointer',
+        'display': 'flex',
+        'align-items': 'center',
+        'min-width': '140px',
+        'height': '100%',
+        'margin-left': '20px',
+        'flex-direction': 'column',
+        '&:hover': {
+            '& $userMenu': {
+                display: 'flex',
+            },
+        },
+    },
+    userAvatarWrapper: {
+        'height': '100%',
+        'display': 'flex',
+        'align-items': 'center',
+    },
+    userMenu: (props: IThemedStyleProps) => ({
+        'background': props.theme.colors.background,
+        'position': 'absolute',
+        'top': '100%',
+        'display': 'none',
+        'margin': 0,
+        'padding': 0,
+        'line-height': 1.6,
+        'flex-direction': 'column',
+        'width': '100%',
+        'font-size': '13px',
+        'box-shadow': props.theme.lighting.shadow400,
+        '& a': {
+            '&:link': {
+                'color': props.theme.colors.contentPrimary,
+                'text-decoration': 'none',
+            },
+            '&:hover': {
+                'color': props.theme.colors.contentPrimary,
+                'text-decoration': 'none',
+            },
+            '&:visited': {
+                'color': props.theme.colors.contentPrimary,
+                'text-decoration': 'none',
+            },
+        },
+    }),
+    userMenuItem: (props: IThemedStyleProps) => ({
+        'padding': '8px 12px',
+        'display': 'flex',
+        'align-items': 'center',
+        'gap': '10px',
+        '&:hover': {
+            background: color(props.theme.colors.background)
+                .darken(props.themeType === 'light' ? 0.06 : 0.2)
+                .rgb()
+                .string(),
+        },
+    }),
+})
 
 const useThemeToggleStyles = createUseStyles({
     root: ({ theme }: IThemedStyleProps) => ({
@@ -108,6 +172,9 @@ const ThemeToggle = ({ className }: IThemeToggleProps) => {
 const clusterPathPattern = /\/clusters\/([^/]+).*/
 
 export default function Header() {
+    const [css, theme] = useStyletron()
+    const themeType = useCurrentThemeType()
+    const styles = useStyles({ theme, themeType })
     const location = useLocation()
     // FIXME: can not use useParams, because of Header is not under the Route component
     const clusterMatch = useMemo(() => location.pathname.match(clusterPathPattern), [location.pathname])
@@ -178,7 +245,6 @@ export default function Header() {
         }
     }, [clusterName, setCluster])
 
-    const [css, theme] = useStyletron()
     const ctx = useContext(SidebarContext)
     const [t] = useTranslation()
 
@@ -321,7 +387,6 @@ export default function Header() {
                     'color': theme.colors.contentPrimary,
                     'display': 'flex',
                     'align-items': 'center',
-                    'marginRight': '40px',
                     'gap': '30px',
                 })}
             >
@@ -367,11 +432,39 @@ export default function Header() {
                                 text: 'English',
                                 flag: <ReactCountryFlag countryCode='US' svg />,
                             },
+                            {
+                                id: 'ja',
+                                text: '日本語',
+                                flag: <ReactCountryFlag countryCode='JP' svg />,
+                            },
                         ]}
                     />
                 </div>
             </div>
-            {currentUser && <User user={currentUser} />}
+            {currentUser && (
+                <div className={styles.userWrapper}>
+                    <div className={styles.userAvatarWrapper}>
+                        <User user={currentUser} />
+                    </div>
+                    <div className={styles.userMenu}>
+                        <Link className={styles.userMenuItem} to='/api_tokens'>
+                            {React.createElement(resourceIconMapping.api_token, { size: 12 })}
+                            <span>{t('sth list', [t('api token')])}</span>
+                        </Link>
+                        <div
+                            role='button'
+                            tabIndex={0}
+                            className={styles.userMenuItem}
+                            onClick={() => {
+                                simulationJump('/logout')
+                            }}
+                        >
+                            <FiLogOut size={12} />
+                            <span>{t('logout')}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
             <Modal
                 isOpen={isCreateOrgModalOpen}
                 onClose={() => setIsCreateOrgModalOpen(false)}

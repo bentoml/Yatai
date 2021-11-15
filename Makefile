@@ -95,5 +95,3 @@ fe-build: ## Build frontend for production
 	@cd dashboard && yarn build
 fe-run: ## Run frontend components
 	@cd dashboard && yarn start
-
-

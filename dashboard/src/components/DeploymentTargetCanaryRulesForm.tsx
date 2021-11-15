@@ -1,28 +1,30 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React, { useState } from 'react'
 import useTranslation from '@/hooks/useTranslation'
-import { DeploymentSnapshotCanaryRuleType, IDeploymentSnapshotCanaryRule } from '@/schemas/deployment_snapshot'
+import { DeploymentTargetCanaryRuleType, IDeploymentTargetCanaryRule } from '@/schemas/deployment_target'
 import { Button } from 'baseui/button'
 import { DeleteAlt } from 'baseui/icon'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import { Slider } from 'baseui/slider'
 import { Input } from 'baseui/input'
-import AppDeploymentCanaryRuleTypeSelector from './DeploymentSnapshotCanaryRuleTypeSelector'
+import AppDeploymentCanaryRuleTypeSelector from './DeploymentTargetCanaryRuleTypeSelector'
 import Text from './Text'
 
-interface IDeploymentSnapshotCanaryRulesFormProps {
-    value?: IDeploymentSnapshotCanaryRule[]
-    onChange?: (value: IDeploymentSnapshotCanaryRule[]) => void
+interface IDeploymentTargetCanaryRulesFormProps {
+    value?: IDeploymentTargetCanaryRule[]
+    onChange?: (value: IDeploymentTargetCanaryRule[]) => void
+    style?: React.CSSProperties
 }
 
-export default function DeploymentSnapshotCanaryRulesForm({
+export default function DeploymentTargetCanaryRulesForm({
     value,
     onChange,
-}: IDeploymentSnapshotCanaryRulesFormProps) {
+    style,
+}: IDeploymentTargetCanaryRulesFormProps) {
     const [t] = useTranslation()
 
     const [openModal, setOpenModal] = useState(false)
-    const [type, setType] = useState(undefined as DeploymentSnapshotCanaryRuleType | undefined)
+    const [type, setType] = useState(undefined as DeploymentTargetCanaryRuleType | undefined)
     const [weight, setWeight] = useState(undefined as number | undefined)
     const [header, setHeader] = useState(undefined as string | undefined)
     const [cookie, setCookie] = useState(undefined as string | undefined)
@@ -33,12 +35,12 @@ export default function DeploymentSnapshotCanaryRulesForm({
     }
 
     return (
-        <>
+        <div style={style}>
             <ul
                 style={{
                     margin: '10px 0',
                     listStyle: 'none',
-                    paddingLeft: 10,
+                    paddingLeft: 0,
                 }}
             >
                 {value?.map((r, idx) => {
@@ -103,7 +105,7 @@ export default function DeploymentSnapshotCanaryRulesForm({
                     setOpenModal(true)
                 }}
             >
-                {t('add')}
+                {t('add sth', [t('canary rules')])}
             </Button>
             <Modal
                 isOpen={openModal}
@@ -216,6 +218,6 @@ export default function DeploymentSnapshotCanaryRulesForm({
                     </div>
                 </ModalBody>
             </Modal>
-        </>
+        </div>
     )
 }

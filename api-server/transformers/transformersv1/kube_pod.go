@@ -49,7 +49,7 @@ func ToKubePodSchemas(ctx context.Context, pods []*models.KubePodWithStatus) (vs
 	})
 
 	sort.SliceStable(pods, func(i, j int) bool {
-		return pods[i].Pod.Labels[consts.KubeLabelYataiDeploymentSnapshotType] == string(modelschemas.DeploymentSnapshotTypeStable)
+		return pods[i].Pod.Labels[consts.KubeLabelYataiDeploymentTargetType] == string(modelschemas.DeploymentTargetTypeStable)
 	})
 
 	var deployment *models.Deployment
@@ -70,29 +70,31 @@ func ToKubePodSchemas(ctx context.Context, pods []*models.KubePodWithStatus) (vs
 		}
 	}
 
-	deploymentSnapshotSchemasMap := make(map[modelschemas.DeploymentSnapshotType]*schemasv1.DeploymentSnapshotSchema, 2)
+	deploymentTargetSchemasMap := make(map[modelschemas.DeploymentTargetType]*schemasv1.DeploymentTargetSchema, 2)
 
 	if deployment != nil {
-		status := modelschemas.DeploymentSnapshotStatusActive
-		var deploymentSnapshots []*models.DeploymentSnapshot
-		deploymentSnapshots, _, err = services.DeploymentSnapshotService.List(ctx, services.ListDeploymentSnapshotOption{
+		status := modelschemas.DeploymentRevisionStatusActive
+		var deploymentRevisions []*models.DeploymentRevision
+		deploymentRevisions, _, err = services.DeploymentRevisionService.List(ctx, services.ListDeploymentRevisionOption{
 			BaseListOption: services.BaseListOption{
 				Start: utils.UintPtr(0),
 				Count: utils.UintPtr(10),
 			},
-			DeploymentId: deployment.ID,
+			DeploymentId: utils.UintPtr(deployment.ID),
 			Status:       &status,
 		})
 		if err != nil {
 			return
 		}
-		var deploymentSnapshotSchemas []*schemasv1.DeploymentSnapshotSchema
-		deploymentSnapshotSchemas, err = ToDeploymentSnapshotSchemas(ctx, deploymentSnapshots)
+		var deploymentRevisionSchemas []*schemasv1.DeploymentRevisionSchema
+		deploymentRevisionSchemas, err = ToDeploymentRevisionSchemas(ctx, deploymentRevisions)
 		if err != nil {
 			return
 		}
-		for _, deploymentSnapshotSchema := range deploymentSnapshotSchemas {
-			deploymentSnapshotSchemasMap[deploymentSnapshotSchema.Type] = deploymentSnapshotSchema
+		for _, deploymentRevisionSchema := range deploymentRevisionSchemas {
+			for _, deploymentTargetSchema := range deploymentRevisionSchema.Targets {
+				deploymentTargetSchemasMap[deploymentTargetSchema.Type] = deploymentTargetSchema
+			}
 		}
 	}
 
@@ -103,12 +105,12 @@ func ToKubePodSchemas(ctx context.Context, pods []*models.KubePodWithStatus) (vs
 				statusReady = c.Status == apiv1.ConditionTrue
 			}
 		}
-		deploymentSnapshotType, deploymentSnapshotTypeExists := p.Pod.Labels[consts.KubeLabelYataiDeploymentSnapshotType]
-		var deploymentSnapshotSchema *schemasv1.DeploymentSnapshotSchema
-		if deploymentSnapshotTypeExists {
-			deploymentSnapshotSchema = deploymentSnapshotSchemasMap[modelschemas.DeploymentSnapshotType(deploymentSnapshotType)]
+		deploymentTargetType, deploymentTargetTypeExists := p.Pod.Labels[consts.KubeLabelYataiDeploymentTargetType]
+		var deploymentTargetSchema *schemasv1.DeploymentTargetSchema
+		if deploymentTargetTypeExists {
+			deploymentTargetSchema = deploymentTargetSchemasMap[modelschemas.DeploymentTargetType(deploymentTargetType)]
 		}
-		isCanary := deploymentSnapshotTypeExists && deploymentSnapshotType == string(modelschemas.DeploymentSnapshotTypeCanary)
+		isCanary := deploymentTargetTypeExists && deploymentTargetType == string(modelschemas.DeploymentTargetTypeCanary)
 		status := schemasv1.KubePodStatusSchema{
 			Phase:     p.Pod.Status.Phase,
 			Ready:     statusReady,
@@ -118,14 +120,14 @@ func ToKubePodSchemas(ctx context.Context, pods []*models.KubePodWithStatus) (vs
 			HostIp:    p.Pod.Status.HostIP,
 		}
 		vs = append(vs, &schemasv1.KubePodSchema{
-			Name:               p.Pod.Name,
-			Namespace:          p.Pod.Namespace,
-			NodeName:           p.Pod.Spec.NodeName,
-			Status:             status,
-			RawStatus:          p.Pod.Status,
-			PodStatus:          p.Status,
-			Warnings:           p.Warnings,
-			DeploymentSnapshot: deploymentSnapshotSchema,
+			Name:             p.Pod.Name,
+			Namespace:        p.Pod.Namespace,
+			NodeName:         p.Pod.Spec.NodeName,
+			Status:           status,
+			RawStatus:        p.Pod.Status,
+			PodStatus:        p.Status,
+			Warnings:         p.Warnings,
+			DeploymentTarget: deploymentTargetSchema,
 		})
 	}
 	return

@@ -18,8 +18,8 @@ type kubeServiceService struct{}
 
 var KubeServiceService = kubeServiceService{}
 
-func (s *kubeServiceService) DeploymentSnapshotToKubeService(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot, deployOption *models.DeployOption) (kubeService *apiv1.Service, err error) {
-	kubeName, err := DeploymentSnapshotService.GetKubeName(ctx, deploymentSnapshot)
+func (s *kubeServiceService) DeploymentTargetToKubeService(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (kubeService *apiv1.Service, err error) {
+	kubeName, err := DeploymentTargetService.GetKubeName(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
@@ -38,17 +38,17 @@ func (s *kubeServiceService) DeploymentSnapshotToKubeService(ctx context.Context
 		},
 	}
 
-	labels, err := DeploymentSnapshotService.GetKubeLabels(ctx, deploymentSnapshot)
+	labels, err := DeploymentTargetService.GetKubeLabels(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
 
-	annotations, err := DeploymentSnapshotService.GetKubeAnnotations(ctx, deploymentSnapshot)
+	annotations, err := DeploymentTargetService.GetKubeAnnotations(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
 
-	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
 	if err != nil {
 		err = errors.Wrap(err, "get deployment")
 		return
@@ -70,8 +70,8 @@ func (s *kubeServiceService) DeploymentSnapshotToKubeService(ctx context.Context
 	return
 }
 
-func (s *kubeServiceService) DeployKubeService(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot, kubeService *apiv1.Service) error {
-	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+func (s *kubeServiceService) DeployKubeService(ctx context.Context, deploymentTarget *models.DeploymentTarget, kubeService *apiv1.Service) error {
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
 	if err != nil {
 		return errors.Wrap(err, "get deployment")
 	}
@@ -96,7 +96,7 @@ func (s *kubeServiceService) DeployKubeService(ctx context.Context, deploymentSn
 	} else {
 		if (kubeService.Spec.ClusterIP == consts.NoneStr || oldSvc.Spec.ClusterIP == consts.NoneStr) && kubeService.Spec.ClusterIP != oldSvc.Spec.ClusterIP {
 			logrus.Infof("delete old k8s service %s ...", oldSvc.Name)
-			err = s.DeleteKubeService(ctx, deploymentSnapshot, oldSvc.Name)
+			err = s.DeleteKubeService(ctx, deploymentTarget, oldSvc.Name)
 			if err != nil {
 				return errors.Wrapf(err, "delete old k8s service %s", oldSvc.Name)
 			}
@@ -132,8 +132,8 @@ func (s *kubeServiceService) DeployKubeService(ctx context.Context, deploymentSn
 	return err
 }
 
-func (s *kubeServiceService) DeleteKubeService(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot, kubeServiceName string) error {
-	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentSnapshot)
+func (s *kubeServiceService) DeleteKubeService(ctx context.Context, deploymentTarget *models.DeploymentTarget, kubeServiceName string) error {
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
 	if err != nil {
 		return errors.Wrap(err, "get deployment")
 	}
@@ -146,12 +146,12 @@ func (s *kubeServiceService) DeleteKubeService(ctx context.Context, deploymentSn
 	return servicesCli.Delete(ctx, kubeServiceName, metav1.DeleteOptions{})
 }
 
-func (s *kubeServiceService) DeployDeploymentSnapshotAsKubeService(ctx context.Context, deploymentSnapshot *models.DeploymentSnapshot, deployOption *models.DeployOption) error {
-	kubeService, err := s.DeploymentSnapshotToKubeService(ctx, deploymentSnapshot, deployOption)
+func (s *kubeServiceService) DeployDeploymentTargetAsKubeService(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) error {
+	kubeService, err := s.DeploymentTargetToKubeService(ctx, deploymentTarget, deployOption)
 	if err != nil {
 		return errors.Wrap(err, "to k8s service")
 	}
 
-	err = s.DeployKubeService(ctx, deploymentSnapshot, kubeService)
+	err = s.DeployKubeService(ctx, deploymentTarget, kubeService)
 	return err
 }
