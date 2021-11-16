@@ -412,7 +412,14 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 	}
 
 	if len(pods) == 0 {
+		if d.Status == modelschemas.DeploymentStatusTerminating || d.Status == modelschemas.DeploymentStatusTerminated {
+			return modelschemas.DeploymentStatusTerminated, nil
+		}
 		return modelschemas.DeploymentStatusNonDeployed, nil
+	}
+
+	if d.Status == modelschemas.DeploymentStatusTerminated {
+		return d.Status, nil
 	}
 
 	hasFailed := false
@@ -421,15 +428,22 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 
 	for _, p := range pods {
 		podStatus := p.Status
-		if podStatus.Status == "Running" {
+		if podStatus.Status == modelschemas.KubePodActualStatusRunning {
 			hasRunning = true
 		}
-		if podStatus.Status == "Failed" {
+		if podStatus.Status == modelschemas.KubePodActualStatusFailed {
 			hasFailed = true
 		}
-		if podStatus.Status == "Pending" {
+		if podStatus.Status == modelschemas.KubePodActualStatusPending {
 			hasPending = true
 		}
+	}
+
+	if d.Status == modelschemas.DeploymentStatusTerminating {
+		if !hasRunning {
+			return modelschemas.DeploymentStatusTerminated, nil
+		}
+		return d.Status, nil
 	}
 
 	if hasFailed && hasRunning {
@@ -460,6 +474,41 @@ func (s *deploymentService) UpdateKubeDeployToken(ctx context.Context, deploymen
 	}
 	deployment.KubeDeployToken = newToken
 	return deployment, nil
+}
+
+func (s *deploymentService) Delete(ctx context.Context, deployment *models.Deployment) (*models.Deployment, error) {
+	if deployment.Status != modelschemas.DeploymentStatusTerminated && deployment.Status != modelschemas.DeploymentStatusTerminating {
+		return nil, errors.New("deployment is not terminated")
+	}
+	return deployment, s.getBaseDB(ctx).Unscoped().Delete(deployment).Error
+}
+
+func (s *deploymentService) Terminate(ctx context.Context, deployment *models.Deployment) (*models.Deployment, error) {
+	deployment, err := s.UpdateStatus(ctx, deployment, UpdateDeploymentStatusOption{
+		Status: modelschemas.DeploymentStatusTerminating.Ptr(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	deploymentRevisions, _, err := DeploymentRevisionService.List(ctx, ListDeploymentRevisionOption{
+		BaseListOption: BaseListOption{
+			Start: utils.UintPtr(0),
+			Count: utils.UintPtr(1),
+		},
+		DeploymentId: utils.UintPtr(deployment.ID),
+		Status:       modelschemas.DeploymentRevisionStatusActive.Ptr(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, deploymentRevision := range deploymentRevisions {
+		err = DeploymentRevisionService.Terminate(ctx, deploymentRevision)
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err = s.SyncStatus(ctx, deployment)
+	return deployment, err
 }
 
 func (s *deploymentService) GetKubeName(deployment *models.Deployment) string {

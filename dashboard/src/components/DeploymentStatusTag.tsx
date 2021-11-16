@@ -10,6 +10,8 @@ const statusColorMap: Record<DeploymentStatus, keyof TagKind> = {
     'unhealthy': TagKind.warning,
     'failed': TagKind.negative,
     'deploying': TagKind.accent,
+    'terminating': TagKind.negative,
+    'terminated': TagKind.negative,
 }
 
 export interface IDeploymentStatusProps {

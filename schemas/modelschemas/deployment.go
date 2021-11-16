@@ -9,4 +9,10 @@ const (
 	DeploymentStatusUnhealthy   DeploymentStatus = "unhealthy"
 	DeploymentStatusFailed      DeploymentStatus = "failed"
 	DeploymentStatusDeploying   DeploymentStatus = "deploying"
+	DeploymentStatusTerminating DeploymentStatus = "terminating"
+	DeploymentStatusTerminated  DeploymentStatus = "terminated"
 )
+
+func (d DeploymentStatus) Ptr() *DeploymentStatus {
+	return &d
+}

@@ -63,3 +63,15 @@ export async function updateDeployment(
     )
     return resp.data
 }
+
+export async function terminateDeployment(clusterName: string, deploymentName: string): Promise<IDeploymentFullSchema> {
+    const resp = await axios.post<IDeploymentFullSchema>(
+        `/api/v1/clusters/${clusterName}/deployments/${deploymentName}/terminate`
+    )
+    return resp.data
+}
+
+export async function deleteDeployment(clusterName: string, deploymentName: string): Promise<IDeploymentFullSchema> {
+    const resp = await axios.delete(`/api/v1/clusters/${clusterName}/deployments/${deploymentName}`)
+    return resp.data
+}

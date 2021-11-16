@@ -226,7 +226,7 @@ CREATE TABLE IF NOT EXISTS "model_version" (
 
 CREATE UNIQUE INDEX "uk_modelVersion_modelId_version" ON "model_version" ("model_id", "version");
 
-CREATE TYPE "deployment_status" AS ENUM ('unknown', 'non-deployed', 'failed', 'unhealthy', 'deploying', 'running');
+CREATE TYPE "deployment_status" AS ENUM ('unknown', 'non-deployed', 'failed', 'unhealthy', 'deploying', 'running', 'terminating', 'terminated');
 
 CREATE TABLE IF NOT EXISTS "deployment" (
     id SERIAL PRIMARY KEY,

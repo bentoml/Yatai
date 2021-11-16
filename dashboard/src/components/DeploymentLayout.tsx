@@ -8,7 +8,8 @@ import { usePage } from '@/hooks/usePage'
 import { useSubscription } from '@/hooks/useSubscription'
 import useTranslation from '@/hooks/useTranslation'
 import { IDeploymentFullSchema, IDeploymentSchema, IUpdateDeploymentSchema } from '@/schemas/deployment'
-import { fetchDeployment, updateDeployment } from '@/services/deployment'
+import { deleteDeployment, fetchDeployment, terminateDeployment, updateDeployment } from '@/services/deployment'
+import { useStyletron } from 'baseui'
 import { Button } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import _ from 'lodash'
@@ -18,12 +19,13 @@ import { FaJournalWhills } from 'react-icons/fa'
 import { RiSurveyLine } from 'react-icons/ri'
 import { VscServerProcess } from 'react-icons/vsc'
 import { useQuery, useQueryClient } from 'react-query'
-import { useParams } from 'react-router-dom'
+import { useHistory, useParams } from 'react-router-dom'
 import { INavItem } from './BaseSidebar'
 import BaseSubLayout from './BaseSubLayout'
 import Card from './Card'
 import DeploymentForm from './DeploymentForm'
 import DeploymentStatusTag from './DeploymentStatusTag'
+import DoubleCheckForm from './DoubleCheckForm'
 
 export interface IDeploymentLayoutProps {
     children: React.ReactNode
@@ -177,6 +179,14 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
         [clusterName, deploymentName, hasLogging, hasMonitoring, t]
     )
 
+    const [, theme] = useStyletron()
+    const [isTerminateDeploymentModalOpen, setIsTerminateDeploymentModalOpen] = useState(false)
+    const [isDeleteDeploymentModalOpen, setIsDeleteDeploymentModalOpen] = useState(false)
+
+    const history = useHistory()
+
+    const isTerminated = deployment?.status === 'terminated' || deployment?.status === 'terminating'
+
     return (
         <BaseSubLayout
             header={
@@ -212,8 +222,40 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                             }}
                         >
                             <DeploymentStatusTag status={deployment?.status ?? 'unknown'} />
+                            {!isTerminated && (
+                                <Button
+                                    size='compact'
+                                    overrides={{
+                                        Root: {
+                                            style: {
+                                                background: theme.colors.negative,
+                                                color: theme.colors.white,
+                                            },
+                                        },
+                                    }}
+                                    onClick={() => setIsTerminateDeploymentModalOpen(true)}
+                                >
+                                    {t('terminate')}
+                                </Button>
+                            )}
+                            {isTerminated && (
+                                <Button
+                                    size='compact'
+                                    overrides={{
+                                        Root: {
+                                            style: {
+                                                background: theme.colors.negative,
+                                                color: theme.colors.white,
+                                            },
+                                        },
+                                    }}
+                                    onClick={() => setIsDeleteDeploymentModalOpen(true)}
+                                >
+                                    {t('delete')}
+                                </Button>
+                            )}
                             <Button onClick={() => setIsCreateDeploymentRevisionOpen(true)} size='compact'>
-                                {t('update')}
+                                {isTerminated ? t('restore') : t('update')}
                             </Button>
                         </div>
                     </div>
@@ -231,6 +273,48 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                                 deployment={deployment}
                                 deploymentRevision={deployment?.latest_revision}
                                 onSubmit={handleCreateDeploymentRevision}
+                            />
+                        </ModalBody>
+                    </Modal>
+                    <Modal
+                        isOpen={isTerminateDeploymentModalOpen}
+                        onClose={() => setIsTerminateDeploymentModalOpen(false)}
+                        closeable
+                        animate
+                        autoFocus
+                    >
+                        <ModalHeader>{t('terminate sth', [t('deployment')])}</ModalHeader>
+                        <ModalBody>
+                            <DoubleCheckForm
+                                tips={t('please input the deployment name you want to terminate')}
+                                expected={deploymentName}
+                                buttonLabel={t('terminate')}
+                                onSubmit={async () => {
+                                    await terminateDeployment(clusterName, deploymentName)
+                                    setIsTerminateDeploymentModalOpen(false)
+                                    deploymentInfo.refetch()
+                                }}
+                            />
+                        </ModalBody>
+                    </Modal>
+                    <Modal
+                        isOpen={isDeleteDeploymentModalOpen}
+                        onClose={() => setIsDeleteDeploymentModalOpen(false)}
+                        closeable
+                        animate
+                        autoFocus
+                    >
+                        <ModalHeader>{t('delete sth', [t('deployment')])}</ModalHeader>
+                        <ModalBody>
+                            <DoubleCheckForm
+                                tips={t('please input the deployment name you want to delete')}
+                                expected={deploymentName}
+                                buttonLabel={t('delete')}
+                                onSubmit={async () => {
+                                    await deleteDeployment(clusterName, deploymentName)
+                                    setIsDeleteDeploymentModalOpen(false)
+                                    history.push('/deployments')
+                                }}
                             />
                         </ModalBody>
                     </Modal>
