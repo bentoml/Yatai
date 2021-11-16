@@ -900,6 +900,46 @@ const locales0 = {
         en: 'My Last Updated Bentos',
         ja: 'マイ・最終更新ベント',
     },
+    'terminate': {
+        cn: '终止',
+        en: 'Terminate',
+        ja: '終了',
+    },
+    'terminate sth': {
+        cn: '终止 {{0}}',
+        en: 'Terminate {{0}}',
+        ja: '{{0}} を終了',
+    },
+    'delete sth': {
+        cn: '删除 {{0}}',
+        en: 'Delete {{0}}',
+        ja: '{{0}} を削除',
+    },
+    'please input the deployment name you want to terminate': {
+        cn: '请输入您想要终止的部署名称',
+        en: 'Please input the deployment name you want to terminate',
+        ja: '終了したいデプロイ名を入力してください',
+    },
+    'please input the deployment name you want to delete': {
+        cn: '请输入您想要删除的部署名称',
+        en: 'Please input the deployment name you want to delete',
+        ja: '削除したいデプロイ名を入力してください',
+    },
+    'restore': {
+        cn: '恢复',
+        en: 'Restore',
+        ja: '復元',
+    },
+    'terminating': {
+        cn: '终止中',
+        en: 'Terminating',
+        ja: '終了中',
+    },
+    'terminated': {
+        cn: '已终止',
+        en: 'Terminated',
+        ja: '終了しました',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

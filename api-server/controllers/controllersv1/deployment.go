@@ -235,6 +235,36 @@ func (c *deploymentController) Get(ctx *gin.Context, schema *GetDeploymentSchema
 	return transformersv1.ToDeploymentSchema(ctx, deployment)
 }
 
+func (c *deploymentController) Terminate(ctx *gin.Context, schema *GetDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
+	deployment, err := schema.GetDeployment(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canOperate(ctx, deployment); err != nil {
+		return nil, err
+	}
+	deployment, err = services.DeploymentService.Terminate(ctx, deployment)
+	if err != nil {
+		return nil, err
+	}
+	return transformersv1.ToDeploymentSchema(ctx, deployment)
+}
+
+func (c *deploymentController) Delete(ctx *gin.Context, schema *GetDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
+	deployment, err := schema.GetDeployment(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canOperate(ctx, deployment); err != nil {
+		return nil, err
+	}
+	deployment, err = services.DeploymentService.Delete(ctx, deployment)
+	if err != nil {
+		return nil, err
+	}
+	return transformersv1.ToDeploymentSchema(ctx, deployment)
+}
+
 type ListClusterDeploymentSchema struct {
 	schemasv1.ListQuerySchema
 	GetClusterSchema
@@ -631,7 +661,11 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 		viewChanged := !reflect.DeepEqual(podSchemas, newPodSchemas)
 		if viewChanged {
 			go func() {
-				_, _ = services.DeploymentService.SyncStatus(ctx, deployment)
+				deployment_, err := services.DeploymentService.Get(ctx, deployment.ID)
+				if err != nil {
+					return
+				}
+				_, _ = services.DeploymentService.SyncStatus(ctx, deployment_)
 			}()
 		}
 		podSchemas = newPodSchemas

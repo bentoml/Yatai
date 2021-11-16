@@ -4,7 +4,15 @@ import { IUserSchema } from './user'
 import { IResourceSchema } from './resource'
 import { IClusterFullSchema } from './cluster'
 
-export type DeploymentStatus = 'unknown' | 'non-deployed' | 'running' | 'unhealthy' | 'failed' | 'deploying'
+export type DeploymentStatus =
+    | 'unknown'
+    | 'non-deployed'
+    | 'running'
+    | 'unhealthy'
+    | 'failed'
+    | 'deploying'
+    | 'terminating'
+    | 'terminated'
 
 export interface IDeploymentSchema extends IResourceSchema {
     description: string
