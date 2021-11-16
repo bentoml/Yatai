@@ -25,39 +25,35 @@ export default function OrganizationMemberListCard() {
     )
 
     return (
-        <>
-            <Card
-                title={t('sth list', [t('member')])}
-                titleIcon={resourceIconMapping.user_group}
-                extra={
-                    <Button size={ButtonSize.compact} onClick={() => setIsCreateMembersOpen(true)}>
-                        {t('create')}
-                    </Button>
+        <Card
+            title={t('sth list', [t('member')])}
+            titleIcon={resourceIconMapping.user_group}
+            extra={
+                <Button size={ButtonSize.compact} onClick={() => setIsCreateMembersOpen(true)}>
+                    {t('create')}
+                </Button>
+            }
+        >
+            <Table
+                isLoading={membersInfo.isLoading}
+                columns={[t('user'), t('role')]}
+                data={
+                    membersInfo.data?.map((member) => [<User key={member.uid} user={member.user} />, t(member.role)]) ??
+                    []
                 }
+            />
+            <Modal
+                isOpen={isCreateMembersOpen}
+                onClose={() => setIsCreateMembersOpen(false)}
+                closeable
+                animate
+                autoFocus
             >
-                <Table
-                    isLoading={membersInfo.isLoading}
-                    columns={[t('user'), t('role')]}
-                    data={
-                        membersInfo.data?.map((member) => [
-                            <User key={member.uid} user={member.user} />,
-                            t(member.role),
-                        ]) ?? []
-                    }
-                />
-                <Modal
-                    isOpen={isCreateMembersOpen}
-                    onClose={() => setIsCreateMembersOpen(false)}
-                    closeable
-                    animate
-                    autoFocus
-                >
-                    <ModalHeader>{t('create sth', [t('member')])}</ModalHeader>
-                    <ModalBody>
-                        <MemberForm onSubmit={handleCreateMember} />
-                    </ModalBody>
-                </Modal>
-            </Card>
-        </>
+                <ModalHeader>{t('create sth', [t('member')])}</ModalHeader>
+                <ModalBody>
+                    <MemberForm onSubmit={handleCreateMember} />
+                </ModalBody>
+            </Modal>
+        </Card>
     )
 }
