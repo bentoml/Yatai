@@ -2,12 +2,15 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/bentoml/yatai/common/command"
 
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/common/utils"
@@ -113,20 +116,25 @@ func getDB() (*gorm.DB, error) {
 	db, ok := dbCache[uri]
 	dbCacheRW.RUnlock()
 	if !ok {
-		db, err := openDB()
-		if err == nil {
-			rawDb, err := db.DB()
-			if err != nil {
-				return nil, err
-			}
-			rawDb.SetMaxOpenConns(25)
-			rawDb.SetMaxIdleConns(25)
-			rawDb.SetConnMaxLifetime(5 * time.Minute)
-			dbCacheRW.Lock()
-			dbCache[uri] = db
-			dbCacheRW.Unlock()
+		db, err = openDB()
+		if err != nil {
+			return nil, err
 		}
-		return db, err
+		var rawDb *sql.DB
+		rawDb, err = db.DB()
+		if err != nil {
+			return nil, err
+		}
+		rawDb.SetMaxOpenConns(25)
+		rawDb.SetMaxIdleConns(25)
+		rawDb.SetConnMaxLifetime(5 * time.Minute)
+		dbCacheRW.Lock()
+		dbCache[uri] = db
+		dbCacheRW.Unlock()
+	}
+
+	if command.GlobalCommandOption.Debug {
+		return db.Debug(), nil
 	}
 
 	return db, nil

@@ -159,7 +159,6 @@ func (s *deploymentService) ListByUids(ctx context.Context, uids []string) ([]*m
 
 func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) ([]*models.Deployment, uint, error) {
 	query := getBaseQuery(ctx, s)
-	joinedDeploymentRevision := false
 	if opt.OrganizationId != nil {
 		query = query.Joins("LEFT JOIN cluster ON cluster.id = deployment.cluster_id")
 		query = query.Where("cluster.organization_id = ?", *opt.OrganizationId)
@@ -168,14 +167,11 @@ func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) 
 		query = query.Joins("LEFT JOIN cluster ON cluster.id = deployment.cluster_id")
 		query = query.Where("cluster.organization_id IN (?)", *opt.OrganizationIds)
 	}
+	query = query.Joins("LEFT JOIN deployment_revision ON deployment_revision.deployment_id = deployment.id AND deployment_revision.status = ?", modelschemas.DeploymentRevisionStatusActive)
 	if opt.LastUpdaterId != nil {
-		joinedDeploymentRevision = true
-		query = query.Joins("LEFT JOIN deployment_revision ON deployment_revision.deployment_id = deployment.id AND deployment_revision.status = ?", modelschemas.DeploymentRevisionStatusActive)
 		query = query.Where("deployment_revision.creator_id = ?", *opt.LastUpdaterId)
 	}
 	if opt.LastUpdaterIds != nil {
-		joinedDeploymentRevision = true
-		query = query.Joins("LEFT JOIN deployment_revision ON deployment_revision.deployment_id = deployment.id AND deployment_revision.status = ?", modelschemas.DeploymentRevisionStatusActive)
 		query = query.Where("deployment_revision.creator_id IN (?)", *opt.LastUpdaterIds)
 	}
 	if opt.ClusterId != nil {
@@ -192,9 +188,6 @@ func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) 
 	}
 	if opt.Statuses != nil {
 		query = query.Where("deployment.status IN (?)", *opt.Statuses)
-	}
-	if !joinedDeploymentRevision {
-		query = query.Joins("LEFT JOIN deployment_revision ON deployment_revision.deployment_id = deployment.id")
 	}
 	query = opt.BindQueryWithKeywords(query, "deployment")
 	var total int64
