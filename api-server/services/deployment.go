@@ -415,6 +415,9 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 		if d.Status == modelschemas.DeploymentStatusTerminating || d.Status == modelschemas.DeploymentStatusTerminated {
 			return modelschemas.DeploymentStatusTerminated, nil
 		}
+		if d.Status == modelschemas.DeploymentStatusDeploying {
+			return modelschemas.DeploymentStatusDeploying, nil
+		}
 		return modelschemas.DeploymentStatusNonDeployed, nil
 	}
 
