@@ -10,8 +10,8 @@ const statusColorMap: Record<DeploymentStatus, keyof TagKind> = {
     'unhealthy': TagKind.warning,
     'failed': TagKind.negative,
     'deploying': TagKind.accent,
-    'terminating': TagKind.negative,
-    'terminated': TagKind.negative,
+    'terminating': TagKind.black,
+    'terminated': TagKind.black,
 }
 
 export interface IDeploymentStatusProps {
@@ -29,7 +29,7 @@ export default function DeploymentStatusTag({ status }: IDeploymentStatusProps) 
                     gap: 4,
                 }}
             >
-                {['deploying'].indexOf(status) >= 0 && <StyledSpinnerNext $size={100} />}
+                {['deploying', 'terminating'].indexOf(status) >= 0 && <StyledSpinnerNext $size={100} />}
                 {t(status)}
             </div>
         </Tag>
