@@ -19,7 +19,7 @@ import { Notification } from 'baseui/notification'
 import CopyToClipboard from 'react-copy-to-clipboard'
 
 export default function ApiTokenListCard() {
-    const [page, setPage] = usePage()
+    const [page] = usePage()
     const apiTokensInfo = useFetchApiTokens(page)
     const [theTokenWishToShow, setTheTokenWishToShow] = useState<string>()
     const [isCreateApiTokenOpen, setIsCreateApiTokenOpen] = useState(false)
@@ -80,11 +80,7 @@ export default function ApiTokenListCard() {
                     start: apiTokensInfo.data?.start,
                     count: apiTokensInfo.data?.count,
                     total: apiTokensInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         apiTokensInfo.refetch()
                     },
                 }}

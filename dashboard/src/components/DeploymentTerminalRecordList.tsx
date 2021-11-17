@@ -9,6 +9,7 @@ import Table from '@/components/Table'
 import { BiPlayCircle } from 'react-icons/bi'
 import { Button } from 'baseui/button'
 import { StatefulTooltip } from 'baseui/tooltip'
+import qs from 'qs'
 
 export interface IDeploymentTerminalRecordListProps {
     clusterName: string
@@ -19,8 +20,8 @@ export default function DeploymentTerminalRecordList({
     clusterName,
     deploymentName,
 }: IDeploymentTerminalRecordListProps) {
-    const [page, setPage] = usePage()
-    const queryKey = `fetchDeploymentTerminalRecords:${clusterName}:${deploymentName}`
+    const [page] = usePage()
+    const queryKey = `fetchDeploymentTerminalRecords:${clusterName}:${deploymentName}:${qs.stringify(page)}`
     const deploymentTerminalRecordsInfo = useQuery(queryKey, () =>
         listDeploymentTerminalRecords(clusterName, deploymentName, page)
     )
@@ -58,11 +59,7 @@ export default function DeploymentTerminalRecordList({
                 start: deploymentTerminalRecordsInfo.data?.start,
                 count: deploymentTerminalRecordsInfo.data?.count,
                 total: deploymentTerminalRecordsInfo.data?.total,
-                onPageChange: ({ nextPage }) => {
-                    setPage({
-                        ...page,
-                        start: nextPage * page.count,
-                    })
+                afterPageChange: () => {
                     deploymentTerminalRecordsInfo.refetch()
                 },
             }}

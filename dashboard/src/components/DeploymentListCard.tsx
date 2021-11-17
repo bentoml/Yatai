@@ -34,7 +34,7 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
         start: 0,
         count: 1000,
     })
-    const [page, setPage] = usePage()
+    const [page] = usePage()
     const queryKey = `fetchClusterDeployments:${clusterName ?? ''}:${qs.stringify(page)}`
     const deploymentsInfo = useQuery(queryKey, () =>
         clusterName ? listClusterDeployments(clusterName, page) : listOrganizationDeployments(page)
@@ -247,11 +247,7 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                     start: deploymentsInfo.data?.start,
                     count: deploymentsInfo.data?.count,
                     total: deploymentsInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         deploymentsInfo.refetch()
                     },
                 }}

@@ -15,7 +15,7 @@ import { useFetchOrganizations } from '@/hooks/useFetchOrganizations'
 import { resourceIconMapping } from '@/consts'
 
 export default function OrganizationListCard() {
-    const [page, setPage] = usePage()
+    const [page] = usePage()
     const organizationsInfo = useFetchOrganizations(page)
     const [isCreateOrganizationOpen, setIsCreateOrganizationOpen] = useState(false)
     const handleCreateOrganization = useCallback(
@@ -58,11 +58,7 @@ export default function OrganizationListCard() {
                     start: organizationsInfo.data?.start,
                     count: organizationsInfo.data?.count,
                     total: organizationsInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         organizationsInfo.refetch()
                     },
                 }}

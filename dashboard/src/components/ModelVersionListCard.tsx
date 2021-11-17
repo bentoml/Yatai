@@ -14,14 +14,15 @@ import User from '@/components/User'
 import { formatTime } from '@/utils/datetime'
 import { Link } from 'react-router-dom'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
+import qs from 'qs'
 
 export interface IModelVersionListCardProps {
     modelName: string
 }
 
 export default function ModelVersionListCard({ modelName }: IModelVersionListCardProps) {
-    const [page, setPage] = usePage()
-    const queryKey = `fetchClusterModelVersions:${modelName}`
+    const [page] = usePage()
+    const queryKey = `fetchModelVersions:${modelName}:${qs.stringify(page)}`
     const modelVersionsInfo = useQuery(queryKey, () => listModelVersions(modelName, page))
     const [isCreateModelVersionOpen, setIsCreateModelVersionOpen] = useState(false)
     // eslint-disable-next-line
@@ -116,11 +117,7 @@ export default function ModelVersionListCard({ modelName }: IModelVersionListCar
                     start: modelVersionsInfo.data?.start,
                     count: modelVersionsInfo.data?.count,
                     total: modelVersionsInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         modelVersionsInfo.refetch()
                     },
                 }}

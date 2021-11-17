@@ -12,10 +12,11 @@ import Table from '@/components/Table'
 import User from '@/components/User'
 import { formatTime } from '@/utils/datetime'
 import { Link } from 'react-router-dom'
+import qs from 'qs'
 
 export default function ModelListCard() {
-    const [page, setPage] = usePage()
-    const modelInfo = useQuery('fetchClusterModel', () => listModels(page))
+    const [page] = usePage()
+    const modelInfo = useQuery(`fetchModels:${qs.stringify(page)}`, () => listModels(page))
     const [isCreateModelOpen, setIsCreateModelOpen] = useState(false)
     // eslint-disable-next-line
     const handleCreateModel = useCallback(
@@ -54,11 +55,7 @@ export default function ModelListCard() {
                     start: modelInfo.data?.start,
                     count: modelInfo.data?.count,
                     total: modelInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         modelInfo.refetch()
                     },
                 }}
