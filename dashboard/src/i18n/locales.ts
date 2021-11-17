@@ -143,12 +143,12 @@ const locales0 = {
     'bento': {
         en: 'Bento',
         cn: 'Bento',
-        ja: 'ベント',
+        ja: 'Bento',
     },
     'bento version': {
         cn: 'Bento 版本',
         en: 'Bento Version',
-        ja: 'ベントバージョン',
+        ja: 'Bento バージョン',
     },
     'register': {
         en: 'Register',
@@ -893,12 +893,12 @@ const locales0 = {
     'the bentos I created': {
         cn: '我创建的 Bento',
         en: 'The bentos I created',
-        ja: '私が作成したベント',
+        ja: '私が作成した Bento',
     },
     'my last updated bentos': {
         cn: '我最后更新的 Bento',
         en: 'My last updated bentos',
-        ja: 'マイ・最終更新ベント',
+        ja: 'マイ・最終更新 Bento',
     },
     'terminate': {
         cn: '终止',
