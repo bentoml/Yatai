@@ -4,7 +4,7 @@ import Table from '@/components/Table'
 import useTranslation from '@/hooks/useTranslation'
 import { useDeployment, useDeploymentLoading } from '@/hooks/useDeployment'
 import Card from '@/components/Card'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import User from '@/components/User'
 import { AiOutlineHistory } from 'react-icons/ai'
 import { useParams } from 'react-router-dom'
@@ -59,7 +59,7 @@ export default function DeploymentOverview() {
                             </div>,
                             deployment?.description,
                             deployment?.creator && <User user={deployment?.creator} />,
-                            deployment && formatTime(deployment.created_at),
+                            deployment && formatDateTime(deployment.created_at),
                         ],
                     ]}
                 />

@@ -4,7 +4,7 @@ import Table from '@/components/Table'
 import useTranslation from '@/hooks/useTranslation'
 import { useCluster, useClusterLoading } from '@/hooks/useCluster'
 import Card from '@/components/Card'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import User from '@/components/User'
 
 export default function ClusterOverview() {
@@ -23,7 +23,7 @@ export default function ClusterOverview() {
                         cluster?.name,
                         cluster?.description,
                         cluster?.creator && <User user={cluster?.creator} />,
-                        cluster && formatTime(cluster.created_at),
+                        cluster && formatDateTime(cluster.created_at),
                     ],
                 ]}
             />

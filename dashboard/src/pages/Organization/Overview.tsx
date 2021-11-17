@@ -4,7 +4,7 @@ import Table from '@/components/Table'
 import useTranslation from '@/hooks/useTranslation'
 import { useOrganization, useOrganizationLoading } from '@/hooks/useOrganization'
 import Card from '@/components/Card'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import User from '@/components/User'
 
 export default function OrganizationOverview() {
@@ -23,7 +23,7 @@ export default function OrganizationOverview() {
                         organization?.name,
                         organization?.description,
                         organization?.creator && <User user={organization?.creator} />,
-                        organization && formatTime(organization.created_at),
+                        organization && formatDateTime(organization.created_at),
                     ],
                 ]}
             />

@@ -4,7 +4,7 @@ import { createApiToken } from '@/services/api_token'
 import { usePage } from '@/hooks/usePage'
 import { ICreateApiTokenSchema } from '@/schemas/api_token'
 import ApiTokenForm from '@/components/ApiTokenForm'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
@@ -64,16 +64,16 @@ export default function ApiTokenListCard() {
                         </Link>,
                         apiToken.scopes.join(', '),
                         apiToken.description,
-                        apiToken.last_used_at ? formatTime(apiToken.last_used_at) : '-',
+                        apiToken.last_used_at ? formatDateTime(apiToken.last_used_at) : '-',
                         <span
                             key={apiToken.uid}
                             style={{
                                 color: apiToken.is_expired ? theme.colors.negative : theme.colors.positive,
                             }}
                         >
-                            {apiToken.expired_at ? formatTime(apiToken.expired_at) : '-'}
+                            {apiToken.expired_at ? formatDateTime(apiToken.expired_at) : '-'}
                         </span>,
-                        formatTime(apiToken.created_at),
+                        formatDateTime(apiToken.created_at),
                     ]) ?? []
                 }
                 paginationProps={{

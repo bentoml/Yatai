@@ -12,9 +12,10 @@ export default function DatePicker({ value, onChange }: IDatePickerProps) {
         <BaseDatePicker
             clearable
             value={value ? moment(value).toDate() : undefined}
-            onChange={(e) =>
-                onChange?.((Array.isArray(e.date) ? e.date[0]?.toISOString() : e.date?.toISOString()) || undefined)
-            }
+            onChange={(e) => {
+                const date = Array.isArray(e.date) ? e.date[0] : e.date
+                onChange?.(date ? moment(date).startOf('day').toDate().toISOString() : undefined)
+            }}
         />
     )
 }

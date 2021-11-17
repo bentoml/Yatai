@@ -10,7 +10,7 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import Table from '@/components/Table'
 import User from '@/components/User'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import { Link } from 'react-router-dom'
 import qs from 'qs'
 
@@ -48,7 +48,7 @@ export default function ModelListCard() {
                         </Link>,
                         model.latest_version?.version,
                         model.creator && <User user={model.creator} />,
-                        formatTime(model.created_at),
+                        formatDateTime(model.created_at),
                     ]) ?? []
                 }
                 paginationProps={{

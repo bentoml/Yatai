@@ -1,5 +1,5 @@
 import { ScrollFollow } from 'react-lazylog'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { IWsRespSchema } from '@/schemas/websocket'
 import { IKubeEventSchema } from '@/schemas/kube_event'
@@ -79,11 +79,11 @@ export default function KubePodEvents({
                 setItems(
                     events.map((event) => {
                         if (podName) {
-                            return `[${event.lastTimestamp ? formatTime(event.lastTimestamp) : '-'}] [${
+                            return `[${event.lastTimestamp ? formatDateTime(event.lastTimestamp) : '-'}] [${
                                 event.reason
                             }] ${event.message}`
                         }
-                        return `[${event.lastTimestamp ? formatTime(event.lastTimestamp) : '-'}] [${
+                        return `[${event.lastTimestamp ? formatDateTime(event.lastTimestamp) : '-'}] [${
                             event.involvedObject?.kind ?? '-'
                         }] [${event.involvedObject?.name ?? '-'}] [${event.reason}] ${event.message}`
                     })

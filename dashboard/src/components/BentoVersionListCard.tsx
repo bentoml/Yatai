@@ -5,7 +5,7 @@ import { createBentoVersion, listBentoVersions } from '@/services/bento_version'
 import { usePage } from '@/hooks/usePage'
 import { IBentoVersionSchema, ICreateBentoVersionSchema } from '@/schemas/bento_version'
 import BentoVersionForm from '@/components/BentoVersionForm'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
@@ -113,7 +113,7 @@ export default function BentoVersionListCard({ bentoName }: IBentoVersionListCar
                         />,
                         bentoVersion.description,
                         bentoVersion.creator && <User user={bentoVersion.creator} />,
-                        formatTime(bentoVersion.created_at),
+                        formatDateTime(bentoVersion.created_at),
                     ]) ?? []
                 }
                 paginationProps={{

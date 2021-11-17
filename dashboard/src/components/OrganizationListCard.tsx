@@ -4,7 +4,7 @@ import { createOrganization } from '@/services/organization'
 import { usePage } from '@/hooks/usePage'
 import { ICreateOrganizationSchema } from '@/schemas/organization'
 import OrganizationForm from '@/components/OrganizationForm'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
@@ -50,7 +50,7 @@ export default function OrganizationListCard() {
                             </Link>,
                             organization.description,
                             organization.creator && <User user={organization.creator} />,
-                            formatTime(organization.created_at),
+                            formatDateTime(organization.created_at),
                         ]
                     }) ?? []
                 }

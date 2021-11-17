@@ -5,7 +5,7 @@ import { createDeployment, listClusterDeployments, listOrganizationDeployments }
 import { usePage } from '@/hooks/usePage'
 import { ICreateDeploymentSchema, IDeploymentSchema } from '@/schemas/deployment'
 import DeploymentForm from '@/components/DeploymentForm'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
@@ -240,7 +240,7 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                         ),
                         <DeploymentStatusTag key={deployment.uid} status={deployment.status} />,
                         deployment.latest_revision?.creator && <User user={deployment.latest_revision.creator} />,
-                        deployment.latest_revision && formatTime(deployment.latest_revision.created_at),
+                        deployment.latest_revision && formatDateTime(deployment.latest_revision.created_at),
                     ]) ?? []
                 }
                 paginationProps={{

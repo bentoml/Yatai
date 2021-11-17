@@ -1,8 +1,8 @@
 import moment from 'moment'
-import { timeFormat } from '@/consts'
+import { dateTimeFormat } from '@/consts'
 
-export function formatTime(s: string, format = 'YYYY-MM-DDTHH:mm:ssZ'): string {
-    return moment(s, format).format(timeFormat)
+export function formatDateTime(s: string, format = 'YYYY-MM-DDTHH:mm:ssZ'): string {
+    return moment(s, format).format(dateTimeFormat)
 }
 
 export function durationToStr(v: number) {
