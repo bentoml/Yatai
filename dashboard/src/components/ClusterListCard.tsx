@@ -15,7 +15,7 @@ import { useFetchClusters } from '@/hooks/useFetchClusters'
 import { resourceIconMapping } from '@/consts'
 
 export default function ClusterListCard() {
-    const [page, setPage] = usePage()
+    const [page] = usePage()
     const clustersInfo = useFetchClusters(page)
     const [isCreateClusterOpen, setIsCreateClusterOpen] = useState(false)
     const handleCreateCluster = useCallback(
@@ -55,11 +55,7 @@ export default function ClusterListCard() {
                     start: clustersInfo.data?.start,
                     count: clustersInfo.data?.count,
                     total: clustersInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         clustersInfo.refetch()
                     },
                 }}

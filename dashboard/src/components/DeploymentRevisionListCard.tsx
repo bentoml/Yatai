@@ -24,7 +24,7 @@ export interface IDeploymentRevisionListCardProps {
 }
 
 export default function DeploymentRevisionListCard({ clusterName, deploymentName }: IDeploymentRevisionListCardProps) {
-    const [page, setPage] = usePage()
+    const [page] = usePage()
     const { deployment } = useDeployment()
     const { deploymentRevisionsInfo } = useFetchDeploymentRevisions(clusterName, deploymentName, page)
     const [wishToDeployRevision, setWishToDeployRevision] = useState<IDeploymentRevisionSchema>()
@@ -91,11 +91,7 @@ export default function DeploymentRevisionListCard({ clusterName, deploymentName
                     start: deploymentRevisionsInfo.data?.start,
                     count: deploymentRevisionsInfo.data?.count,
                     total: deploymentRevisionsInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         deploymentRevisionsInfo.refetch()
                     },
                 }}

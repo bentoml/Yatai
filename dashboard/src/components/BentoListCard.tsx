@@ -25,8 +25,8 @@ export default function BentoListCard() {
     const qStr = useMemo(() => query.q ?? '', [query])
     const q = useMemo(() => parseQ(qStr), [qStr])
     const membersInfo = useFetchOrganizationMembers()
-    const [page, setPage] = usePage()
-    const bentosInfo = useQuery(`fetchClusterBentos:${qs.stringify(page)}`, () => listBentos(page))
+    const [page] = usePage()
+    const bentosInfo = useQuery(`fetchBentos:${qs.stringify(page)}`, () => listBentos(page))
     const [isCreateBentoOpen, setIsCreateBentoOpen] = useState(false)
     const handleCreateBento = useCallback(
         async (data: ICreateBentoSchema) => {
@@ -159,11 +159,7 @@ export default function BentoListCard() {
                     start: bentosInfo.data?.start,
                     count: bentosInfo.data?.count,
                     total: bentosInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         bentosInfo.refetch()
                     },
                 }}

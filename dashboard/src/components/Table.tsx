@@ -1,22 +1,24 @@
 import React from 'react'
 import { Table as BaseTable, TableProps as BaseTableProps } from 'baseui/table-semantic'
-import { Pagination, SIZE as PaginationSize, PaginationProps } from 'baseui/pagination'
+import { Pagination, SIZE as PaginationSize } from 'baseui/pagination'
 import { Skeleton } from 'baseui/skeleton'
 import { FiInbox } from 'react-icons/fi'
 import useTranslation from '@/hooks/useTranslation'
 import Text from '@/components/Text'
+import { usePage } from '@/hooks/usePage'
 
 export interface ITableProps extends BaseTableProps {
     paginationProps?: {
         total?: number
         start?: number
         count?: number
-        onPageChange?: PaginationProps['onPageChange']
+        afterPageChange?: (page: number) => void
     }
 }
 
 export default function Table({ isLoading, columns, data, overrides, paginationProps }: ITableProps) {
     const [t] = useTranslation()
+    const [page, setPage] = usePage()
 
     return (
         <>
@@ -66,7 +68,13 @@ export default function Table({ isLoading, columns, data, overrides, paginationP
                                 ? Math.floor(paginationProps.start / paginationProps.count) + 1
                                 : 0
                         }
-                        onPageChange={paginationProps.onPageChange}
+                        onPageChange={({ nextPage }) => {
+                            setPage({
+                                ...page,
+                                start: (nextPage - 1) * page.count,
+                            })
+                            paginationProps.afterPageChange?.(nextPage)
+                        }}
                     />
                 </div>
             )}

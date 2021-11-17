@@ -16,14 +16,15 @@ import { resourceIconMapping } from '@/consts'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
 import BentoVersionImageBuildStatusTag from '@/components/BentoVersionImageBuildStatus'
+import qs from 'qs'
 
 export interface IBentoVersionListCardProps {
     bentoName: string
 }
 
 export default function BentoVersionListCard({ bentoName }: IBentoVersionListCardProps) {
-    const [page, setPage] = usePage()
-    const queryKey = `fetchClusterBentoVersions:${bentoName}`
+    const [page] = usePage()
+    const queryKey = `fetchBentoVersions:${bentoName}:${qs.stringify(page)}`
     const bentoVersionsInfo = useQuery(queryKey, () => listBentoVersions(bentoName, page))
     const [isCreateBentoVersionOpen, setIsCreateBentoVersionOpen] = useState(false)
     const handleCreateBentoVersion = useCallback(
@@ -119,11 +120,7 @@ export default function BentoVersionListCard({ bentoName }: IBentoVersionListCar
                     start: bentoVersionsInfo.data?.start,
                     count: bentoVersionsInfo.data?.count,
                     total: bentoVersionsInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         bentoVersionsInfo.refetch()
                     },
                 }}
