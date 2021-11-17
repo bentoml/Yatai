@@ -4,7 +4,7 @@ import { createCluster } from '@/services/cluster'
 import { usePage } from '@/hooks/usePage'
 import { ICreateClusterSchema } from '@/schemas/cluster'
 import ClusterForm from '@/components/ClusterForm'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
@@ -48,7 +48,7 @@ export default function ClusterListCard() {
                         </Link>,
                         cluster.description,
                         cluster.creator && <User user={cluster.creator} />,
-                        formatTime(cluster.created_at),
+                        formatDateTime(cluster.created_at),
                     ]) ?? []
                 }
                 paginationProps={{

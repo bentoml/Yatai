@@ -11,7 +11,7 @@ import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
 import Table from '@/components/Table'
 import User from '@/components/User'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import { Link } from 'react-router-dom'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import qs from 'qs'
@@ -110,7 +110,7 @@ export default function ModelVersionListCard({ modelName }: IModelVersionListCar
                             {modelVersion.version}
                         </Link>,
                         modelVersion.creator && <User user={modelVersion.creator} />,
-                        formatTime(modelVersion.created_at),
+                        formatDateTime(modelVersion.created_at),
                     ]) ?? []
                 }
                 paginationProps={{

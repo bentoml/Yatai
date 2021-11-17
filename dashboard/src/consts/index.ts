@@ -13,7 +13,9 @@ export const headerHeight = 55
 export const sidebarExpandedWidth = 220
 export const sidebarFoldedWidth = 68
 export const textVariant = 'smallPlus'
-export const timeFormat = 'YYYY-MM-DD HH:mm:ss'
+export const dateFormat = 'YYYY-MM-DD'
+export const dateWithZeroTimeFormat = 'YYYY-MM-DD 00:00:00'
+export const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss'
 
 export const resourceIconMapping: Record<ResourceType, React.ComponentType<IconBaseProps>> = {
     user: GrUser,

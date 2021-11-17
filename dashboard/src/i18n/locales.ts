@@ -960,6 +960,31 @@ const locales0 = {
         cn: ' 以继续：',
         ja: ' を入力して続行：',
     },
+    'some days': {
+        en: '{{0}} days',
+        cn: '{{0}} 天',
+        ja: '{{0}} 日',
+    },
+    'no expiration': {
+        en: 'No expiration',
+        cn: '不过期',
+        ja: '期限なし',
+    },
+    'custom...': {
+        en: 'Custom...',
+        cn: '自定义...',
+        ja: 'カスタム...',
+    },
+    'the token will expire on sth': {
+        en: 'The token will expire on {{0}}',
+        cn: '令牌将在 {{0}} 过期',
+        ja: 'トークンは {{0}} に期限が切れます',
+    },
+    'the token will never expire!': {
+        en: 'The token will never expire!',
+        cn: '此令牌永不过期！',
+        ja: 'トークンは永久に期限がありません！',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

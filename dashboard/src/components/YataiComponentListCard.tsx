@@ -9,7 +9,7 @@ import {
     YataiComponentType,
 } from '@/schemas/yatai_component'
 import YataiComponentForm from '@/components/YataiComponentForm'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { Modal, ModalHeader, ModalBody, ModalFooter, ModalButton } from 'baseui/modal'
@@ -207,7 +207,7 @@ export default function YataiComponentListCard({ clusterName }: IYataiComponentL
                                 componentType={yataiComponent.type}
                             />,
                             yataiComponent.release ? yataiComponent.release.chart.metadata.version : '-',
-                            yataiComponent.release ? formatTime(yataiComponent.release.info.last_deployed) : '-',
+                            yataiComponent.release ? formatDateTime(yataiComponent.release.info.last_deployed) : '-',
                             <div
                                 key={yataiComponent.type}
                                 style={{

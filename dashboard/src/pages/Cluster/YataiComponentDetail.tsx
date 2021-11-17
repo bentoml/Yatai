@@ -6,7 +6,7 @@ import { useFetchYataiComponentHelmChartReleaseResources } from '@/hooks/useFetc
 import useTranslation from '@/hooks/useTranslation'
 import { IKubeResourceSchema } from '@/schemas/kube_resource'
 import { YataiComponentType } from '@/schemas/yatai_component'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import { useStyletron } from 'baseui'
 import { Skeleton } from 'baseui/skeleton'
 import { useState } from 'react'
@@ -51,7 +51,7 @@ export default function YataiComponentDetail() {
                             yataiComponentInfo.data?.release?.chart.metadata.name ?? '',
                             yataiComponentInfo.data?.release?.chart.metadata.description ?? '',
                             yataiComponentInfo.data?.release
-                                ? formatTime(yataiComponentInfo.data.release.info.last_deployed)
+                                ? formatDateTime(yataiComponentInfo.data.release.info.last_deployed)
                                 : '-',
                         ],
                     ]}

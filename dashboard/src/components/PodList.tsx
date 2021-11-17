@@ -3,7 +3,7 @@ import { useDeployment } from '@/hooks/useDeployment'
 import { useOrganization } from '@/hooks/useOrganization'
 import useTranslation from '@/hooks/useTranslation'
 import { IKubePodSchema } from '@/schemas/kube_pod'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import { IoMdList } from 'react-icons/io'
 import { GoTerminal } from 'react-icons/go'
@@ -62,7 +62,7 @@ export default ({ loading = false, pods }: IPodListProps) => {
                     t(pod.pod_status.status),
                     pod.deployment_target ? t(pod.deployment_target.type) : '-',
                     pod.node_name,
-                    formatTime(pod.status.start_time),
+                    formatDateTime(pod.status.start_time),
                     <div
                         key={pod.name}
                         style={{
