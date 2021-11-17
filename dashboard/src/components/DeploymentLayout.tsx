@@ -12,6 +12,7 @@ import { deleteDeployment, fetchDeployment, terminateDeployment, updateDeploymen
 import { useStyletron } from 'baseui'
 import { Button } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
+import color from 'color'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { AiOutlineDashboard } from 'react-icons/ai'
@@ -228,8 +229,10 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                                     overrides={{
                                         Root: {
                                             style: {
-                                                background: theme.colors.negative,
-                                                color: theme.colors.white,
+                                                ':hover': {
+                                                    background: theme.colors.negative,
+                                                    color: theme.colors.white,
+                                                },
                                             },
                                         },
                                     }}
@@ -244,8 +247,10 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                                     overrides={{
                                         Root: {
                                             style: {
-                                                background: theme.colors.negative,
-                                                color: theme.colors.white,
+                                                ':hover': {
+                                                    background: theme.colors.negative,
+                                                    color: theme.colors.white,
+                                                },
                                             },
                                         },
                                     }}
@@ -283,10 +288,41 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                         animate
                         autoFocus
                     >
-                        <ModalHeader>{t('terminate sth', [t('deployment')])}</ModalHeader>
+                        <ModalHeader>
+                            <div
+                                style={{
+                                    color: theme.colors.negative,
+                                }}
+                            >
+                                {t('terminate sth', [t('deployment')])}
+                            </div>
+                        </ModalHeader>
                         <ModalBody>
                             <DoubleCheckForm
-                                tips={t('please input the deployment name you want to terminate')}
+                                tips={
+                                    <>
+                                        <p>{t('terminate deployment tips')}</p>
+                                        <p>
+                                            <span>
+                                                {t('double check to be continued tips prefix', [t('deployment')])}
+                                            </span>
+                                            <code
+                                                style={{
+                                                    padding: '2px 3px',
+                                                    border: `1px solid ${color(theme.colors.warning400)
+                                                        .lighten(0.3)
+                                                        .string()}`,
+                                                    background: color(theme.colors.warning100).lighten(0.1).string(),
+                                                    borderRadius: '3px',
+                                                    fontSize: '12px',
+                                                }}
+                                            >
+                                                {deploymentName}
+                                            </code>
+                                            <span>{t('double check to be continued tips suffix')}</span>
+                                        </p>
+                                    </>
+                                }
                                 expected={deploymentName}
                                 buttonLabel={t('terminate')}
                                 onSubmit={async () => {
@@ -304,10 +340,45 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                         animate
                         autoFocus
                     >
-                        <ModalHeader>{t('delete sth', [t('deployment')])}</ModalHeader>
+                        <ModalHeader>
+                            <div
+                                style={{
+                                    color: theme.colors.negative,
+                                }}
+                            >
+                                {t('delete sth', [t('deployment')])}
+                            </div>
+                        </ModalHeader>
                         <ModalBody>
                             <DoubleCheckForm
-                                tips={t('please input the deployment name you want to delete')}
+                                tips={
+                                    <>
+                                        <p>
+                                            <span>{t('delete deployment tips prefix')}</span>
+                                            <b>{t('delete deployment tips highlight')}</b>
+                                            <span>{t('delete deployment tips suffix')}</span>
+                                        </p>
+                                        <p>
+                                            <span>
+                                                {t('double check to be continued tips prefix', [t('deployment')])}
+                                            </span>
+                                            <code
+                                                style={{
+                                                    padding: '2px 3px',
+                                                    border: `1px solid ${color(theme.colors.warning400)
+                                                        .lighten(0.3)
+                                                        .string()}`,
+                                                    background: color(theme.colors.warning100).lighten(0.1).string(),
+                                                    borderRadius: '3px',
+                                                    fontSize: '12px',
+                                                }}
+                                            >
+                                                {deploymentName}
+                                            </code>
+                                            <span>{t('double check to be continued tips suffix')}</span>
+                                        </p>
+                                    </>
+                                }
                                 expected={deploymentName}
                                 buttonLabel={t('delete')}
                                 onSubmit={async () => {
