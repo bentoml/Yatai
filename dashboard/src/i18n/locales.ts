@@ -985,6 +985,11 @@ const locales0 = {
         cn: '此令牌永不过期！',
         ja: 'トークンは永久に期限がありません！',
     },
+    'are you sure to delete this api token?': {
+        en: 'Are you sure to delete this api token?',
+        cn: '你确定要删除此 API 令牌吗？',
+        ja: 'この API トークンを削除してもよろしいですか？',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

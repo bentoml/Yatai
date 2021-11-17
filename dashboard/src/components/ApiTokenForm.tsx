@@ -1,4 +1,4 @@
-import { ICreateApiTokenSchema, IApiTokenFullSchema } from '@/schemas/api_token'
+import { ICreateApiTokenSchema, IApiTokenSchema } from '@/schemas/api_token'
 import React, { useCallback, useEffect, useState } from 'react'
 import { createForm } from '@/components/Form'
 import useTranslation from '@/hooks/useTranslation'
@@ -15,9 +15,10 @@ import { formatDateTime } from '@/utils/datetime'
 interface IExpirationDatePicker {
     value?: string
     onChange?: (value?: string) => void
+    disabled?: boolean
 }
 
-function ExpirationDatePicker({ value, onChange }: IExpirationDatePicker) {
+function ExpirationDatePicker({ value, onChange, disabled }: IExpirationDatePicker) {
     const [selectId, setSelectId] = useState(value ? 'custom' : 'no_expiration')
     const isCustom = selectId === 'custom'
     const [t] = useTranslation()
@@ -36,6 +37,7 @@ function ExpirationDatePicker({ value, onChange }: IExpirationDatePicker) {
                 }}
             >
                 <Select
+                    disabled={disabled}
                     clearable={false}
                     searchable={false}
                     options={[
@@ -78,7 +80,7 @@ function ExpirationDatePicker({ value, onChange }: IExpirationDatePicker) {
             </div>
             <div>
                 {isCustom ? (
-                    <DatePicker value={value} onChange={onChange} />
+                    <DatePicker disabled={disabled} value={value} onChange={onChange} />
                 ) : (
                     <span>
                         {value
@@ -94,7 +96,7 @@ function ExpirationDatePicker({ value, onChange }: IExpirationDatePicker) {
 const { Form, FormItem } = createForm<ICreateApiTokenSchema>()
 
 export interface IApiTokenFormProps {
-    apiToken?: IApiTokenFullSchema
+    apiToken?: IApiTokenSchema
     onSubmit: (data: ICreateApiTokenSchema) => Promise<void>
 }
 
@@ -140,7 +142,7 @@ export default function ApiTokenForm({ apiToken, onSubmit }: IApiTokenFormProps)
                 <ApiTokenScopesCheckbox />
             </FormItem>
             <FormItem name='expired_at' label={t('expired_at')}>
-                <ExpirationDatePicker />
+                <ExpirationDatePicker disabled={apiToken !== undefined} />
             </FormItem>
             <FormItem>
                 <div style={{ display: 'flex' }}>
