@@ -331,10 +331,12 @@ CREATE TABLE IF NOT EXISTS "label" (
     resource_id INTEGER NOT NULL,
     key VARCHAR(128) NOT NULL,
     value VARCHAR(128) NOT NULL,
-    creator_id INTEGER NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
+    organization_id INTEGER REFERENCES "organization"("id") ON DELETE CASCADE.
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
 CREATE UNIQUE INDEX "uk_resoure_type_id_key" on "label" ("resource_type", "resource_id", "key");
+CREATE UNIQUE INDEX "uk_label_orgId_resoureType_resourceId_key" on "label" ("organization_id", "resource_type", "resource_id", "key");
 

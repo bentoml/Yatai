@@ -45,6 +45,7 @@ func (*modelService) Create(ctx context.Context, opt CreateModelOption) (*models
 			OrganizationId: opt.OrganizationId,
 		},
 	}
+	// creates a label
 	err := mustGetSession(ctx).Create(&model).Error
 	if err != nil {
 		return nil, err

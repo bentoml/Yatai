@@ -78,6 +78,7 @@ func (s *modelVersionService) Create(ctx context.Context, opt CreateModelVersion
 		BuildAt:          opt.BuildAt,
 		Manifest:         opt.Manifest,
 	}
+	// TODO: create label for model version
 	err = db.Create(modelVersion).Error
 	return
 }

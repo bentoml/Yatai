@@ -24,7 +24,7 @@ func (s *GetLabelSchema) GetLabel(ctx context.Context) (*models.Label, error) {
 }
 
 func (c *labelController) canView(ctx context.Context, label *models.Label) error {
-	// depending on resource type, check that we can view each Deployment/Model/Bento 
+	// depending on resource type, check that we can view each Deployment/Model/Bento
 	cluster, err := services.ClusterService.GetAssociatedNullableCluster(ctx, terminalRecord)
 	if err != nil {
 		return err
@@ -48,21 +48,13 @@ func (c *labelController) canView(ctx context.Context, label *models.Label) erro
 	if bento != nil {
 		return BentoController.canView(ctx, bento)
 	}
-	
+
 	bento_version, err := services.BentoVersionService(ctx, label)
 	if err != nil {
 		return err
 	}
 	if bento_version != nil {
 		return BentoVersionController.canView(ctx, bento_version)
-	}
-
-	term, err := services.TerminalRecordService(ctx, label)
-	if err != nil {
-		return err 
-	}
-	if term != nil {
-		return TerminalRecordController.canView(ctx, term)
 	}
 
 	model, err := services.ModelService(ctx, label)
@@ -101,6 +93,7 @@ func (c *labelController) Get(ctx *gin.Context, schema *GetLabelSchema) (*schema
 	}
 	return transformersv1.ToLabelRecordSchema(ctx, label)
 }
+
 /*
 TODO:
 canUpdate()

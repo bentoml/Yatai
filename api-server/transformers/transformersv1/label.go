@@ -4,12 +4,8 @@ import (
 	"context"
 
 	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/common/utils"
 	"github.com/bentoml/yatai/schemas/schemasv1"
 )
-
-// TODO
 
 func ToLabelSchema(ctx context.Context, label *models.Label) (*schemasv1.LabelSchema, error) {
 	ss, err := ToLabelSchemas(ctx, []*models.Label{label})
@@ -26,19 +22,17 @@ func ToLabelSchemas(ctx context.Context, labels []*models.Label) ([]*schemasv1.L
 		if err != nil {
 			return nil, err
 		}
-		resource, err := services.ResourceService.Get(ctx, r.ResourceType, r.ResourceId)
-		if err != nil && !utils.IsNotFound(err) {
+		orgSchema, err := GetAssociatedNullableOrganizationSchema(ctx, r)
+		if err != nil {
 			return nil, err
 		}
-		var rs *schemasv1.ResourceSchema
-		if !utils.IsNotFound(err) {
-			rs_ := ToResourceSchema(resource)
-			rs = &rs_
-		}
+
 		ss = append(ss, &schemasv1.LabelSchema{
 			ResourceSchema: ToResourceSchema(r),
+			Organization:   orgSchema,
 			Creator:        creatorSchema,
-			Resource:       rs,
+			ResourceType:   r.ResourceType,
+			ResourceId:     r.ResourceId,
 			Key:            r.Key,
 			Value:          r.Value,
 		})

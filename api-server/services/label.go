@@ -19,22 +19,24 @@ func (s *labelService) getBaseDB(ctx context.Context) *gorm.DB {
 }
 
 type CreateLabelOption struct {
-	CreatorId uint
-	Resource  models.IResource
-	Key       string
-	Value     string
+	OrganizationId *uint
+	CreatorId      uint
+	Resource       models.IResource
+	Key            string
+	Value          string
 }
 
 type UpdateLabelOption struct {
-	Value 	*string
+	Value *string
 }
 
 type ListLabelOption struct {
 	BaseListOption
-	CreatorId *uint
-	ResourceType *string
-	Key *string
-	Value *string
+	OrganizationId *uint
+	CreatorId      *uint
+	ResourceType   *string
+	Key            *string
+	Value          *string
 }
 
 func (*labelService) Create(ctx context.Context, opt CreateLabelOption) (*models.Label, error) {
@@ -125,7 +127,7 @@ func (s *labelService) List(ctx context.Context, opt ListLabelOption) ([]*models
 	if opt.Value != nil {
 		query = query.Where("value = ?", *opt.Value)
 	}
-	
+
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {

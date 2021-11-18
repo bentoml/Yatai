@@ -4,11 +4,12 @@ import "github.com/bentoml/yatai/schemas/modelschemas"
 
 type LabelSchema struct {
 	ResourceSchema
-	Creator      *UserSchema `json:"creator"`
+	Organization *OrganizationSchema       `json:"organization"`
+	Creator      *UserSchema               `json:"creator"`
 	ResourceType modelschemas.ResourceType `json:"resource_type"`
-	ResourceId  uint `json:"resource_id"`
-	Key          string `json:"key"`
-	Value        string `json:"value`
+	ResourceId   uint                      `json:"resource_id"`
+	Key          string                    `json:"key"`
+	Value        string                    `json:"value`
 }
 
 type LabelListSchema struct {
