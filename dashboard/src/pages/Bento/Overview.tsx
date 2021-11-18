@@ -4,7 +4,7 @@ import Table from '@/components/Table'
 import useTranslation from '@/hooks/useTranslation'
 import { useBento, useBentoLoading } from '@/hooks/useBento'
 import Card from '@/components/Card'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import User from '@/components/User'
 
 export default function BentoOverview() {
@@ -23,7 +23,7 @@ export default function BentoOverview() {
                         bento?.name,
                         bento?.description,
                         bento?.creator && <User user={bento?.creator} />,
-                        bento && formatTime(bento.created_at),
+                        bento && formatDateTime(bento.created_at),
                     ],
                 ]}
             />

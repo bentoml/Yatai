@@ -7,6 +7,10 @@ const (
 	DeploymentRevisionStatusInactive DeploymentRevisionStatus = "inactive"
 )
 
+func (d DeploymentRevisionStatus) Ptr() *DeploymentRevisionStatus {
+	return &d
+}
+
 func DeploymentRevisionStatusPtr(status DeploymentRevisionStatus) *DeploymentRevisionStatus {
-	return &status
+	return status.Ptr()
 }

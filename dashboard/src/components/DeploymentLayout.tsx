@@ -8,9 +8,11 @@ import { usePage } from '@/hooks/usePage'
 import { useSubscription } from '@/hooks/useSubscription'
 import useTranslation from '@/hooks/useTranslation'
 import { IDeploymentFullSchema, IDeploymentSchema, IUpdateDeploymentSchema } from '@/schemas/deployment'
-import { fetchDeployment, updateDeployment } from '@/services/deployment'
+import { deleteDeployment, fetchDeployment, terminateDeployment, updateDeployment } from '@/services/deployment'
+import { useStyletron } from 'baseui'
 import { Button } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
+import color from 'color'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { AiOutlineDashboard } from 'react-icons/ai'
@@ -18,12 +20,13 @@ import { FaJournalWhills } from 'react-icons/fa'
 import { RiSurveyLine } from 'react-icons/ri'
 import { VscServerProcess } from 'react-icons/vsc'
 import { useQuery, useQueryClient } from 'react-query'
-import { useParams } from 'react-router-dom'
+import { useHistory, useParams } from 'react-router-dom'
 import { INavItem } from './BaseSidebar'
 import BaseSubLayout from './BaseSubLayout'
 import Card from './Card'
 import DeploymentForm from './DeploymentForm'
 import DeploymentStatusTag from './DeploymentStatusTag'
+import DoubleCheckForm from './DoubleCheckForm'
 
 export interface IDeploymentLayoutProps {
     children: React.ReactNode
@@ -177,6 +180,14 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
         [clusterName, deploymentName, hasLogging, hasMonitoring, t]
     )
 
+    const [, theme] = useStyletron()
+    const [isTerminateDeploymentModalOpen, setIsTerminateDeploymentModalOpen] = useState(false)
+    const [isDeleteDeploymentModalOpen, setIsDeleteDeploymentModalOpen] = useState(false)
+
+    const history = useHistory()
+
+    const isTerminated = deployment?.status === 'terminated' || deployment?.status === 'terminating'
+
     return (
         <BaseSubLayout
             header={
@@ -212,8 +223,44 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                             }}
                         >
                             <DeploymentStatusTag status={deployment?.status ?? 'unknown'} />
+                            {!isTerminated && (
+                                <Button
+                                    size='compact'
+                                    overrides={{
+                                        Root: {
+                                            style: {
+                                                ':hover': {
+                                                    background: theme.colors.negative,
+                                                    color: theme.colors.white,
+                                                },
+                                            },
+                                        },
+                                    }}
+                                    onClick={() => setIsTerminateDeploymentModalOpen(true)}
+                                >
+                                    {t('terminate')}
+                                </Button>
+                            )}
+                            {isTerminated && (
+                                <Button
+                                    size='compact'
+                                    overrides={{
+                                        Root: {
+                                            style: {
+                                                ':hover': {
+                                                    background: theme.colors.negative,
+                                                    color: theme.colors.white,
+                                                },
+                                            },
+                                        },
+                                    }}
+                                    onClick={() => setIsDeleteDeploymentModalOpen(true)}
+                                >
+                                    {t('delete')}
+                                </Button>
+                            )}
                             <Button onClick={() => setIsCreateDeploymentRevisionOpen(true)} size='compact'>
-                                {t('update')}
+                                {isTerminated ? t('restore') : t('update')}
                             </Button>
                         </div>
                     </div>
@@ -231,6 +278,114 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                                 deployment={deployment}
                                 deploymentRevision={deployment?.latest_revision}
                                 onSubmit={handleCreateDeploymentRevision}
+                            />
+                        </ModalBody>
+                    </Modal>
+                    <Modal
+                        isOpen={isTerminateDeploymentModalOpen}
+                        onClose={() => setIsTerminateDeploymentModalOpen(false)}
+                        closeable
+                        animate
+                        autoFocus
+                    >
+                        <ModalHeader>
+                            <div
+                                style={{
+                                    color: theme.colors.negative,
+                                }}
+                            >
+                                {t('terminate sth', [t('deployment')])}
+                            </div>
+                        </ModalHeader>
+                        <ModalBody>
+                            <DoubleCheckForm
+                                tips={
+                                    <>
+                                        <p>{t('terminate deployment tips')}</p>
+                                        <p>
+                                            <span>
+                                                {t('double check to be continued tips prefix', [t('deployment')])}
+                                            </span>
+                                            <code
+                                                style={{
+                                                    padding: '2px 3px',
+                                                    border: `1px solid ${color(theme.colors.warning400)
+                                                        .lighten(0.3)
+                                                        .string()}`,
+                                                    background: color(theme.colors.warning100).lighten(0.1).string(),
+                                                    borderRadius: '3px',
+                                                    fontSize: '12px',
+                                                }}
+                                            >
+                                                {deploymentName}
+                                            </code>
+                                            <span>{t('double check to be continued tips suffix')}</span>
+                                        </p>
+                                    </>
+                                }
+                                expected={deploymentName}
+                                buttonLabel={t('terminate')}
+                                onSubmit={async () => {
+                                    await terminateDeployment(clusterName, deploymentName)
+                                    setIsTerminateDeploymentModalOpen(false)
+                                    deploymentInfo.refetch()
+                                }}
+                            />
+                        </ModalBody>
+                    </Modal>
+                    <Modal
+                        isOpen={isDeleteDeploymentModalOpen}
+                        onClose={() => setIsDeleteDeploymentModalOpen(false)}
+                        closeable
+                        animate
+                        autoFocus
+                    >
+                        <ModalHeader>
+                            <div
+                                style={{
+                                    color: theme.colors.negative,
+                                }}
+                            >
+                                {t('delete sth', [t('deployment')])}
+                            </div>
+                        </ModalHeader>
+                        <ModalBody>
+                            <DoubleCheckForm
+                                tips={
+                                    <>
+                                        <p>
+                                            <span>{t('delete deployment tips prefix')}</span>
+                                            <b>{t('delete deployment tips highlight')}</b>
+                                            <span>{t('delete deployment tips suffix')}</span>
+                                        </p>
+                                        <p>
+                                            <span>
+                                                {t('double check to be continued tips prefix', [t('deployment')])}
+                                            </span>
+                                            <code
+                                                style={{
+                                                    padding: '2px 3px',
+                                                    border: `1px solid ${color(theme.colors.warning400)
+                                                        .lighten(0.3)
+                                                        .string()}`,
+                                                    background: color(theme.colors.warning100).lighten(0.1).string(),
+                                                    borderRadius: '3px',
+                                                    fontSize: '12px',
+                                                }}
+                                            >
+                                                {deploymentName}
+                                            </code>
+                                            <span>{t('double check to be continued tips suffix')}</span>
+                                        </p>
+                                    </>
+                                }
+                                expected={deploymentName}
+                                buttonLabel={t('delete')}
+                                onSubmit={async () => {
+                                    await deleteDeployment(clusterName, deploymentName)
+                                    setIsDeleteDeploymentModalOpen(false)
+                                    history.push('/deployments')
+                                }}
                             />
                         </ModalBody>
                     </Modal>

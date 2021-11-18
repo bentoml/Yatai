@@ -143,12 +143,12 @@ const locales0 = {
     'bento': {
         en: 'Bento',
         cn: 'Bento',
-        ja: 'ベント',
+        ja: 'Bento',
     },
     'bento version': {
         cn: 'Bento 版本',
         en: 'Bento Version',
-        ja: 'ベントバージョン',
+        ja: 'Bento バージョン',
     },
     'register': {
         en: 'Register',
@@ -887,18 +887,108 @@ const locales0 = {
     },
     'my last updated deployments': {
         cn: '我最后更新的部署',
-        en: 'My Last Updated Deployments',
+        en: 'My last updated deployments',
         ja: 'マイ・最終更新デプロイ',
     },
     'the bentos I created': {
         cn: '我创建的 Bento',
-        en: 'The Bentos I created',
-        ja: '私が作成したベント',
+        en: 'The bentos I created',
+        ja: '私が作成した Bento',
     },
     'my last updated bentos': {
         cn: '我最后更新的 Bento',
-        en: 'My Last Updated Bentos',
-        ja: 'マイ・最終更新ベント',
+        en: 'My last updated bentos',
+        ja: 'マイ・最終更新 Bento',
+    },
+    'terminate': {
+        cn: '终止',
+        en: 'Terminate',
+        ja: '終了',
+    },
+    'terminate sth': {
+        cn: '终止{{0}}',
+        en: 'Terminate {{0}}',
+        ja: '{{0}}を終了',
+    },
+    'delete sth': {
+        cn: '删除{{0}}',
+        en: 'Delete {{0}}',
+        ja: '{{0}}を削除',
+    },
+    'restore': {
+        cn: '恢复',
+        en: 'Restore',
+        ja: '復元',
+    },
+    'terminating': {
+        cn: '终止中',
+        en: 'Terminating',
+        ja: '終了中',
+    },
+    'terminated': {
+        cn: '已终止',
+        en: 'Terminated',
+        ja: '終了しました',
+    },
+    'terminate deployment tips': {
+        en: 'This will terminate this running deployment and the endpoint will not no longer be accessible. Terminated deployment can be restarted and all deployment revision history are preserved.',
+        cn: '这将终止正在运行的部署，并且该端点不再可访问。终止的部署可以重新启动，并且部署历史记录将保留。',
+        ja: 'これは、このランニング・デプロイを終了し、エンドポイントはもうアクセスできなくなります。終了したデプロイは再起動でき、すべてのデプロイのリビジョン履歴は保存されます。',
+    },
+    'delete deployment tips prefix': {
+        en: 'Warning: ',
+        cn: '警告：',
+        ja: '警告：',
+    },
+    'delete deployment tips highlight': {
+        en: 'deleting deployment will also remove all its revision history and this action is not recoverable.',
+        cn: '删除部署将同时删除部署的所有历史版本，该操作不可恢复。',
+        ja: 'デプロイの削除により、全てのリビジョン履歴が削除され、この操作は復元できません。',
+    },
+    'delete deployment tips suffix': {
+        en: 'You can however re-create a deployment with the same name and config.',
+        cn: '但是，你可以通过同样的名字和配置重新创建部署。',
+        ja: 'しかし、同じ名前と設定を使用してデプロイを再作成することができます。',
+    },
+    'double check to be continued tips prefix': {
+        en: 'To continue, input the {{0}} name ',
+        cn: '输入{{0}}名 ',
+        ja: '{{0}}名 ',
+    },
+    'double check to be continued tips suffix': {
+        en: ' below:',
+        cn: ' 以继续：',
+        ja: ' を入力して続行：',
+    },
+    'some days': {
+        en: '{{0}} days',
+        cn: '{{0}} 天',
+        ja: '{{0}} 日',
+    },
+    'no expiration': {
+        en: 'No expiration',
+        cn: '不过期',
+        ja: '期限なし',
+    },
+    'custom...': {
+        en: 'Custom...',
+        cn: '自定义...',
+        ja: 'カスタム...',
+    },
+    'the token will expire on sth': {
+        en: 'The token will expire on {{0}}',
+        cn: '令牌将在 {{0}} 过期',
+        ja: 'トークンは {{0}} に期限が切れます',
+    },
+    'the token will never expire!': {
+        en: 'The token will never expire!',
+        cn: '此令牌永不过期！',
+        ja: 'トークンは永久に期限がありません！',
+    },
+    'are you sure to delete this api token?': {
+        en: 'Are you sure to delete this api token?',
+        cn: '你确定要删除此 API 令牌吗？',
+        ja: 'この API トークンを削除してもよろしいですか？',
     },
 }
 

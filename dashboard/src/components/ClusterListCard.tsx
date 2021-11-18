@@ -4,7 +4,7 @@ import { createCluster } from '@/services/cluster'
 import { usePage } from '@/hooks/usePage'
 import { ICreateClusterSchema } from '@/schemas/cluster'
 import ClusterForm from '@/components/ClusterForm'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
@@ -15,7 +15,7 @@ import { useFetchClusters } from '@/hooks/useFetchClusters'
 import { resourceIconMapping } from '@/consts'
 
 export default function ClusterListCard() {
-    const [page, setPage] = usePage()
+    const [page] = usePage()
     const clustersInfo = useFetchClusters(page)
     const [isCreateClusterOpen, setIsCreateClusterOpen] = useState(false)
     const handleCreateCluster = useCallback(
@@ -48,18 +48,14 @@ export default function ClusterListCard() {
                         </Link>,
                         cluster.description,
                         cluster.creator && <User user={cluster.creator} />,
-                        formatTime(cluster.created_at),
+                        formatDateTime(cluster.created_at),
                     ]) ?? []
                 }
                 paginationProps={{
                     start: clustersInfo.data?.start,
                     count: clustersInfo.data?.count,
                     total: clustersInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         clustersInfo.refetch()
                     },
                 }}

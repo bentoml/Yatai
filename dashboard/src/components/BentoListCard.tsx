@@ -5,7 +5,7 @@ import { createBento, listBentos } from '@/services/bento'
 import { usePage } from '@/hooks/usePage'
 import { ICreateBentoSchema } from '@/schemas/bento'
 import BentoForm from '@/components/BentoForm'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
@@ -25,8 +25,8 @@ export default function BentoListCard() {
     const qStr = useMemo(() => query.q ?? '', [query])
     const q = useMemo(() => parseQ(qStr), [qStr])
     const membersInfo = useFetchOrganizationMembers()
-    const [page, setPage] = usePage()
-    const bentosInfo = useQuery(`fetchClusterBentos:${qs.stringify(page)}`, () => listBentos(page))
+    const [page] = usePage()
+    const bentosInfo = useQuery(`fetchBentos:${qs.stringify(page)}`, () => listBentos(page))
     const [isCreateBentoOpen, setIsCreateBentoOpen] = useState(false)
     const handleCreateBento = useCallback(
         async (data: ICreateBentoSchema) => {
@@ -152,18 +152,14 @@ export default function BentoListCard() {
                         </Link>,
                         bento.latest_version?.version,
                         bento.latest_version?.creator && <User user={bento.latest_version.creator} />,
-                        bento.latest_version?.updated_at && formatTime(bento.latest_version.updated_at),
+                        bento.latest_version?.updated_at && formatDateTime(bento.latest_version.updated_at),
                     ]) ?? []
                 }
                 paginationProps={{
                     start: bentosInfo.data?.start,
                     count: bentosInfo.data?.count,
                     total: bentosInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         bentosInfo.refetch()
                     },
                 }}

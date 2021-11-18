@@ -3,7 +3,7 @@ import Card from '@/components/Card'
 import { updateDeployment } from '@/services/deployment'
 import { usePage } from '@/hooks/usePage'
 import DeploymentForm from '@/components/DeploymentForm'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import User from '@/components/User'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
@@ -24,7 +24,7 @@ export interface IDeploymentRevisionListCardProps {
 }
 
 export default function DeploymentRevisionListCard({ clusterName, deploymentName }: IDeploymentRevisionListCardProps) {
-    const [page, setPage] = usePage()
+    const [page] = usePage()
     const { deployment } = useDeployment()
     const { deploymentRevisionsInfo } = useFetchDeploymentRevisions(clusterName, deploymentName, page)
     const [wishToDeployRevision, setWishToDeployRevision] = useState<IDeploymentRevisionSchema>()
@@ -55,7 +55,7 @@ export default function DeploymentRevisionListCard({ clusterName, deploymentName
                             ))}
                         </div>,
                         deploymentRevision.creator && <User user={deploymentRevision.creator} />,
-                        formatTime(deploymentRevision.created_at),
+                        formatDateTime(deploymentRevision.created_at),
                         <div key={deploymentRevision.uid}>
                             {deploymentRevision.status !== 'active' && (
                                 <Button size='mini' onClick={() => setWishToDeployRevision(deploymentRevision)}>
@@ -91,11 +91,7 @@ export default function DeploymentRevisionListCard({ clusterName, deploymentName
                     start: deploymentRevisionsInfo.data?.start,
                     count: deploymentRevisionsInfo.data?.count,
                     total: deploymentRevisionsInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         deploymentRevisionsInfo.refetch()
                     },
                 }}

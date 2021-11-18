@@ -5,7 +5,7 @@ import { createDeployment, listClusterDeployments, listOrganizationDeployments }
 import { usePage } from '@/hooks/usePage'
 import { ICreateDeploymentSchema, IDeploymentSchema } from '@/schemas/deployment'
 import DeploymentForm from '@/components/DeploymentForm'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
@@ -34,7 +34,7 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
         start: 0,
         count: 1000,
     })
-    const [page, setPage] = usePage()
+    const [page] = usePage()
     const queryKey = `fetchClusterDeployments:${clusterName ?? ''}:${qs.stringify(page)}`
     const deploymentsInfo = useQuery(queryKey, () =>
         clusterName ? listClusterDeployments(clusterName, page) : listOrganizationDeployments(page)
@@ -240,18 +240,14 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                         ),
                         <DeploymentStatusTag key={deployment.uid} status={deployment.status} />,
                         deployment.latest_revision?.creator && <User user={deployment.latest_revision.creator} />,
-                        deployment.latest_revision && formatTime(deployment.latest_revision.created_at),
+                        deployment.latest_revision && formatDateTime(deployment.latest_revision.created_at),
                     ]) ?? []
                 }
                 paginationProps={{
                     start: deploymentsInfo.data?.start,
                     count: deploymentsInfo.data?.count,
                     total: deploymentsInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         deploymentsInfo.refetch()
                     },
                 }}

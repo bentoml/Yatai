@@ -17,7 +17,12 @@ export async function createApiToken(data: ICreateApiTokenSchema): Promise<IApiT
     return resp.data
 }
 
-export async function updateApiToken(apiTokenUid: string, data: IUpdateApiTokenSchema): Promise<IApiTokenFullSchema> {
-    const resp = await axios.patch<IApiTokenFullSchema>(`/api/v1/api_tokens/${apiTokenUid}`, data)
+export async function updateApiToken(apiTokenUid: string, data: IUpdateApiTokenSchema): Promise<IApiTokenSchema> {
+    const resp = await axios.patch<IApiTokenSchema>(`/api/v1/api_tokens/${apiTokenUid}`, data)
+    return resp.data
+}
+
+export async function deleteApiToken(apiTokenUid: string): Promise<IApiTokenSchema> {
+    const resp = await axios.delete<IApiTokenSchema>(`/api/v1/api_tokens/${apiTokenUid}`)
     return resp.data
 }

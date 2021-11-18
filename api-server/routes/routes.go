@@ -509,6 +509,16 @@ func deploymentRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Update a deployment"),
 	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.Update, 200))
 
+	resourceGrp.POST("/terminate", []fizz.OperationOption{
+		fizz.ID("Terminate a deployment"),
+		fizz.Summary("Terminate a deployment"),
+	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.Terminate, 200))
+
+	resourceGrp.DELETE("", []fizz.OperationOption{
+		fizz.ID("Delete a deployment"),
+		fizz.Summary("Delete a deployment"),
+	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.Delete, 200))
+
 	resourceGrp.GET("/terminal_records", []fizz.OperationOption{
 		fizz.ID("List deployment terminal records"),
 		fizz.Summary("List deployment terminal records"),

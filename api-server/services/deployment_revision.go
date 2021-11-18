@@ -241,6 +241,10 @@ func (s *deploymentRevisionService) GetDeployOption(ctx context.Context, deploym
 	return deployOption, nil
 }
 
+func (s *deploymentRevisionService) Terminate(ctx context.Context, deploymentRevision *models.DeploymentRevision) (err error) {
+	return s.DeleteKubeOwnerReferences(ctx, deploymentRevision)
+}
+
 func (s *deploymentRevisionService) Deploy(ctx context.Context, deploymentRevision *models.DeploymentRevision, deploymentTargets []*models.DeploymentTarget, force bool) (err error) {
 	deploymentRevisionStatus := modelschemas.DeploymentRevisionStatusActive
 	oldDeploymentRevisions, _, err := s.List(ctx, ListDeploymentRevisionOption{
@@ -295,12 +299,6 @@ func (s *deploymentRevisionService) Deploy(ctx context.Context, deploymentRevisi
 		}
 	}()
 
-	defer func() {
-		go func() {
-			_, _ = DeploymentService.SyncStatus(ctx, deployment)
-		}()
-	}()
-
 	if force {
 		gid := xid.New()
 		newDeployToken := gid.String()
@@ -350,6 +348,7 @@ func (s *deploymentRevisionService) Deploy(ctx context.Context, deploymentRevisi
 		_, _ = DeploymentService.UpdateStatus(ctx, deployment, UpdateDeploymentStatusOption{
 			Status: &status,
 		})
+		deployment.Status = status
 		go func() {
 			_, _ = DeploymentService.SyncStatus(ctx, deployment)
 		}()

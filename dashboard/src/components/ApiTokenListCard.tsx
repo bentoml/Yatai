@@ -1,15 +1,14 @@
 import React, { useCallback, useState } from 'react'
 import Card from '@/components/Card'
-import { createApiToken } from '@/services/api_token'
+import { createApiToken, deleteApiToken, updateApiToken } from '@/services/api_token'
 import { usePage } from '@/hooks/usePage'
-import { ICreateApiTokenSchema } from '@/schemas/api_token'
+import { IApiTokenSchema, ICreateApiTokenSchema, IUpdateApiTokenSchema } from '@/schemas/api_token'
 import ApiTokenForm from '@/components/ApiTokenForm'
-import { formatTime } from '@/utils/datetime'
+import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
-import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
+import { Modal, ModalHeader, ModalBody, ModalButton, ModalFooter } from 'baseui/modal'
 import Table from '@/components/Table'
-import { Link } from 'react-router-dom'
 import { useFetchApiTokens } from '@/hooks/useFetchApiTokens'
 import { resourceIconMapping } from '@/consts'
 import { useStyletron } from 'baseui'
@@ -19,11 +18,14 @@ import { Notification } from 'baseui/notification'
 import CopyToClipboard from 'react-copy-to-clipboard'
 
 export default function ApiTokenListCard() {
-    const [page, setPage] = usePage()
+    const [page] = usePage()
     const apiTokensInfo = useFetchApiTokens(page)
     const [theTokenWishToShow, setTheTokenWishToShow] = useState<string>()
+    const [theApiTokenWishToUpdate, setTheApiTokenWishToUpdate] = useState<IApiTokenSchema>()
+    const [theApiTokenWishToDelete, setTheApiTokenWishToDelete] = useState<IApiTokenSchema>()
     const [isCreateApiTokenOpen, setIsCreateApiTokenOpen] = useState(false)
     const [copyNotification, setCopyNotification] = useState<string>()
+    const [deleteApiTokenLoading, setDeleteApiTokenLoading] = useState(false)
     const handleCreateApiToken = useCallback(
         async (data: ICreateApiTokenSchema) => {
             const apiToken = await createApiToken(data)
@@ -34,6 +36,31 @@ export default function ApiTokenListCard() {
         },
         [apiTokensInfo]
     )
+    const handleUpdateApiToken = useCallback(
+        async (data: IUpdateApiTokenSchema) => {
+            if (theApiTokenWishToUpdate === undefined) {
+                return
+            }
+            await updateApiToken(theApiTokenWishToUpdate.uid, data)
+            await apiTokensInfo.refetch()
+            setTheApiTokenWishToUpdate(undefined)
+        },
+        [apiTokensInfo, theApiTokenWishToUpdate]
+    )
+    const handleDeleteApiToken = useCallback(async () => {
+        if (theApiTokenWishToDelete === undefined) {
+            return
+        }
+        setDeleteApiTokenLoading(true)
+        try {
+            await deleteApiToken(theApiTokenWishToDelete.uid)
+            await apiTokensInfo.refetch()
+            setTheApiTokenWishToDelete(undefined)
+        } finally {
+            setDeleteApiTokenLoading(false)
+        }
+    }, [apiTokensInfo, theApiTokenWishToDelete])
+
     const [t] = useTranslation()
     const [, theme] = useStyletron()
 
@@ -56,35 +83,57 @@ export default function ApiTokenListCard() {
                     t('last_used_at'),
                     t('expired_at'),
                     t('created_at'),
+                    t('operation'),
                 ]}
                 data={
                     apiTokensInfo.data?.items.map((apiToken) => [
-                        <Link key={apiToken.uid} to={`/api_tokens/${apiToken.name}`}>
-                            {apiToken.name}
-                        </Link>,
+                        apiToken.name,
                         apiToken.scopes.join(', '),
                         apiToken.description,
-                        apiToken.last_used_at ? formatTime(apiToken.last_used_at) : '-',
+                        apiToken.last_used_at ? formatDateTime(apiToken.last_used_at) : '-',
                         <span
                             key={apiToken.uid}
                             style={{
                                 color: apiToken.is_expired ? theme.colors.negative : theme.colors.positive,
                             }}
                         >
-                            {apiToken.expired_at ? formatTime(apiToken.expired_at) : '-'}
+                            {apiToken.expired_at ? formatDateTime(apiToken.expired_at) : '-'}
                         </span>,
-                        formatTime(apiToken.created_at),
+                        formatDateTime(apiToken.created_at),
+                        <div
+                            key={apiToken.uid}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 10,
+                            }}
+                        >
+                            <Button size='mini' onClick={() => setTheApiTokenWishToUpdate(apiToken)}>
+                                {t('update')}
+                            </Button>
+                            <Button
+                                size='mini'
+                                onClick={() => setTheApiTokenWishToDelete(apiToken)}
+                                overrides={{
+                                    BaseButton: {
+                                        style: {
+                                            ':hover': {
+                                                backgroundColor: theme.colors.negative,
+                                            },
+                                        },
+                                    },
+                                }}
+                            >
+                                {t('delete')}
+                            </Button>
+                        </div>,
                     ]) ?? []
                 }
                 paginationProps={{
                     start: apiTokensInfo.data?.start,
                     count: apiTokensInfo.data?.count,
                     total: apiTokensInfo.data?.total,
-                    onPageChange: ({ nextPage }) => {
-                        setPage({
-                            ...page,
-                            start: nextPage * page.count,
-                        })
+                    afterPageChange: () => {
                         apiTokensInfo.refetch()
                     },
                 }}
@@ -100,6 +149,54 @@ export default function ApiTokenListCard() {
                 <ModalBody>
                     <ApiTokenForm onSubmit={handleCreateApiToken} />
                 </ModalBody>
+            </Modal>
+            <Modal
+                isOpen={theApiTokenWishToUpdate !== undefined}
+                onClose={() => setTheApiTokenWishToUpdate(undefined)}
+                closeable
+                animate
+                autoFocus
+            >
+                <ModalHeader>{t('update sth', [t('api token')])}</ModalHeader>
+                <ModalBody>
+                    {theApiTokenWishToUpdate && (
+                        <ApiTokenForm apiToken={theApiTokenWishToUpdate} onSubmit={handleUpdateApiToken} />
+                    )}
+                </ModalBody>
+            </Modal>
+            <Modal
+                isOpen={theApiTokenWishToDelete !== undefined}
+                onClose={() => setTheApiTokenWishToDelete(undefined)}
+                closeable
+                animate
+                autoFocus
+            >
+                <ModalHeader>{t('are you sure to delete this api token?')}</ModalHeader>
+                <ModalFooter>
+                    <ModalButton size='compact' kind='tertiary' onClick={() => setTheApiTokenWishToDelete(undefined)}>
+                        {t('cancel')}
+                    </ModalButton>
+                    <ModalButton
+                        size='compact'
+                        overrides={{
+                            BaseButton: {
+                                style: {
+                                    background: theme.colors.negative,
+                                },
+                            },
+                        }}
+                        onClick={(e) => {
+                            e.preventDefault()
+                            if (!theApiTokenWishToDelete) {
+                                return
+                            }
+                            handleDeleteApiToken()
+                        }}
+                        isLoading={deleteApiTokenLoading}
+                    >
+                        {t('ok')}
+                    </ModalButton>
+                </ModalFooter>
             </Modal>
             <Modal
                 isOpen={!!theTokenWishToShow}
