@@ -94,6 +94,18 @@ func (s *labelService) Get(ctx context.Context, id uint) (*models.Label, error) 
 	return &label, nil
 }
 
+func (s *labelService) GetByUid(ctx context.Context, uid string) (*models.Label, error) {
+	var label models.Label
+	err := getBaseQuery(ctx, s).Where("uid = ?", uid).First(&label).Error
+	if err != nil {
+		return nil, err
+	}
+	if label.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &label, nil
+}
+
 func (s *labelService) Delete(ctx context.Context, label *models.Label) (*models.Label, error) {
 	return label, s.getBaseDB(ctx).Unscoped().Delete(label).Error
 }
