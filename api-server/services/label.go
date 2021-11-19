@@ -36,6 +36,7 @@ type ListLabelOption struct {
 	OrganizationId *uint
 	CreatorId      *uint
 	ResourceType   *string
+	ResourceId     *string
 	Key            *string
 	Value          *string
 }
@@ -109,9 +110,9 @@ func (s *labelService) Get(ctx context.Context, id uint) (*models.Label, error) 
 	return &label, nil
 }
 
-func (s *labelService) GetByUid(ctx context.Context, uid string) (*models.Label, error) {
+func (s *labelService) GetById(ctx context.Context, id string) (*models.Label, error) {
 	var label models.Label
-	err := getBaseQuery(ctx, s).Where("uid = ?", uid).First(&label).Error
+	err := getBaseQuery(ctx, s).Where("uid = ?", id).First(&label).Error
 	if err != nil {
 		return nil, err
 	}
