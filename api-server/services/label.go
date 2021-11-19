@@ -8,6 +8,7 @@ import (
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type labelService struct{}
@@ -37,6 +38,18 @@ type ListLabelOption struct {
 	ResourceType   *string
 	Key            *string
 	Value          *string
+}
+
+type ListLabelKeysOption struct {
+	OrganizationId uint
+	ResourceType   *modelschemas.ResourceType
+	ResourceId     *uint
+}
+
+type ListLabelValuesByKeyOption struct {
+	OrganizationId uint
+	ResourceType   *modelschemas.ResourceType
+	ResourceId     *uint
 }
 
 func (*labelService) Create(ctx context.Context, opt CreateLabelOption) (*models.Label, error) {
@@ -144,6 +157,35 @@ func (s *labelService) List(ctx context.Context, opt ListLabelOption) ([]*models
 	return labels, uint(total), err
 }
 
-func Filter() {
-	//TODO
+func (s *labelService) ListLabelKeys(ctx context.Context, opt ListLabelKeysOption) (keys []string, err error) {
+	query := getBaseQuery(ctx, s).Select("DISTINCT key")
+	query = query.Where("organization_id = id ?", opt.OrganizationId)
+
+	if opt.ResourceType != nil {
+		query = query.Where("resource_type = ?", *opt.ResourceType)
+	}
+	if opt.ResourceId != nil {
+		query = query.Where("resource_id = ?", *opt.ResourceId)
+	}
+	err = query.Find(&keys).Error
+	return
 }
+
+func (s *labelService) ListLabelValuesByKey(ctx context.Context, key string, opt ListLabelValuesByKeyOption) (values []string, err error) {
+	query := getBaseQuery(ctx, s).Select("DISTINCT value")
+	query = query.Where("organization_id = ?", opt.OrganizationId)
+
+	if opt.ResourceType != nil {
+		query = query.Where("resource_type = ?", *opt.ResourceType)
+	}
+	if opt.ResourceId != nil {
+		query = query.Where("resource_id = ?", *opt.ResourceId)
+	}
+	err = query.Find(&values).Error
+	return
+}
+
+/* TODO:
+func Filter() {
+}
+*/
