@@ -150,6 +150,16 @@ func NewRouter() (*fizz.Fizz, error) {
 	modelRoutes(apiRootGroup)
 	terminalRecordRoutes(apiRootGroup)
 
+	apiRootGroup.GET("/bento_versions", []fizz.OperationOption{
+		fizz.ID("List all bento versions"),
+		fizz.Summary("List all bento versions"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.ListAll, 200))
+
+	apiRootGroup.GET("/model_versions", []fizz.OperationOption{
+		fizz.ID("List all model versions"),
+		fizz.Summary("List all model versions"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.ListAll, 200))
+
 	if len(fizzApp.Errors()) != 0 {
 		return nil, fmt.Errorf("fizz errors: %v", fizzApp.Errors())
 	}
@@ -473,6 +483,11 @@ func bentoVersionRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Pre sign bento version s3 upload URL"),
 	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.PreSignS3UploadUrl, 200))
 
+	resourceGrp.PATCH("/presign_s3_download_url", []fizz.OperationOption{
+		fizz.ID("Pre sign bento version s3 download URL"),
+		fizz.Summary("Pre sign bento version s3 download URL"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.PreSignS3DownloadUrl, 200))
+
 	resourceGrp.PATCH("/start_upload", []fizz.OperationOption{
 		fizz.ID("Start upload a bento version"),
 		fizz.Summary("Start upload a bento version"),
@@ -600,7 +615,15 @@ func modelVersionRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Get a model version"),
 	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.Get, 200))
 
-	// WIP patch s3 upload
+	resourceGrp.PATCH("/presign_s3_upload_url", []fizz.OperationOption{
+		fizz.ID("Pre sign model version s3 upload URL"),
+		fizz.Summary("Pre sign model version s3 upload URL"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.PreSignS3UploadUrl, 200))
+
+	resourceGrp.PATCH("/presign_s3_download_url", []fizz.OperationOption{
+		fizz.ID("Pre sign model version s3 download URL"),
+		fizz.Summary("Pre sign model version s3 download URL"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.PreSignS3DownloadUrl, 200))
 
 	resourceGrp.PATCH("/start_upload", []fizz.OperationOption{
 		fizz.ID("Start upload a model version"),

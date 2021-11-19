@@ -1,18 +1,15 @@
 package services
 
 import (
-	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/iancoleman/strcase"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	apiv1 "k8s.io/api/core/v1"
@@ -54,7 +51,14 @@ type UpdateModelVersionOption struct {
 
 type ListModelVersionOption struct {
 	BaseListOption
-	ModelId *uint
+	ModelId         *uint
+	Versions        *[]string
+	BentoVersionIds *[]uint
+	OrganizationId  *uint
+	CreatorId       *uint
+	CreatorIds      *[]uint
+	Order           *string
+	Names           *[]string
 }
 
 func (s *modelVersionService) Create(ctx context.Context, opt CreateModelVersionOption) (modelVersion *models.ModelVersion, err error) {
@@ -91,34 +95,24 @@ func (s *modelVersionService) PreSignS3UploadUrl(ctx context.Context, modelVersi
 	if err != nil {
 		return
 	}
-	if org.Config == nil {
-		err = errors.New("This organization does not have configuration")
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
 		return
 	}
-	if org.Config.AWS == nil || org.Config.AWS.S3 == nil {
-		err = errors.New("This organization does not have aws s3 storage set up")
-		return
-	}
-	minioConf := org.Config.AWS.S3
-	minioClient, err := minio.New("s3.amazonaws.com", &minio.Options{
-		Creds:  credentials.NewStaticV4(org.Config.AWS.AccessKeyId, org.Config.AWS.SecretAccessKey, ""),
-		Secure: true,
-	})
+	minioClient, err := s3Config.GetMinioClient()
 	if err != nil {
 		err = errors.Wrap(err, "create s3 client")
 		return
 	}
 
-	bucketName := minioConf.BentosBucketName
-
-	err = minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: minioConf.Region})
+	bucketName, err := s.GetS3BucketName(ctx, modelVersion)
 	if err != nil {
-		// Check to see if we already own this bucket (which happens if you run this twice)
-		exists, errBucketExists := minioClient.BucketExists(ctx, bucketName)
-		if errBucketExists != nil || !exists {
-			err = errors.Wrapf(err, "create bucket %s", bucketName)
-			return
-		}
+		return
+	}
+
+	err = s3Config.MakeSureBucket(ctx, bucketName)
+	if err != nil {
+		return
 	}
 
 	objectName, err := s.getS3ObjectName(ctx, modelVersion)
@@ -129,6 +123,48 @@ func (s *modelVersionService) PreSignS3UploadUrl(ctx context.Context, modelVersi
 	url, err = minioClient.PresignedPutObject(ctx, bucketName, objectName, time.Hour)
 	if err != nil {
 		err = errors.Wrap(err, "presigned put object")
+		return
+	}
+	return
+}
+
+func (s *modelVersionService) PreSignS3DownloadUrl(ctx context.Context, modelVersion *models.ModelVersion) (url *url.URL, err error) {
+	model, err := ModelService.GetAssociatedModel(ctx, modelVersion)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, model)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
+		return
+	}
+	minioClient, err := s3Config.GetMinioClient()
+	if err != nil {
+		err = errors.Wrap(err, "create s3 client")
+		return
+	}
+
+	bucketName, err := s.GetS3BucketName(ctx, modelVersion)
+	if err != nil {
+		return
+	}
+
+	err = s3Config.MakeSureBucket(ctx, bucketName)
+	if err != nil {
+		return
+	}
+
+	objectName, err := s.getS3ObjectName(ctx, modelVersion)
+	if err != nil {
+		return
+	}
+
+	url, err = minioClient.PresignedGetObject(ctx, bucketName, objectName, time.Hour, nil)
+	if err != nil {
+		err = errors.Wrap(err, "presigned get object")
 		return
 	}
 	return
@@ -147,26 +183,46 @@ func (s *modelVersionService) getS3ObjectName(ctx context.Context, modelVersion 
 	return objectName, nil
 }
 
-func (s *modelVersionService) GetImageName(ctx context.Context, modelVersion *models.ModelVersion) (string, error) {
+func (s *modelVersionService) GetImageName(ctx context.Context, modelVersion *models.ModelVersion, inCluster bool) (string, error) {
 	model, err := ModelService.GetAssociatedModel(ctx, modelVersion)
 	if err != nil {
-		return "", err
+		return "", nil
 	}
 	org, err := OrganizationService.GetAssociatedOrganization(ctx, model)
 	if err != nil {
-		return "", err
+		return "", nil
 	}
-	if org.Config == nil || org.Config.AWS == nil || org.Config.AWS.ECR == nil {
-		return "", errors.Errorf("Organization %s does not have ECR configuration", org.Name)
-	}
-
 	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
 	if err != nil {
 		return "", err
 	}
-
-	imageName := fmt.Sprintf("%s:yatai.%s.%s.%s", dockerRegistry.ModelsRepositoryURI, org.Name, model.Name, modelVersion.Version)
+	var imageName string
+	if inCluster {
+		imageName = fmt.Sprintf("%s:yatai.%s.%s.%s", dockerRegistry.ModelsRepositoryURIInCluster, org.Name, model.Name, modelVersion.Version)
+	} else {
+		imageName = fmt.Sprintf("%s:yatai.%s.%s.%s", dockerRegistry.ModelsRepositoryURI, org.Name, model.Name, modelVersion.Version)
+	}
 	return imageName, nil
+}
+
+func (s *modelVersionService) GetS3BucketName(ctx context.Context, modelVersion *models.ModelVersion) (string, error) {
+	model, err := ModelService.GetAssociatedModel(ctx, modelVersion)
+	if err != nil {
+		return "", nil
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, model)
+	if err != nil {
+		return "", nil
+	}
+
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
+		return "", err
+	}
+
+	s3BucketName := s3Config.ModelsBucketName
+
+	return s3BucketName, nil
 }
 
 func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.ModelVersion, opt UpdateModelVersionOption) (*models.ModelVersion, error) {
@@ -244,7 +300,7 @@ func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.M
 		return nil, err
 	}
 
-	if opt.UploadStatus != nil || *opt.UploadStatus != modelschemas.ModelVersionUploadStatusSuccess {
+	if opt.UploadStatus == nil || *opt.UploadStatus != modelschemas.ModelVersionUploadStatusSuccess {
 		return modelVersion, nil
 	}
 
@@ -273,27 +329,45 @@ func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.M
 	if err != nil {
 		return nil, err
 	}
-	if org.Config == nil || org.Config.AWS == nil {
-		return nil, errors.Errorf("Organization %s does not have AWS configuration", org.Name)
-	}
 
-	awsSecretKubeName := "aws-secret"
-	var awsSecretBuffer bytes.Buffer
-	t := template.Must(template.New(awsSecretKubeName).Parse(awsSecretTemplate))
-	if err := t.Execute(&awsSecretBuffer, map[string]string{
-		"AccessKeyId":     org.Config.AWS.AccessKeyId,
-		"SecretAccessKey": org.Config.AWS.SecretAccessKey,
-	}); err != nil {
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
 		return nil, err
 	}
 
-	secretsCli := kubeCli.CoreV1().Secrets(kubeNamespace)
-	_, err = secretsCli.Get(ctx, awsSecretKubeName, metav1.GetOptions{})
+	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
+	if err != nil {
+		return nil, err
+	}
+
+	dockerConfigObj := struct {
+		Auths map[string]struct {
+			Auth string `json:"auth"`
+		} `json:"auths,omitempty"`
+	}{}
+
+	if dockerRegistry.Username != "" {
+		dockerConfigObj.Auths = map[string]struct {
+			Auth string `json:"auth"`
+		}{
+			dockerRegistry.Server: {
+				Auth: base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", dockerRegistry.Username, dockerRegistry.Password))),
+			},
+		}
+	}
+
+	dockerConfigContent, err := json.Marshal(dockerConfigObj)
+	if err != nil {
+		return nil, err
+	}
+	cmsCli := kubeCli.CoreV1().ConfigMaps(kubeNamespace)
+	dockerConfigCMKubeName := "docker-config"
+	oldDockerConfigCM, err := cmsCli.Get(ctx, dockerConfigCMKubeName, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
-		_, err = secretsCli.Create(ctx, &apiv1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Name: awsSecretKubeName},
-			StringData: map[string]string{
-				"credentials": awsSecretBuffer.String(),
+		_, err = cmsCli.Create(ctx, &apiv1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: dockerConfigCMKubeName},
+			Data: map[string]string{
+				"config.json": string(dockerConfigContent),
 			},
 		}, metav1.CreateOptions{})
 		if err != nil {
@@ -301,28 +375,96 @@ func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.M
 		}
 	} else if err != nil {
 		return nil, err
+	} else {
+		oldDockerConfigCM.Data["config.json"] = string(dockerConfigContent)
+		_, err = cmsCli.Update(ctx, oldDockerConfigCM, metav1.UpdateOptions{})
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	dockerCMKubeName := "docker-config"
-	dockerCMContent, err := json.Marshal(struct {
-		CredsStore string `json:"creds_store"`
-	}{
-		CredsStore: "ecr-login",
-	})
-	if err != nil {
-		return nil, err
-	}
-	cmsCli := kubeCli.CoreV1().ConfigMaps(kubeNamespace)
-	_, err = cmsCli.Get(ctx, dockerCMKubeName, metav1.GetOptions{})
+	dockerFileCMKubeName := fmt.Sprintf("docker-file-%d", modelVersion.ID)
+	dockerFileContent := `
+FROM scratch
+
+COPY . /model
+`
+	oldDockerFileCM, err := cmsCli.Get(ctx, dockerFileCMKubeName, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
 		_, err = cmsCli.Create(ctx, &apiv1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{Name: dockerCMKubeName},
+			ObjectMeta: metav1.ObjectMeta{Name: dockerFileCMKubeName},
 			Data: map[string]string{
-				"config.json": string(dockerCMContent),
+				"Dockerfile": dockerFileContent,
 			},
 		}, metav1.CreateOptions{})
+		if err != nil {
+			return nil, err
+		}
 	} else if err != nil {
 		return nil, err
+	} else {
+		oldDockerFileCM.Data["Dockerfile"] = dockerFileContent
+		_, err = cmsCli.Update(ctx, oldDockerFileCM, metav1.UpdateOptions{})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	volumes := []apiv1.Volume{
+		{
+			Name: dockerConfigCMKubeName,
+			VolumeSource: apiv1.VolumeSource{
+				ConfigMap: &apiv1.ConfigMapVolumeSource{
+					LocalObjectReference: apiv1.LocalObjectReference{
+						Name: dockerConfigCMKubeName,
+					},
+				},
+			},
+		},
+		{
+			Name: dockerFileCMKubeName,
+			VolumeSource: apiv1.VolumeSource{
+				ConfigMap: &apiv1.ConfigMapVolumeSource{
+					LocalObjectReference: apiv1.LocalObjectReference{
+						Name: dockerFileCMKubeName,
+					},
+				},
+			},
+		},
+	}
+
+	volumeMounts := []apiv1.VolumeMount{
+		{
+			Name:      dockerConfigCMKubeName,
+			MountPath: "/kaniko/.docker/",
+		},
+		{
+			Name:      dockerFileCMKubeName,
+			MountPath: "/docker/",
+		},
+	}
+
+	envs := []apiv1.EnvVar{
+		{
+			Name:  "AWS_ACCESS_KEY_ID",
+			Value: s3Config.AccessKey,
+		},
+		{
+			Name:  "AWS_SECRET_ACCESS_KEY",
+			Value: s3Config.SecretKey,
+		},
+		{
+			Name:  "AWS_REGION",
+			Value: s3Config.Region,
+		},
+		{
+			Name:  "S3_ENDPOINT",
+			Value: s3Config.EndpointWithSchemeInCluster,
+		},
+		{
+			Name:  "S3_FORCE_PATH_STYLE",
+			Value: "true",
+		},
 	}
 
 	podsCli := kubeCli.CoreV1().Pods(kubeNamespace)
@@ -331,18 +473,35 @@ func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.M
 	if err != nil {
 		return nil, err
 	}
-	if org.Config == nil || org.Config.AWS == nil || org.Config.AWS.S3 == nil {
-		return nil, errors.Errorf("Organization %s does not have AWS S3 configuration", org.Name)
-	}
 
 	s3ObjectName, err := s.getS3ObjectName(ctx, modelVersion)
 	if err != nil {
 		return nil, err
 	}
 
-	imageName, err := s.GetImageName(ctx, modelVersion)
+	imageName, err := s.GetImageName(ctx, modelVersion, true)
 	if err != nil {
 		return nil, err
+	}
+
+	s3BucketName, err := s.GetS3BucketName(ctx, modelVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s3Config.MakeSureBucket(ctx, s3BucketName)
+	if err != nil {
+		return nil, err
+	}
+
+	args := []string{
+		"--dockerfile=/docker/Dockerfile",
+		fmt.Sprintf("--context=s3://%s/%s", s3BucketName, s3ObjectName),
+		fmt.Sprintf("--destination=%s", imageName),
+	}
+
+	if !dockerRegistry.Secure {
+		args = append(args, "--insecure")
 	}
 
 	_, err = podsCli.Get(ctx, kubeName, metav1.GetOptions{})
@@ -357,55 +516,21 @@ func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.M
 			},
 			Spec: apiv1.PodSpec{
 				RestartPolicy: apiv1.RestartPolicyNever,
-				Volumes: []apiv1.Volume{
-					{
-						Name: dockerCMKubeName,
-						VolumeSource: apiv1.VolumeSource{
-							ConfigMap: &apiv1.ConfigMapVolumeSource{
-								LocalObjectReference: apiv1.LocalObjectReference{
-									Name: dockerCMKubeName,
-								},
-							},
-						},
-					},
-					{
-						Name: awsSecretKubeName,
-						VolumeSource: apiv1.VolumeSource{
-							Secret: &apiv1.SecretVolumeSource{
-								SecretName: awsSecretKubeName,
-							},
-						},
-					},
-				},
+				Volumes:       volumes,
 				Containers: []apiv1.Container{
 					{
-						Name:  "image-builder",
-						Image: "gcr.io/kaniko-project/executor:latest",
-						Args: []string{
-							"--dockerfile=./Dockerfile",
-							fmt.Sprintf("--context=s3://%s/%s", org.Config.AWS.S3.BentosBucketName, s3ObjectName),
-							fmt.Sprintf("--destination=%s", imageName),
-						},
-						VolumeMounts: []apiv1.VolumeMount{
-							{
-								Name:      dockerCMKubeName,
-								MountPath: "/kaniko/.docker/",
-							},
-							{
-								Name:      awsSecretKubeName,
-								MountPath: "/root/.aws/",
-							},
-						},
-						Env: []apiv1.EnvVar{
-							{
-								Name:  "AWS_REGION",
-								Value: org.Config.AWS.S3.Region,
-							},
-						},
+						Name:         "builder",
+						Image:        "gcr.io/kaniko-project/executor:latest",
+						Args:         args,
+						VolumeMounts: volumeMounts,
+						Env:          envs,
+						TTY:          true,
+						Stdin:        true,
 					},
 				},
 			},
 		}, metav1.CreateOptions{})
+
 		if err != nil {
 			return nil, err
 		}
@@ -431,7 +556,7 @@ func (s *modelVersionService) GetImageBuilderKubeName(ctx context.Context, model
 		return "", err
 	}
 
-	return strings.ReplaceAll(strcase.ToKebab(fmt.Sprintf("yatai-image-builder-%s-%s-%s", org.Name, model.Name, modelVersion.Version)), ".", "-"), nil
+	return strings.ReplaceAll(strcase.ToKebab(fmt.Sprintf("yatai-model-image-builder-%s-%s-%s", org.Name, model.Name, modelVersion.Version)), ".", "-"), nil
 }
 
 func (s *modelVersionService) Get(ctx context.Context, id uint) (*models.ModelVersion, error) {
@@ -469,21 +594,46 @@ func (s *modelVersionService) ListByUids(ctx context.Context, uids []uint) ([]*m
 
 func (s *modelVersionService) List(ctx context.Context, opt ListModelVersionOption) ([]*models.ModelVersion, uint, error) {
 	query := getBaseQuery(ctx, s)
-	if opt.ModelId != nil {
-		query = query.Where("model_id = ?", *opt.ModelId)
+	query = query.Joins("LEFT JOIN model ON model_version.model_id = model.id")
+	if opt.BentoVersionIds != nil {
+		query = query.Joins("LEFT JOIN bento_version_model_version_rel ON bento_version_model_version_rel.model_version_id = model_version.id").Where("bento_version_model_version_rel.bento_version_id in (?)", *opt.BentoVersionIds)
 	}
+	if opt.OrganizationId != nil {
+		query = query.Where("model.organization_id = ?", *opt.OrganizationId)
+	}
+	if opt.Versions != nil {
+		query = query.Where("model_version.version in (?)", *opt.Versions)
+	}
+	if opt.ModelId != nil {
+		query = query.Where("model_version.model_id = ?", *opt.ModelId)
+	}
+	if opt.CreatorId != nil {
+		query = query.Where("model_version.creator_id = ?", *opt.CreatorId)
+	}
+	if opt.Names != nil {
+		query = query.Where("model.name in (?)", *opt.Names)
+	}
+	if opt.CreatorIds != nil {
+		query = query.Where("model_version.creator_id in (?)", *opt.CreatorIds)
+	}
+	query = opt.BindQueryWithKeywords(query, "model")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
 	modelVersions := make([]*models.ModelVersion, 0)
-	query = opt.BindQueryWithLimit(query).Order("build_at DESC")
-	err = query.Find(&modelVersions).Error
+	query = opt.BindQueryWithLimit(query)
+	if opt.Order != nil {
+		query = query.Order(*opt.Order)
+	} else {
+		query = query.Order("model_version.build_at DESC")
+	}
+	err = query.Select("model_version.*").Find(&modelVersions).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	return modelVersions, uint(total), nil
+	return modelVersions, uint(total), err
 }
 
 func (s *modelVersionService) ListLatestByModelIds(ctx context.Context, modelIds []uint) ([]*models.ModelVersion, error) {
@@ -566,7 +716,7 @@ func (s *modelVersionService) CalculateImageBuildStatus(ctx context.Context, mod
 			return modelschemas.ModelVersionImageBuildStatusBuilding, nil
 		}
 		if p.Status.Status == modelschemas.KubePodActualStatusTerminating || p.Status.Status == modelschemas.KubePodActualStatusUnknown || p.Status.Status == modelschemas.KubePodActualStatusFailed {
-			return modelschemas.ModelversionImageBuildStatusFailed, nil
+			return modelschemas.ModelVersionImageBuildStatusFailed, nil
 		}
 	}
 
@@ -604,6 +754,20 @@ func (s *modelVersionService) SyncImageBuilderStatus(ctx context.Context, modelV
 	})
 	if err != nil {
 		return currentStatus, err
+	}
+	if currentStatus == modelschemas.ModelVersionImageBuildStatusSuccess {
+		bentoVersions, _, err := BentoVersionService.List(ctx, ListBentoVersionOption{
+			ModelVersionIds: &[]uint{modelVersion.ID},
+		})
+		if err != nil {
+			return currentStatus, err
+		}
+		for _, bv := range bentoVersions {
+			bv := bv
+			go func() {
+				_, _ = BentoVersionService.SyncImageBuilderStatus(ctx, bv)
+			}()
+		}
 	}
 	return currentStatus, nil
 }

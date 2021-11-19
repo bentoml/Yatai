@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useQuery } from 'react-query'
 import Card from '@/components/Card'
 import { createBento, listBentos } from '@/services/bento'
@@ -14,16 +14,13 @@ import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
-import { parseQ, qToString } from '@/utils'
-import { useQueryArgs } from '@/hooks/useQueryArgs'
 import qs from 'qs'
+import { useQ } from '@/hooks/useQ'
 import FilterBar from './FilterBar'
 import FilterInput from './FilterInput'
 
 export default function BentoListCard() {
-    const { query, updateQuery } = useQueryArgs()
-    const qStr = useMemo(() => query.q ?? '', [query])
-    const q = useMemo(() => parseQ(qStr), [qStr])
+    const { q, updateQ } = useQ()
     const membersInfo = useFetchOrganizationMembers()
     const [page] = usePage()
     const bentosInfo = useQuery(`fetchBentos:${qs.stringify(page)}`, () => listBentos(page))
@@ -98,8 +95,9 @@ export default function BentoListCard() {
                             id: v,
                         })),
                         onChange: ({ value }) => {
-                            q.creator = value.map((v) => String(v.id ?? ''))
-                            updateQuery({ q: qToString(q) })
+                            updateQ({
+                                creator: value.map((v) => String(v.id ?? '')),
+                            })
                         },
                         label: t('creator'),
                     },
@@ -115,8 +113,9 @@ export default function BentoListCard() {
                             id: v,
                         })),
                         onChange: ({ value }) => {
-                            q.last_updater = value.map((v) => String(v.id ?? ''))
-                            updateQuery({ q: qToString(q) })
+                            updateQ({
+                                last_updater: value.map((v) => String(v.id ?? '')),
+                            })
                         },
                         label: t('last updater'),
                     },
@@ -135,8 +134,9 @@ export default function BentoListCard() {
                             id: v,
                         })),
                         onChange: ({ value }) => {
-                            q.sort = value.map((v) => String(v.id ?? ''))
-                            updateQuery({ q: qToString(q) })
+                            updateQ({
+                                sort: value.map((v) => String(v.id ?? '')),
+                            })
                         },
                         label: t('sort'),
                     },

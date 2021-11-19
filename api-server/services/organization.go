@@ -457,11 +457,19 @@ func (s *organizationService) GetDockerRegistry(ctx context.Context, org *models
 		return
 	}
 	domain := ing.Spec.Rules[0].Host
+	svcCli := cliset.CoreV1().Services(consts.KubeNamespaceYataiComponents)
+	svcName := "yatai-docker-registry"
+	svc, err := svcCli.Get(ctx, svcName, metav1.GetOptions{})
+	if err != nil {
+		err = errors.Wrapf(err, "cannot get service %s", svcName)
+		return
+	}
+	svcIp := svc.Spec.ClusterIP
 	repo = &DockerRegistry{
 		BentosRepositoryURI:          fmt.Sprintf("%s/bentos", domain),
 		ModelsRepositoryURI:          fmt.Sprintf("%s/models", domain),
-		BentosRepositoryURIInCluster: fmt.Sprintf("yatai-docker-registry.%s:5000/bentos", consts.KubeNamespaceYataiComponents),
-		ModelsRepositoryURIInCluster: fmt.Sprintf("yatai-docker-registry.%s:5000/models", consts.KubeNamespaceYataiComponents),
+		BentosRepositoryURIInCluster: fmt.Sprintf("%s:5000/bentos", svcIp),
+		ModelsRepositoryURIInCluster: fmt.Sprintf("%s:5000/models", svcIp),
 	}
 	return
 }

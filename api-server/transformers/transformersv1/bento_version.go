@@ -45,6 +45,7 @@ func ToBentoVersionSchemas(ctx context.Context, versions []*models.BentoVersion)
 			UploadFinishedAt:     version.UploadFinishedAt,
 			UploadFinishedReason: version.UploadFinishedReason,
 			Manifest:             version.Manifest,
+			BuildAt:              version.BuildAt,
 		})
 	}
 	return res, nil
@@ -63,6 +64,35 @@ func ToBentoVersionFullSchema(ctx context.Context, version *models.BentoVersion)
 
 func ToBentoVersionFullSchemas(ctx context.Context, versions []*models.BentoVersion) ([]*schemasv1.BentoVersionFullSchema, error) {
 	res := make([]*schemasv1.BentoVersionFullSchema, 0, len(versions))
+	bentoVersionSchemas, err := ToBentoVersionWithBentoSchemas(ctx, versions)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToBentoVersionSchemas")
+	}
+	bentoVersionSchemasMap := make(map[string]*schemasv1.BentoVersionWithBentoSchema)
+	for _, schema := range bentoVersionSchemas {
+		bentoVersionSchemasMap[schema.Uid] = schema
+	}
+	for _, version := range versions {
+		modelVersions, _, err := services.ModelVersionService.List(ctx, services.ListModelVersionOption{
+			BentoVersionIds: &[]uint{version.ID},
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "ListModelVersion")
+		}
+		modelVersionSchemas, err := ToModelVersionSchemas(ctx, modelVersions)
+		if err != nil {
+			return nil, errors.Wrap(err, "ToModelVersionSchemas")
+		}
+		res = append(res, &schemasv1.BentoVersionFullSchema{
+			BentoVersionWithBentoSchema: *bentoVersionSchemasMap[version.GetUid()],
+			ModelVersions:               modelVersionSchemas,
+		})
+	}
+	return res, nil
+}
+
+func ToBentoVersionWithBentoSchemas(ctx context.Context, versions []*models.BentoVersion) ([]*schemasv1.BentoVersionWithBentoSchema, error) {
+	res := make([]*schemasv1.BentoVersionWithBentoSchema, 0, len(versions))
 	bentoVersionSchemas, err := ToBentoVersionSchemas(ctx, versions)
 	if err != nil {
 		return nil, errors.Wrap(err, "ToBentoVersionSchemas")
@@ -71,12 +101,34 @@ func ToBentoVersionFullSchemas(ctx context.Context, versions []*models.BentoVers
 	for _, schema := range bentoVersionSchemas {
 		bentoVersionSchemasMap[schema.Uid] = schema
 	}
+	bentoIds := make([]uint, 0, len(versions))
 	for _, version := range versions {
-		bentoSchema, err := GetAssociatedBentoSchema(ctx, version)
-		if err != nil {
-			return nil, errors.Wrap(err, "GetAssociatedBentoSchema")
+		bentoIds = append(bentoIds, version.BentoId)
+	}
+	bentos, _, err := services.BentoService.List(ctx, services.ListBentoOption{
+		Ids: &bentoIds,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "ListBentos")
+	}
+	bentoUidToIdMap := make(map[string]uint)
+	for _, bento := range bentos {
+		bentoUidToIdMap[bento.Uid] = bento.ID
+	}
+	bentoSchemas, err := ToBentoSchemas(ctx, bentos)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToBentoSchemas")
+	}
+	bentoSchemasMap := make(map[uint]*schemasv1.BentoSchema)
+	for _, schema := range bentoSchemas {
+		bentoSchemasMap[bentoUidToIdMap[schema.Uid]] = schema
+	}
+	for _, version := range versions {
+		bentoSchema, ok := bentoSchemasMap[version.BentoId]
+		if !ok {
+			return nil, errors.Errorf("cannot find bento %d from map", version.BentoId)
 		}
-		res = append(res, &schemasv1.BentoVersionFullSchema{
+		res = append(res, &schemasv1.BentoVersionWithBentoSchema{
 			BentoVersionSchema: *bentoVersionSchemasMap[version.GetUid()],
 			Bento:              bentoSchema,
 		})

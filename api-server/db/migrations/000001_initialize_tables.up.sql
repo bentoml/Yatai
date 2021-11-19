@@ -226,6 +226,17 @@ CREATE TABLE IF NOT EXISTS "model_version" (
 
 CREATE UNIQUE INDEX "uk_modelVersion_modelId_version" ON "model_version" ("model_id", "version");
 
+CREATE TABLE IF NOT EXISTS "bento_version_model_version_rel" (
+    id SERIAL PRIMARY KEY,
+    bento_version_id INTEGER NOT NULL REFERENCES "bento_version"("id") ON DELETE CASCADE,
+    model_version_id INTEGER NOT NULL REFERENCES "model_version"("id") ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE UNIQUE INDEX "uk_bentoVersionModelVersionRel_bentoVersionId_modelVersionId" ON "bento_version_model_version_rel" ("bento_version_id", "model_version_id");
+
 CREATE TYPE "deployment_status" AS ENUM ('unknown', 'non-deployed', 'failed', 'unhealthy', 'deploying', 'running', 'terminating', 'terminated');
 
 CREATE TABLE IF NOT EXISTS "deployment" (

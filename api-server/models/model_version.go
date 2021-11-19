@@ -9,7 +9,6 @@ import (
 type ModelVersion struct {
 	BaseModel
 	CreatorAssociate
-	OrganizationAssociate
 	ModelAssociate
 	Version                   string                                    `json:"version"`
 	Description               string                                    `json:"description"`

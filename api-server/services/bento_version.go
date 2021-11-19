@@ -9,6 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/huandu/xstrings"
+
+	"github.com/bentoml/yatai/common/utils"
+
 	"k8s.io/apimachinery/pkg/labels"
 
 	"github.com/iancoleman/strcase"
@@ -61,8 +65,14 @@ type UpdateBentoVersionOption struct {
 
 type ListBentoVersionOption struct {
 	BaseListOption
-	BentoId  *uint
-	Versions *[]string
+	OrganizationId  *uint
+	BentoId         *uint
+	Versions        *[]string
+	ModelVersionIds *[]uint
+	CreatorId       *uint
+	CreatorIds      *[]uint
+	Order           *string
+	Names           *[]string
 }
 
 func (s *bentoVersionService) Create(ctx context.Context, opt CreateBentoVersionOption) (bentoVersion *models.BentoVersion, err error) {
@@ -87,6 +97,27 @@ func (s *bentoVersionService) Create(ctx context.Context, opt CreateBentoVersion
 		Manifest:         opt.Manifest,
 	}
 	err = db.Create(bentoVersion).Error
+	if err != nil {
+		return
+	}
+	modelVersions, err := s.ListModelVersionsFromManifests(ctx, bentoVersion)
+	if err != nil {
+		return
+	}
+	for _, modelVersion := range modelVersions {
+		rel := &models.BentoVersionModelVersionRel{
+			BentoVersionAssociate: models.BentoVersionAssociate{
+				BentoVersionId: bentoVersion.ID,
+			},
+			ModelVersionAssociate: models.ModelVersionAssociate{
+				ModelVersionId: modelVersion.ID,
+			},
+		}
+		err = db.Create(rel).Error
+		if err != nil {
+			return
+		}
+	}
 	return
 }
 
@@ -127,6 +158,48 @@ func (s *bentoVersionService) PreSignS3UploadUrl(ctx context.Context, bentoVersi
 	url, err = minioClient.PresignedPutObject(ctx, bucketName, objectName, time.Hour)
 	if err != nil {
 		err = errors.Wrap(err, "presigned put object")
+		return
+	}
+	return
+}
+
+func (s *bentoVersionService) PreSignS3DownloadUrl(ctx context.Context, bentoVersion *models.BentoVersion) (url *url.URL, err error) {
+	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
+		return
+	}
+	minioClient, err := s3Config.GetMinioClient()
+	if err != nil {
+		err = errors.Wrap(err, "create s3 client")
+		return
+	}
+
+	bucketName, err := s.GetS3BucketName(ctx, bentoVersion)
+	if err != nil {
+		return
+	}
+
+	err = s3Config.MakeSureBucket(ctx, bucketName)
+	if err != nil {
+		return
+	}
+
+	objectName, err := s.getS3ObjectName(ctx, bentoVersion)
+	if err != nil {
+		return
+	}
+
+	url, err = minioClient.PresignedGetObject(ctx, bucketName, objectName, time.Hour, nil)
+	if err != nil {
+		err = errors.Wrap(err, "presigned get object")
 		return
 	}
 	return
@@ -405,7 +478,7 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 	}
 
 	args := []string{
-		"--dockerfile=./Dockerfile",
+		"--dockerfile=./env/docker/Dockerfile",
 		fmt.Sprintf("--context=s3://%s/%s", s3BucketName, s3ObjectName),
 		fmt.Sprintf("--destination=%s", imageName),
 	}
@@ -477,7 +550,7 @@ func (s *bentoVersionService) GetImageBuilderKubeName(ctx context.Context, bento
 		return "", err
 	}
 
-	return strings.ReplaceAll(strcase.ToKebab(fmt.Sprintf("yatai-image-builder-%s-%s-%s", org.Name, bento.Name, bentoVersion.Version)), ".", "-"), nil
+	return strings.ReplaceAll(strcase.ToKebab(fmt.Sprintf("yatai-bento-image-builder-%s-%s-%s", org.Name, bento.Name, bentoVersion.Version)), ".", "-"), nil
 }
 
 func (s *bentoVersionService) Get(ctx context.Context, id uint) (*models.BentoVersion, error) {
@@ -525,22 +598,91 @@ func (s *bentoVersionService) ListByUids(ctx context.Context, uids []string) ([]
 	return bentoVersions, err
 }
 
+func (s *bentoVersionService) ListModelVersionsFromManifests(ctx context.Context, bentoVersion *models.BentoVersion) (modelVersions []*models.ModelVersion, err error) {
+	if bentoVersion.Manifest == nil {
+		return
+	}
+	if bentoVersion.Manifest.Models == nil {
+		return
+	}
+	modelNames := make([]string, 0, len(bentoVersion.Manifest.Models))
+	modelNamesSeen := make(map[string]struct{}, len(bentoVersion.Manifest.Models))
+	for _, modelTag := range bentoVersion.Manifest.Models {
+		modelName, _, _ := xstrings.Partition(modelTag, ":")
+		if _, ok := modelNamesSeen[modelName]; !ok {
+			modelNames = append(modelNames, modelName)
+		}
+	}
+	if len(modelNames) == 0 {
+		return
+	}
+	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+	if err != nil {
+		return
+	}
+	models_, _, err := ModelService.List(ctx, ListModelOption{
+		OrganizationId: utils.UintPtr(bento.OrganizationId),
+		Names:          &modelNames,
+	})
+	if len(models_) == 0 {
+		return
+	}
+	modelNameMapping := make(map[string]*models.Model, len(models_))
+	for _, model := range models_ {
+		modelNameMapping[model.Name] = model
+	}
+	for _, modelTag := range bentoVersion.Manifest.Models {
+		modelName, _, version := xstrings.Partition(modelTag, ":")
+		if model, ok := modelNameMapping[modelName]; ok {
+			var modelVersion *models.ModelVersion
+			modelVersion, err = ModelVersionService.GetByVersion(ctx, model.ID, version)
+			if err != nil {
+				return
+			}
+			modelVersions = append(modelVersions, modelVersion)
+		}
+	}
+	return
+}
+
 func (s *bentoVersionService) List(ctx context.Context, opt ListBentoVersionOption) ([]*models.BentoVersion, uint, error) {
 	query := getBaseQuery(ctx, s)
+	query = query.Joins("LEFT JOIN bento ON bento_version.bento_id = bento.id")
+	if opt.ModelVersionIds != nil {
+		query = query.Joins("LEFT JOIN bento_version_model_version_rel ON bento_version_model_version_rel.bento_version_id = bento_version.id").Where("bento_version_model_version_rel.model_version_id in (?)", *opt.ModelVersionIds)
+	}
+	if opt.OrganizationId != nil {
+		query = query.Where("bento.organization_id = ?", *opt.OrganizationId)
+	}
 	if opt.BentoId != nil {
-		query = query.Where("bento_id = ?", *opt.BentoId)
+		query = query.Where("bento_version.bento_id = ?", *opt.BentoId)
 	}
 	if opt.Versions != nil {
-		query = query.Where("version in (?)", *opt.Versions)
+		query = query.Where("bento_version.version in (?)", *opt.Versions)
 	}
+	if opt.CreatorId != nil {
+		query = query.Where("bento_version.creator_id = ?", *opt.CreatorId)
+	}
+	if opt.Names != nil {
+		query = query.Where("bento.name in (?)", *opt.Names)
+	}
+	if opt.CreatorIds != nil {
+		query = query.Where("bento_version.creator_id in (?)", *opt.CreatorIds)
+	}
+	query = opt.BindQueryWithKeywords(query, "bento")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
 	bentoVersions := make([]*models.BentoVersion, 0)
-	query = opt.BindQueryWithLimit(query).Order("build_at DESC")
-	err = query.Find(&bentoVersions).Error
+	query = opt.BindQueryWithLimit(query)
+	if opt.Order != nil {
+		query = query.Order(*opt.Order)
+	} else {
+		query = query.Order("bento_version.build_at DESC")
+	}
+	err = query.Select("bento_version.*").Find(&bentoVersions).Error
 	if err != nil {
 		return nil, 0, err
 	}
@@ -634,6 +776,35 @@ func (s *bentoVersionService) CalculateImageBuildStatus(ctx context.Context, ben
 		if p.Status.Status == modelschemas.KubePodActualStatusTerminating || p.Status.Status == modelschemas.KubePodActualStatusUnknown || p.Status.Status == modelschemas.KubePodActualStatusFailed {
 			return modelschemas.BentoVersionImageBuildStatusFailed, nil
 		}
+	}
+
+	hasPending := false
+	hasFailed := false
+	hasBuilding := false
+
+	modelVersions, err := s.ListModelVersionsFromManifests(ctx, bentoVersion)
+	if err != nil {
+		return defaultStatus, err
+	}
+
+	for _, modelVersion := range modelVersions {
+		if modelVersion.ImageBuildStatus == modelschemas.ModelVersionImageBuildStatusPending {
+			hasPending = true
+		}
+		if modelVersion.ImageBuildStatus == modelschemas.ModelVersionImageBuildStatusFailed {
+			hasFailed = true
+		}
+		if modelVersion.ImageBuildStatus == modelschemas.ModelVersionImageBuildStatusBuilding {
+			hasBuilding = true
+		}
+	}
+
+	if hasFailed {
+		return modelschemas.BentoVersionImageBuildStatusFailed, nil
+	}
+
+	if hasBuilding || hasPending {
+		return modelschemas.BentoVersionImageBuildStatusBuilding, nil
 	}
 
 	return modelschemas.BentoVersionImageBuildStatusSuccess, nil
