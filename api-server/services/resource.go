@@ -49,6 +49,9 @@ func (m *resourceService) Get(ctx context.Context, resourceType modelschemas.Res
 	case modelschemas.ResourceTypeApiToken:
 		apiToken, err := ApiTokenService.Get(ctx, resourceId)
 		return apiToken, err
+	case modelschemas.ResourceTypeLabel:
+		label, err := LabelService.Get(ctx, resourceId)
+		return label, err
 	default:
 		return nil, errors.Errorf("cannot recognize this resource type: %s", resourceType)
 	}
