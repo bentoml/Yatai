@@ -5,10 +5,10 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/pkg/errors"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/schemas/modelschemas"
+	"github.com/pkg/errors"
 )
 
 type labelService struct{}
