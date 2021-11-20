@@ -18,16 +18,16 @@ type labelController struct {
 var LabelController = labelController{}
 
 type GetLabelSchema struct {
-	Id string `path:"id"`
+	Id uint `path:"id"`
 }
 
 func (s *GetLabelSchema) GetLabel(ctx context.Context) (*models.Label, error) {
-	return services.LabelService.GetById(ctx, s.Id)
+	return services.LabelService.Get(ctx, s.Id)
 }
 
 func (c *labelController) canView(ctx context.Context, label *models.Label) error {
 	// depending on resource type, check that we can view each Deployment/Model/Bento
-	org, err := services.OrganizationService.GetAssociatedNullableOrganization(ctx, label)
+	org, err := services.OrganizationService.GetAssociatedOrganization(ctx, label)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (c *labelController) canView(ctx context.Context, label *models.Label) erro
 }
 
 func (c *labelController) canUpdate(ctx context.Context, label *models.Label) error {
-	org, err := services.OrganizationService.GetAssociatedNullableOrganization(ctx, label)
+	org, err := services.OrganizationService.GetAssociatedOrganization(ctx, label)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (c *labelController) canUpdate(ctx context.Context, label *models.Label) er
 }
 
 func (c *labelController) canOperate(ctx context.Context, label *models.Label) error {
-	org, err := services.OrganizationService.GetAssociatedNullableOrganization(ctx, label)
+	org, err := services.OrganizationService.GetAssociatedOrganization(ctx, label)
 	if err != nil {
 		return err
 	}

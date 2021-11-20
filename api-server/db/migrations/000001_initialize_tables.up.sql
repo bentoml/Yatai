@@ -337,6 +337,4 @@ CREATE TABLE IF NOT EXISTS "label" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE UNIQUE INDEX "uk_resoure_type_id_key" on "label" ("resource_type", "resource_id", "key");
 CREATE UNIQUE INDEX "uk_label_orgId_resoureType_resourceId_key" on "label" ("organization_id", "resource_type", "resource_id", "key");
-

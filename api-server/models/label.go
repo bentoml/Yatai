@@ -5,7 +5,7 @@ import "github.com/bentoml/yatai/schemas/modelschemas"
 type Label struct {
 	BaseModel
 	CreatorAssociate
-	NullableOrganizationAssociate
+	OrganizationAssociate
 
 	ResourceType modelschemas.ResourceType `json:"resource_type"`
 	ResourceId   uint                      `json:"resource_id"`

@@ -2,10 +2,10 @@ package services
 
 import (
 	"context"
-	"time"
 
 	"gorm.io/gorm"
 
+	"github.com/pkg/errors"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/schemas/modelschemas"
@@ -20,7 +20,7 @@ func (s *labelService) getBaseDB(ctx context.Context) *gorm.DB {
 }
 
 type CreateLabelOption struct {
-	OrganizationId *uint
+	OrganizationId uint
 	CreatorId      uint
 	Resource       models.IResource
 	Key            string
@@ -37,28 +37,27 @@ type ListLabelOption struct {
 	CreatorId      *uint
 	ResourceType   *string
 	ResourceId     *string
-	Key            *string
-	Value          *string
 }
 
 type ListLabelKeysOption struct {
-	OrganizationId uint
+	OrganizationId *uint
 	ResourceType   *modelschemas.ResourceType
 	ResourceId     *uint
 }
 
 type ListLabelValuesByKeyOption struct {
-	OrganizationId uint
+	OrganizationId *uint
 	ResourceType   *modelschemas.ResourceType
 	ResourceId     *uint
 }
 
 func (*labelService) Create(ctx context.Context, opt CreateLabelOption) (*models.Label, error) {
-	n := time.Now()
-
-	label := &models.Label{
+	label := models.Label{
 		CreatorAssociate: models.CreatorAssociate{
 			CreatorId: opt.CreatorId,
+		},
+		OrganizationAssociate: models.OrganizationAssociate{
+			OrganizationId: opt.OrganizationId,
 		},
 		ResourceType: opt.Resource.GetResourceType(),
 		ResourceId:   opt.Resource.GetId(),
@@ -66,14 +65,11 @@ func (*labelService) Create(ctx context.Context, opt CreateLabelOption) (*models
 		Value:        opt.Value,
 	}
 
-	label.CreatedAt = n
-
-	err := mustGetSession(ctx).Create(label).Error
+	err := mustGetSession(ctx).Create(&label).Error
 	if err != nil {
 		return nil, err
 	}
-
-	return label, nil
+	return &label, nil
 }
 
 func (s *labelService) Update(ctx context.Context, b *models.Label, opt UpdateLabelOption) (*models.Label, error) {
@@ -90,7 +86,7 @@ func (s *labelService) Update(ctx context.Context, b *models.Label, opt UpdateLa
 	if len(updaters) == 0 {
 		return b, nil
 	}
-	err = s.getBaseDB(ctx).Where("id = ?", b.ID).Updates(updaters).Error
+	err = s.getBaseDB(ctx).Where("id = ? ", b.ID).Updates(updaters).Error
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +96,7 @@ func (s *labelService) Update(ctx context.Context, b *models.Label, opt UpdateLa
 
 func (s *labelService) Get(ctx context.Context, id uint) (*models.Label, error) {
 	var label models.Label
-	err := getBaseQuery(ctx, s).Where("id = ?", id).First(&label).Error
+	err := getBaseQuery(ctx, s).Where("id = ? ", id).First(&label).Error
 	if err != nil {
 		return nil, err
 	}
@@ -110,39 +106,41 @@ func (s *labelService) Get(ctx context.Context, id uint) (*models.Label, error) 
 	return &label, nil
 }
 
-func (s *labelService) GetById(ctx context.Context, id string) (*models.Label, error) {
+func (s *labelService) GetByKey(ctx context.Context, uid uint, key string) (*models.Label, error) {
 	var label models.Label
-	err := getBaseQuery(ctx, s).Where("uid = ?", id).First(&label).Error
+	err := getBaseQuery(ctx, s).Where("resource_id = ? ", uid).Where("key = ? ", key).First(&label).Error
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "get label by key %s", key)
 	}
-	if label.ID == 0 {
+	if label.ResourceId == 0 {
 		return nil, consts.ErrNotFound
 	}
 	return &label, nil
 }
 
+// TODO: revisit this after finishing other functionalities.
 func (s *labelService) Delete(ctx context.Context, label *models.Label) (*models.Label, error) {
 	return label, s.getBaseDB(ctx).Unscoped().Delete(label).Error
 }
 
 func (s *labelService) List(ctx context.Context, opt ListLabelOption) ([]*models.Label, uint, error) {
 	query := getBaseQuery(ctx, s)
-	if opt.CreatorId != nil {
-		query = query.Where("creator_id = ?", *opt.CreatorId)
-	}
 
+	if opt.OrganizationId != nil {
+		query = query.Where("organization_id = ? ", *opt.OrganizationId)
+	}
+	if opt.CreatorId != nil {
+		query = query.Where("creator_id = ? ", *opt.CreatorId)
+	}
 	if opt.ResourceType != nil {
-		query = query.Where("resource_type = ?", *opt.ResourceType)
+		query = query.Where("resource_type = ? ", *opt.ResourceType)
 	}
-	if opt.Key != nil {
-		query = query.Where("key = ?", *opt.Key)
-	}
-	if opt.Value != nil {
-		query = query.Where("value = ?", *opt.Value)
+	if opt.ResourceId != nil {
+		query = query.Where("resource_id = ? ", *opt.ResourceId)
 	}
 
 	var total int64
+
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
@@ -150,6 +148,7 @@ func (s *labelService) List(ctx context.Context, opt ListLabelOption) ([]*models
 	labels := make([]*models.Label, 0)
 	query = opt.BindQueryWithLimit(query)
 	query = query.Order("id DESC")
+
 	err = query.Find(&labels).Error
 	if err != nil {
 		return nil, 0, err
