@@ -5,7 +5,7 @@ import { createDeployment, listClusterDeployments, listOrganizationDeployments }
 import { usePage } from '@/hooks/usePage'
 import { ICreateDeploymentSchema, IDeploymentSchema } from '@/schemas/deployment'
 import DeploymentForm from '@/components/DeploymentForm'
-import { formatDateTime } from '@/utils/datetime'
+import { dSecondsNormalized } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
@@ -21,6 +21,7 @@ import qs from 'qs'
 import { useQ } from '@/hooks/useQ'
 import FilterBar from '@/components/FilterBar'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
+import { StatefulTooltip, PLACEMENT } from 'baseui/tooltip'
 import FilterInput from './FilterInput'
 
 export interface IDeploymentListCardProps {
@@ -190,8 +191,8 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                                 last_updater: value.map((v) => String(v.id ?? '')),
                             })
                         },
-                        label: t('last updater'),
-                        description: t('filter by sth', [t('last updater')]),
+                        label: t('Created At'),
+                        description: t('filter by sth', [t('Created At')]),
                     },
                     {
                         options: [
@@ -222,26 +223,52 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                     t('name'),
                     clusterName ? undefined : t('cluster'),
                     t('status'),
-                    t('last updater'),
+                    t('creator'),
+                    t('Time since Creation'),
                     t('updated_at'),
                 ]}
                 data={
-                    deploymentsInfo.data?.items.map((deployment) => [
-                        <Link
-                            key={deployment.uid}
-                            to={`/clusters/${deployment.cluster?.name}/deployments/${deployment.name}`}
-                        >
-                            {deployment.name}
-                        </Link>,
-                        clusterName ? undefined : (
-                            <Link key={deployment.cluster?.uid} to={`/clusters/${deployment.cluster?.name}`}>
-                                {deployment.cluster?.name}
-                            </Link>
-                        ),
-                        <DeploymentStatusTag key={deployment.uid} status={deployment.status} />,
-                        deployment.latest_revision?.creator && <User user={deployment.latest_revision.creator} />,
-                        deployment.latest_revision && formatDateTime(deployment.latest_revision.created_at),
-                    ]) ?? []
+                    deploymentsInfo.data?.items.map((deployment) => {
+                        console.log((new Date().getTime() - new Date(deployment.created_at).getTime()) / 1000)
+                        return [
+                            <Link
+                                key={deployment.uid}
+                                to={`/clusters/${deployment.cluster?.name}/deployments/${deployment.name}`}
+                            >
+                                {deployment.name}
+                            </Link>,
+                            clusterName ? undefined : (
+                                <Link key={deployment.cluster?.uid} to={`/clusters/${deployment.cluster?.name}`}>
+                                    {deployment.cluster?.name}
+                                </Link>
+                            ),
+                            <DeploymentStatusTag key={deployment.uid} status={deployment.status} />,
+                            deployment?.creator && <User user={deployment.creator} />,
+                            deployment?.created_at && (
+                                <StatefulTooltip placement={PLACEMENT.bottom} content={() => deployment.created_at}>
+                                    {dSecondsNormalized(
+                                        Math.abs(
+                                            (new Date().getTime() - new Date(deployment.created_at).getTime()) / 1000
+                                        )
+                                    )}
+                                </StatefulTooltip>
+                            ),
+                            deployment?.latest_revision && (
+                                <StatefulTooltip
+                                    placement={PLACEMENT.bottom}
+                                    content={() => deployment.latest_revision?.created_at}
+                                >
+                                    {dSecondsNormalized(
+                                        Math.abs(
+                                            (new Date().getTime() -
+                                                new Date(deployment.latest_revision.created_at).getTime()) /
+                                                1000
+                                        )
+                                    )}
+                                </StatefulTooltip>
+                            ),
+                        ]
+                    }) ?? []
                 }
                 paginationProps={{
                     start: deploymentsInfo.data?.start,
