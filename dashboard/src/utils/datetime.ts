@@ -22,3 +22,22 @@ export function durationToStr(v: number) {
     }
     return `${newV.toFixed(2)}${units[unitIdx]}`
 }
+
+export const dSecondsNormalized = (seconds: number) => {
+    const normalizers = {
+        seconds: 1,
+        mins: 60,
+        hours: 3600,
+        days: 86400,
+    }
+
+    let str = ''
+    Object.entries(normalizers).forEach(([key, value]) => {
+        const div = seconds / value
+        if (div > 1) {
+            str = `${div.toFixed(0)} ${key}`
+        }
+    })
+
+    return str
+}
