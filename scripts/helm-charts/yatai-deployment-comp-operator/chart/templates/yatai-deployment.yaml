@@ -1,0 +1,8 @@
+apiVersion: component.yatai.ai/v1alpha1
+kind: Deployment
+metadata:
+  name: deployment
+spec:
+  minio: {}
+  dockerRegistry: {}
+
