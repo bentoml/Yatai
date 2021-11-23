@@ -5,7 +5,6 @@ import { createDeployment, listClusterDeployments, listOrganizationDeployments }
 import { usePage } from '@/hooks/usePage'
 import { ICreateDeploymentSchema, IDeploymentSchema } from '@/schemas/deployment'
 import DeploymentForm from '@/components/DeploymentForm'
-import { dSecondsNormalized } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
@@ -22,6 +21,7 @@ import { useQ } from '@/hooks/useQ'
 import FilterBar from '@/components/FilterBar'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
 import { StatefulTooltip, PLACEMENT } from 'baseui/tooltip'
+import ReactTimeAgo from 'react-time-ago'
 import FilterInput from './FilterInput'
 
 export interface IDeploymentListCardProps {
@@ -229,7 +229,7 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                 ]}
                 data={
                     deploymentsInfo.data?.items.map((deployment) => {
-                        console.log((new Date().getTime() - new Date(deployment.created_at).getTime()) / 1000)
+                        console.log(new Date(deployment.created_at))
                         return [
                             <Link
                                 key={deployment.uid}
@@ -246,11 +246,11 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                             deployment?.creator && <User user={deployment.creator} />,
                             deployment?.created_at && (
                                 <StatefulTooltip placement={PLACEMENT.bottom} content={() => deployment.created_at}>
-                                    {dSecondsNormalized(
-                                        Math.abs(
-                                            (new Date().getTime() - new Date(deployment.created_at).getTime()) / 1000
-                                        )
-                                    )}
+                                    <ReactTimeAgo
+                                        date={new Date(deployment.created_at)}
+                                        timeStyle='round'
+                                        locale='en-US'
+                                    />
                                 </StatefulTooltip>
                             ),
                             deployment?.latest_revision && (
@@ -258,13 +258,11 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                                     placement={PLACEMENT.bottom}
                                     content={() => deployment.latest_revision?.created_at}
                                 >
-                                    {dSecondsNormalized(
-                                        Math.abs(
-                                            (new Date().getTime() -
-                                                new Date(deployment.latest_revision.created_at).getTime()) /
-                                                1000
-                                        )
-                                    )}
+                                    <ReactTimeAgo
+                                        date={new Date(deployment.latest_revision?.created_at)}
+                                        locale='en-US'
+                                        timeStyle='round'
+                                    />
                                 </StatefulTooltip>
                             ),
                         ]
