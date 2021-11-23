@@ -33,6 +33,7 @@ export const resourceIconMapping: Record<ResourceType, React.ComponentType<IconB
 }
 
 export const yataiComponentIconMapping: Record<YataiComponentType, React.ComponentType<IconBaseProps>> = {
+    deployment: GrDeploy,
     logging: RiMistFill,
     monitoring: AiOutlineDashboard,
 }

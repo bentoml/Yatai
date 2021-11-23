@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "{{ include "yatai-logging-comp-operator.fullname" . }}-test-connection"
+  name: "{{ include "yatai-deployment-comp-operator.fullname" . }}-test-connection"
   labels:
-    {{- include "yatai-logging-comp-operator.labels" . | nindent 4 }}
+    {{- include "yatai-deployment-comp-operator.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": test
 spec:
@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "yatai-logging-comp-operator.fullname" . }}:{{ .Values.service.port }}']
+      args: ['{{ include "yatai-deployment-comp-operator.fullname" . }}:{{ .Values.service.port }}']
   restartPolicy: Never

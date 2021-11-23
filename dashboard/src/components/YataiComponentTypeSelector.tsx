@@ -19,6 +19,10 @@ export default function YataiComponentTypeSelector({
             options={(
                 [
                     {
+                        id: 'deployment',
+                        label: <YataiComponentTypeRender type='deployment' />,
+                    },
+                    {
                         id: 'logging',
                         label: <YataiComponentTypeRender type='logging' />,
                     },
