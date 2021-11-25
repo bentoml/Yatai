@@ -229,7 +229,6 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                 ]}
                 data={
                     deploymentsInfo.data?.items.map((deployment) => {
-                        console.log(new Date(deployment.created_at))
                         return [
                             <Link
                                 key={deployment.uid}
