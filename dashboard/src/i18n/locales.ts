@@ -977,13 +977,13 @@ const locales0 = {
     },
     'Created At': {
         en: 'Created At',
-        cn: 'TODO',
-        ja: 'TODO',
+        cn: '创建于',
+        ja: '作成場所',
     },
     'Time since Creation': {
         en: 'Time since Creation',
-        cn: 'TODO',
-        ja: 'TODO',
+        cn: '自创建以来的时间',
+        ja: '創作からの時間',
     },
     'the token will expire on sth': {
         en: 'The token will expire on {{0}}',
