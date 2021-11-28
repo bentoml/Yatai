@@ -7556,6 +7556,13 @@ istanbul-reports@^3.0.2:
     html-escaper "^2.0.0"
     istanbul-lib-report "^3.0.0"
 
+javascript-time-ago@^2.3.10:
+  version "2.3.10"
+  resolved "https://registry.yarnpkg.com/javascript-time-ago/-/javascript-time-ago-2.3.10.tgz#483e960d158a24394806aed96f34f00669b671e8"
+  integrity sha512-eeZx3B8ACZpFTiaow4Xl3YTIG9UjebwVjHEDnKyzJ1NBve1ZqJIgy97yoT9Esw+Vf+XgSk4YCpOsyK5X/ByRzQ==
+  dependencies:
+    relative-time-format "^1.0.6"
+
 jest-changed-files@^26.6.2:
   version "26.6.2"
   resolved "https://registry.yarnpkg.com/jest-changed-files/-/jest-changed-files-26.6.2.tgz#f6198479e1cc66f22f9ae1e22acaa0b429c042d0"
@@ -11124,6 +11131,14 @@ react-string-replace@^0.4.1:
   dependencies:
     lodash "^4.17.4"
 
+react-time-ago@^7.1.3:
+  version "7.1.3"
+  resolved "https://registry.yarnpkg.com/react-time-ago/-/react-time-ago-7.1.3.tgz#3f937bde06c018e5c0e379827debd5a432dd53e9"
+  integrity sha512-H+mhWft++gNt2x8Y9eAZ9vYwL6giPDnVIo68Ty7xFTJ2L+Tt7cyZ1sbMkTMKzHeeaQ+J8F2vt3PatdW6mFJmWQ==
+  dependencies:
+    prop-types "^15.7.2"
+    raf "^3.4.1"
+
 react-uid@^2.3.0:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/react-uid/-/react-uid-2.3.1.tgz#22a75d4a948a4824b9b8078cbf864d55d91ca4be"
@@ -11385,6 +11400,11 @@ relateurl@^0.2.7:
   version "0.2.7"
   resolved "https://registry.yarnpkg.com/relateurl/-/relateurl-0.2.7.tgz#54dbf377e51440aca90a4cd274600d3ff2d888a9"
   integrity sha1-VNvzd+UUQKypCkzSdGANP/LYiKk=
+
+relative-time-format@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/relative-time-format/-/relative-time-format-1.0.6.tgz#4956f6aa161f63cbab8a7f2d8b2e92d7b6a888a3"
+  integrity sha512-voemOJLxlKun4P1fAo4PEg2WXNGjhqfE/G8Xen4gcy24Hyu/djn5bT5axmhx4MnjynoZ8f0HCOjk3RZpsY6X/g==
 
 remove-accents@0.4.2:
   version "0.4.2"
