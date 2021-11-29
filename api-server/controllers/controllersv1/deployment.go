@@ -122,7 +122,7 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		OrganizationId: org.ID,
 		CreatorId: user.ID,
 		Key: schema.LabelKey,
-		Value: schema.LabelValue
+		Value: schema.LabelValue,
 	}) 
 
 	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment, label)
@@ -152,7 +152,7 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 		OrganizationId: org.ID,
 		CreatorId: user.ID,
 		Key: schema.LabelKey,
-		Value: schema.LabelValue
+		Value: schema.LabelValue,
 	}) 
 
 	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)

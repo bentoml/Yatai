@@ -79,6 +79,25 @@ func (c *modelVersionController) Create(ctx *gin.Context, schema *CreateModelVer
 	if err = ModelController.canUpdate(ctx, model); err != nil {
 		return nil, err
 	}
+	org, err := services.OrganizationService.GetAssociatedOrganization(ctx, model)
+	if err != nil {
+		return nil, err
+	}
+	label, err := LabelController.GetLabel(ctx); err != nil {
+		return nil, err
+	}
+	if err = LabelController.canUpdate(ctx, label); err != nil {
+		return nil, err
+	}
+	label, err = services.LabelService.Create(ctx, services.CreateLabelOption{
+		OrganizationId: org.ID,
+		CreatorId: user.ID,
+		Key: schema.LabelKey,
+		Value: schema.LabelValue
+	}) 
+	if err != nil {
+		return nil, err
+	}
 	buildAt, err := time.Parse("2006-01-02 15:04:05.000000", schema.BuildAt)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse build at")
@@ -90,6 +109,8 @@ func (c *modelVersionController) Create(ctx *gin.Context, schema *CreateModelVer
 		Description: schema.Description,
 		Manifest:    schema.Manifest,
 		BuildAt:     buildAt,
+		LabelKey: label.LabelKey,
+		LabelValue: label.LabelValue
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create model version")
