@@ -975,6 +975,16 @@ const locales0 = {
         cn: '自定义...',
         ja: 'カスタム...',
     },
+    'Created At': {
+        en: 'Created At',
+        cn: '创建于',
+        ja: '作成場所',
+    },
+    'Time since Creation': {
+        en: 'Time since Creation',
+        cn: '自创建以来的时间',
+        ja: '創作からの時間',
+    },
     'the token will expire on sth': {
         en: 'The token will expire on {{0}}',
         cn: '令牌将在 {{0}} 过期',
