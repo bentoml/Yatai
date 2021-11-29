@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"xstrings"
 
 	"gorm.io/gorm"
 
@@ -212,6 +213,31 @@ func (s *labelService) ListLabelValuesByKey(ctx context.Context, key string, opt
 		query = query.Where("resource_id = ?", *opt.ResourceId)
 	}
 	err = query.Find(&values).Error
+	return
+}
+
+func ParseQueryLabelsToLabelsList(queryLabels []string) (res [][]modelschemas.LabelItemSchema) {
+	for _, queryLabel := range queryLabels {
+		pieces := strings.Split(queryLabel, ",")
+		items := make([]modelschemas.LabelItemSchema, 0, len(pieces))
+		for _, piece := range pieces {
+			piece := strings.TrimSpace(piece)
+			if piece == "" {
+				continue
+			}
+			k, _, v := xstrings.Partition(piece, "=")
+			item := modelschemas.LabelItem{
+				Key: k,
+			}
+			if v != "" {
+				item.Value = &v
+			}
+			items = append(items, item)
+		}
+		if len(items) > 0 {
+			res = append(res, items)
+		}
+	}
 	return
 }
 

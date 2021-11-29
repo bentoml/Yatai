@@ -203,12 +203,12 @@ func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) 
 	} else {
 		query.Order("deployment.id DESC")
 	}
-	deployments := make([]*models.Deployment, 0)
-	err = query.Find(&deployments).Error
+	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeDeployment)
 	if err != nil {
 		return nil, 0, err
 	}
-	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeDeployment)
+	deployments := make([]*models.Deployment, 0)
+	err = query.Find(&deployments).Error
 	if err != nil {
 		return nil, 0, err
 	}
