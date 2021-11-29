@@ -67,6 +67,7 @@ func (c *bentoController) canOperate(ctx context.Context, bento *models.Bento) e
 type CreateBentoSchema struct {
 	schemasv1.CreateBentoSchema
 	GetOrganizationSchema
+	GetLabelSchema
 }
 
 func (c *bentoController) Create(ctx *gin.Context, schema *CreateBentoSchema) (*schemasv1.BentoSchema, error) {
@@ -78,15 +79,38 @@ func (c *bentoController) Create(ctx *gin.Context, schema *CreateBentoSchema) (*
 	if err != nil {
 		return nil, err
 	}
-
 	if err = OrganizationController.canUpdate(ctx, organization); err != nil {
 		return nil, err
 	}
-
+	label, err := services.LabelService.GetLabel(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = LabelController.canUpdate(ctx, label)
+	err != nil {
+		if label, err := services.LabelService.Create(ctx, services.CreateLabelOption{
+			OrganizationId: organization.ID,
+			CreatorId: user.ID,
+			Key: schema.Key,
+			Value: schema.Value,
+		})
+	}
+	else {
+		label, err = services.LabelService.Update(ctx, services.UpdateLabelOption{
+			OrganizationId: org.ID,
+			CreatorId: user.ID,
+			Value: schema.LabelValue,
+		})
+	}
+	if err != nil {
+		return nil, err
+	}
 	bento, err := services.BentoService.Create(ctx, services.CreateBentoOption{
 		CreatorId:      user.ID,
 		OrganizationId: organization.ID,
 		Name:           schema.Name,
+		Key: label.Key,
+		Value: label.Value,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create bento")

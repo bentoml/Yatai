@@ -31,7 +31,10 @@ type CreateLabelOption struct {
 }
 
 type UpdateLabelOption struct {
-	Value *string
+	OrganizationId uint
+	CreatorId      uint
+	Resource       models.IResource
+	Value          *string
 }
 
 type ListLabelOption struct {
@@ -114,9 +117,9 @@ func (s *labelService) Get(ctx context.Context, id uint) (*models.Label, error) 
 	return &label, nil
 }
 
-func (s *labelService) GetByKey(ctx context.Context, uid uint, key string) (*models.Label, error) {
+func (s *labelService) GetByKey(ctx context.Context, organizationId uint, key string) (*models.Label, error) {
 	var label models.Label
-	err := getBaseQuery(ctx, s).Where("resource_id = ? ", uid).Where("key = ? ", key).First(&label).Error
+	err := getBaseQuery(ctx, s).Where("organization_id = ? ", organizationId).Where("key = ? ", key).First(&label).Error
 	if err != nil {
 		return nil, errors.Wrapf(err, "get label by key %s", key)
 	}

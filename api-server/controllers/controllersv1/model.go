@@ -77,16 +77,30 @@ func (c *modelController) Create(ctx *gin.Context, schema *CreateModelSchema) (*
 	if err = OrganizationController.canUpdate(ctx, organization); err != nil {
 		return nil, err
 	}
-	if err = LabelController.canUpdate(ctx, label); err != nil {
+	
+	label, err := schema.GetLabel(ctx)
+	if err != nil {
 		return nil, err
 	}
-	if label, err := services.LabelService.Create(ctx, services.CreateLabelOption{
-		OrganizationId: org.ID,
-		CreatorId: user.ID,
-		Key: schema.LabelKey,
-		Value: schema.LabelValue,
-	})
-
+	err = LabelController.canUpdate(ctx, label)
+	if err != nil {
+		label, err = services.LabelService.Create(ctx, services.CreateLabelOption{
+			OrganizationId: org.ID,
+			CreatorId: user.ID,
+			Key: schema.LabelKey,
+			Value: schema.LabelValue,
+		})
+	}
+	else {
+		label, err = services.LabelService.Update(ctx, services.UpdateLabelOption{
+			OrganizationId: org.ID,
+			CreatorId: user.ID,
+			Value: schema.LabelValue,
+		})
+	}
+	if err != nil {
+		return nil, err
+	}
 	model, err := services.ModelService.Create(ctx, services.CreateModelOption{
 		OrganizationId: organization.ID,
 		CreatorId:      user.ID,

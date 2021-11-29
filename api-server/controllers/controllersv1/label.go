@@ -18,11 +18,20 @@ type labelController struct {
 var LabelController = labelController{}
 
 type GetLabelSchema struct {
-	Id uint `path:"id"`
+	GetOrganizationSchema
+	Key string `path:"key"`
 }
 
 func (s *GetLabelSchema) GetLabel(ctx context.Context) (*models.Label, error) {
-	return services.LabelService.Get(ctx, s.Id)
+	organization, err := s.GetOrganization(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "get organization")
+	}
+	label, err := services.LabelService.GetByKey(ctx, organization.ID, s.Key)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get label %s", s.Key)
+	}
+	return label, nil
 }
 
 func (c *labelController) canView(ctx context.Context, label *models.Label) error {
@@ -31,10 +40,7 @@ func (c *labelController) canView(ctx context.Context, label *models.Label) erro
 	if err != nil {
 		return err
 	}
-	if org != nil {
-		return OrganizationController.canView(ctx, org)
-	}
-	return nil
+	return OrganizationController.canView(ctx, org)
 }
 
 func (c *labelController) canUpdate(ctx context.Context, label *models.Label) error {
@@ -42,10 +48,7 @@ func (c *labelController) canUpdate(ctx context.Context, label *models.Label) er
 	if err != nil {
 		return err
 	}
-	if org != nil {
-		return OrganizationController.canUpdate(ctx, org)
-	}
-	return nil
+	return OrganizationController.canUpdate(ctx, org)
 }
 
 func (c *labelController) canOperate(ctx context.Context, label *models.Label) error {
@@ -53,10 +56,7 @@ func (c *labelController) canOperate(ctx context.Context, label *models.Label) e
 	if err != nil {
 		return err
 	}
-	if org != nil {
-		return OrganizationController.canOperate(ctx, org)
-	}
-	return nil
+	return OrganizationController.canOperate(ctx, org)
 }
 
 func (c *labelController) Get(ctx *gin.Context, schema *GetLabelSchema) (*schemasv1.LabelSchema, error) {
@@ -84,17 +84,18 @@ func (c *labelController) Create(ctx *gin.Context, schema *CreateLabelSchema) (*
 	if err != nil {
 		return nil, err
 	}
-
+	if err = OrganizationController.canUpdate(ctx, organization); err != nil {
+		return nil, err
+	}
 	if err = LabelController.canUpdate(ctx, label); err != nil {
 		return nil, err
 	}
-
 	label, err := services.LabelService.Create(ctx, services.CreateLabelOption{
 		OrganizationId: org.ID,
 		CreatorId:      user.ID,
 		Resource:       schema.Resource,
-		Key:            schema.LabelKey,
-		Value:          schema.LabelValue,
+		Key:            schema.Key,
+		Value:          schema.Value,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create label")
@@ -119,9 +120,20 @@ func (c *labelController) Update(ctx *gin.Context, schema *UpdateLabelSchema) (*
 	if err = c.canUpdate(ctx, label); err != nil {
 		return nil, err
 	}
+	label, err = services.LabelService.Update(ctx, label, services.UpdateLabelOption{
+		Value: schema.Value,
+	})
+	if err != nil {
+		return nil, errors.wrap(err, "update label")
+	}
 	return c.doUpdate(ctx, schema.UpdateLabelSchema, org, label)
 }
 
 func (c *labelController) doUpdate(ctx *gin.Context, schema schemasv1.UpdateLabelSchema, org *models.Organization, label *models.Label) (*schemasv1.LabelSchema, error) {
-	// TODO
+	user, err := services.GetCurrentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO?
 }
