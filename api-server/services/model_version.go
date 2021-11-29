@@ -54,6 +54,7 @@ type UpdateModelVersionOption struct {
 
 type ListModelVersionOption struct {
 	BaseListOption
+	BaseListByLabelsOption
 	ModelId *uint
 }
 
@@ -475,6 +476,10 @@ func (s *modelVersionService) List(ctx context.Context, opt ListModelVersionOpti
 	modelVersions := make([]*models.ModelVersion, 0)
 	query = opt.BindQueryWithLimit(query).Order("build_at DESC")
 	err = query.Find(&modelVersions).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeModelVersion)
 	if err != nil {
 		return nil, 0, err
 	}

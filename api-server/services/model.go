@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -30,6 +31,7 @@ type UpdateModelOption struct {
 
 type ListModelOption struct {
 	BaseListOption
+	BaseListByLabelsOption
 	OrganizationId *uint
 }
 
@@ -113,6 +115,10 @@ func (s *modelService) List(ctx context.Context, opt ListModelOption) ([]*models
 	query = opt.BindQueryWithLimit(query)
 	query = query.Order("id DESC")
 	err = query.Find(&models).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeModel)
 	if err != nil {
 		return nil, 0, err
 	}

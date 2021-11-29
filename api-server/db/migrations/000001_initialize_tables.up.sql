@@ -323,7 +323,7 @@ CREATE TABLE IF NOT EXISTS "cache" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TYPE "label_resource_type" as ENUM ('bento', 'bento_version', 'deployment', 'deployment_snapshot', "model", "model_version");
+CREATE TYPE "label_resource_type" as ENUM ('bento', 'bento_version', 'deployment', 'deployment_revision', "model", "model_version");
 
 CREATE TABLE IF NOT EXISTS "label" (
     id SERIAL PRIMARY KEY,

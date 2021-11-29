@@ -18,10 +18,12 @@ type DeploymentListSchema struct {
 
 type UpdateDeploymentSchema struct {
 	Targets []*CreateDeploymentTargetSchema `json:"targets"`
+	// labels
 }
 
 type CreateDeploymentSchema struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	// labels
 	UpdateDeploymentSchema
 }

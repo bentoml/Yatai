@@ -59,6 +59,7 @@ type UpdateDeploymentStatusOption struct {
 
 type ListDeploymentOption struct {
 	BaseListOption
+	BaseListByLabelsOption
 	ClusterId       *uint
 	CreatorId       *uint
 	LastUpdaterId   *uint
@@ -204,6 +205,10 @@ func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) 
 	}
 	deployments := make([]*models.Deployment, 0)
 	err = query.Find(&deployments).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeDeployment)
 	if err != nil {
 		return nil, 0, err
 	}

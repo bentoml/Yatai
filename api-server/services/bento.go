@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -31,6 +32,7 @@ type UpdateBentoOption struct {
 
 type ListBentoOption struct {
 	BaseListOption
+	BaseListByLabelsOption
 	OrganizationId *uint
 	CreatorId      *uint
 	CreatorIds     *[]uint
@@ -141,6 +143,10 @@ func (s *bentoService) List(ctx context.Context, opt ListBentoOption) ([]*models
 		query = query.Order("bento.id DESC")
 	}
 	err = query.Find(&bentos).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeBento)
 	if err != nil {
 		return nil, 0, err
 	}

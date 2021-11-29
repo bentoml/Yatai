@@ -111,6 +111,11 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		return nil, errors.Wrap(err, "create deployment")
 	}
 
+	/*
+		Check if there are any labels in the schema, or the label is empty:
+		then call label controller methods
+	*/
+
 	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
 }
 

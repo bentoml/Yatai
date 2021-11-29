@@ -45,6 +45,7 @@ type UpdateDeploymentRevisionOption struct {
 
 type ListDeploymentRevisionOption struct {
 	BaseListOption
+	BaseListByLabelsOption
 	DeploymentId  *uint
 	DeploymentIds *[]uint
 	Status        *modelschemas.DeploymentRevisionStatus
@@ -134,6 +135,10 @@ func (s *deploymentRevisionService) List(ctx context.Context, opt ListDeployment
 	deployments := make([]*models.DeploymentRevision, 0)
 	query = opt.BindQueryWithLimit(query)
 	err = query.Order("id DESC").Find(&deployments).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeDeploymentRevision)
 	if err != nil {
 		return nil, 0, err
 	}

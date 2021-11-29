@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"gorm.io/gorm"
 
@@ -39,6 +41,10 @@ type ListLabelOption struct {
 	ResourceId     *string
 }
 
+type BaseListByLabelsOption struct {
+	LabelsList *[][]modelschemas.LabelItemSchema
+}
+
 type ListLabelKeysOption struct {
 	OrganizationId *uint
 	ResourceType   *modelschemas.ResourceType
@@ -73,6 +79,7 @@ func (*labelService) Create(ctx context.Context, opt CreateLabelOption) (*models
 }
 
 func (s *labelService) Update(ctx context.Context, b *models.Label, opt UpdateLabelOption) (*models.Label, error) {
+	// Updates only value, not the key (Add documentation, e.g. why we did this.)
 	var err error
 	updaters := make(map[string]interface{})
 	if opt.Value != nil {
@@ -157,6 +164,29 @@ func (s *labelService) List(ctx context.Context, opt ListLabelOption) ([]*models
 	return labels, uint(total), err
 }
 
+func (opt BaseListByLabelsOption) BindQueryWithLabels(query *gorm.DB, resourceType modelschemas.ResourceType) *gorm.DB {
+	if opt.LabelsList == nil {
+		return query
+	}
+	sqlPieces := make([]string, 0, len(*opt.LabelsList))
+	sqlArgs := make([]interface{}, 0, len(*opt.LabelsList))
+	for _, labels := range *opt.LabelsList {
+		orSqlPieces := make([]string, 0, len(labels))
+		for _, label := range labels {
+			if label.Value != nil && *label.Value != "" {
+				orSqlPieces = append(orSqlPieces, "(label.key = ? AND label.value = ?)")
+				sqlArgs = append(sqlArgs, label.Key, *label.Value)
+			} else {
+				orSqlPieces = append(orSqlPieces, "label.key = ?")
+				sqlArgs = append(sqlArgs, label.Key)
+			}
+			sqlPieces = append(sqlPieces, strings.Join(orSqlPieces, " OR "))
+		}
+	}
+	query = query.Joins(fmt.Sprintf("JOIN label ON label.resource_type = ? AND label.resource_id = %s.id AND (%s)", resourceType, strings.Join(sqlPieces, " AND ")), append([]interface{}{resourceType}, sqlArgs...)...)
+	return query
+}
+
 func (s *labelService) ListLabelKeys(ctx context.Context, opt ListLabelKeysOption) (keys []string, err error) {
 	query := getBaseQuery(ctx, s).Select("DISTINCT key")
 	query = query.Where("organization_id = id ?", opt.OrganizationId)
@@ -185,7 +215,9 @@ func (s *labelService) ListLabelValuesByKey(ctx context.Context, key string, opt
 	return
 }
 
-/* TODO:
-func Filter() {
-}
+/*
+	 Also need: (1) Key = value, (2) Key != value, (3) Key, (4) Key exists, (5) Key doesnotexist,
+	 (6) Key notin(value1, value2, value3)
+
+	Note: (3) Key => is a shorthand for 'key exists'
 */
