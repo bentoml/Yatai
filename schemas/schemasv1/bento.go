@@ -16,8 +16,10 @@ type BentoListSchema struct {
 type CreateBentoSchema struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	CreateLabelSchema
 }
 
 type UpdateBentoSchema struct {
 	Description *string `json:"description"`
+	UpdateLabelSchema
 }

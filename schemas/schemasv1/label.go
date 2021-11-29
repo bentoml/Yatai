@@ -18,10 +18,10 @@ type LabelListSchema struct {
 }
 
 type CreateLabelSchema struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	LabelKey   string `json:"key"`
+	LabelValue string `json:"value"`
 }
 
 type UpdateLabelSchema struct {
-	Value string `json:"value"`
+	LabelValue string `json:"value"`
 }

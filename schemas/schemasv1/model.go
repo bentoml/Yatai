@@ -16,8 +16,10 @@ type ModelListSchema struct {
 type CreateModelSchema struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	CreateLabelSchema
 }
 
 type UpdateModelSchema struct {
 	Description *string `json:"description"`
+	UpdateLabelSchema
 }

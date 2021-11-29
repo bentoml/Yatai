@@ -93,8 +93,8 @@ func (c *labelController) Create(ctx *gin.Context, schema *CreateLabelSchema) (*
 		OrganizationId: org.ID,
 		CreatorId:      user.ID,
 		Resource:       schema.Resource,
-		Key:            schema.Key,
-		Value:          schema.Value,
+		Key:            schema.LabelKey,
+		Value:          schema.LabelValue,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create label")

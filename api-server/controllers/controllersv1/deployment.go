@@ -110,13 +110,22 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 	if err != nil {
 		return nil, errors.Wrap(err, "create deployment")
 	}
-
+	
 	/*
-		Check if there are any labels in the schema, or the label is empty:
+		Checks if there are any labels in the schema, or the label is empty:
 		then call label controller methods
 	*/
+	if err = LabelController.canUpdate(ctx, label); err != nil {
+		return nil, err
+	}
+	if label, err := services.LabelService.Create(ctx, services.CreateLabelOption{
+		OrganizationId: org.ID,
+		CreatorId: user.ID,
+		Key: schema.LabelKey,
+		Value: schema.LabelValue
+	}) 
 
-	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
+	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment, label)
 }
 
 type UpdateDeploymentSchema struct {
@@ -140,7 +149,7 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
 }
 
-func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.UpdateDeploymentSchema, org *models.Organization, deployment *models.Deployment) (*schemasv1.DeploymentSchema, error) {
+func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.UpdateDeploymentSchema, org *models.Organization, deployment *models.Deployment, label *models.Label) (*schemasv1.DeploymentSchema, error) {
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err
@@ -220,6 +229,7 @@ func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.Updat
 		}
 		deploymentTargets = append(deploymentTargets, deploymentTarget)
 	}
+	// TODO: create label here (call the label service methods)
 
 	err = services.DeploymentRevisionService.Deploy(ctx, deploymentRevision, deploymentTargets, false)
 	if err != nil {
