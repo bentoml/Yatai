@@ -145,6 +145,15 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	if err = c.canUpdate(ctx, deployment); err != nil {
 		return nil, err
 	}
+	if err = LabelController.canUpdate(ctx, label); err != nil {
+		return nil, err
+	}
+	if label, err := services.LabelService.Create(ctx, services.CreateLabelOption{
+		OrganizationId: org.ID,
+		CreatorId: user.ID,
+		Key: schema.LabelKey,
+		Value: schema.LabelValue
+	}) 
 
 	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
 }
