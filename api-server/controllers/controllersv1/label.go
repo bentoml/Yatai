@@ -70,9 +70,58 @@ func (c *labelController) Get(ctx *gin.Context, schema *GetLabelSchema) (*schema
 	return transformersv1.ToLabelSchema(ctx, label)
 }
 
-/*
-TODO:
-Create()
-Update()
-List()
-*/
+type CreateLabelSchema struct {
+	schemasv1.CreateLabelSchema
+	GetOrganizationSchema
+}
+
+func (c *labelController) Create(ctx *gin.Context, schema *CreateLabelSchema) (*schemasv1.LabelSchema, error) {
+	user, err := services.GetCurrentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	org, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = LabelController.canUpdate(ctx, label); err != nil {
+		return nil, err
+	}
+
+	label, err := services.LabelService.Create(ctx, services.CreateLabelOption{
+		OrganizationId: org.ID,
+		CreatorId:      user.ID,
+		Resource:       schema.Resource,
+		Key:            schema.Key,
+		Value:          schema.Value,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "create label")
+	}
+	return c.doUpdate(ctx, schema.UpdateLabelSchema, org, label)
+}
+
+type UpdateLabelSchema struct {
+	schemasv1.UpdateLabelSchema
+	GetOrganizationSchema
+}
+
+func (c *labelController) Update(ctx *gin.Context, schema *UpdateLabelSchema) (*schemasv1.LabelSchema, error) {
+	label, err := schema.GetLabel(ctx)
+	if err != nil {
+		return nil, err
+	}
+	org, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, label); err != nil {
+		return nil, err
+	}
+	return c.doUpdate(ctx, schema.UpdateLabelSchema, org, label)
+}
+
+func (c *labelController) doUpdate(ctx *gin.Context, schema schemasv1.UpdateLabelSchema, org *models.Organization, label *models.Label) (*schemasv1.LabelSchema, error) {
+	// TODO
+}

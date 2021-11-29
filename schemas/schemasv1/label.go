@@ -16,3 +16,12 @@ type LabelListSchema struct {
 	BaseListSchema
 	Items []*LabelSchema `json:"labels"`
 }
+
+type CreateLabelSchema struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type UpdateLabelSchema struct {
+	Value string `json:"value"`
+}
