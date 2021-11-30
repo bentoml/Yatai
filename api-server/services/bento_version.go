@@ -1,13 +1,12 @@
 package services
 
 import (
-	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
-	"text/template"
 	"time"
 
 	"k8s.io/apimachinery/pkg/labels"
@@ -16,10 +15,6 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/minio/minio-go/v7/pkg/credentials"
-
-	"github.com/minio/minio-go/v7"
 
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
@@ -104,34 +99,24 @@ func (s *bentoVersionService) PreSignS3UploadUrl(ctx context.Context, bentoVersi
 	if err != nil {
 		return
 	}
-	if org.Config == nil {
-		err = errors.New("This organization does not have configuration")
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
 		return
 	}
-	if org.Config.AWS == nil || org.Config.AWS.S3 == nil {
-		err = errors.New("This organization does not have aws s3 storage set up")
-		return
-	}
-	minioConf := org.Config.AWS.S3
-	minioClient, err := minio.New("s3.amazonaws.com", &minio.Options{
-		Creds:  credentials.NewStaticV4(org.Config.AWS.AccessKeyId, org.Config.AWS.SecretAccessKey, ""),
-		Secure: true,
-	})
+	minioClient, err := s3Config.GetMinioClient()
 	if err != nil {
 		err = errors.Wrap(err, "create s3 client")
 		return
 	}
 
-	bucketName := minioConf.BucketName
-
-	err = minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: minioConf.Region})
+	bucketName, err := s.GetS3BucketName(ctx, bentoVersion)
 	if err != nil {
-		// Check to see if we already own this bucket (which happens if you run this twice)
-		exists, errBucketExists := minioClient.BucketExists(ctx, bucketName)
-		if errBucketExists != nil || !exists {
-			err = errors.Wrapf(err, "create bucket %s", bucketName)
-			return
-		}
+		return
+	}
+
+	err = s3Config.MakeSureBucket(ctx, bucketName)
+	if err != nil {
+		return
 	}
 
 	objectName, err := s.getS3ObjectName(ctx, bentoVersion)
@@ -160,7 +145,7 @@ func (s *bentoVersionService) getS3ObjectName(ctx context.Context, bentoVersion 
 	return objectName, nil
 }
 
-func (s *bentoVersionService) GetImageName(ctx context.Context, bentoVersion *models.BentoVersion) (string, error) {
+func (s *bentoVersionService) GetImageName(ctx context.Context, bentoVersion *models.BentoVersion, inCluster bool) (string, error) {
 	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
 	if err != nil {
 		return "", nil
@@ -169,11 +154,37 @@ func (s *bentoVersionService) GetImageName(ctx context.Context, bentoVersion *mo
 	if err != nil {
 		return "", nil
 	}
-	if org.Config == nil || org.Config.AWS == nil || org.Config.AWS.ECR == nil {
-		return "", errors.Errorf("organization %s don't have ECR config", org.Name)
+	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
+	if err != nil {
+		return "", err
 	}
-	imageName := fmt.Sprintf("%s:yatai.%s.%s.%s", org.Config.AWS.ECR.RepositoryURI, org.Name, bento.Name, bentoVersion.Version)
+	var imageName string
+	if inCluster {
+		imageName = fmt.Sprintf("%s:yatai.%s.%s.%s", dockerRegistry.BentosRepositoryURIInCluster, org.Name, bento.Name, bentoVersion.Version)
+	} else {
+		imageName = fmt.Sprintf("%s:yatai.%s.%s.%s", dockerRegistry.BentosRepositoryURI, org.Name, bento.Name, bentoVersion.Version)
+	}
 	return imageName, nil
+}
+
+func (s *bentoVersionService) GetS3BucketName(ctx context.Context, bentoVersion *models.BentoVersion) (string, error) {
+	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+	if err != nil {
+		return "", nil
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+	if err != nil {
+		return "", nil
+	}
+
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
+		return "", err
+	}
+
+	s3BucketName := s3Config.BentosBucketName
+
+	return s3BucketName, nil
 }
 
 func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.BentoVersion, opt UpdateBentoVersionOption) (*models.BentoVersion, error) {
@@ -283,47 +294,39 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 		return nil, err
 	}
 
-	if org.Config == nil || org.Config.AWS == nil {
-		return nil, errors.Errorf("organization %s don't have aws config", org.Name)
-	}
-
-	awsSecretKubeName := "aws-secret"
-	var awsSecretBuffer bytes.Buffer
-	t := template.Must(template.New(awsSecretKubeName).Parse(awsSecretTemplate))
-	if err := t.Execute(&awsSecretBuffer, map[string]string{
-		"AccessKeyId":     org.Config.AWS.AccessKeyId,
-		"SecretAccessKey": org.Config.AWS.SecretAccessKey,
-	}); err != nil {
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
 		return nil, err
 	}
 
-	secretsCli := kubeCli.CoreV1().Secrets(kubeNamespace)
-	_, err = secretsCli.Get(ctx, awsSecretKubeName, metav1.GetOptions{})
-	if apierrors.IsNotFound(err) {
-		_, err = secretsCli.Create(ctx, &apiv1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Name: awsSecretKubeName},
-			StringData: map[string]string{
-				"credentials": awsSecretBuffer.String(),
-			},
-		}, metav1.CreateOptions{})
-		if err != nil {
-			return nil, err
-		}
-	} else if err != nil {
+	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
+	if err != nil {
 		return nil, err
 	}
 
 	dockerCMKubeName := "docker-config"
-	dockerCMContent, err := json.Marshal(struct {
-		CredsStore string `json:"creds_store"`
-	}{
-		CredsStore: "ecr-login",
-	})
+	cmObj := struct {
+		Auths map[string]struct {
+			Auth string `json:"auth"`
+		} `json:"auths,omitempty"`
+	}{}
+
+	if dockerRegistry.Username != "" {
+		cmObj.Auths = map[string]struct {
+			Auth string `json:"auth"`
+		}{
+			dockerRegistry.Server: {
+				Auth: base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", dockerRegistry.Username, dockerRegistry.Password))),
+			},
+		}
+	}
+
+	dockerCMContent, err := json.Marshal(cmObj)
 	if err != nil {
 		return nil, err
 	}
 	cmsCli := kubeCli.CoreV1().ConfigMaps(kubeNamespace)
-	_, err = cmsCli.Get(ctx, dockerCMKubeName, metav1.GetOptions{})
+	oldCm, err := cmsCli.Get(ctx, dockerCMKubeName, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
 		_, err = cmsCli.Create(ctx, &apiv1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{Name: dockerCMKubeName},
@@ -331,8 +334,47 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 				"config.json": string(dockerCMContent),
 			},
 		}, metav1.CreateOptions{})
+		if err != nil {
+			return nil, err
+		}
 	} else if err != nil {
 		return nil, err
+	} else {
+		oldCm.Data["config.json"] = string(dockerCMContent)
+		_, err = cmsCli.Update(ctx, oldCm, metav1.UpdateOptions{})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	volumeMounts := []apiv1.VolumeMount{
+		{
+			Name:      dockerCMKubeName,
+			MountPath: "/kaniko/.docker/",
+		},
+	}
+
+	envs := []apiv1.EnvVar{
+		{
+			Name:  "AWS_ACCESS_KEY_ID",
+			Value: s3Config.AccessKey,
+		},
+		{
+			Name:  "AWS_SECRET_ACCESS_KEY",
+			Value: s3Config.SecretKey,
+		},
+		{
+			Name:  "AWS_REGION",
+			Value: s3Config.Region,
+		},
+		{
+			Name:  "S3_ENDPOINT",
+			Value: s3Config.EndpointWithSchemeInCluster,
+		},
+		{
+			Name:  "S3_FORCE_PATH_STYLE",
+			Value: "true",
+		},
 	}
 
 	podsCli := kubeCli.CoreV1().Pods(kubeNamespace)
@@ -342,18 +384,34 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 		return nil, err
 	}
 
-	if org.Config == nil || org.Config.AWS == nil || org.Config.AWS.S3 == nil {
-		return nil, errors.Errorf("origanization %s don't have s3 config", org.Name)
-	}
-
 	s3ObjectName, err := s.getS3ObjectName(ctx, bentoVersion)
 	if err != nil {
 		return nil, err
 	}
 
-	imageName, err := s.GetImageName(ctx, bentoVersion)
+	imageName, err := s.GetImageName(ctx, bentoVersion, true)
 	if err != nil {
 		return nil, err
+	}
+
+	s3BucketName, err := s.GetS3BucketName(ctx, bentoVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s3Config.MakeSureBucket(ctx, s3BucketName)
+	if err != nil {
+		return nil, err
+	}
+
+	args := []string{
+		"--dockerfile=./Dockerfile",
+		fmt.Sprintf("--context=s3://%s/%s", s3BucketName, s3ObjectName),
+		fmt.Sprintf("--destination=%s", imageName),
+	}
+
+	if !dockerRegistry.Secure {
+		args = append(args, "--insecure")
 	}
 
 	_, err = podsCli.Get(ctx, kubeName, metav1.GetOptions{})
@@ -379,40 +437,16 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 							},
 						},
 					},
-					{
-						Name: awsSecretKubeName,
-						VolumeSource: apiv1.VolumeSource{
-							Secret: &apiv1.SecretVolumeSource{
-								SecretName: awsSecretKubeName,
-							},
-						},
-					},
 				},
 				Containers: []apiv1.Container{
 					{
-						Name:  "builder",
-						Image: "gcr.io/kaniko-project/executor:latest",
-						Args: []string{
-							"--dockerfile=./Dockerfile",
-							fmt.Sprintf("--context=s3://%s/%s", org.Config.AWS.S3.BucketName, s3ObjectName),
-							fmt.Sprintf("--destination=%s", imageName),
-						},
-						VolumeMounts: []apiv1.VolumeMount{
-							{
-								Name:      dockerCMKubeName,
-								MountPath: "/kaniko/.docker/",
-							},
-							{
-								Name:      awsSecretKubeName,
-								MountPath: "/root/.aws/",
-							},
-						},
-						Env: []apiv1.EnvVar{
-							{
-								Name:  "AWS_REGION",
-								Value: org.Config.AWS.S3.Region,
-							},
-						},
+						Name:         "builder",
+						Image:        "gcr.io/kaniko-project/executor:latest",
+						Args:         args,
+						VolumeMounts: volumeMounts,
+						Env:          envs,
+						TTY:          true,
+						Stdin:        true,
 					},
 				},
 			},

@@ -109,7 +109,7 @@ func (s *modelVersionService) PreSignS3UploadUrl(ctx context.Context, modelVersi
 		return
 	}
 
-	bucketName := minioConf.BucketName
+	bucketName := minioConf.BentosBucketName
 
 	err = minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: minioConf.Region})
 	if err != nil {
@@ -160,9 +160,15 @@ func (s *modelVersionService) GetImageName(ctx context.Context, modelVersion *mo
 		return "", errors.Errorf("Organization %s does not have ECR configuration", org.Name)
 	}
 
-	imageName := fmt.Sprintf("%s:yatai.%s.%s.%s", org.Config.AWS.ECR.RepositoryURI, org.Name, model.Name, modelVersion.Version)
+	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
+	if err != nil {
+		return "", err
+	}
+
+	imageName := fmt.Sprintf("%s:yatai.%s.%s.%s", dockerRegistry.ModelsRepositoryURI, org.Name, model.Name, modelVersion.Version)
 	return imageName, nil
 }
+
 func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.ModelVersion, opt UpdateModelVersionOption) (*models.ModelVersion, error) {
 	var err error
 	updaters := make(map[string]interface{})
@@ -377,7 +383,7 @@ func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.M
 						Image: "gcr.io/kaniko-project/executor:latest",
 						Args: []string{
 							"--dockerfile=./Dockerfile",
-							fmt.Sprintf("--context=s3://%s/%s", org.Config.AWS.S3.BucketName, s3ObjectName),
+							fmt.Sprintf("--context=s3://%s/%s", org.Config.AWS.S3.BentosBucketName, s3ObjectName),
 							fmt.Sprintf("--destination=%s", imageName),
 						},
 						VolumeMounts: []apiv1.VolumeMount{

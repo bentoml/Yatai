@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IHelmChart } from './helm_chart'
 
-export type YataiComponentType = 'logging' | 'monitoring'
+export type YataiComponentType = 'deployment' | 'logging' | 'monitoring'
 export type YataiComponentReleaseStatus =
     | 'unknown'
     | 'deployed'

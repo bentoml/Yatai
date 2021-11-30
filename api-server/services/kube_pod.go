@@ -185,7 +185,32 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		return
 	}
 
-	imageName, err := BentoVersionService.GetImageName(ctx, bentoVersion)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
+	if err != nil {
+		return
+	}
+
+	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
+	if err != nil {
+		return
+	}
+
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
+	if err != nil {
+		return
+	}
+
+	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
+	if err != nil {
+		return
+	}
+
+	majorCluster, err := OrganizationService.GetMajorCluster(ctx, org)
+	if err != nil {
+		return
+	}
+
+	imageName, err := BentoVersionService.GetImageName(ctx, bentoVersion, cluster.ID == majorCluster.ID)
 	if err != nil {
 		return
 	}
@@ -237,6 +262,14 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		Spec: apiv1.PodSpec{
 			Containers: containers,
 		},
+	}
+
+	if dockerRegistry.Username != "" {
+		podTemplateSpec.Spec.ImagePullSecrets = []apiv1.LocalObjectReference{
+			{
+				Name: consts.KubeSecretNameRegcred,
+			},
+		}
 	}
 
 	return

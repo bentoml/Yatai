@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/bentoml/yatai/common/utils"
+
 	v1 "k8s.io/api/networking/v1"
 
 	"github.com/bentoml/yatai/common/consts"
@@ -95,6 +97,7 @@ more_set_headers "X-Yatai-Bento-Version: %s";
 			OwnerReferences: deployOption.OwnerReferences,
 		},
 		Spec: v1.IngressSpec{
+			IngressClassName: utils.StringPtr(consts.KubeIngressClassName),
 			Rules: []v1.IngressRule{
 				{
 					Host: internalHost,

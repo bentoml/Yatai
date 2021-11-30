@@ -7,6 +7,8 @@ import (
 )
 
 const (
+	KubeSecretNameRegcred      = "yatai-regcred"
+	KubeIngressClassName       = "yatai-ingress"
 	KubeLabelYataiSelector     = "yatai.io/selector"
 	KubeLabelYataiBento        = "yatai.io/bento"
 	KubeLabelYataiBentoVersion = "yatai.io/bento-version"

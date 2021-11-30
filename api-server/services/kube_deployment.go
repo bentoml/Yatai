@@ -134,6 +134,17 @@ func (s *kubeDeploymentService) DeployDeploymentTargetAsKubeDeployment(ctx conte
 	if err != nil {
 		return err
 	}
+
+	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
+	if err != nil {
+		return err
+	}
+
+	_, err = ClusterService.MakeSureDockerRegcred(ctx, cluster, kubeDeployment.Namespace)
+	if err != nil {
+		return err
+	}
+
 	kubeDeploymentsCli, err := DeploymentService.GetKubeDeploymentsCli(ctx, deployment)
 	if err != nil {
 		return errors.Wrap(err, "get k8s deployments cli")

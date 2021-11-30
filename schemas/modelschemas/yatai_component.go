@@ -3,6 +3,7 @@ package modelschemas
 type YataiComponentType string
 
 const (
+	YataiComponentTypeDeployment YataiComponentType = "deployment"
 	YataiComponentTypeLogging    YataiComponentType = "logging"
 	YataiComponentTypeMonitoring YataiComponentType = "monitoring"
 )
