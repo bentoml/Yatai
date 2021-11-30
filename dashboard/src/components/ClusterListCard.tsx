@@ -4,7 +4,6 @@ import { createCluster } from '@/services/cluster'
 import { usePage } from '@/hooks/usePage'
 import { ICreateClusterSchema } from '@/schemas/cluster'
 import ClusterForm from '@/components/ClusterForm'
-import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
@@ -13,6 +12,8 @@ import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
 import { resourceIconMapping } from '@/consts'
+import { StatefulTooltip, PLACEMENT } from 'baseui/tooltip'
+import ReactTimeAgo from 'react-time-ago'
 
 export default function ClusterListCard() {
     const [page] = usePage()
@@ -40,7 +41,7 @@ export default function ClusterListCard() {
         >
             <Table
                 isLoading={clustersInfo.isLoading}
-                columns={[t('name'), t('description'), t('creator'), t('created_at')]}
+                columns={[t('name'), t('description'), t('creator'), t('Time since Creation')]}
                 data={
                     clustersInfo.data?.items.map((cluster) => [
                         <Link key={cluster.uid} to={`/clusters/${cluster.name}`}>
@@ -48,7 +49,11 @@ export default function ClusterListCard() {
                         </Link>,
                         cluster.description,
                         cluster.creator && <User user={cluster.creator} />,
-                        formatDateTime(cluster.created_at),
+                        cluster?.created_at && (
+                            <StatefulTooltip placement={PLACEMENT.bottom} content={() => cluster.created_at}>
+                                <ReactTimeAgo date={new Date(cluster.created_at)} timeStyle='round' locale='en-US' />
+                            </StatefulTooltip>
+                        ),
                     ]) ?? []
                 }
                 paginationProps={{
