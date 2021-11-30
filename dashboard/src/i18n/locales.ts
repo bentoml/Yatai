@@ -847,7 +847,7 @@ const locales0 = {
     },
     'last updater': {
         cn: '最后更新者',
-        en: 'Last Updater',
+        en: 'Last User to Update',
         ja: '最終更新者',
     },
     'updated_at': {
