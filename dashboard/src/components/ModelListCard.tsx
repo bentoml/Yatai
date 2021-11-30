@@ -10,9 +10,10 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import Table from '@/components/Table'
 import User from '@/components/User'
-import { formatDateTime } from '@/utils/datetime'
 import { Link } from 'react-router-dom'
 import qs from 'qs'
+import { StatefulTooltip, PLACEMENT } from 'baseui/tooltip'
+import ReactTimeAgo from 'react-time-ago'
 
 export default function ModelListCard() {
     const [page] = usePage()
@@ -40,7 +41,7 @@ export default function ModelListCard() {
         >
             <Table
                 isLoading={modelInfo.isLoading}
-                columns={[t('name'), t('version'), t('created_at')]}
+                columns={[t('name'), t('version'), t('Time since Creation')]}
                 data={
                     modelInfo.data?.items?.map((model) => [
                         <Link key={model.uid} to={`/models/${model.name}`}>
@@ -48,7 +49,11 @@ export default function ModelListCard() {
                         </Link>,
                         model.latest_version?.version,
                         model.creator && <User user={model.creator} />,
-                        formatDateTime(model.created_at),
+                        model?.created_at && (
+                            <StatefulTooltip placement={PLACEMENT.bottom} content={() => model.created_at}>
+                                <ReactTimeAgo date={new Date(model.created_at)} timeStyle='round' locale='en-US' />
+                            </StatefulTooltip>
+                        ),
                     ]) ?? []
                 }
                 paginationProps={{
