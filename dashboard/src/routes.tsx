@@ -35,6 +35,7 @@ import ModelLayout from '@/components/ModelLayout'
 import ModelOverview from '@/pages/Model/Overview'
 import ModelVersions from '@/pages/Model/Versions'
 import OrganizationModels from '@/pages/Organization/Models'
+import { ChatWidget } from '@papercups-io/chat-widget'
 
 const useStyles = createUseStyles({
     'root': ({ theme }: IThemedStyleProps) => ({
@@ -166,6 +167,28 @@ const Routes = () => {
                         </OrganizationLayout>
                     </Route>
                 </Switch>
+                <ChatWidget
+                    token='2877f01c-c1be-4748-8e9f-9d3bb7f6e403'
+                    title='Welcome to BentoML'
+                    subtitle='Ask us anything in the chat window below 😊'
+                    primaryColor='#1890ff'
+                    newMessagePlaceholder='Start typing...'
+                    showAgentAvailability={false}
+                    agentAvailableText='We are online right now!'
+                    agentUnavailableText='We are away at the moment.'
+                    requireEmailUpfront={false}
+                    iconVariant='outlined'
+                    baseUrl='https://app.papercups.io'
+                    // Optionally include data about your customer here to identify them
+                    // customer={{
+                    //   name: __CUSTOMER__.name,
+                    //   email: __CUSTOMER__.email,
+                    //   external_id: __CUSTOMER__.id,
+                    //   metadata: {
+                    //     plan: "premium"
+                    //   }
+                    // }}
+                />
             </div>
         </BrowserRouter>
     )
