@@ -5,11 +5,11 @@ import { createBento, listBentos } from '@/services/bento'
 import { usePage } from '@/hooks/usePage'
 import { ICreateBentoSchema } from '@/schemas/bento'
 import BentoForm from '@/components/BentoForm'
-import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
+import { StatefulTooltip, PLACEMENT } from 'baseui/tooltip'
 import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
@@ -17,6 +17,7 @@ import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers
 import { parseQ, qToString } from '@/utils'
 import { useQueryArgs } from '@/hooks/useQueryArgs'
 import qs from 'qs'
+import ReactTimeAgo from 'react-time-ago'
 import FilterBar from './FilterBar'
 import FilterInput from './FilterInput'
 
@@ -152,7 +153,18 @@ export default function BentoListCard() {
                         </Link>,
                         bento.latest_version?.version,
                         bento.latest_version?.creator && <User user={bento.latest_version.creator} />,
-                        bento.latest_version?.updated_at && formatDateTime(bento.latest_version.updated_at),
+                        bento?.latest_version?.created_at && (
+                            <StatefulTooltip
+                                placement={PLACEMENT.bottom}
+                                content={() => bento.latest_version?.created_at}
+                            >
+                                <ReactTimeAgo
+                                    date={new Date(bento.latest_version?.created_at)}
+                                    timeStyle='round'
+                                    locale='en-US'
+                                />
+                            </StatefulTooltip>
+                        ),
                     ]) ?? []
                 }
                 paginationProps={{
