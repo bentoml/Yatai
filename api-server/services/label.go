@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"xstrings"
 
 	"gorm.io/gorm"
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
 	"github.com/bentoml/yatai/schemas/modelschemas"
+	"github.com/huandu/xstrings"
 	"github.com/pkg/errors"
 )
 
@@ -31,18 +32,15 @@ type CreateLabelOption struct {
 }
 
 type UpdateLabelOption struct {
-	OrganizationId uint
-	CreatorId      uint
-	Resource       models.IResource
-	Value          *string
+	Value string
 }
 
 type ListLabelOption struct {
 	BaseListOption
 	OrganizationId *uint
 	CreatorId      *uint
-	ResourceType   *string
-	ResourceId     *string
+	ResourceType   *modelschemas.ResourceType
+	ResourceId     *uint
 }
 
 type BaseListByLabelsOption struct {
@@ -86,17 +84,12 @@ func (s *labelService) Update(ctx context.Context, b *models.Label, opt UpdateLa
 	// Updates only value, not the key (Add documentation, e.g. why we did this.)
 	var err error
 	updaters := make(map[string]interface{})
-	if opt.Value != nil {
-		updaters["value"] = *opt.Value
-		defer func() {
-			if err == nil {
-				b.Value = *opt.Value
-			}
-		}()
-	}
-	if len(updaters) == 0 {
-		return b, nil
-	}
+	updaters["value"] = opt.Value
+	defer func() {
+		if err == nil {
+			b.Value = opt.Value
+		}
+	}()
 	err = s.getBaseDB(ctx).Where("id = ? ", b.ID).Updates(updaters).Error
 	if err != nil {
 		return nil, err
@@ -117,14 +110,35 @@ func (s *labelService) Get(ctx context.Context, id uint) (*models.Label, error) 
 	return &label, nil
 }
 
-func (s *labelService) GetByKey(ctx context.Context, organizationId uint, key string) (*models.Label, error) {
+func (s *labelService) GetByUid(ctx context.Context, uid string) (*models.Label, error) {
 	var label models.Label
-	err := getBaseQuery(ctx, s).Where("organization_id = ? ", organizationId).Where("key = ? ", key).First(&label).Error
+	err := getBaseQuery(ctx, s).Where("uid = ? ", uid).First(&label).Error
 	if err != nil {
-		return nil, errors.Wrapf(err, "get label by key %s", key)
+		return nil, err
 	}
-	if label.ResourceId == 0 {
+	if label.ID == 0 {
 		return nil, consts.ErrNotFound
+	}
+	return &label, nil
+}
+
+type GetLabelByKeyOption struct {
+	OrganizationId uint
+	ResourceType   modelschemas.ResourceType
+	ResourceId     uint
+	Key            string
+}
+
+func (s *labelService) GetByKey(ctx context.Context, opt GetLabelByKeyOption) (*models.Label, error) {
+	var label models.Label
+	query := getBaseQuery(ctx, s).
+		Where("organization_id = ? ", opt.OrganizationId).
+		Where("key = ?", opt.Key).
+		Where("resource_type = ?", opt.ResourceType).
+		Where("resource_id = ?", opt.ResourceId)
+	err := query.First(&label).Error
+	if err != nil {
+		return nil, errors.Wrapf(err, "get label by key %s", opt.Key)
 	}
 	return &label, nil
 }
@@ -229,7 +243,7 @@ func ParseQueryLabelsToLabelsList(queryLabels []string) (res [][]modelschemas.La
 				continue
 			}
 			k, _, v := xstrings.Partition(piece, "=")
-			item := modelschemas.LabelItem{
+			item := modelschemas.LabelItemSchema{
 				Key: k,
 			}
 			if v != "" {
@@ -242,6 +256,62 @@ func ParseQueryLabelsToLabelsList(queryLabels []string) (res [][]modelschemas.La
 		}
 	}
 	return
+}
+
+func (s labelService) CreateOrUpdateLabelsFromCreateLabelsSchema(ctx context.Context, schema modelschemas.CreateLabelsForResourceSchema, creatorId, organizationId uint, resource models.IResource) error {
+	oldLabels, _, err := s.List(ctx, ListLabelOption{
+		OrganizationId: &organizationId,
+		ResourceType:   resource.GetResourceType().Ptr(),
+		ResourceId:     utils.UintPtr(resource.GetId()),
+	})
+	if err != nil {
+		return err
+	}
+	keysMapping := make(map[string]struct{}, len(oldLabels))
+	for _, kv := range schema {
+		keysMapping[kv.Key] = struct{}{}
+	}
+	for _, label := range oldLabels {
+		if _, exists := keysMapping[label.Key]; exists {
+			continue
+		}
+		_, err = s.Delete(ctx, label)
+		if err != nil {
+			return err
+		}
+	}
+	for _, kv := range schema {
+		label, err := s.GetByKey(ctx, GetLabelByKeyOption{
+			OrganizationId: organizationId,
+			ResourceType:   resource.GetResourceType(),
+			ResourceId:     resource.GetId(),
+			Key:            kv.Key,
+		})
+		isExists := utils.IsNotFound(err)
+		if !isExists && err != nil {
+			return err
+		}
+		if !isExists {
+			_, err = s.Create(ctx, CreateLabelOption{
+				OrganizationId: organizationId,
+				CreatorId:      creatorId,
+				Resource:       resource,
+				Key:            kv.Key,
+				Value:          kv.Value,
+			})
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = s.Update(ctx, label, UpdateLabelOption{
+				Value: kv.Value,
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 /*

@@ -16,3 +16,7 @@ const (
 	ResourceTypeLabel              ResourceType = "label"
 	ResourceTypeApiToken           ResourceType = "api_token"
 )
+
+func (type_ ResourceType) Ptr() *ResourceType {
+	return &type_
+}

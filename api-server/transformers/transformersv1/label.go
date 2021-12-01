@@ -38,7 +38,7 @@ func ToLabelSchemas(ctx context.Context, labels []*models.Label) ([]*schemasv1.L
 			Organization:   orgSchema,
 			Creator:        creatorSchema,
 			ResourceType:   r.ResourceType,
-			ResourceId:     r.ResourceId,
+			ResourceUid:    r.GetUid(),
 			Key:            r.Key,
 			Value:          r.Value, // NOTE (refers above): KeyValueMap[r.getValue()]
 		})

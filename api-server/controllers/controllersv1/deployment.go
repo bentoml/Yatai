@@ -110,20 +110,6 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 	if err != nil {
 		return nil, errors.Wrap(err, "create deployment")
 	}
-	
-	/*
-		Checks if there are any labels in the schema, or the label is empty:
-		then call label controller methods
-	*/
-	if err = LabelController.canUpdate(ctx, label); err != nil {
-		return nil, err
-	}
-	if label, err := services.LabelService.Create(ctx, services.CreateLabelOption{
-		OrganizationId: org.ID,
-		CreatorId: user.ID,
-		Key: schema.LabelKey,
-		Value: schema.LabelValue,
-	}) 
 
 	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment, label)
 }
@@ -145,15 +131,18 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	if err = c.canUpdate(ctx, deployment); err != nil {
 		return nil, err
 	}
+	label, err := services.LabelService.Get(ctx, schema.UpdateDeploymentSchema)
 	if err = LabelController.canUpdate(ctx, label); err != nil {
 		return nil, err
 	}
 	if label, err := services.LabelService.Create(ctx, services.CreateLabelOption{
 		OrganizationId: org.ID,
-		CreatorId: user.ID,
-		Key: schema.LabelKey,
-		Value: schema.LabelValue,
-	}) 
+		CreatorId:      user.ID,
+		Key:            schema.LabelKey,
+		Value:          schema.LabelValue,
+	}); err != nil {
+		return nil, err
+	}
 
 	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
 }

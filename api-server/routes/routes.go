@@ -145,6 +145,7 @@ func NewRouter() (*fizz.Fizz, error) {
 	userRoutes(apiRootGroup)
 	organizationRoutes(apiRootGroup)
 	apiTokenRoutes(apiRootGroup)
+	labelRoutes(apiRootGroup)
 	clusterRoutes(apiRootGroup)
 	bentoRoutes(apiRootGroup)
 	modelRoutes(apiRootGroup)
@@ -358,6 +359,14 @@ func apiTokenRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Create api token"),
 		fizz.Summary("Create api token"),
 	}, requireLogin, tonic.Handler(controllersv1.ApiTokenController.Create, 200))
+}
+
+func labelRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/labels", "labels", "labels")
+	grp.GET("", []fizz.OperationOption{
+		fizz.ID("List Labels"),
+		fizz.Summary("List Labels"),
+	}, requireLogin, tonic.Handler(controllersv1.LabelController.List, 200))
 }
 
 func clusterRoutes(grp *fizz.RouterGroup) {

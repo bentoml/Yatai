@@ -137,6 +137,18 @@ func (s *deploymentService) Get(ctx context.Context, id uint) (*models.Deploymen
 	return &deployment, nil
 }
 
+func (s *deploymentService) GetByUid(ctx context.Context, uid string) (*models.Deployment, error) {
+	var deployment models.Deployment
+	err := getBaseQuery(ctx, s).Where("uid = ?", uid).First(&deployment).Error
+	if err != nil {
+		return nil, err
+	}
+	if deployment.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &deployment, nil
+}
+
 func (s *deploymentService) GetByName(ctx context.Context, clusterId uint, name string) (*models.Deployment, error) {
 	var deployment models.Deployment
 	err := getBaseQuery(ctx, s).Where("cluster_id = ?", clusterId).Where("name = ?", name).First(&deployment).Error

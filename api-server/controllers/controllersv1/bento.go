@@ -82,35 +82,12 @@ func (c *bentoController) Create(ctx *gin.Context, schema *CreateBentoSchema) (*
 	if err = OrganizationController.canUpdate(ctx, organization); err != nil {
 		return nil, err
 	}
-	label, err := services.LabelService.GetLabel(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err = LabelController.canUpdate(ctx, label)
-	err != nil {
-		if label, err := services.LabelService.Create(ctx, services.CreateLabelOption{
-			OrganizationId: organization.ID,
-			CreatorId: user.ID,
-			Key: schema.Key,
-			Value: schema.Value,
-		})
-	}
-	else {
-		label, err = services.LabelService.Update(ctx, services.UpdateLabelOption{
-			OrganizationId: org.ID,
-			CreatorId: user.ID,
-			Value: schema.LabelValue,
-		})
-	}
-	if err != nil {
-		return nil, err
-	}
+
 	bento, err := services.BentoService.Create(ctx, services.CreateBentoOption{
 		CreatorId:      user.ID,
 		OrganizationId: organization.ID,
 		Name:           schema.Name,
-		Key: label.Key,
-		Value: label.Value,
+		Labels:         schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create bento")
@@ -133,6 +110,7 @@ func (c *bentoController) Update(ctx *gin.Context, schema *UpdateBentoSchema) (*
 	}
 	bento, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
 		Description: schema.Description,
+		Labels:      schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "update bento")
@@ -256,6 +234,10 @@ func (c *bentoController) List(ctx *gin.Context, schema *ListBentoSchema) (*sche
 				fieldName = "bento_version.created_at"
 			}
 			listOpt.Order = utils.StringPtr(fmt.Sprintf("%s %s", fieldName, strings.ToUpper(order)))
+		}
+		if k == "label" {
+			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
+			listOpt.LabelsList = &labelsSchema
 		}
 	}
 

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
 	"github.com/pkg/errors"
@@ -80,6 +81,18 @@ func (s *modelService) Update(ctx context.Context, m *models.Model, opt UpdateMo
 func (s *modelService) Get(ctx context.Context, id uint) (*models.Model, error) {
 	var model models.Model
 	err := s.getBaseDB(ctx).Where("id = ?", id).First(&model).Error
+	if err != nil {
+		return nil, err
+	}
+	if model.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &model, nil
+}
+
+func (s *modelService) GetByUid(ctx context.Context, uid string) (*models.Model, error) {
+	var model models.Model
+	err := s.getBaseDB(ctx).Where("uid = ?", uid).First(&model).Error
 	if err != nil {
 		return nil, err
 	}

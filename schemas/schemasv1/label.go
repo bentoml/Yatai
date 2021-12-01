@@ -7,7 +7,7 @@ type LabelSchema struct {
 	Organization *OrganizationSchema       `json:"organization"`
 	Creator      *UserSchema               `json:"creator"`
 	ResourceType modelschemas.ResourceType `json:"resource_type"`
-	ResourceId   uint                      `json:"resource_id"`
+	ResourceUid  string                    `json:"resource_uid"`
 	Key          string                    `json:"key"`
 	Value        string                    `json:"value"`
 }

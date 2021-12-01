@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+
 	"github.com/bentoml/yatai/schemas/modelschemas"
 
 	"github.com/pkg/errors"
@@ -24,10 +25,12 @@ type CreateBentoOption struct {
 	CreatorId      uint
 	OrganizationId uint
 	Name           string
+	Labels         modelschemas.CreateLabelsForResourceSchema
 }
 
 type UpdateBentoOption struct {
 	Description *string
+	Labels      *modelschemas.CreateLabelsForResourceSchema
 }
 
 type ListBentoOption struct {
@@ -57,6 +60,7 @@ func (*bentoService) Create(ctx context.Context, opt CreateBentoOption) (*models
 	if err != nil {
 		return nil, err
 	}
+	err = LabelService.CreateOrUpdateLabelsFromCreateLabelsSchema(ctx, opt.Labels, opt.CreatorId, opt.OrganizationId, &bento)
 	return &bento, err
 }
 
@@ -81,12 +85,39 @@ func (s *bentoService) Update(ctx context.Context, b *models.Bento, opt UpdateBe
 		return nil, err
 	}
 
+	if opt.Labels != nil {
+		org, err := OrganizationService.GetAssociatedOrganization(ctx, b)
+		if err != nil {
+			return nil, err
+		}
+		user, err := GetCurrentUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = LabelService.CreateOrUpdateLabelsFromCreateLabelsSchema(ctx, *opt.Labels, user.ID, org.ID, b)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return b, err
 }
 
 func (s *bentoService) Get(ctx context.Context, id uint) (*models.Bento, error) {
 	var bento models.Bento
 	err := getBaseQuery(ctx, s).Where("id = ?", id).First(&bento).Error
+	if err != nil {
+		return nil, err
+	}
+	if bento.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &bento, nil
+}
+
+func (s *bentoService) GetByUid(ctx context.Context, uid string) (*models.Bento, error) {
+	var bento models.Bento
+	err := getBaseQuery(ctx, s).Where("uid = ?", uid).First(&bento).Error
 	if err != nil {
 		return nil, err
 	}

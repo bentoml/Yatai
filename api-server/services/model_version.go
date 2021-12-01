@@ -441,6 +441,18 @@ func (s *modelVersionService) Get(ctx context.Context, id uint) (*models.ModelVe
 	return &modelVersion, nil
 }
 
+func (s *modelVersionService) GetByUid(ctx context.Context, uid string) (*models.ModelVersion, error) {
+	var modelVersion models.ModelVersion
+	err := getBaseQuery(ctx, s).Where("uid = ?", uid).First(&modelVersion).Error
+	if err != nil {
+		return nil, err
+	}
+	if modelVersion.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &modelVersion, nil
+}
+
 func (s *modelVersionService) GetByVersion(ctx context.Context, modelId uint, version string) (*models.ModelVersion, error) {
 	var modelVersion models.ModelVersion
 	err := getBaseQuery(ctx, s).Where("model_id = ?", modelId).Where("version = ?", version).First(&modelVersion).Error

@@ -20,7 +20,7 @@ type DeploymentTargetListSchema struct {
 	Items []*DeploymentTargetSchema `json:"items"`
 }
 
-type  struct {
+type CreateDeploymentTargetSchema struct {
 	DeploymentTargetTypeSchema
 	BentoName    string                                    `json:"bento_name"`
 	BentoVersion string                                    `json:"bento_version"`
