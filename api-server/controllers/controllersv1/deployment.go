@@ -81,6 +81,8 @@ func (c *deploymentController) canOperate(ctx context.Context, deployment *model
 type CreateDeploymentSchema struct {
 	schemasv1.CreateDeploymentSchema
 	GetClusterSchema
+	GetOrganizationSchema
+	GetLabelSchema
 }
 
 func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
@@ -88,15 +90,17 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 	if err != nil {
 		return nil, err
 	}
-	cluster, err := schema.GetCluster(ctx)
-	if err != nil {
-		return nil, err
-	}
 	org, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
 	}
-
+	if err = OrganizationController.canUpdate(ctx, org); err != nil {
+		return nil, err
+	}
+	cluster, err := schema.GetCluster(ctx)
+	if err != nil {
+		return nil, err
+	}
 	if err = ClusterController.canUpdate(ctx, cluster); err != nil {
 		return nil, err
 	}
@@ -106,12 +110,13 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		ClusterId:   cluster.ID,
 		Name:        schema.Name,
 		Description: schema.Description,
+		Labels:      schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create deployment")
 	}
 
-	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment, label)
+	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
 }
 
 type UpdateDeploymentSchema struct {
@@ -124,30 +129,26 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	if err != nil {
 		return nil, err
 	}
+	if err = c.canUpdate(ctx, deployment); err != nil {
+		return nil, err
+	}
+	cluster, err := schema.GetCluster(ctx)
+	if err != nil {
+		return nil, err
+	}
 	org, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if err = c.canUpdate(ctx, deployment); err != nil {
-		return nil, err
-	}
-	label, err := services.LabelService.Get(ctx, schema.UpdateDeploymentSchema)
-	if err = LabelController.canUpdate(ctx, label); err != nil {
-		return nil, err
-	}
-	if label, err := services.LabelService.Create(ctx, services.CreateLabelOption{
-		OrganizationId: org.ID,
-		CreatorId:      user.ID,
-		Key:            schema.LabelKey,
-		Value:          schema.LabelValue,
-	}); err != nil {
-		return nil, err
-	}
+	deployment, err = services.DeploymentService.Update(ctx, deployment, services.UpdateDeploymentOption{
+		ClusterId: cluster.ID,
+		Labels:    schema.Labels,
+	})
 
 	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
 }
 
-func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.UpdateDeploymentSchema, org *models.Organization, deployment *models.Deployment, label *models.Label) (*schemasv1.DeploymentSchema, error) {
+func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.UpdateDeploymentSchema, org *models.Organization, deployment *models.Deployment) (*schemasv1.DeploymentSchema, error) {
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err

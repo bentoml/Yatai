@@ -40,6 +40,7 @@ type CreateModelVersionOption struct {
 	Description string
 	BuildAt     time.Time
 	Manifest    *modelschemas.ModelVersionManifestSchema
+	Labels      modelschemas.CreateLabelsForResourceSchema
 }
 
 type UpdateModelVersionOption struct {
@@ -50,6 +51,7 @@ type UpdateModelVersionOption struct {
 	UploadStartedAt           **time.Time
 	UploadFinishedAt          **time.Time
 	UploadFinishedReason      *string
+	Labels                    *modelschemas.CreateLabelsForResourceSchema
 }
 
 type ListModelVersionOption struct {
@@ -406,6 +408,20 @@ func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.M
 		}
 	} else if err != nil {
 		return nil, err
+	}
+	if opt.Labels != nil {
+		org, err := OrganizationService.GetAssociatedOrganization(ctx, modelVersion)
+		if err != nil {
+			return nil, err
+		}
+		user, err := GetCurrentUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = LabelService.CreateOrUpdateLabelsFromCreateLabelsSchema(ctx, *opt.Labels, user.ID, org.ID, modelVersion)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	go func() {

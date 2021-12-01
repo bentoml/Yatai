@@ -52,6 +52,7 @@ type CreateBentoVersionOption struct {
 	Description string
 	BuildAt     time.Time
 	Manifest    *modelschemas.BentoVersionManifestSchema
+	Labels      modelschemas.CreateLabelsForResourceSchema
 }
 
 type UpdateBentoVersionOption struct {
@@ -62,6 +63,7 @@ type UpdateBentoVersionOption struct {
 	UploadStartedAt           **time.Time
 	UploadFinishedAt          **time.Time
 	UploadFinishedReason      *string
+	Labels                    *modelschemas.CreateLabelsForResourceSchema
 }
 
 type ListBentoVersionOption struct {
@@ -93,6 +95,9 @@ func (s *bentoVersionService) Create(ctx context.Context, opt CreateBentoVersion
 		Manifest:         opt.Manifest,
 	}
 	err = db.Create(bentoVersion).Error
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
@@ -424,6 +429,24 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 		}
 	} else if err != nil {
 		return nil, err
+	}
+	if opt.Labels != nil {
+		bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+		if err != nil {
+			return nil, err
+		}
+		org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+		if err != nil {
+			return nil, err
+		}
+		user, err := GetCurrentUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = LabelService.CreateOrUpdateLabelsFromCreateLabelsSchema(ctx, *opt.Labels, user.ID, org.ID, bentoVersion)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	go func() {

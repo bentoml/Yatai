@@ -79,32 +79,6 @@ func (c *modelVersionController) Create(ctx *gin.Context, schema *CreateModelVer
 	if err = ModelController.canUpdate(ctx, model); err != nil {
 		return nil, err
 	}
-	org, err := services.OrganizationService.GetAssociatedOrganization(ctx, model)
-	if err != nil {
-		return nil, err
-	}
-	label, err := LabelController.GetLabel(ctx); err != nil {
-		return nil, err
-	}
-	if err = LabelController.canUpdate(ctx, label)
-	err != nil {
-		label, err = services.LabelService.Create(ctx, services.CreateLabelOption{
-			OrganizationId: org.ID,
-			CreatorId: user.ID,
-			Key: schema.LabelKey,
-			Value: schema.LabelValue
-		}) 
-	}
-	else {
-		label, err = services.LabelService.Update(ctx, services.UpdateLabelOption{
-			OrganizationId: org.ID,
-			CreatorId: user.ID,
-			Value: schema.LabelValue,
-		})
-	}
-	if err != nil {
-		return nil, err
-	}
 	buildAt, err := time.Parse("2006-01-02 15:04:05.000000", schema.BuildAt)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse build at")
@@ -116,13 +90,34 @@ func (c *modelVersionController) Create(ctx *gin.Context, schema *CreateModelVer
 		Description: schema.Description,
 		Manifest:    schema.Manifest,
 		BuildAt:     buildAt,
-		LabelKey: label.LabelKey,
-		LabelValue: label.LabelValue
+		Labels:      schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create model version")
 	}
 	return transformersv1.ToModelVersionSchema(ctx, version)
+}
+
+type UpdateModelVersionSchema struct {
+	schemasv1.UpdateModelVersionSchema
+	GetModelVersionSchema
+}
+
+func (c *modelVersionController) Update(ctx *gin.Context, schema *UpdateModelVersionSchema) (*schemasv1.ModelVersionSchema, error) {
+	modelVersion, err := schema.GetModelVersion(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, modelVersion); err != nil {
+		return nil, err
+	}
+	modelVersion, err = services.ModelVersionService.Update(ctx, modelVersion, services.UpdateModelVersionOption{
+		Labels: schema.Labels,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "Update modelVersion")
+	}
+	return transformersv1.ToModelVersionSchema(ctx, modelVersion)
 }
 
 func (c *modelVersionController) StartUpload(ctx *gin.Context, schema *GetModelVersionSchema) (*schemasv1.ModelVersionSchema, error) {

@@ -32,11 +32,19 @@ type BentoVersionFullSchema struct {
 }
 
 type CreateBentoVersionSchema struct {
-	Description string                                   `json:"description"`
-	Version     string                                   `json:"version"`
-	Manifest    *modelschemas.BentoVersionManifestSchema `json:"manifest"`
-	BuildAt     string                                   `json:"build_at"`
-	CreateLabelSchema
+	Description string                                     `json:"description"`
+	Version     string                                     `json:"version"`
+	Manifest    *modelschemas.BentoVersionManifestSchema   `json:"manifest"`
+	BuildAt     string                                     `json:"build_at"`
+	Labels      modelschemas.CreateLabelsForResourceSchema `json:"labels"`
+}
+
+type UpdateBentoVersionSchema struct {
+	Description string                                      `json:"description"`
+	Version     string                                      `json:"version"`
+	Manifest    *modelschemas.BentoVersionManifestSchema    `json:"manifest"`
+	BuildAt     string                                      `json:"build_at"`
+	Labels      *modelschemas.CreateLabelsForResourceSchema `json:"labels,omitempty"`
 }
 
 type FinishUploadBentoVersionSchema struct {

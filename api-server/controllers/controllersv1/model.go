@@ -62,7 +62,7 @@ func (c *modelController) canOperate(ctx context.Context, model *models.Model) e
 
 type CreateModelSchema struct {
 	schemasv1.CreateModelSchema
-	GetOrganizationSchema
+	GetLabelSchema
 }
 
 func (c *modelController) Create(ctx *gin.Context, schema *CreateModelSchema) (*schemasv1.ModelSchema, error) {
@@ -77,36 +77,11 @@ func (c *modelController) Create(ctx *gin.Context, schema *CreateModelSchema) (*
 	if err = OrganizationController.canUpdate(ctx, organization); err != nil {
 		return nil, err
 	}
-	
-	label, err := schema.GetLabel(ctx)
-	if err != nil {
-		return nil, err
-	}
-	err = LabelController.canUpdate(ctx, label)
-	if err != nil {
-		label, err = services.LabelService.Create(ctx, services.CreateLabelOption{
-			OrganizationId: org.ID,
-			CreatorId: user.ID,
-			Key: schema.LabelKey,
-			Value: schema.LabelValue,
-		})
-	}
-	else {
-		label, err = services.LabelService.Update(ctx, services.UpdateLabelOption{
-			OrganizationId: org.ID,
-			CreatorId: user.ID,
-			Value: schema.LabelValue,
-		})
-	}
-	if err != nil {
-		return nil, err
-	}
 	model, err := services.ModelService.Create(ctx, services.CreateModelOption{
 		OrganizationId: organization.ID,
 		CreatorId:      user.ID,
 		Name:           schema.Name,
-		LabelKey: label.Key,
-		LabelValue: label.Value,
+		Labels:         schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create model")
@@ -129,6 +104,7 @@ func (c *modelController) Update(ctx *gin.Context, schema *UpdateModelSchema) (*
 	}
 	model, err = services.ModelService.Update(ctx, model, services.UpdateModelOption{
 		Description: schema.Description,
+		Labels:      schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "update model")

@@ -24,10 +24,12 @@ type CreateModelOption struct {
 	CreatorId      uint
 	OrganizationId uint
 	Name           string
+	Labels         modelschemas.CreateLabelsForResourceSchema
 }
 
 type UpdateModelOption struct {
 	Description *string
+	Labels      *modelschemas.CreateLabelsForResourceSchema
 }
 
 type ListModelOption struct {
@@ -48,11 +50,11 @@ func (*modelService) Create(ctx context.Context, opt CreateModelOption) (*models
 			OrganizationId: opt.OrganizationId,
 		},
 	}
-	// creates a label
 	err := mustGetSession(ctx).Create(&model).Error
 	if err != nil {
 		return nil, err
 	}
+	err = LabelService.CreateOrUpdateLabelsFromCreateLabelsSchema(ctx, opt.Labels, opt.CreatorId, opt.OrganizationId, &model)
 	return &model, nil
 }
 
@@ -75,6 +77,21 @@ func (s *modelService) Update(ctx context.Context, m *models.Model, opt UpdateMo
 	if err != nil {
 		return nil, err
 	}
+	if opt.Labels != nil {
+		org, err := OrganizationService.GetAssociatedOrganization(ctx, m)
+		if err != nil {
+			return nil, err
+		}
+		user, err := GetCurrentUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = LabelService.CreateOrUpdateLabelsFromCreateLabelsSchema(ctx, *opt.Labels, user.ID, org.ID, m)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return m, err
 }
 

@@ -1,5 +1,7 @@
 package schemasv1
 
+import "github.com/bentoml/yatai/schemas/modelschemas"
+
 type ModelSchema struct {
 	ResourceSchema
 	Creator       *UserSchema         `json:"creator"`
@@ -14,12 +16,12 @@ type ModelListSchema struct {
 }
 
 type CreateModelSchema struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	CreateLabelSchema
+	Name        string                                     `json:"name"`
+	Description string                                     `json:"description"`
+	Labels      modelschemas.CreateLabelsForResourceSchema `json:"labels"`
 }
 
 type UpdateModelSchema struct {
-	Description *string `json:"description"`
-	UpdateLabelSchema
+	Description *string                                     `json:"description"`
+	Labels      *modelschemas.CreateLabelsForResourceSchema `json:"labels,omitempty"`
 }

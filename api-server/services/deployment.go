@@ -45,16 +45,20 @@ type CreateDeploymentOption struct {
 	ClusterId   uint
 	Name        string
 	Description string
+	Labels      modelschemas.CreateLabelsForResourceSchema
 }
 
 type UpdateDeploymentOption struct {
 	Description *string
+	ClusterId   uint
+	Labels      *modelschemas.CreateLabelsForResourceSchema
 }
 
 type UpdateDeploymentStatusOption struct {
 	Status    *modelschemas.DeploymentStatus
 	SyncingAt **time.Time
 	UpdatedAt **time.Time
+	Labels    *modelschemas.CreateLabelsForResourceSchema
 }
 
 type ListDeploymentOption struct {
@@ -98,6 +102,15 @@ func (*deploymentService) Create(ctx context.Context, opt CreateDeploymentOption
 	if err != nil {
 		return nil, err
 	}
+	cluster, err := ClusterService.Get(ctx, opt.ClusterId)
+	if err != nil {
+		return nil, err
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
+	if err != nil {
+		return nil, err
+	}
+	err = LabelService.CreateOrUpdateLabelsFromCreateLabelsSchema(ctx, opt.Labels, opt.CreatorId, org.ID, &deployment)
 	return &deployment, err
 }
 
@@ -120,6 +133,24 @@ func (s *deploymentService) Update(ctx context.Context, b *models.Deployment, op
 	err = s.getBaseDB(ctx).Where("id = ?", b.ID).Updates(updaters).Error
 	if err != nil {
 		return nil, err
+	}
+	if opt.Labels != nil {
+		cluster, err := ClusterService.Get(ctx, opt.ClusterId)
+		if err != nil {
+			return nil, err
+		}
+		org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
+		if err != nil {
+			return nil, err
+		}
+		user, err := GetCurrentUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = LabelService.CreateOrUpdateLabelsFromCreateLabelsSchema(ctx, *opt.Labels, user.ID, org.ID, b)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return b, err

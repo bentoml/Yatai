@@ -17,13 +17,13 @@ type DeploymentListSchema struct {
 }
 
 type UpdateDeploymentSchema struct {
-	Targets []*CreateDeploymentTargetSchema `json:"targets"`
-	UpdateLabelSchema
+	Targets []*CreateDeploymentTargetSchema             `json:"targets"`
+	Labels  *modelschemas.CreateLabelsForResourceSchema `json:"labels,omitempty"`
 }
 
 type CreateDeploymentSchema struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	CreateLabelSchema
+	Name        string                                     `json:"name"`
+	Description string                                     `json:"description"`
+	Labels      modelschemas.CreateLabelsForResourceSchema `json:"labels"`
 	UpdateDeploymentSchema
 }

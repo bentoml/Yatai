@@ -91,9 +91,32 @@ func (c *bentoVersionController) Create(ctx *gin.Context, schema *CreateBentoVer
 		Description: schema.Description,
 		Manifest:    schema.Manifest,
 		BuildAt:     buildAt,
+		Labels:      schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create version")
+	}
+	return transformersv1.ToBentoVersionSchema(ctx, version)
+}
+
+type UpdateBentoVersionSchema struct {
+	schemasv1.UpdateBentoVersionSchema
+	GetBentoVersionSchema
+}
+
+func (c *bentoVersionController) Update(ctx *gin.Context, schema *UpdateBentoVersionSchema) (*schemasv1.BentoVersionSchema, error) {
+	version, err := schema.GetBentoVersion(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, version); err != nil {
+		return nil, err
+	}
+	version, err = services.BentoVersionService.Update(ctx, version, services.UpdateBentoVersionOption{
+		Labels: schema.Labels,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "update bentoVersion")
 	}
 	return transformersv1.ToBentoVersionSchema(ctx, version)
 }

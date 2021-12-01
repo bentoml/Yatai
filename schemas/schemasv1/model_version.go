@@ -30,11 +30,18 @@ type ModelVersionFullSchema struct {
 }
 
 type CreateModelVersionSchema struct {
-	Version     string                                   `json:"version"`
-	Description string                                   `json:"description"`
-	Manifest    *modelschemas.ModelVersionManifestSchema `json:"manifest"`
-	BuildAt     string                                   `json:"build_at"`
-	CreateLabelSchema
+	Version     string                                     `json:"version"`
+	Description string                                     `json:"description"`
+	Manifest    *modelschemas.ModelVersionManifestSchema   `json:"manifest"`
+	BuildAt     string                                     `json:"build_at"`
+	Labels      modelschemas.CreateLabelsForResourceSchema `json:"labels"`
+}
+
+type UpdateModelVersionSchema struct {
+	Description string                                      `json:"description,omitempty"`
+	Manifest    *modelschemas.ModelVersionManifestSchema    `json:"manifest"`
+	BuildAt     string                                      `json:"build_at"`
+	Labels      *modelschemas.CreateLabelsForResourceSchema `json:"labels,omitempty"`
 }
 
 type FinishUploadModelVersionSchema struct {
