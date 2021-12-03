@@ -43,6 +43,8 @@ func ToModelVersionSchemas(ctx context.Context, versions []*models.ModelVersion)
 			UploadStartedAt:      version.UploadStartedAt,
 			UploadFinishedAt:     version.UploadFinishedAt,
 			UploadFinishedReason: version.UploadFinishedReason,
+			Manifest:             version.Manifest,
+			BuildAt:              version.BuildAt,
 		})
 	}
 	return res, nil
@@ -61,6 +63,35 @@ func ToModelVersionFullSchema(ctx context.Context, version *models.ModelVersion)
 
 func ToModelVersionFullSchemas(ctx context.Context, versions []*models.ModelVersion) ([]*schemasv1.ModelVersionFullSchema, error) {
 	res := make([]*schemasv1.ModelVersionFullSchema, 0, len(versions))
+	modelVersionSchemas, err := ToModelVersionWithModelSchemas(ctx, versions)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToModelVersionSchemas")
+	}
+	modelVersionSchemasMap := make(map[string]*schemasv1.ModelVersionWithModelSchema)
+	for _, schema := range modelVersionSchemas {
+		modelVersionSchemasMap[schema.Uid] = schema
+	}
+	for _, version := range versions {
+		bentoVersions, _, err := services.BentoVersionService.List(ctx, services.ListBentoVersionOption{
+			ModelVersionIds: &[]uint{version.ID},
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "ListBentoVersion")
+		}
+		bentoVersionSchemas, err := ToBentoVersionSchemas(ctx, bentoVersions)
+		if err != nil {
+			return nil, errors.Wrap(err, "ToBentoVersionSchemas")
+		}
+		res = append(res, &schemasv1.ModelVersionFullSchema{
+			ModelVersionWithModelSchema: *modelVersionSchemasMap[version.GetUid()],
+			BentoVersions:               bentoVersionSchemas,
+		})
+	}
+	return res, nil
+}
+
+func ToModelVersionWithModelSchemas(ctx context.Context, versions []*models.ModelVersion) ([]*schemasv1.ModelVersionWithModelSchema, error) {
+	res := make([]*schemasv1.ModelVersionWithModelSchema, 0, len(versions))
 	modelVersionSchemas, err := ToModelVersionSchemas(ctx, versions)
 	if err != nil {
 		return nil, errors.Wrap(err, "ToModelVersionSchemas")
@@ -69,13 +100,35 @@ func ToModelVersionFullSchemas(ctx context.Context, versions []*models.ModelVers
 	for _, schema := range modelVersionSchemas {
 		modelVersionSchemasMap[schema.Uid] = schema
 	}
+	modelIds := make([]uint, 0, len(versions))
 	for _, version := range versions {
-		modelSchema, err := GetAssociatedModelSchema(ctx, version)
-		if err != nil {
-			return nil, errors.Wrap(err, "GetAssociatedModelSchema")
+		modelIds = append(modelIds, version.ModelId)
+	}
+	models_, _, err := services.ModelService.List(ctx, services.ListModelOption{
+		Ids: &modelIds,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "ListModels")
+	}
+	modelUidToIdMap := make(map[string]uint)
+	for _, model := range models_ {
+		modelUidToIdMap[model.Uid] = model.ID
+	}
+	modelSchemas, err := ToModelSchemas(ctx, models_)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToModelSchemas")
+	}
+	modelSchemasMap := make(map[uint]*schemasv1.ModelSchema)
+	for _, schema := range modelSchemas {
+		modelSchemasMap[modelUidToIdMap[schema.Uid]] = schema
+	}
+	for _, version := range versions {
+		modelSchema, ok := modelSchemasMap[version.ModelId]
+		if !ok {
+			return nil, errors.Errorf("cannot find model %d from map", version.ModelId)
 		}
-		res = append(res, &schemasv1.ModelVersionFullSchema{
-			ModelVersionSchema: *modelVersionSchemasMap[version.Uid],
+		res = append(res, &schemasv1.ModelVersionWithModelSchema{
+			ModelVersionSchema: *modelVersionSchemasMap[version.GetUid()],
 			Model:              modelSchema,
 		})
 	}

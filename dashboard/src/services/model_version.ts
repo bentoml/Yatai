@@ -4,8 +4,18 @@ import {
     IModelVersionSchema,
     ICreateModelVersionSchema,
     IFinishedUploadModelVersionSchema,
+    IModelVersionWithModelSchema,
 } from '@/schemas/model_version'
 import { IListQuerySchema, IListSchema } from '@/schemas/list'
+
+export async function listAllModelVersions(
+    query: IListQuerySchema
+): Promise<IListSchema<IModelVersionWithModelSchema>> {
+    const resp = await axios.get<IListSchema<IModelVersionWithModelSchema>>('/api/v1/model_versions', {
+        params: query,
+    })
+    return resp.data
+}
 
 export async function listModelVersions(
     modelName: string,

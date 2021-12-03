@@ -37,6 +37,7 @@ type ListBentoOption struct {
 	LastUpdaterIds *[]uint
 	Order          *string
 	Names          *[]string
+	Ids            *[]uint
 }
 
 func (*bentoService) Create(ctx context.Context, opt CreateBentoOption) (*models.Bento, error) {
@@ -116,6 +117,9 @@ func (s *bentoService) List(ctx context.Context, opt ListBentoOption) ([]*models
 	}
 	if opt.Names != nil {
 		query = query.Where("bento.name in (?)", *opt.Names)
+	}
+	if opt.Ids != nil {
+		query = query.Where("bento.id in (?)", *opt.Ids)
 	}
 	if opt.CreatorIds != nil {
 		query = query.Where("bento.creator_id in (?)", *opt.CreatorIds)

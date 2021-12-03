@@ -1,19 +1,18 @@
-import { resourceIconMapping } from '@/consts'
-import { usePage } from '@/hooks/usePage'
-import { useSubscription } from '@/hooks/useSubscription'
-import useTranslation from '@/hooks/useTranslation'
-import { IListSchema } from '@/schemas/list'
-import { ICreateModelVersionSchema, IModelVersionSchema } from '@/schemas/model_version'
-import { createModelVersion, listModelVersions } from '@/services/model_version'
-import { Button, SIZE as ButtonSize } from 'baseui/button'
-import React, { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
-import Table from '@/components/Table'
-import User from '@/components/User'
+import { listModelVersions } from '@/services/model_version'
+import { usePage } from '@/hooks/usePage'
+import { IModelVersionSchema } from '@/schemas/model_version'
 import { formatDateTime } from '@/utils/datetime'
+import useTranslation from '@/hooks/useTranslation'
+import User from '@/components/User'
+import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
-import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
+import { resourceIconMapping } from '@/consts'
+import { useSubscription } from '@/hooks/useSubscription'
+import { IListSchema } from '@/schemas/list'
+import ModelVersionImageBuildStatusTag from '@/components/ModelVersionImageBuildStatus'
 import qs from 'qs'
 
 export interface IModelVersionListCardProps {
@@ -24,31 +23,19 @@ export default function ModelVersionListCard({ modelName }: IModelVersionListCar
     const [page] = usePage()
     const queryKey = `fetchModelVersions:${modelName}:${qs.stringify(page)}`
     const modelVersionsInfo = useQuery(queryKey, () => listModelVersions(modelName, page))
-    const [isCreateModelVersionOpen, setIsCreateModelVersionOpen] = useState(false)
-    // eslint-disable-next-line
-    const handleCreateModelVersionOpen = useCallback(
-        async (data: ICreateModelVersionSchema) => {
-            await createModelVersion(modelName, data)
-            await modelVersionsInfo.refetch()
-            setIsCreateModelVersionOpen(false)
-        },
-        [modelName, modelVersionsInfo]
-    )
     const [t] = useTranslation()
 
-    // eslint-disable-next-line
     const uids = useMemo(
-        () => modelVersionsInfo.data?.items.map((modelVersion) => modelVersion.uid ?? []),
+        () => modelVersionsInfo.data?.items.map((modelVersion) => modelVersion.uid) ?? [],
         [modelVersionsInfo.data?.items]
     )
     const queryClient = useQueryClient()
-    // eslint-disable-next-line
     const subscribeCb = useCallback(
         (modelVersion: IModelVersionSchema) => {
             queryClient.setQueryData(
                 queryKey,
-                (prevData?: IListSchema<IModelVersionSchema>): IListSchema<IModelVersionSchema> => {
-                    if (!prevData) {
+                (oldData?: IListSchema<IModelVersionSchema>): IListSchema<IModelVersionSchema> => {
+                    if (!oldData) {
                         return {
                             start: 0,
                             count: 0,
@@ -57,15 +44,15 @@ export default function ModelVersionListCard({ modelName }: IModelVersionListCar
                         }
                     }
                     return {
-                        ...prevData,
-                        items: prevData.items.map((item) => {
-                            if (item.uid === modelVersion.uid) {
+                        ...oldData,
+                        items: oldData.items.map((oldModelVersion) => {
+                            if (oldModelVersion.uid === modelVersion.uid) {
                                 return {
-                                    ...item,
+                                    ...oldModelVersion,
                                     ...modelVersion,
                                 }
                             }
-                            return item
+                            return oldModelVersion
                         }),
                     }
                 }
@@ -73,42 +60,38 @@ export default function ModelVersionListCard({ modelName }: IModelVersionListCar
         },
         [queryClient, queryKey]
     )
-    // eslint-disable-next-line
     const { subscribe, unsubscribe } = useSubscription()
 
-    // useEffect(() => {
-    //     subscribe({
-    //         resourceType: 'model_version',
-    //         resourceUids: uids,
-    //         cb: subscribeCb,
-    //     })
-    //     return () => {
-    //         unsubscribe({
-    //             resourceType: 'model_version',
-    //             resourceUids: uids,
-    //             cb: subscribeCb,
-    //         })
-    //     }
-    // }, [subscribe, subscribeCb, uids, unsubscribe])
+    useEffect(() => {
+        subscribe({
+            resourceType: 'model_version',
+            resourceUids: uids,
+            cb: subscribeCb,
+        })
+        return () => {
+            unsubscribe({
+                resourceType: 'model_version',
+                resourceUids: uids,
+                cb: subscribeCb,
+            })
+        }
+    }, [subscribe, subscribeCb, uids, unsubscribe])
 
     return (
-        <Card
-            title={t('sth list', [t('version')])}
-            titleIcon={resourceIconMapping.model_version}
-            extra={
-                <Button size={ButtonSize.compact} onClick={() => setIsCreateModelVersionOpen(true)}>
-                    {t('create')}
-                </Button>
-            }
-        >
+        <Card title={t('sth list', [t('version')])} titleIcon={resourceIconMapping.model_version}>
             <Table
                 isLoading={modelVersionsInfo.isLoading}
-                columns={[t('version'), t('creator'), t('created_at')]}
+                columns={[t('name'), t('image build status'), t('description'), t('creator'), t('created_at')]}
                 data={
                     modelVersionsInfo.data?.items.map((modelVersion) => [
                         <Link key={modelVersion.uid} to={`/models/${modelName}/versions/${modelVersion.version}`}>
                             {modelVersion.version}
                         </Link>,
+                        <ModelVersionImageBuildStatusTag
+                            key={modelVersion.uid}
+                            status={modelVersion.image_build_status}
+                        />,
+                        modelVersion.description,
                         modelVersion.creator && <User user={modelVersion.creator} />,
                         formatDateTime(modelVersion.created_at),
                     ]) ?? []
@@ -122,16 +105,6 @@ export default function ModelVersionListCard({ modelName }: IModelVersionListCar
                     },
                 }}
             />
-            <Modal
-                isOpen={isCreateModelVersionOpen}
-                onClose={() => setIsCreateModelVersionOpen(false)}
-                closeable
-                animate
-                autoFocus
-            >
-                <ModalHeader>{t('create sth', [t('version')])}</ModalHeader>
-                <ModalBody>Modal form body</ModalBody>
-            </Modal>
         </Card>
     )
 }

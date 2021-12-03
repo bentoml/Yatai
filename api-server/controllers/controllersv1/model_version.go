@@ -2,7 +2,11 @@ package controllersv1
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
+
+	"github.com/huandu/xstrings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -97,6 +101,46 @@ func (c *modelVersionController) Create(ctx *gin.Context, schema *CreateModelVer
 	return transformersv1.ToModelVersionSchema(ctx, version)
 }
 
+func (c *modelVersionController) PreSignS3UploadUrl(ctx *gin.Context, schema *GetModelVersionSchema) (*schemasv1.ModelVersionSchema, error) {
+	version, err := schema.GetModelVersion(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, version); err != nil {
+		return nil, err
+	}
+	url, err := services.ModelVersionService.PreSignS3UploadUrl(ctx, version)
+	if err != nil {
+		return nil, errors.Wrap(err, "pre sign s3 upload url")
+	}
+	bentoVersionSchema, err := transformersv1.ToModelVersionSchema(ctx, version)
+	if err != nil {
+		return nil, err
+	}
+	bentoVersionSchema.PresignedS3Url = url.String()
+	return bentoVersionSchema, nil
+}
+
+func (c *modelVersionController) PreSignS3DownloadUrl(ctx *gin.Context, schema *GetModelVersionSchema) (*schemasv1.ModelVersionSchema, error) {
+	version, err := schema.GetModelVersion(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, version); err != nil {
+		return nil, err
+	}
+	url, err := services.ModelVersionService.PreSignS3DownloadUrl(ctx, version)
+	if err != nil {
+		return nil, errors.Wrap(err, "pre sign s3 download url")
+	}
+	bentoVersionSchema, err := transformersv1.ToModelVersionSchema(ctx, version)
+	if err != nil {
+		return nil, err
+	}
+	bentoVersionSchema.PresignedS3Url = url.String()
+	return bentoVersionSchema, nil
+}
+
 func (c *modelVersionController) StartUpload(ctx *gin.Context, schema *GetModelVersionSchema) (*schemasv1.ModelVersionSchema, error) {
 	version, err := schema.GetModelVersion(ctx)
 	if err != nil {
@@ -169,7 +213,7 @@ func (c *modelVersionController) List(ctx *gin.Context, schema *ListModelVersion
 		return nil, err
 	}
 
-	models, total, err := services.ModelVersionService.List(ctx, services.ListModelVersionOption{
+	models_, total, err := services.ModelVersionService.List(ctx, services.ListModelVersionOption{
 		BaseListOption: services.BaseListOption{
 			Start:  utils.UintPtr(schema.Start),
 			Count:  utils.UintPtr(schema.Count),
@@ -181,8 +225,98 @@ func (c *modelVersionController) List(ctx *gin.Context, schema *ListModelVersion
 		return nil, errors.Wrap(err, "list models")
 	}
 
-	modelSchemas, err := transformersv1.ToModelVersionSchemas(ctx, models)
+	modelSchemas, err := transformersv1.ToModelVersionSchemas(ctx, models_)
 	return &schemasv1.ModelVersionListSchema{
+		BaseListSchema: schemasv1.BaseListSchema{
+			Total: total,
+			Start: schema.Start,
+			Count: schema.Count,
+		},
+		Items: modelSchemas,
+	}, err
+}
+
+type ListAllModelVersionSchema struct {
+	schemasv1.ListQuerySchema
+	GetOrganizationSchema
+}
+
+func (c *modelVersionController) ListAll(ctx *gin.Context, schema *ListAllModelVersionSchema) (*schemasv1.ModelVersionWithModelListSchema, error) {
+	organization, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = OrganizationController.canView(ctx, organization); err != nil {
+		return nil, err
+	}
+
+	listOpt := services.ListModelVersionOption{
+		BaseListOption: services.BaseListOption{
+			Start:  utils.UintPtr(schema.Start),
+			Count:  utils.UintPtr(schema.Count),
+			Search: schema.Search,
+		},
+		OrganizationId: utils.UintPtr(organization.ID),
+	}
+
+	queryMap := schema.Q.ToMap()
+	for k, v := range queryMap {
+		if k == schemasv1.KeyQIn {
+			fieldNames := make([]string, 0, len(v.([]string)))
+			for _, fieldName := range v.([]string) {
+				if _, ok := map[string]struct{}{
+					"name":        {},
+					"description": {},
+				}[fieldName]; !ok {
+					continue
+				}
+				fieldNames = append(fieldNames, fieldName)
+			}
+			listOpt.KeywordFieldNames = &fieldNames
+		}
+		if k == schemasv1.KeyQKeywords {
+			listOpt.Keywords = utils.StringSlicePtr(v.([]string))
+		}
+		if k == "creator" {
+			userNames, err := processUserNamesFromQ(ctx, v.([]string))
+			if err != nil {
+				return nil, err
+			}
+			users, err := services.UserService.ListByNames(ctx, userNames)
+			if err != nil {
+				return nil, err
+			}
+			userIds := make([]uint, 0, len(users))
+			for _, user := range users {
+				userIds = append(userIds, user.ID)
+			}
+			listOpt.CreatorIds = utils.UintSlicePtr(userIds)
+		}
+		if k == "sort" {
+			fieldName, _, order := xstrings.LastPartition(v.([]string)[0], "-")
+			if _, ok := map[string]struct{}{
+				"created_at": {},
+				"build_at":   {},
+			}[fieldName]; !ok {
+				continue
+			}
+			if _, ok := map[string]struct{}{
+				"desc": {},
+				"asc":  {},
+			}[order]; !ok {
+				continue
+			}
+			listOpt.Order = utils.StringPtr(fmt.Sprintf("model_version.%s %s", fieldName, strings.ToUpper(order)))
+		}
+	}
+	models_, total, err := services.ModelVersionService.List(ctx, listOpt)
+	if err != nil {
+		return nil, errors.Wrap(err, "list models")
+	}
+
+	modelSchemas, err := transformersv1.ToModelVersionWithModelSchemas(ctx, models_)
+	return &schemasv1.ModelVersionWithModelListSchema{
 		BaseListSchema: schemasv1.BaseListSchema{
 			Total: total,
 			Start: schema.Start,

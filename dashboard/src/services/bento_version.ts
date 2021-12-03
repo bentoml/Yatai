@@ -3,8 +3,18 @@ import {
     ICreateBentoVersionSchema,
     IBentoVersionSchema,
     IFinishUploadBentoVersionSchema,
+    IBentoVersionWithBentoSchema,
 } from '@/schemas/bento_version'
 import { IListQuerySchema, IListSchema } from '@/schemas/list'
+
+export async function listAllBentoVersions(
+    query: IListQuerySchema
+): Promise<IListSchema<IBentoVersionWithBentoSchema>> {
+    const resp = await axios.get<IListSchema<IBentoVersionWithBentoSchema>>('/api/v1/bento_versions', {
+        params: query,
+    })
+    return resp.data
+}
 
 export async function listBentoVersions(
     bentoName: string,

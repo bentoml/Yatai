@@ -23,28 +23,18 @@ const (
 	BentoVersionImageBuildStatusFailed   BentoVersionImageBuildStatus = "failed"
 )
 
-type BentoVersionManifestMetadata struct {
-	ServiceName    string `json:"service_name"`
-	ServiceVersion string `json:"service_version"`
-	ModuleName     string `json:"module_name"`
-	ModuleFile     string `json:"module_file"`
-}
-
 type BentoVersionManifestApi struct {
-	Name       string `json:"name"`
-	Docs       string `json:"docs"`
-	InputType  string `json:"input_type"`
-	OutputType string `json:"output_type"`
-}
-
-type BentoVersionManifestArtifact struct {
-	Name string `json:"name"`
-	Type string `json:"artifact_type"`
+	Route  string `json:"route"`
+	Doc    string `json:"doc"`
+	Input  string `json:"input"`
+	Output string `json:"output"`
 }
 
 type BentoVersionManifestSchema struct {
-	Metadata BentoVersionManifestMetadata `json:"metadata"`
-	Apis     []BentoVersionManifestApi    `json:"apis"`
+	Service        string                             `json:"service"`
+	BentomlVersion string                             `json:"bentoml_version"`
+	Apis           map[string]BentoVersionManifestApi `json:"apis"`
+	Models         []string                           `json:"models"`
 }
 
 func (c *BentoVersionManifestSchema) Scan(value interface{}) error {

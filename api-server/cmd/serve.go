@@ -103,10 +103,10 @@ func addCron() {
 				logger.Info("updated unsynced bento version image_build_status_syncing_at")
 				var eg errsgroup.Group
 				eg.SetPoolSize(1000)
-				for _, deployment := range bentoVersions {
-					deployment := deployment
+				for _, bentoVersion := range bentoVersions {
+					bentoVersion := bentoVersion
 					eg.Go(func() error {
-						_, err := services.BentoVersionService.SyncImageBuilderStatus(ctx, deployment)
+						_, err := services.BentoVersionService.SyncImageBuilderStatus(ctx, bentoVersion)
 						return err
 					})
 				}
@@ -116,6 +116,51 @@ func addCron() {
 				logger.Info("synced unsynced bento version image build status...")
 				if err != nil {
 					logger.Errorf("sync bento version: %s", err.Error())
+				}
+			}()
+			<-ticker.C
+		}
+	}()
+
+	go func() {
+		ticker := time.NewTicker(time.Second * 20)
+		defer ticker.Stop()
+		for {
+			func() {
+				ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
+				defer cancel()
+				logger.Info("listing image buld status unsynced modelVersions")
+				modelVersions, err := services.ModelVersionService.ListImageBuildStatusUnsynced(ctx)
+				if err != nil {
+					logger.Errorf("list unsynced model versions: %s", err.Error())
+				}
+				logger.Info("updating unsynced model versions image_build_status_syncing_at")
+				now := time.Now()
+				nowPtr := &now
+				for _, modelVersion := range modelVersions {
+					_, err := services.ModelVersionService.Update(ctx, modelVersion, services.UpdateModelVersionOption{
+						ImageBuildStatusSyncingAt: &nowPtr,
+					})
+					if err != nil {
+						logger.Errorf("update model version %d status: %s", modelVersion.ID, err.Error())
+					}
+				}
+				logger.Info("updated unsynced model version image_build_status_syncing_at")
+				var eg errsgroup.Group
+				eg.SetPoolSize(1000)
+				for _, modelVersion := range modelVersions {
+					modelVersion := modelVersion
+					eg.Go(func() error {
+						_, err := services.ModelVersionService.SyncImageBuilderStatus(ctx, modelVersion)
+						return err
+					})
+				}
+
+				logger.Info("syncing unsynced model version image build status...")
+				err = eg.WaitWithTimeout(10 * time.Minute)
+				logger.Info("synced unsynced model version image build status...")
+				if err != nil {
+					logger.Errorf("sync model version: %s", err.Error())
 				}
 			}()
 			<-ticker.C

@@ -1,5 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { IBentoSchema } from './bento'
+import { IModelVersionSchema } from './model_version'
 import { IResourceSchema } from './resource'
 import { IUserSchema } from './user'
 
@@ -36,8 +37,12 @@ export interface IBentoVersionSchema extends IResourceSchema {
     build_at: string
 }
 
-export interface IBentoVersionFullSchema extends IBentoVersionSchema {
+export interface IBentoVersionWithBentoSchema extends IBentoVersionSchema {
     bento: IBentoSchema
+}
+
+export interface IBentoVersionFullSchema extends IBentoVersionWithBentoSchema {
+    model_versions: IModelVersionSchema[]
 }
 
 export interface ICreateBentoVersionSchema {

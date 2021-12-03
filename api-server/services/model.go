@@ -31,6 +31,12 @@ type UpdateModelOption struct {
 type ListModelOption struct {
 	BaseListOption
 	OrganizationId *uint
+	CreatorId      *uint
+	CreatorIds     *[]uint
+	LastUpdaterIds *[]uint
+	Order          *string
+	Names          *[]string
+	Ids            *[]uint
 }
 
 func (*modelService) Create(ctx context.Context, opt CreateModelOption) (*models.Model, error) {
@@ -92,30 +98,51 @@ func (s *modelService) GetByName(ctx context.Context, organizationId uint, name 
 	if err != nil {
 		return nil, errors.Wrapf(err, "get model %s", name)
 	}
-	if model.ID == 0 {
-		return nil, consts.ErrNotFound
-	}
 	return &model, nil
 }
 
 func (s *modelService) List(ctx context.Context, opt ListModelOption) ([]*models.Model, uint, error) {
 	query := getBaseQuery(ctx, s)
 	if opt.OrganizationId != nil {
-		query = query.Where("organization_id = ?", *opt.OrganizationId)
+		query = query.Where("model.organization_id = ?", *opt.OrganizationId)
 	}
+	if opt.CreatorId != nil {
+		query = query.Where("model.creator_id = ?", *opt.CreatorId)
+	}
+	if opt.Names != nil {
+		query = query.Where("model.name in (?)", *opt.Names)
+	}
+	if opt.Ids != nil {
+		query = query.Where("model.id in (?)", *opt.Ids)
+	}
+	if opt.CreatorIds != nil {
+		query = query.Where("model.creator_id in (?)", *opt.CreatorIds)
+	}
+	query = query.Joins("LEFT JOIN model_version ON model_version.model_id = model.id")
+	query = query.Joins("LEFT OUTER JOIN model_version v2 ON v2.model_id = model.id AND model_version.id < v2.id")
+	query = query.Where("v2.id IS NULL")
+	if opt.LastUpdaterIds != nil {
+		query = query.Where("model_version.creator_id IN (?)", *opt.LastUpdaterIds)
+	}
+	query = opt.BindQueryWithKeywords(query, "model")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	models := make([]*models.Model, 0)
+	models_ := make([]*models.Model, 0)
+	query = query.Select("model.*")
 	query = opt.BindQueryWithLimit(query)
-	query = query.Order("id DESC")
-	err = query.Find(&models).Error
+	if opt.Order != nil {
+		query = query.Order(*opt.Order)
+	} else {
+		query = query.Order("model.id DESC")
+	}
+	err = query.Find(&models_).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	return models, uint(total), nil
+	return models_, uint(total), err
 }
 
 type IModelAssociate interface {

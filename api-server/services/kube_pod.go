@@ -3,6 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"strings"
+
+	"github.com/bentoml/yatai/common/utils"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -221,7 +225,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		FailureThreshold:    6,
 		Handler: apiv1.Handler{
 			HTTPGet: &apiv1.HTTPGetAction{
-				Path: "/healthz",
+				Path: "/livez",
 				Port: intstr.FromInt(consts.BentoServicePort),
 			},
 		},
@@ -233,7 +237,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		FailureThreshold:    6,
 		Handler: apiv1.Handler{
 			HTTPGet: &apiv1.HTTPGetAction{
-				Path: "/healthz",
+				Path: "/readyz",
 				Port: intstr.FromInt(consts.BentoServicePort),
 			},
 		},
@@ -241,13 +245,71 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 
 	containers := make([]apiv1.Container, 0, 1)
 
+	vs := make([]apiv1.Volume, 0)
+	vms := make([]apiv1.VolumeMount, 0)
+
+	modelVersions, _, err := ModelVersionService.List(ctx, ListModelVersionOption{
+		BentoVersionIds: &[]uint{bentoVersion.ID},
+		Order:           utils.StringPtr("model_version.build_at ASC"),
+	})
+	if err != nil {
+		return
+	}
+
+	args := make([]string, 0)
+	imageTlsVerify := "false"
+	if dockerRegistry.Secure {
+		imageTlsVerify = "true"
+	}
+
+	for _, mv := range modelVersions {
+		var imageName_ string
+		imageName_, err = ModelVersionService.GetImageName(ctx, mv, cluster.ID == majorCluster.ID)
+		if err != nil {
+			return
+		}
+		var model *models.Model
+		model, err = ModelService.GetAssociatedModel(ctx, mv)
+		if err != nil {
+			return
+		}
+		pvName := fmt.Sprintf("pv-%s", mv.Version)
+		sourcePath := fmt.Sprintf("/models/%s/%s", model.Name, mv.Version)
+		destDirPath := fmt.Sprintf("./models/%s", model.Name)
+		destPath := filepath.Join(destDirPath, mv.Version)
+		args = append(args, "mkdir", "-p", destDirPath, ";", "ln", "-sf", filepath.Join(sourcePath, "model"), destPath, ";", "echo", "-n", fmt.Sprintf("'%s'", mv.Version), ">", filepath.Join(destDirPath, "latest"), ";")
+		v := apiv1.Volume{
+			Name: pvName,
+			VolumeSource: apiv1.VolumeSource{
+				CSI: &apiv1.CSIVolumeSource{
+					Driver: consts.KubeCSIDriverImage,
+					VolumeAttributes: map[string]string{
+						"image":     imageName_,
+						"tlsVerify": imageTlsVerify,
+					},
+				},
+			},
+		}
+		vs = append(vs, v)
+		vm := apiv1.VolumeMount{
+			Name:      pvName,
+			MountPath: sourcePath,
+		}
+		vms = append(vms, vm)
+	}
+
+	args = append(args, "./env/docker/entrypoint.sh", "bentoml", "serve", ".")
+
 	container := apiv1.Container{
 		Name:           kubeName,
 		Image:          imageName,
+		Command:        []string{"sh", "-c"},
+		Args:           []string{strings.Join(args, " ")},
 		LivenessProbe:  livenessProbe,
 		ReadinessProbe: readinessProbe,
 		TTY:            true,
 		Stdin:          true,
+		VolumeMounts:   vms,
 	}
 
 	containers = append(containers, container)
@@ -261,6 +323,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		},
 		Spec: apiv1.PodSpec{
 			Containers: containers,
+			Volumes:    vs,
 		},
 	}
 

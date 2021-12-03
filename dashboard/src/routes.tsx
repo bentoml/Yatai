@@ -21,6 +21,8 @@ import ClusterMembers from '@/pages/Cluster/Members'
 import ClusterSettings from '@/pages/Cluster/Settings'
 import ClusterLayout from '@/components/ClusterLayout'
 import OrganizationBentos from '@/pages/Organization/Bentos'
+import OrganizationBentoVersions from '@/pages/Organization/BentoVersions'
+import OrganizationModelVersions from '@/pages/Organization/ModelVersions'
 import BentoOverview from '@/pages/Bento/Overview'
 import BentoVersions from '@/pages/Bento/Versions'
 import DeploymentOverview from '@/pages/Deployment/Overview'
@@ -157,6 +159,8 @@ const Routes = () => {
                             <Switch>
                                 <Route exact path='/' component={OrganizationOverview} />
                                 <Route exact path='/bentos' component={OrganizationBentos} />
+                                <Route exact path='/model_versions' component={OrganizationModelVersions} />
+                                <Route exact path='/bento_versions' component={OrganizationBentoVersions} />
                                 <Route exact path='/api_tokens' component={OrganizationApiTokens} />
                                 <Route exact path='/clusters' component={OrganizationClusters} />
                                 <Route exact path='/members' component={OrganizationMembers} />

@@ -865,6 +865,16 @@ const locales0 = {
         en: 'Oldest Update',
         ja: '最古更新',
     },
+    'newest build': {
+        cn: '最新构建',
+        en: 'Newest Build',
+        ja: '最新ビルド',
+    },
+    'oldest build': {
+        cn: '最旧构建',
+        en: 'Oldest Build',
+        ja: '最古ビルド',
+    },
     'filter by sth': {
         cn: '按照 {{0}} 过滤',
         en: 'Filter by {{0}}',
@@ -890,10 +900,20 @@ const locales0 = {
         en: 'My last updated deployments',
         ja: 'マイ・最終更新デプロイ',
     },
+    'the models I created': {
+        cn: '我创建的 Model',
+        en: 'The models I created',
+        ja: '私が作成した Model',
+    },
     'the bentos I created': {
         cn: '我创建的 Bento',
         en: 'The bentos I created',
         ja: '私が作成した Bento',
+    },
+    'the bento versions I Created': {
+        cn: '我创建的 Bento 版本',
+        en: 'The bento versions I Created',
+        ja: '私が作成した Bento バージョン',
     },
     'my last updated bentos': {
         cn: '我最后更新的 Bento',

@@ -20,15 +20,16 @@ const (
 	ModelVersionImageBuildStatusPending  ModelVersionImageBuildStatus = "pending"
 	ModelVersionImageBuildStatusBuilding ModelVersionImageBuildStatus = "building"
 	ModelVersionImageBuildStatusSuccess  ModelVersionImageBuildStatus = "success"
-	ModelversionImageBuildStatusFailed   ModelVersionImageBuildStatus = "failed"
+	ModelVersionImageBuildStatusFailed   ModelVersionImageBuildStatus = "failed"
 )
 
 type ModelVersionManifestSchema struct {
-	Model_module string                  `json:"model_module"`
-	Metadata     *map[string]interface{} `json:"metadata"`
-	Context      *map[string]interface{} `json:"context"`
-	Options      *map[string]interface{} `json:"options"`
-	Labels       *map[string]interface{} `json:"labels"`
+	BentomlVersion string                 `json:"bentoml_version"`
+	ApiVersion     string                 `json:"api_version"`
+	Module         string                 `json:"module"`
+	Metadata       map[string]interface{} `json:"metadata"`
+	Context        map[string]interface{} `json:"context"`
+	Options        map[string]interface{} `json:"options"`
 }
 
 func (c *ModelVersionManifestSchema) Scan(value interface{}) error {

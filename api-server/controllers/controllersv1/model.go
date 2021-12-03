@@ -2,6 +2,10 @@ package controllersv1
 
 import (
 	"context"
+	"fmt"
+	"strings"
+
+	"github.com/huandu/xstrings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -137,19 +141,90 @@ func (c *modelController) List(ctx *gin.Context, schema *ListModelSchema) (*sche
 		return nil, err
 	}
 
-	models, total, err := services.ModelService.List(ctx, services.ListModelOption{
+	listOpt := services.ListModelOption{
 		BaseListOption: services.BaseListOption{
 			Start:  utils.UintPtr(schema.Start),
 			Count:  utils.UintPtr(schema.Count),
 			Search: schema.Search,
 		},
 		OrganizationId: utils.UintPtr(organization.ID),
-	})
+	}
+
+	queryMap := schema.Q.ToMap()
+	for k, v := range queryMap {
+		if k == schemasv1.KeyQIn {
+			fieldNames := make([]string, 0, len(v.([]string)))
+			for _, fieldName := range v.([]string) {
+				if _, ok := map[string]struct{}{
+					"name":        {},
+					"description": {},
+				}[fieldName]; !ok {
+					continue
+				}
+				fieldNames = append(fieldNames, fieldName)
+			}
+			listOpt.KeywordFieldNames = &fieldNames
+		}
+		if k == schemasv1.KeyQKeywords {
+			listOpt.Keywords = utils.StringSlicePtr(v.([]string))
+		}
+		if k == "creator" {
+			userNames, err := processUserNamesFromQ(ctx, v.([]string))
+			if err != nil {
+				return nil, err
+			}
+			users, err := services.UserService.ListByNames(ctx, userNames)
+			if err != nil {
+				return nil, err
+			}
+			userIds := make([]uint, 0, len(users))
+			for _, user := range users {
+				userIds = append(userIds, user.ID)
+			}
+			listOpt.CreatorIds = utils.UintSlicePtr(userIds)
+		}
+		if k == "last_updater" {
+			userNames, err := processUserNamesFromQ(ctx, v.([]string))
+			if err != nil {
+				return nil, err
+			}
+			users, err := services.UserService.ListByNames(ctx, userNames)
+			if err != nil {
+				return nil, err
+			}
+			userIds := make([]uint, 0, len(users))
+			for _, user := range users {
+				userIds = append(userIds, user.ID)
+			}
+			listOpt.LastUpdaterIds = utils.UintSlicePtr(userIds)
+		}
+		if k == "sort" {
+			fieldName, _, order := xstrings.LastPartition(v.([]string)[0], "-")
+			if _, ok := map[string]struct{}{
+				"created_at": {},
+				"updated_at": {},
+			}[fieldName]; !ok {
+				continue
+			}
+			if _, ok := map[string]struct{}{
+				"desc": {},
+				"asc":  {},
+			}[order]; !ok {
+				continue
+			}
+			if fieldName == "updated_at" {
+				fieldName = "model_version.created_at"
+			}
+			listOpt.Order = utils.StringPtr(fmt.Sprintf("%s %s", fieldName, strings.ToUpper(order)))
+		}
+	}
+
+	models_, total, err := services.ModelService.List(ctx, listOpt)
 	if err != nil {
 		return nil, errors.Wrap(err, "list models")
 	}
 
-	modelSchemas, err := transformersv1.ToModelSchemas(ctx, models)
+	modelSchemas, err := transformersv1.ToModelSchemas(ctx, models_)
 	return &schemasv1.ModelListSchema{
 		BaseListSchema: schemasv1.BaseListSchema{
 			Total: total,
