@@ -22,8 +22,7 @@ type UpdateDeploymentSchema struct {
 }
 
 type CreateDeploymentSchema struct {
-	Name        string                                     `json:"name"`
-	Description string                                     `json:"description"`
-	Labels      modelschemas.CreateLabelsForResourceSchema `json:"labels"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 	UpdateDeploymentSchema
 }

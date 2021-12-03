@@ -62,7 +62,7 @@ func (c *modelController) canOperate(ctx context.Context, model *models.Model) e
 
 type CreateModelSchema struct {
 	schemasv1.CreateModelSchema
-	GetLabelSchema
+	GetOrganizationSchema
 }
 
 func (c *modelController) Create(ctx *gin.Context, schema *CreateModelSchema) (*schemasv1.ModelSchema, error) {

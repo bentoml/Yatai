@@ -323,16 +323,14 @@ CREATE TABLE IF NOT EXISTS "cache" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TYPE "label_resource_type" as ENUM ('bento', 'bento_version', 'deployment', 'deployment_revision', "model", "model_version");
-
 CREATE TABLE IF NOT EXISTS "label" (
     id SERIAL PRIMARY KEY,
-    resource_type label_resource_type NOT NULL,
+    resource_type resource_type NOT NULL,
     resource_id INTEGER NOT NULL,
     key VARCHAR(128) NOT NULL,
     value VARCHAR(128) NOT NULL,
     creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
-    organization_id INTEGER REFERENCES "organization"("id") ON DELETE CASCADE.
+    organization_id INTEGER REFERENCES "organization"("id") ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP WITH TIME ZONE
 );

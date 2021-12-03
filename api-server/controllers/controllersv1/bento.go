@@ -67,7 +67,6 @@ func (c *bentoController) canOperate(ctx context.Context, bento *models.Bento) e
 type CreateBentoSchema struct {
 	schemasv1.CreateBentoSchema
 	GetOrganizationSchema
-	GetLabelSchema
 }
 
 func (c *bentoController) Create(ctx *gin.Context, schema *CreateBentoSchema) (*schemasv1.BentoSchema, error) {

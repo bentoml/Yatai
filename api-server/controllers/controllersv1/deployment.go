@@ -81,8 +81,6 @@ func (c *deploymentController) canOperate(ctx context.Context, deployment *model
 type CreateDeploymentSchema struct {
 	schemasv1.CreateDeploymentSchema
 	GetClusterSchema
-	GetOrganizationSchema
-	GetLabelSchema
 }
 
 func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
@@ -105,12 +103,17 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		return nil, err
 	}
 
+	labels := make(modelschemas.CreateLabelsForResourceSchema, 0)
+	if schema.Labels != nil {
+		labels = *schema.Labels
+	}
+
 	deployment, err := services.DeploymentService.Create(ctx, services.CreateDeploymentOption{
 		CreatorId:   user.ID,
 		ClusterId:   cluster.ID,
 		Name:        schema.Name,
 		Description: schema.Description,
-		Labels:      schema.Labels,
+		Labels:      labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create deployment")

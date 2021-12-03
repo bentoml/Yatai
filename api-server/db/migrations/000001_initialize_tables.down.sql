@@ -1,5 +1,4 @@
 DROP TABLE IF EXISTS "label";
-DROP TYPE IF EXISTS "label_resource_type";
 DROP TABLE IF EXISTS "cache";
 DROP TABLE IF EXISTS "terminal_record";
 DROP TABLE IF EXISTS "event";
