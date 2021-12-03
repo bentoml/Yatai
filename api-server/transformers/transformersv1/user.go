@@ -47,6 +47,10 @@ func ToUserSchema(ctx context.Context, user *models.User) (*schemasv1.UserSchema
 }
 
 func ToUserSchemas(ctx context.Context, users []*models.User) ([]*schemasv1.UserSchema, error) {
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, users)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
+	}
 	res := make([]*schemasv1.UserSchema, 0, len(users))
 	for _, u := range users {
 		avatarUrl, err := getAvatarUrl(u)
@@ -57,8 +61,12 @@ func ToUserSchemas(ctx context.Context, users []*models.User) ([]*schemasv1.User
 		if u.Email != nil {
 			email = *u.Email
 		}
+		resourceSchema, ok := resourceSchemasMap[u.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resource schema not found for user %s", u.GetUid())
+		}
 		res = append(res, &schemasv1.UserSchema{
-			ResourceSchema: ToResourceSchema(u),
+			ResourceSchema: resourceSchema,
 			FirstName:      u.FirstName,
 			LastName:       u.LastName,
 			Email:          email,

@@ -13,5 +13,10 @@ const (
 	ResourceTypeTerminalRecord     ResourceType = "terminal_record"
 	ResourceTypeModel              ResourceType = "model"
 	ResourceTypeModelVersion       ResourceType = "model_version"
+	ResourceTypeLabel              ResourceType = "label"
 	ResourceTypeApiToken           ResourceType = "api_token"
 )
+
+func (type_ ResourceType) Ptr() *ResourceType {
+	return &type_
+}

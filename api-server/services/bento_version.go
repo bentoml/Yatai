@@ -29,13 +29,6 @@ import (
 	"github.com/bentoml/yatai/common/consts"
 )
 
-// nolint:gosec
-var awsSecretTemplate = `
-[default]
-aws_access_key_id = {{.AccessKeyId}}
-aws_secret_access_key = {{.SecretAccessKey}}
-`
-
 type bentoVersionService struct{}
 
 var BentoVersionService = bentoVersionService{}
@@ -51,6 +44,7 @@ type CreateBentoVersionOption struct {
 	Description string
 	BuildAt     time.Time
 	Manifest    *modelschemas.BentoVersionManifestSchema
+	Labels      modelschemas.LabelItemsSchema
 }
 
 type UpdateBentoVersionOption struct {
@@ -61,10 +55,12 @@ type UpdateBentoVersionOption struct {
 	UploadStartedAt           **time.Time
 	UploadFinishedAt          **time.Time
 	UploadFinishedReason      *string
+	Labels                    *modelschemas.LabelItemsSchema
 }
 
 type ListBentoVersionOption struct {
 	BaseListOption
+	BaseListByLabelsOption
 	OrganizationId  *uint
 	BentoId         *uint
 	Versions        *[]string
@@ -118,6 +114,22 @@ func (s *bentoVersionService) Create(ctx context.Context, opt CreateBentoVersion
 			return
 		}
 	}
+
+	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+	if err != nil {
+		return
+	}
+	user, err := GetCurrentUser(ctx)
+	if err != nil {
+		return
+	}
+
+	err = LabelService.CreateOrUpdateLabelsFromLabelItemsSchema(ctx, opt.Labels, user.ID, org.ID, bentoVersion)
+
 	return
 }
 
@@ -336,6 +348,25 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 		return nil, err
 	}
 
+	if opt.Labels != nil {
+		bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+		if err != nil {
+			return nil, err
+		}
+		org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+		if err != nil {
+			return nil, err
+		}
+		user, err := GetCurrentUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = LabelService.CreateOrUpdateLabelsFromLabelItemsSchema(ctx, *opt.Labels, user.ID, org.ID, bentoVersion)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if opt.UploadStatus == nil || *opt.UploadStatus != modelschemas.BentoVersionUploadStatusSuccess {
 		return bentoVersion, err
 	}
@@ -400,6 +431,7 @@ func (s *bentoVersionService) Update(ctx context.Context, bentoVersion *models.B
 	}
 	cmsCli := kubeCli.CoreV1().ConfigMaps(kubeNamespace)
 	oldCm, err := cmsCli.Get(ctx, dockerCMKubeName, metav1.GetOptions{})
+	// nolint: gocritic
 	if apierrors.IsNotFound(err) {
 		_, err = cmsCli.Create(ctx, &apiv1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{Name: dockerCMKubeName},
@@ -670,6 +702,8 @@ func (s *bentoVersionService) List(ctx context.Context, opt ListBentoVersionOpti
 		query = query.Where("bento_version.creator_id in (?)", *opt.CreatorIds)
 	}
 	query = opt.BindQueryWithKeywords(query, "bento")
+	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeBentoVersion)
+	query = query.Select("distinct(bento_version.*)")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
@@ -682,7 +716,7 @@ func (s *bentoVersionService) List(ctx context.Context, opt ListBentoVersionOpti
 	} else {
 		query = query.Order("bento_version.build_at DESC")
 	}
-	err = query.Select("bento_version.*").Find(&bentoVersions).Error
+	err = query.Find(&bentoVersions).Error
 	if err != nil {
 		return nil, 0, err
 	}

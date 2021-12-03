@@ -81,11 +81,11 @@ func (c *modelController) Create(ctx *gin.Context, schema *CreateModelSchema) (*
 	if err = OrganizationController.canUpdate(ctx, organization); err != nil {
 		return nil, err
 	}
-
 	model, err := services.ModelService.Create(ctx, services.CreateModelOption{
 		OrganizationId: organization.ID,
 		CreatorId:      user.ID,
 		Name:           schema.Name,
+		Labels:         schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create model")
@@ -108,6 +108,7 @@ func (c *modelController) Update(ctx *gin.Context, schema *UpdateModelSchema) (*
 	}
 	model, err = services.ModelService.Update(ctx, model, services.UpdateModelOption{
 		Description: schema.Description,
+		Labels:      schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "update model")
@@ -216,6 +217,14 @@ func (c *modelController) List(ctx *gin.Context, schema *ListModelSchema) (*sche
 				fieldName = "model_version.created_at"
 			}
 			listOpt.Order = utils.StringPtr(fmt.Sprintf("%s %s", fieldName, strings.ToUpper(order)))
+		}
+		if k == "label" {
+			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
+			listOpt.LabelsList = &labelsSchema
+		}
+		if k == "-label" {
+			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
+			listOpt.LackLabelsList = &labelsSchema
 		}
 	}
 

@@ -23,6 +23,10 @@ func ToModelVersionSchema(ctx context.Context, version *models.ModelVersion) (*s
 
 func ToModelVersionSchemas(ctx context.Context, versions []*models.ModelVersion) ([]*schemasv1.ModelVersionSchema, error) {
 	res := make([]*schemasv1.ModelVersionSchema, 0, len(versions))
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, versions)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
+	}
 	for _, version := range versions {
 		creatorSchema, err := GetAssociatedCreatorSchema(ctx, version)
 		if err != nil {
@@ -32,8 +36,12 @@ func ToModelVersionSchemas(ctx context.Context, versions []*models.ModelVersion)
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedModel")
 		}
+		resourceSchema, ok := resourceSchemasMap[version.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resourceSchema not found for model version %s", version.GetUid())
+		}
 		res = append(res, &schemasv1.ModelVersionSchema{
-			ResourceSchema:       ToResourceSchema(version),
+			ResourceSchema:       resourceSchema,
 			ModelUid:             model.Uid,
 			Version:              version.Version,
 			Creator:              creatorSchema,

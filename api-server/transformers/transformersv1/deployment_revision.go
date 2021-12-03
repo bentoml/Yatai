@@ -43,6 +43,10 @@ func ToDeploymentRevisionSchemas(ctx context.Context, deploymentRevisions []*mod
 		deploymentTargets = append(deploymentTargets, deploymentTarget)
 		deploymentTargetsMapping[deploymentTarget.DeploymentRevisionId] = deploymentTargets
 	}
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, deploymentRevisions)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
+	}
 	res := make([]*schemasv1.DeploymentRevisionSchema, 0, len(deploymentRevisions))
 	for _, deploymentRevision := range deploymentRevisions {
 		creatorSchema, err := GetAssociatedCreatorSchema(ctx, deploymentRevision)
@@ -54,8 +58,12 @@ func ToDeploymentRevisionSchemas(ctx context.Context, deploymentRevisions []*mod
 		if err != nil {
 			return nil, errors.Wrap(err, "ToDeploymentTargetSchemas")
 		}
+		resourceSchema, ok := resourceSchemasMap[deploymentRevision.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resourceSchema not found for deploymentRevision %s", deploymentRevision.GetUid())
+		}
 		res = append(res, &schemasv1.DeploymentRevisionSchema{
-			ResourceSchema: ToResourceSchema(deploymentRevision),
+			ResourceSchema: resourceSchema,
 			Creator:        creatorSchema,
 			Status:         deploymentRevision.Status,
 			Targets:        deploymentTargetSchemas,

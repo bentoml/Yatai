@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	// nolint: gosec
 	KubeSecretNameRegcred      = "yatai-regcred"
 	KubeIngressClassName       = "yatai-ingress"
 	KubeLabelYataiSelector     = "yatai.io/selector"

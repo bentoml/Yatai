@@ -122,7 +122,7 @@ func GithubOAuthCallBack(ctx *gin.Context) {
 	}
 
 	client := githubConfig.Client(ctx, token)
-	// nolint:noctx
+	// nolint: noctx
 	userInfo, err := client.Get("https://api.github.com/user")
 	if err != nil {
 		_ = ctx.AbortWithError(http.StatusBadRequest, err)

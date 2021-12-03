@@ -27,13 +27,21 @@ func ToClusterSchema(ctx context.Context, cluster *models.Cluster) (*schemasv1.C
 
 func ToClusterSchemas(ctx context.Context, clusters []*models.Cluster) ([]*schemasv1.ClusterSchema, error) {
 	res := make([]*schemasv1.ClusterSchema, 0, len(clusters))
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, clusters)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
+	}
 	for _, cluster := range clusters {
 		creatorSchema, err := GetAssociatedCreatorSchema(ctx, cluster)
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedCreatorSchema")
 		}
+		resourceSchema, ok := resourceSchemasMap[cluster.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resourceSchema not found for cluster %s", cluster.GetUid())
+		}
 		res = append(res, &schemasv1.ClusterSchema{
-			ResourceSchema: ToResourceSchema(cluster),
+			ResourceSchema: resourceSchema,
 			Creator:        creatorSchema,
 			Description:    cluster.Description,
 		})

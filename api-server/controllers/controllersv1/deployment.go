@@ -92,13 +92,18 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 	if err != nil {
 		return nil, err
 	}
+	if err = ClusterController.canUpdate(ctx, cluster); err != nil {
+		return nil, err
+	}
+
 	org, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = ClusterController.canUpdate(ctx, cluster); err != nil {
-		return nil, err
+	labels := make(modelschemas.LabelItemsSchema, 0)
+	if schema.Labels != nil {
+		labels = *schema.Labels
 	}
 
 	deployment, err := services.DeploymentService.Create(ctx, services.CreateDeploymentOption{
@@ -106,6 +111,7 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		ClusterId:   cluster.ID,
 		Name:        schema.Name,
 		Description: schema.Description,
+		Labels:      labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create deployment")
@@ -124,11 +130,22 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	if err != nil {
 		return nil, err
 	}
+	if err = c.canUpdate(ctx, deployment); err != nil {
+		return nil, err
+	}
+	cluster, err := schema.GetCluster(ctx)
+	if err != nil {
+		return nil, err
+	}
 	org, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if err = c.canUpdate(ctx, deployment); err != nil {
+	deployment, err = services.DeploymentService.Update(ctx, deployment, services.UpdateDeploymentOption{
+		ClusterId: cluster.ID,
+		Labels:    schema.Labels,
+	})
+	if err != nil {
 		return nil, err
 	}
 

@@ -38,6 +38,10 @@ func ToModelSchemas(ctx context.Context, models []*models.Model) ([]*schemasv1.M
 	for _, s := range versionSchemas {
 		versionSchemasMap[s.ModelUid] = s
 	}
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, models)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
+	}
 	res := make([]*schemasv1.ModelSchema, 0, len(models))
 	for _, model := range models {
 		creatorSchema, err := GetAssociatedCreatorSchema(ctx, model)
@@ -48,8 +52,12 @@ func ToModelSchemas(ctx context.Context, models []*models.Model) ([]*schemasv1.M
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedOrganizationSchema")
 		}
+		resourceSchema, ok := resourceSchemasMap[model.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resource schema not found for model %s", model.GetUid())
+		}
 		res = append(res, &schemasv1.ModelSchema{
-			ResourceSchema: ToResourceSchema(model),
+			ResourceSchema: resourceSchema,
 			Creator:        creatorSchema,
 			Organization:   organizationSchema,
 			Description:    model.Description,

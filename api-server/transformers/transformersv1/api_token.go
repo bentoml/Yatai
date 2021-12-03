@@ -22,6 +22,10 @@ func ToApiTokenSchema(ctx context.Context, apiToken *models.ApiToken) (*schemasv
 
 func ToApiTokenSchemas(ctx context.Context, apiTokens []*models.ApiToken) ([]*schemasv1.ApiTokenSchema, error) {
 	res := make([]*schemasv1.ApiTokenSchema, 0, len(apiTokens))
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, apiTokens)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
+	}
 	for _, apiToken := range apiTokens {
 		userSchema, err := GetAssociatedUserSchema(ctx, apiToken)
 		if err != nil {
@@ -31,8 +35,12 @@ func ToApiTokenSchemas(ctx context.Context, apiTokens []*models.ApiToken) ([]*sc
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedOrganizationSchema")
 		}
+		resourceSchema, ok := resourceSchemasMap[apiToken.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resourceSchema not found for apiToken %s", apiToken.GetUid())
+		}
 		res = append(res, &schemasv1.ApiTokenSchema{
-			ResourceSchema: ToResourceSchema(apiToken),
+			ResourceSchema: resourceSchema,
 			Description:    apiToken.Description,
 			User:           userSchema,
 			Organization:   organizationSchema,

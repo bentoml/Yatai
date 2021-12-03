@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bentoml/yatai/schemas/modelschemas"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -53,6 +55,37 @@ func (opt BaseListOption) BindQueryWithKeywords(query *gorm.DB, tableName string
 			sqlPieces = append(sqlPieces, fmt.Sprintf("(%s)", strings.Join(sqlPieces_, " AND ")))
 		}
 		query = query.Where(fmt.Sprintf("(%s)", strings.Join(sqlPieces, " OR ")), args...)
+	}
+	return query
+}
+
+type BaseListByLabelsOption struct {
+	LabelsList     *[][]modelschemas.LabelItemSchema
+	LackLabelsList *[][]modelschemas.LabelItemSchema
+}
+
+func (opt BaseListByLabelsOption) BindQueryWithLabels(query *gorm.DB, resourceType modelschemas.ResourceType) *gorm.DB {
+	if opt.LabelsList == nil && opt.LackLabelsList == nil {
+		return query
+	}
+	idx := 0
+	if opt.LabelsList != nil {
+		for _, labels := range *opt.LabelsList {
+			alias := fmt.Sprintf("label_%d", idx)
+			idx++
+			orSqlPieces := make([]string, 0, len(labels))
+			orSqlArgs := make([]interface{}, 0, len(labels))
+			for _, label := range labels {
+				if label.Value != "" {
+					orSqlPieces = append(orSqlPieces, fmt.Sprintf("(%s.key = ? AND %s.value = ?)", alias, alias))
+					orSqlArgs = append(orSqlArgs, label.Key, label.Value)
+				} else {
+					orSqlPieces = append(orSqlPieces, fmt.Sprintf("%s.key = ?", alias))
+					orSqlArgs = append(orSqlArgs, label.Key)
+				}
+			}
+			query = query.Joins(fmt.Sprintf("JOIN label %s ON %s.resource_type = ? AND %s.resource_id = %s.id AND (%s)", alias, alias, alias, resourceType, strings.Join(orSqlPieces, " OR ")), append([]interface{}{resourceType}, orSqlArgs...)...)
+		}
 	}
 	return query
 }

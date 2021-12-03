@@ -47,6 +47,14 @@ type CreateModelVersionSchema struct {
 	Description string                                   `json:"description"`
 	Manifest    *modelschemas.ModelVersionManifestSchema `json:"manifest"`
 	BuildAt     string                                   `json:"build_at"`
+	Labels      modelschemas.LabelItemsSchema            `json:"labels"`
+}
+
+type UpdateModelVersionSchema struct {
+	Description string                                   `json:"description,omitempty"`
+	Manifest    *modelschemas.ModelVersionManifestSchema `json:"manifest"`
+	BuildAt     string                                   `json:"build_at"`
+	Labels      *modelschemas.LabelItemsSchema           `json:"labels,omitempty"`
 }
 
 type FinishUploadModelVersionSchema struct {

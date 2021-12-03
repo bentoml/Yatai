@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS "label";
 DROP TABLE IF EXISTS "cache";
 DROP TABLE IF EXISTS "terminal_record";
 DROP TABLE IF EXISTS "event";

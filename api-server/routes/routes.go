@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/bentoml/yatai/api-server/controllers/web"
 
 	"github.com/bentoml/yatai/api-server/config"
@@ -145,6 +143,7 @@ func NewRouter() (*fizz.Fizz, error) {
 	userRoutes(apiRootGroup)
 	organizationRoutes(apiRootGroup)
 	apiTokenRoutes(apiRootGroup)
+	labelRoutes(apiRootGroup)
 	clusterRoutes(apiRootGroup)
 	bentoRoutes(apiRootGroup)
 	modelRoutes(apiRootGroup)
@@ -240,13 +239,6 @@ func getLoginUser(ctx *gin.Context) (user *models.User, err error) {
 }
 
 func requireLogin(ctx *gin.Context) {
-	defer func() {
-		if err := recover(); err != nil {
-			logrus.Errorf("recover panic: %s", err)
-			return
-		}
-	}()
-
 	_, loginErr := getLoginUser(ctx)
 	if loginErr != nil {
 		msg := schemasv1.MsgSchema{Message: loginErr.Error()}
@@ -368,6 +360,14 @@ func apiTokenRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Create api token"),
 		fizz.Summary("Create api token"),
 	}, requireLogin, tonic.Handler(controllersv1.ApiTokenController.Create, 200))
+}
+
+func labelRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/labels", "labels", "labels")
+	grp.GET("", []fizz.OperationOption{
+		fizz.ID("List Labels"),
+		fizz.Summary("List Labels"),
+	}, requireLogin, tonic.Handler(controllersv1.LabelController.List, 200))
 }
 
 func clusterRoutes(grp *fizz.RouterGroup) {

@@ -45,20 +45,25 @@ type CreateDeploymentOption struct {
 	ClusterId   uint
 	Name        string
 	Description string
+	Labels      modelschemas.LabelItemsSchema
 }
 
 type UpdateDeploymentOption struct {
 	Description *string
+	ClusterId   uint
+	Labels      *modelschemas.LabelItemsSchema
 }
 
 type UpdateDeploymentStatusOption struct {
 	Status    *modelschemas.DeploymentStatus
 	SyncingAt **time.Time
 	UpdatedAt **time.Time
+	Labels    *modelschemas.LabelItemsSchema
 }
 
 type ListDeploymentOption struct {
 	BaseListOption
+	BaseListByLabelsOption
 	ClusterId       *uint
 	CreatorId       *uint
 	LastUpdaterId   *uint
@@ -97,6 +102,15 @@ func (*deploymentService) Create(ctx context.Context, opt CreateDeploymentOption
 	if err != nil {
 		return nil, err
 	}
+	cluster, err := ClusterService.Get(ctx, opt.ClusterId)
+	if err != nil {
+		return nil, err
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
+	if err != nil {
+		return nil, err
+	}
+	err = LabelService.CreateOrUpdateLabelsFromLabelItemsSchema(ctx, opt.Labels, opt.CreatorId, org.ID, &deployment)
 	return &deployment, err
 }
 
@@ -120,6 +134,24 @@ func (s *deploymentService) Update(ctx context.Context, b *models.Deployment, op
 	if err != nil {
 		return nil, err
 	}
+	if opt.Labels != nil {
+		cluster, err := ClusterService.Get(ctx, opt.ClusterId)
+		if err != nil {
+			return nil, err
+		}
+		org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
+		if err != nil {
+			return nil, err
+		}
+		user, err := GetCurrentUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = LabelService.CreateOrUpdateLabelsFromLabelItemsSchema(ctx, *opt.Labels, user.ID, org.ID, b)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return b, err
 }
@@ -127,6 +159,18 @@ func (s *deploymentService) Update(ctx context.Context, b *models.Deployment, op
 func (s *deploymentService) Get(ctx context.Context, id uint) (*models.Deployment, error) {
 	var deployment models.Deployment
 	err := getBaseQuery(ctx, s).Where("id = ?", id).First(&deployment).Error
+	if err != nil {
+		return nil, err
+	}
+	if deployment.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &deployment, nil
+}
+
+func (s *deploymentService) GetByUid(ctx context.Context, uid string) (*models.Deployment, error) {
+	var deployment models.Deployment
+	err := getBaseQuery(ctx, s).Where("uid = ?", uid).First(&deployment).Error
 	if err != nil {
 		return nil, err
 	}
@@ -190,12 +234,13 @@ func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) 
 		query = query.Where("deployment.status IN (?)", *opt.Statuses)
 	}
 	query = opt.BindQueryWithKeywords(query, "deployment")
+	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeDeployment)
+	query = query.Select("distinct(deployment.*)")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	query = query.Select("deployment.*")
 	query = opt.BindQueryWithLimit(query)
 	if opt.Order != nil {
 		query = query.Order(*opt.Order)
