@@ -24,6 +24,10 @@ func ToBentoVersionSchema(ctx context.Context, version *models.BentoVersion) (*s
 
 func ToBentoVersionSchemas(ctx context.Context, versions []*models.BentoVersion) ([]*schemasv1.BentoVersionSchema, error) {
 	res := make([]*schemasv1.BentoVersionSchema, 0, len(versions))
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, versions)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
+	}
 	for _, version := range versions {
 		creatorSchema, err := GetAssociatedCreatorSchema(ctx, version)
 		if err != nil {
@@ -33,8 +37,12 @@ func ToBentoVersionSchemas(ctx context.Context, versions []*models.BentoVersion)
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedBento")
 		}
+		resourceSchema, ok := resourceSchemasMap[version.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resourceSchema not found for version %s", version.GetUid())
+		}
 		res = append(res, &schemasv1.BentoVersionSchema{
-			ResourceSchema:       ToResourceSchema(version),
+			ResourceSchema:       resourceSchema,
 			BentoUid:             bento.Uid,
 			Version:              version.Version,
 			Creator:              creatorSchema,

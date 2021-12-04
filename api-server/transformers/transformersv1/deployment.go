@@ -55,6 +55,11 @@ func ToDeploymentSchemas(ctx context.Context, deployments []*models.Deployment) 
 		deploymentRevisionSchemasMap[deploymentRevisionSchema.Uid] = deploymentRevisionSchema
 	}
 
+	resourceSchemaMap, err := ToResourceSchemasMap(ctx, deployments)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
+	}
+
 	res := make([]*schemasv1.DeploymentSchema, 0, len(deployments))
 	for _, deployment := range deployments {
 		deploymentRevisionUid := deploymentIdToDeploymentRevisionUid[deployment.ID]
@@ -71,8 +76,12 @@ func ToDeploymentSchemas(ctx context.Context, deployments []*models.Deployment) 
 		if err != nil {
 			return nil, errors.Wrap(err, "get deployment urls")
 		}
+		resourceSchema, ok := resourceSchemaMap[deployment.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resource schema not found for deployment %s", deployment.GetUid())
+		}
 		res = append(res, &schemasv1.DeploymentSchema{
-			ResourceSchema: ToResourceSchema(deployment),
+			ResourceSchema: resourceSchema,
 			Creator:        creatorSchema,
 			Cluster:        clusterSchema,
 			Status:         deployment.Status,

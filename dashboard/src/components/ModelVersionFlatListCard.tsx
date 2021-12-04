@@ -18,6 +18,7 @@ import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers
 import { useQ } from '@/hooks/useQ'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
+import { ResourceLabels } from './ResourceLabels'
 
 export default function ModelVersionFlatListCard() {
     const { q, updateQ } = useQ()
@@ -164,12 +165,19 @@ export default function ModelVersionFlatListCard() {
                 columns={[t('name'), t('image build status'), t('description'), t('creator'), t('build_at')]}
                 data={
                     modelVersionsInfo.data?.items.map((modelVersion) => [
-                        <Link
+                        <div
                             key={modelVersion.uid}
-                            to={`/models/${modelVersion.model.name}/versions/${modelVersion.version}`}
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 10,
+                            }}
                         >
-                            {modelVersion.model.name}:{modelVersion.version}
-                        </Link>,
+                            <Link to={`/models/${modelVersion.model.name}/versions/${modelVersion.version}`}>
+                                {modelVersion.model.name}:{modelVersion.version}
+                            </Link>
+                            <ResourceLabels resource={modelVersion} />
+                        </div>,
                         <ModelVersionImageBuildStatusTag
                             key={modelVersion.uid}
                             status={modelVersion.image_build_status}

@@ -111,6 +111,18 @@ func (s *organizationService) Get(ctx context.Context, id uint) (*models.Organiz
 	return &org, nil
 }
 
+func (s *organizationService) GetByUid(ctx context.Context, uid string) (*models.Organization, error) {
+	var org models.Organization
+	err := getBaseQuery(ctx, s).Where("uid = ?", uid).First(&org).Error
+	if err != nil {
+		return nil, err
+	}
+	if org.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &org, nil
+}
+
 func (s *organizationService) GetByName(ctx context.Context, name string) (*models.Organization, error) {
 	var org models.Organization
 	err := getBaseQuery(ctx, s).Where("name = ?", name).First(&org).Error
@@ -349,6 +361,7 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		return
 	}
 	secretsCli := cliset.CoreV1().Secrets(consts.KubeNamespaceYataiComponents)
+	// nolint: gosec
 	secretName := "yatai-minio-secret"
 	secret, err := secretsCli.Get(ctx, secretName, metav1.GetOptions{})
 	if err != nil {

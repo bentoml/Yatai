@@ -161,8 +161,14 @@ func (*userService) Get(ctx context.Context, id uint) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	if user.ID == 0 {
-		return nil, consts.ErrNotFound
+	return &user, nil
+}
+
+func (*userService) GetByUid(ctx context.Context, uid string) (*models.User, error) {
+	var user models.User
+	err := mustGetSession(ctx).Where("uid = ?", uid).First(&user).Error
+	if err != nil {
+		return nil, err
 	}
 	return &user, nil
 }

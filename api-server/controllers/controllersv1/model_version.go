@@ -94,6 +94,7 @@ func (c *modelVersionController) Create(ctx *gin.Context, schema *CreateModelVer
 		Description: schema.Description,
 		Manifest:    schema.Manifest,
 		BuildAt:     buildAt,
+		Labels:      schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create model version")
@@ -139,6 +140,28 @@ func (c *modelVersionController) PreSignS3DownloadUrl(ctx *gin.Context, schema *
 	}
 	bentoVersionSchema.PresignedS3Url = url.String()
 	return bentoVersionSchema, nil
+}
+
+type UpdateModelVersionSchema struct {
+	schemasv1.UpdateModelVersionSchema
+	GetModelVersionSchema
+}
+
+func (c *modelVersionController) Update(ctx *gin.Context, schema *UpdateModelVersionSchema) (*schemasv1.ModelVersionSchema, error) {
+	modelVersion, err := schema.GetModelVersion(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, modelVersion); err != nil {
+		return nil, err
+	}
+	modelVersion, err = services.ModelVersionService.Update(ctx, modelVersion, services.UpdateModelVersionOption{
+		Labels: schema.Labels,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "Update modelVersion")
+	}
+	return transformersv1.ToModelVersionSchema(ctx, modelVersion)
 }
 
 func (c *modelVersionController) StartUpload(ctx *gin.Context, schema *GetModelVersionSchema) (*schemasv1.ModelVersionSchema, error) {
@@ -308,6 +331,14 @@ func (c *modelVersionController) ListAll(ctx *gin.Context, schema *ListAllModelV
 				continue
 			}
 			listOpt.Order = utils.StringPtr(fmt.Sprintf("model_version.%s %s", fieldName, strings.ToUpper(order)))
+		}
+		if k == "label" {
+			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
+			listOpt.LabelsList = &labelsSchema
+		}
+		if k == "-label" {
+			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
+			listOpt.LackLabelsList = &labelsSchema
 		}
 	}
 	models_, total, err := services.ModelVersionService.List(ctx, listOpt)

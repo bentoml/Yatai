@@ -139,7 +139,7 @@ func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiCompo
 		return
 	}
 
-	values := map[string]interface{}{}
+	var values map[string]interface{}
 
 	if opt.Type == modelschemas.YataiComponentTypeDeployment {
 		values = map[string]interface{}{
@@ -180,7 +180,6 @@ func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiCompo
 				},
 			},
 		}
-
 	}
 
 	if release_ == nil {

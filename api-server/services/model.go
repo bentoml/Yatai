@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 
+	"github.com/bentoml/yatai/schemas/modelschemas"
+
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
@@ -22,14 +24,17 @@ type CreateModelOption struct {
 	CreatorId      uint
 	OrganizationId uint
 	Name           string
+	Labels         modelschemas.LabelItemsSchema
 }
 
 type UpdateModelOption struct {
 	Description *string
+	Labels      *modelschemas.LabelItemsSchema
 }
 
 type ListModelOption struct {
 	BaseListOption
+	BaseListByLabelsOption
 	OrganizationId *uint
 	CreatorId      *uint
 	CreatorIds     *[]uint
@@ -55,7 +60,8 @@ func (*modelService) Create(ctx context.Context, opt CreateModelOption) (*models
 	if err != nil {
 		return nil, err
 	}
-	return &model, nil
+	err = LabelService.CreateOrUpdateLabelsFromLabelItemsSchema(ctx, opt.Labels, opt.CreatorId, opt.OrganizationId, &model)
+	return &model, err
 }
 
 func (s *modelService) Update(ctx context.Context, m *models.Model, opt UpdateModelOption) (*models.Model, error) {
@@ -77,12 +83,39 @@ func (s *modelService) Update(ctx context.Context, m *models.Model, opt UpdateMo
 	if err != nil {
 		return nil, err
 	}
+	if opt.Labels != nil {
+		org, err := OrganizationService.GetAssociatedOrganization(ctx, m)
+		if err != nil {
+			return nil, err
+		}
+		user, err := GetCurrentUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = LabelService.CreateOrUpdateLabelsFromLabelItemsSchema(ctx, *opt.Labels, user.ID, org.ID, m)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return m, err
 }
 
 func (s *modelService) Get(ctx context.Context, id uint) (*models.Model, error) {
 	var model models.Model
 	err := s.getBaseDB(ctx).Where("id = ?", id).First(&model).Error
+	if err != nil {
+		return nil, err
+	}
+	if model.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &model, nil
+}
+
+func (s *modelService) GetByUid(ctx context.Context, uid string) (*models.Model, error) {
+	var model models.Model
+	err := s.getBaseDB(ctx).Where("uid = ?", uid).First(&model).Error
 	if err != nil {
 		return nil, err
 	}
@@ -125,13 +158,14 @@ func (s *modelService) List(ctx context.Context, opt ListModelOption) ([]*models
 		query = query.Where("model_version.creator_id IN (?)", *opt.LastUpdaterIds)
 	}
 	query = opt.BindQueryWithKeywords(query, "model")
+	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeModel)
+	query = query.Select("distinct(model.*)")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
 	models_ := make([]*models.Model, 0)
-	query = query.Select("model.*")
 	query = opt.BindQueryWithLimit(query)
 	if opt.Order != nil {
 		query = query.Order(*opt.Order)
@@ -142,7 +176,7 @@ func (s *modelService) List(ctx context.Context, opt ListModelOption) ([]*models
 	if err != nil {
 		return nil, 0, err
 	}
-	return models_, uint(total), err
+	return models_, uint(total), nil
 }
 
 type IModelAssociate interface {

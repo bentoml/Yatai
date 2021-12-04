@@ -37,6 +37,7 @@ type CreateModelVersionOption struct {
 	Description string
 	BuildAt     time.Time
 	Manifest    *modelschemas.ModelVersionManifestSchema
+	Labels      modelschemas.LabelItemsSchema
 }
 
 type UpdateModelVersionOption struct {
@@ -47,10 +48,12 @@ type UpdateModelVersionOption struct {
 	UploadStartedAt           **time.Time
 	UploadFinishedAt          **time.Time
 	UploadFinishedReason      *string
+	Labels                    *modelschemas.LabelItemsSchema
 }
 
 type ListModelVersionOption struct {
 	BaseListOption
+	BaseListByLabelsOption
 	ModelId         *uint
 	Versions        *[]string
 	BentoVersionIds *[]uint
@@ -82,7 +85,28 @@ func (s *modelVersionService) Create(ctx context.Context, opt CreateModelVersion
 		BuildAt:          opt.BuildAt,
 		Manifest:         opt.Manifest,
 	}
+
 	err = db.Create(modelVersion).Error
+	if err != nil {
+		return
+	}
+
+	var model *models.Model
+	model, err = ModelService.GetAssociatedModel(ctx, modelVersion)
+	if err != nil {
+		return
+	}
+	var org *models.Organization
+	org, err = OrganizationService.GetAssociatedOrganization(ctx, model)
+	if err != nil {
+		return
+	}
+	var user *models.User
+	user, err = GetCurrentUser(ctx)
+	if err != nil {
+		return
+	}
+	err = LabelService.CreateOrUpdateLabelsFromLabelItemsSchema(ctx, opt.Labels, user.ID, org.ID, modelVersion)
 	return
 }
 
@@ -300,6 +324,25 @@ func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.M
 		return nil, err
 	}
 
+	if opt.Labels != nil {
+		model, err := ModelService.GetAssociatedModel(ctx, modelVersion)
+		if err != nil {
+			return nil, err
+		}
+		org, err := OrganizationService.GetAssociatedOrganization(ctx, model)
+		if err != nil {
+			return nil, err
+		}
+		user, err := GetCurrentUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = LabelService.CreateOrUpdateLabelsFromLabelItemsSchema(ctx, *opt.Labels, user.ID, org.ID, modelVersion)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if opt.UploadStatus == nil || *opt.UploadStatus != modelschemas.ModelVersionUploadStatusSuccess {
 		return modelVersion, nil
 	}
@@ -363,6 +406,7 @@ func (s *modelVersionService) Update(ctx context.Context, modelVersion *models.M
 	cmsCli := kubeCli.CoreV1().ConfigMaps(kubeNamespace)
 	dockerConfigCMKubeName := "docker-config"
 	oldDockerConfigCM, err := cmsCli.Get(ctx, dockerConfigCMKubeName, metav1.GetOptions{})
+	// nolint: gocritic
 	if apierrors.IsNotFound(err) {
 		_, err = cmsCli.Create(ctx, &apiv1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{Name: dockerConfigCMKubeName},
@@ -390,6 +434,7 @@ FROM scratch
 COPY . /model
 `
 	oldDockerFileCM, err := cmsCli.Get(ctx, dockerFileCMKubeName, metav1.GetOptions{})
+	// nolint: gocritic
 	if apierrors.IsNotFound(err) {
 		_, err = cmsCli.Create(ctx, &apiv1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{Name: dockerFileCMKubeName},
@@ -571,6 +616,18 @@ func (s *modelVersionService) Get(ctx context.Context, id uint) (*models.ModelVe
 	return &modelVersion, nil
 }
 
+func (s *modelVersionService) GetByUid(ctx context.Context, uid string) (*models.ModelVersion, error) {
+	var modelVersion models.ModelVersion
+	err := getBaseQuery(ctx, s).Where("uid = ?", uid).First(&modelVersion).Error
+	if err != nil {
+		return nil, err
+	}
+	if modelVersion.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &modelVersion, nil
+}
+
 func (s *modelVersionService) GetByVersion(ctx context.Context, modelId uint, version string) (*models.ModelVersion, error) {
 	var modelVersion models.ModelVersion
 	err := getBaseQuery(ctx, s).Where("model_id = ?", modelId).Where("version = ?", version).First(&modelVersion).Error
@@ -617,6 +674,8 @@ func (s *modelVersionService) List(ctx context.Context, opt ListModelVersionOpti
 		query = query.Where("model_version.creator_id in (?)", *opt.CreatorIds)
 	}
 	query = opt.BindQueryWithKeywords(query, "model")
+	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeModelVersion)
+	query = query.Select("distinct(model_version.*)")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
@@ -629,11 +688,11 @@ func (s *modelVersionService) List(ctx context.Context, opt ListModelVersionOpti
 	} else {
 		query = query.Order("model_version.build_at DESC")
 	}
-	err = query.Select("model_version.*").Find(&modelVersions).Error
+	err = query.Find(&modelVersions).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	return modelVersions, uint(total), err
+	return modelVersions, uint(total), nil
 }
 
 func (s *modelVersionService) ListLatestByModelIds(ctx context.Context, modelIds []uint) ([]*models.ModelVersion, error) {

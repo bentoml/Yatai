@@ -52,14 +52,22 @@ func ToOrganizationFullSchema(ctx context.Context, org *models.Organization) (*s
 }
 
 func ToOrganizationSchemas(ctx context.Context, orgs []*models.Organization) ([]*schemasv1.OrganizationSchema, error) {
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, orgs)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
+	}
 	res := make([]*schemasv1.OrganizationSchema, 0, len(orgs))
 	for _, org := range orgs {
 		creatorSchema, err := GetAssociatedCreatorSchema(ctx, org)
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedCreatorSchema")
 		}
+		resourceSchema, ok := resourceSchemasMap[org.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resource schema not found for organization %s", org.GetUid())
+		}
 		res = append(res, &schemasv1.OrganizationSchema{
-			ResourceSchema: ToResourceSchema(org),
+			ResourceSchema: resourceSchema,
 			Creator:        creatorSchema,
 			Description:    org.Description,
 		})

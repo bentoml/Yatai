@@ -40,6 +40,11 @@ func ToBentoSchemas(ctx context.Context, bentos []*models.Bento) ([]*schemasv1.B
 		versionSchemasMap[s.BentoUid] = s
 	}
 
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, bentos)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
+	}
+
 	res := make([]*schemasv1.BentoSchema, 0, len(bentos))
 	for _, bento := range bentos {
 		creatorSchema, err := GetAssociatedCreatorSchema(ctx, bento)
@@ -50,8 +55,12 @@ func ToBentoSchemas(ctx context.Context, bentos []*models.Bento) ([]*schemasv1.B
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedClusterSchema")
 		}
+		resourceSchema, ok := resourceSchemasMap[bento.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resource schema not found for bento %s", bento.GetUid())
+		}
 		res = append(res, &schemasv1.BentoSchema{
-			ResourceSchema: ToResourceSchema(bento),
+			ResourceSchema: resourceSchema,
 			Creator:        creatorSchema,
 			Organization:   organizationSchema,
 			Description:    bento.Description,

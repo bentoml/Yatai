@@ -1,3 +1,4 @@
+// nolint: goconst
 package controllersv1
 
 import (
@@ -78,7 +79,6 @@ func (c *bentoController) Create(ctx *gin.Context, schema *CreateBentoSchema) (*
 	if err != nil {
 		return nil, err
 	}
-
 	if err = OrganizationController.canUpdate(ctx, organization); err != nil {
 		return nil, err
 	}
@@ -87,6 +87,7 @@ func (c *bentoController) Create(ctx *gin.Context, schema *CreateBentoSchema) (*
 		CreatorId:      user.ID,
 		OrganizationId: organization.ID,
 		Name:           schema.Name,
+		Labels:         schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create bento")
@@ -109,6 +110,7 @@ func (c *bentoController) Update(ctx *gin.Context, schema *UpdateBentoSchema) (*
 	}
 	bento, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
 		Description: schema.Description,
+		Labels:      schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "update bento")
@@ -232,6 +234,14 @@ func (c *bentoController) List(ctx *gin.Context, schema *ListBentoSchema) (*sche
 				fieldName = "bento_version.created_at"
 			}
 			listOpt.Order = utils.StringPtr(fmt.Sprintf("%s %s", fieldName, strings.ToUpper(order)))
+		}
+		if k == "label" {
+			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
+			listOpt.LabelsList = &labelsSchema
+		}
+		if k == "-label" {
+			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
+			listOpt.LackLabelsList = &labelsSchema
 		}
 	}
 

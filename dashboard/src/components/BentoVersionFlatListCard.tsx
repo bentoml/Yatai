@@ -18,6 +18,7 @@ import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers
 import { useQ } from '@/hooks/useQ'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
+import { ResourceLabels } from './ResourceLabels'
 
 export default function BentoVersionFlatListCard() {
     const { q, updateQ } = useQ()
@@ -164,12 +165,19 @@ export default function BentoVersionFlatListCard() {
                 columns={[t('name'), t('image build status'), t('description'), t('creator'), t('build_at')]}
                 data={
                     bentoVersionsInfo.data?.items.map((bentoVersion) => [
-                        <Link
+                        <div
                             key={bentoVersion.uid}
-                            to={`/bentos/${bentoVersion.bento.name}/versions/${bentoVersion.version}`}
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 10,
+                            }}
                         >
-                            {bentoVersion.bento.name}:{bentoVersion.version}
-                        </Link>,
+                            <Link to={`/bentos/${bentoVersion.bento.name}/versions/${bentoVersion.version}`}>
+                                {bentoVersion.bento.name}:{bentoVersion.version}
+                            </Link>
+                            <ResourceLabels resource={bentoVersion} />
+                        </div>,
                         <BentoVersionImageBuildStatusTag
                             key={bentoVersion.uid}
                             status={bentoVersion.image_build_status}

@@ -45,6 +45,7 @@ type UpdateDeploymentRevisionOption struct {
 
 type ListDeploymentRevisionOption struct {
 	BaseListOption
+	BaseListByLabelsOption
 	DeploymentId  *uint
 	DeploymentIds *[]uint
 	Status        *modelschemas.DeploymentRevisionStatus
@@ -118,14 +119,16 @@ func (s *deploymentRevisionService) GetByUid(ctx context.Context, uid string) (*
 func (s *deploymentRevisionService) List(ctx context.Context, opt ListDeploymentRevisionOption) ([]*models.DeploymentRevision, uint, error) {
 	query := getBaseQuery(ctx, s)
 	if opt.DeploymentId != nil {
-		query = query.Where("deployment_id = ?", *opt.DeploymentId)
+		query = query.Where("deployment_revision.deployment_id = ?", *opt.DeploymentId)
 	}
 	if opt.DeploymentIds != nil {
-		query = query.Where("deployment_id in (?)", *opt.DeploymentIds)
+		query = query.Where("deployment_revision.deployment_id in (?)", *opt.DeploymentIds)
 	}
 	if opt.Status != nil {
-		query = query.Where("status = ?", *opt.Status)
+		query = query.Where("deployment_revision.status = ?", *opt.Status)
 	}
+	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeDeploymentRevision)
+	query = query.Select("distinct(deployment_revision.*)")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
@@ -133,7 +136,7 @@ func (s *deploymentRevisionService) List(ctx context.Context, opt ListDeployment
 	}
 	deployments := make([]*models.DeploymentRevision, 0)
 	query = opt.BindQueryWithLimit(query)
-	err = query.Order("id DESC").Find(&deployments).Error
+	err = query.Order("deployment_revision.id DESC").Find(&deployments).Error
 	if err != nil {
 		return nil, 0, err
 	}

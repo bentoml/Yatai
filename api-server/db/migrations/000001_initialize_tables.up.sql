@@ -288,7 +288,7 @@ CREATE TABLE IF NOT EXISTS deployment_target (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TYPE "resource_type" AS ENUM ('organization', 'cluster', 'bento', 'bento_version', 'deployment', 'deployment_revision', 'model', 'model_version', 'api_token');
+CREATE TYPE "resource_type" AS ENUM ('user', 'organization', 'cluster', 'bento', 'bento_version', 'deployment', 'deployment_revision', 'model', 'model_version', 'api_token');
 
 CREATE TABLE IF NOT EXISTS "event" (
     id SERIAL PRIMARY KEY,
@@ -333,3 +333,19 @@ CREATE TABLE IF NOT EXISTS "cache" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+
+CREATE TABLE IF NOT EXISTS "label" (
+    id SERIAL PRIMARY KEY,
+    uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
+    resource_type resource_type NOT NULL,
+    resource_id INTEGER NOT NULL,
+    key VARCHAR(128) NOT NULL,
+    value VARCHAR(128) NOT NULL,
+    creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
+    organization_id INTEGER REFERENCES "organization"("id") ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE UNIQUE INDEX "uk_label_orgId_resourceType_resourceId_key" on "label" ("organization_id", "resource_type", "resource_id", "key");
