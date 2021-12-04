@@ -184,7 +184,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		return
 	}
 
-	bentoVersion, err := BentoVersionService.GetAssociatedBentoVersion(ctx, deploymentTarget)
+	bento, err := BentoService.GetAssociatedBento(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
@@ -214,7 +214,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		return
 	}
 
-	imageName, err := BentoVersionService.GetImageName(ctx, bentoVersion, cluster.ID == majorCluster.ID)
+	imageName, err := BentoService.GetImageName(ctx, bento, cluster.ID == majorCluster.ID)
 	if err != nil {
 		return
 	}
@@ -248,9 +248,9 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 	vs := make([]apiv1.Volume, 0)
 	vms := make([]apiv1.VolumeMount, 0)
 
-	modelVersions, _, err := ModelVersionService.List(ctx, ListModelVersionOption{
-		BentoVersionIds: &[]uint{bentoVersion.ID},
-		Order:           utils.StringPtr("model_version.build_at ASC"),
+	models_, _, err := ModelService.List(ctx, ListModelOption{
+		BentoIds: &[]uint{bento.ID},
+		Order:    utils.StringPtr("model.build_at ASC"),
 	})
 	if err != nil {
 		return
@@ -262,22 +262,22 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		imageTlsVerify = "true"
 	}
 
-	for _, mv := range modelVersions {
+	for _, model := range models_ {
 		var imageName_ string
-		imageName_, err = ModelVersionService.GetImageName(ctx, mv, cluster.ID == majorCluster.ID)
+		imageName_, err = ModelService.GetImageName(ctx, model, cluster.ID == majorCluster.ID)
 		if err != nil {
 			return
 		}
-		var model *models.Model
-		model, err = ModelService.GetAssociatedModel(ctx, mv)
+		var modelRepository *models.ModelRepository
+		modelRepository, err = ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
 		if err != nil {
 			return
 		}
-		pvName := fmt.Sprintf("pv-%s", mv.Version)
-		sourcePath := fmt.Sprintf("/models/%s/%s", model.Name, mv.Version)
-		destDirPath := fmt.Sprintf("./models/%s", model.Name)
-		destPath := filepath.Join(destDirPath, mv.Version)
-		args = append(args, "mkdir", "-p", destDirPath, ";", "ln", "-sf", filepath.Join(sourcePath, "model"), destPath, ";", "echo", "-n", fmt.Sprintf("'%s'", mv.Version), ">", filepath.Join(destDirPath, "latest"), ";")
+		pvName := fmt.Sprintf("pv-%s", model.Version)
+		sourcePath := fmt.Sprintf("/models/%s/%s", modelRepository.Name, model.Version)
+		destDirPath := fmt.Sprintf("./models/%s", modelRepository.Name)
+		destPath := filepath.Join(destDirPath, model.Version)
+		args = append(args, "mkdir", "-p", destDirPath, ";", "ln", "-sf", filepath.Join(sourcePath, "model"), destPath, ";", "echo", "-n", fmt.Sprintf("'%s'", model.Version), ">", filepath.Join(destDirPath, "latest"), ";")
 		v := apiv1.Volume{
 			Name: pvName,
 			VolumeSource: apiv1.VolumeSource{

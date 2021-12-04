@@ -157,48 +157,48 @@ func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.Updat
 	if err != nil {
 		return nil, err
 	}
-	bentoNames := make([]string, 0, len(schema.Targets))
-	bentoNamesSeen := make(map[string]struct{}, len(schema.Targets))
+	bentoRepositoryNames := make([]string, 0, len(schema.Targets))
+	bentoRepositoryNamesSeen := make(map[string]struct{}, len(schema.Targets))
 
-	bentoVersionVersionsMapping := make(map[string][]string, len(schema.Targets))
+	bentoVersionsMapping := make(map[string][]string, len(schema.Targets))
 
 	for _, createDeploymentTargetSchema := range schema.Targets {
-		if _, ok := bentoNamesSeen[createDeploymentTargetSchema.BentoName]; !ok {
-			bentoNames = append(bentoNames, createDeploymentTargetSchema.BentoName)
-			bentoNamesSeen[createDeploymentTargetSchema.BentoName] = struct{}{}
+		if _, ok := bentoRepositoryNamesSeen[createDeploymentTargetSchema.BentoRepository]; !ok {
+			bentoRepositoryNames = append(bentoRepositoryNames, createDeploymentTargetSchema.BentoRepository)
+			bentoRepositoryNamesSeen[createDeploymentTargetSchema.BentoRepository] = struct{}{}
 		}
-		bentoVersionVersions, ok := bentoVersionVersionsMapping[createDeploymentTargetSchema.BentoName]
+		bentoVersions, ok := bentoVersionsMapping[createDeploymentTargetSchema.BentoRepository]
 		if !ok {
-			bentoVersionVersions = make([]string, 0, 1)
+			bentoVersions = make([]string, 0, 1)
 		}
-		bentoVersionVersions = append(bentoVersionVersions, createDeploymentTargetSchema.BentoVersion)
-		bentoVersionVersionsMapping[createDeploymentTargetSchema.BentoName] = bentoVersionVersions
+		bentoVersions = append(bentoVersions, createDeploymentTargetSchema.Bento)
+		bentoVersionsMapping[createDeploymentTargetSchema.BentoRepository] = bentoVersions
 	}
 
-	bentos, _, err := services.BentoService.List(ctx, services.ListBentoOption{
+	bentoRepositories, _, err := services.BentoRepositoryService.List(ctx, services.ListBentoRepositoryOption{
 		OrganizationId: utils.UintPtr(org.ID),
-		Names:          &bentoNames,
+		Names:          &bentoRepositoryNames,
 	})
 	if err != nil {
 		return nil, err
 	}
-	bentosMapping := make(map[string]*models.Bento, len(bentos))
-	for _, bento := range bentos {
-		bentosMapping[bento.Name] = bento
+	bentoRepositoriesMapping := make(map[string]*models.BentoRepository, len(bentoRepositories))
+	for _, bentoRepository := range bentoRepositories {
+		bentoRepositoriesMapping[bentoRepository.Name] = bentoRepository
 	}
 
-	bentoVersionsMapping := make(map[string]*models.BentoVersion)
-	for _, bento := range bentos {
-		versions := bentoVersionVersionsMapping[bento.Name]
-		bentoVersions, _, err := services.BentoVersionService.List(ctx, services.ListBentoVersionOption{
-			BentoId:  utils.UintPtr(bento.ID),
-			Versions: &versions,
+	bentosMapping := make(map[string]*models.Bento)
+	for _, bentoRepository := range bentoRepositories {
+		versions := bentoVersionsMapping[bentoRepository.Name]
+		bentos, _, err := services.BentoService.List(ctx, services.ListBentoOption{
+			BentoRepositoryId: utils.UintPtr(bentoRepository.ID),
+			Versions:          &versions,
 		})
 		if err != nil {
 			return nil, err
 		}
-		for _, bentoVersion := range bentoVersions {
-			bentoVersionsMapping[fmt.Sprintf("%s:%s", bento.Name, bentoVersion.Version)] = bentoVersion
+		for _, bento := range bentos {
+			bentosMapping[fmt.Sprintf("%s:%s", bentoRepository.Name, bento.Version)] = bento
 		}
 	}
 
@@ -213,16 +213,16 @@ func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.Updat
 
 	deploymentTargets := make([]*models.DeploymentTarget, 0, len(schema.Targets))
 	for _, createDeploymentTargetSchema := range schema.Targets {
-		bentoVersion := bentoVersionsMapping[fmt.Sprintf("%s:%s", createDeploymentTargetSchema.BentoName, createDeploymentTargetSchema.BentoVersion)]
-		if bentoVersion == nil {
-			return nil, errors.Errorf("can't find bento version: %s:%s", createDeploymentTargetSchema.BentoName, createDeploymentTargetSchema.BentoVersion)
+		bento := bentosMapping[fmt.Sprintf("%s:%s", createDeploymentTargetSchema.BentoRepository, createDeploymentTargetSchema.Bento)]
+		if bento == nil {
+			return nil, errors.Errorf("can't find bento: %s:%s", createDeploymentTargetSchema.BentoRepository, createDeploymentTargetSchema.Bento)
 		}
 
 		deploymentTarget, err := services.DeploymentTargetService.Create(ctx, services.CreateDeploymentTargetOption{
 			CreatorId:            user.ID,
 			DeploymentId:         deployment.ID,
 			DeploymentRevisionId: deploymentRevision.ID,
-			BentoVersionId:       bentoVersion.ID,
+			BentoId:              bento.ID,
 			Type:                 createDeploymentTargetSchema.Type,
 			CanaryRules:          createDeploymentTargetSchema.CanaryRules,
 			Config:               createDeploymentTargetSchema.Config,

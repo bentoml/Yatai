@@ -900,6 +900,16 @@ const locales0 = {
         en: 'My last updated deployments',
         ja: 'マイ・最終更新デプロイ',
     },
+    'bento repository': {
+        cn: 'Bento 仓库',
+        en: 'Bento Repository',
+        ja: 'Bento リポジトリ',
+    },
+    'model repository': {
+        cn: '模型仓库',
+        en: 'Model Repository',
+        ja: 'モデルリポジトリ',
+    },
     'the models I created': {
         cn: '我创建的 Model',
         en: 'The models I created',

@@ -33,10 +33,9 @@ func (s *deploymentRevisionService) getBaseDB(ctx context.Context) *gorm.DB {
 }
 
 type CreateDeploymentRevisionOption struct {
-	CreatorId      uint
-	DeploymentId   uint
-	BentoVersionId uint
-	Status         modelschemas.DeploymentRevisionStatus
+	CreatorId    uint
+	DeploymentId uint
+	Status       modelschemas.DeploymentRevisionStatus
 }
 
 type UpdateDeploymentRevisionOption struct {

@@ -20,23 +20,23 @@ import ClusterDeployments from '@/pages/Cluster/Deployments'
 import ClusterMembers from '@/pages/Cluster/Members'
 import ClusterSettings from '@/pages/Cluster/Settings'
 import ClusterLayout from '@/components/ClusterLayout'
+import OrganizationBentoRepositories from '@/pages/Organization/BentoRepositories'
 import OrganizationBentos from '@/pages/Organization/Bentos'
-import OrganizationBentoVersions from '@/pages/Organization/BentoVersions'
-import OrganizationModelVersions from '@/pages/Organization/ModelVersions'
-import BentoOverview from '@/pages/Bento/Overview'
-import BentoVersions from '@/pages/Bento/Versions'
+import OrganizationModels from '@/pages/Organization/Models'
+import BentoRepositoryOverview from '@/pages/BentoRepository/Overview'
+import BentoRepositoryBentos from '@/pages/BentoRepository/Bentos'
 import DeploymentOverview from '@/pages/Deployment/Overview'
 import DeploymentRevisions from '@/pages/Deployment/Revisions'
 import DeploymentTerminalRecordPlayer from '@/pages/Deployment/TerminalRecordPlayer'
 import DeploymentReplicas from '@/pages/Deployment/Replicas'
 import DeploymentLog from '@/pages/Deployment/Log'
 import DeploymentMonitor from '@/pages/Deployment/Monitor'
-import BentoLayout from '@/components/BentoLayout'
+import BentoRepositoryLayout from '@/components/BentoRepositoryLayout'
 import DeploymentLayout from '@/components/DeploymentLayout'
-import ModelLayout from '@/components/ModelLayout'
-import ModelOverview from '@/pages/Model/Overview'
-import ModelVersions from '@/pages/Model/Versions'
-import OrganizationModels from '@/pages/Organization/Models'
+import ModelRepositoryLayout from '@/components/ModelRepositoryLayout'
+import ModelRepositoryOverview from '@/pages/ModelRepository/Overview'
+import ModelRepositoryModels from '@/pages/ModelRepository/Models'
+import OrganizationModelRepositories from '@/pages/Organization/ModelRepositories'
 import { ChatWidget } from '@papercups-io/chat-widget'
 
 const useStyles = createUseStyles({
@@ -81,13 +81,21 @@ const Routes = () => {
             >
                 <Header />
                 <Switch>
-                    <Route exact path='/bentos/:bentoName/:path?/:path?'>
-                        <BentoLayout>
+                    <Route exact path='/bento_repositories/:bentoRepositoryName/:path?/:path?'>
+                        <BentoRepositoryLayout>
                             <Switch>
-                                <Route exact path='/bentos/:bentoName' component={BentoOverview} />
-                                <Route exact path='/bentos/:bentoName/versions' component={BentoVersions} />
+                                <Route
+                                    exact
+                                    path='/bento_repositories/:bentoRepositoryName'
+                                    component={BentoRepositoryOverview}
+                                />
+                                <Route
+                                    exact
+                                    path='/bento_repositories/:bentoRepositoryName/bentos'
+                                    component={BentoRepositoryBentos}
+                                />
                             </Switch>
-                        </BentoLayout>
+                        </BentoRepositoryLayout>
                     </Route>
                     <Route exact path='/clusters/:clusterName/deployments/:deploymentName/:path?/:path?'>
                         <DeploymentLayout>
@@ -145,13 +153,21 @@ const Routes = () => {
                             </Switch>
                         </ClusterLayout>
                     </Route>
-                    <Route exact path='/models/:modelName/:path?/:path?'>
-                        <ModelLayout>
+                    <Route exact path='/model_repositories/:modelRepositoryName/:path?/:path?'>
+                        <ModelRepositoryLayout>
                             <Switch>
-                                <Route exact path='/models/:modelName' component={ModelOverview} />
-                                <Route exact path='/models/:modelName/versions' component={ModelVersions} />
+                                <Route
+                                    exact
+                                    path='/model_repositories/:modelRepositoryName'
+                                    component={ModelRepositoryOverview}
+                                />
+                                <Route
+                                    exact
+                                    path='/model_repositories/:modelRepositoryName/models'
+                                    component={ModelRepositoryModels}
+                                />
                             </Switch>
-                        </ModelLayout>
+                        </ModelRepositoryLayout>
                     </Route>
                     <Route exact path='/login' component={Login} />
                     <Route>
@@ -159,12 +175,12 @@ const Routes = () => {
                             <Switch>
                                 <Route exact path='/' component={OrganizationOverview} />
                                 <Route exact path='/bentos' component={OrganizationBentos} />
-                                <Route exact path='/model_versions' component={OrganizationModelVersions} />
-                                <Route exact path='/bento_versions' component={OrganizationBentoVersions} />
+                                <Route exact path='/models' component={OrganizationModels} />
                                 <Route exact path='/api_tokens' component={OrganizationApiTokens} />
                                 <Route exact path='/clusters' component={OrganizationClusters} />
                                 <Route exact path='/members' component={OrganizationMembers} />
-                                <Route exact path='/models' component={OrganizationModels} />
+                                <Route exact path='/bento_repositories' component={OrganizationBentoRepositories} />
+                                <Route exact path='/model_repositories' component={OrganizationModelRepositories} />
                                 <Route exact path='/deployments' component={OrganizationDeployments} />
                                 <Route exact path='/settings' component={OrganizationSettings} />
                             </Switch>

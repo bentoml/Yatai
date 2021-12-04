@@ -38,6 +38,8 @@ spec:
                 properties:
                   hostname:
                     type: string
+                  ingressClassName:
+                    type: string
                   rootUrl:
                     type: string
                 required:

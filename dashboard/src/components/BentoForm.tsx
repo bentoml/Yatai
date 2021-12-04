@@ -41,11 +41,14 @@ export default function BentoForm({ bento, onSubmit }: IBentoFormProps) {
 
     return (
         <Form initialValues={initialValue} onFinish={handleFinish}>
-            <FormItem name='name' label={t('name')}>
+            <FormItem name='version' label={t('version')}>
                 <Input />
             </FormItem>
             <FormItem name='description' label={t('description')}>
                 <Textarea />
+            </FormItem>
+            <FormItem name='build_at' label={t('build_at')}>
+                <Input />
             </FormItem>
             <FormItem>
                 <div style={{ display: 'flex' }}>

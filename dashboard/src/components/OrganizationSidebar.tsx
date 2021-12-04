@@ -31,12 +31,12 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
             },
             {
                 title: t('sth list', [t('model')]),
-                path: '/model_versions',
+                path: '/models',
                 icon: resourceIconMapping.model,
             },
             {
                 title: t('sth list', [t('bento')]),
-                path: '/bento_versions',
+                path: '/bentos',
                 icon: resourceIconMapping.bento,
             },
             {

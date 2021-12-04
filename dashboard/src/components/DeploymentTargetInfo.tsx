@@ -36,9 +36,9 @@ export default function DeploymentTargetInfo({ deploymentTarget }: IDeploymentTa
                     {t(deploymentTarget.type)}
                 </Tag>
                 <Link
-                    to={`/bentos/${deploymentTarget.bento_version.bento.name}/versions/${deploymentTarget.bento_version.version}`}
+                    to={`/bento_repositories/${deploymentTarget.bento.repository.name}/bentos/${deploymentTarget.bento.version}`}
                 >
-                    {deploymentTarget.bento_version.bento.name}:{deploymentTarget.bento_version.version}
+                    {deploymentTarget.bento.repository.name}:{deploymentTarget.bento.version}
                 </Link>
             </div>
             <Modal isOpen={showDetail} onClose={() => setShowDetail(false)} closeable animate autoFocus>

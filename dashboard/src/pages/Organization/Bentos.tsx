@@ -1,6 +1,6 @@
+import BentoFlatListCard from '@/components/BentoFlatListCard'
 import React from 'react'
-import BentoListCard from '@/components/BentoListCard'
 
 export default function OrganizationBentos() {
-    return <BentoListCard />
+    return <BentoFlatListCard />
 }
