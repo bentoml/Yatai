@@ -7,7 +7,7 @@ type DeploymentTarget struct {
 	CreatorAssociate
 	DeploymentAssociate
 	DeploymentRevisionAssociate
-	BentoVersionAssociate
+	BentoAssociate
 
 	Type        modelschemas.DeploymentTargetType         `json:"type"`
 	CanaryRules *modelschemas.DeploymentTargetCanaryRules `json:"canary_rules"`

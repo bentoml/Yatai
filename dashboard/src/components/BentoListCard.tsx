@@ -1,9 +1,9 @@
-import { useCallback, useState } from 'react'
-import { useQuery } from 'react-query'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
 import { createBento, listBentos } from '@/services/bento'
 import { usePage } from '@/hooks/usePage'
-import { ICreateBentoSchema } from '@/schemas/bento'
+import { IBentoSchema, ICreateBentoSchema } from '@/schemas/bento'
 import BentoForm from '@/components/BentoForm'
 import { formatDateTime } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
@@ -13,146 +13,98 @@ import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
-import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
+import { useSubscription } from '@/hooks/useSubscription'
+import { IListSchema } from '@/schemas/list'
+import BentoImageBuildStatusTag from '@/components/BentoImageBuildStatus'
 import qs from 'qs'
-import { useQ } from '@/hooks/useQ'
-import FilterBar from './FilterBar'
-import FilterInput from './FilterInput'
 
-export default function BentoListCard() {
-    const { q, updateQ } = useQ()
-    const membersInfo = useFetchOrganizationMembers()
+export interface IBentoListCardProps {
+    bentoRepositoryName: string
+}
+
+export default function BentoListCard({ bentoRepositoryName }: IBentoListCardProps) {
     const [page] = usePage()
-    const bentosInfo = useQuery(`fetchBentos:${qs.stringify(page)}`, () => listBentos(page))
-    const [isCreateBentoOpen, setIsCreateBentoOpen] = useState(false)
-    const handleCreateBento = useCallback(
+    const queryKey = `fetchBentos:${bentoRepositoryName}:${qs.stringify(page)}`
+    const bentosInfo = useQuery(queryKey, () => listBentos(bentoRepositoryName, page))
+    const [isCreateBentoVersionOpen, setIsCreateBentoVersionOpen] = useState(false)
+    const handleCreateBentoVersion = useCallback(
         async (data: ICreateBentoSchema) => {
-            await createBento(data)
+            await createBento(bentoRepositoryName, data)
             await bentosInfo.refetch()
-            setIsCreateBentoOpen(false)
+            setIsCreateBentoVersionOpen(false)
         },
-        [bentosInfo]
+        [bentoRepositoryName, bentosInfo]
     )
     const [t] = useTranslation()
+
+    const uids = useMemo(() => bentosInfo.data?.items.map((bento) => bento.uid) ?? [], [bentosInfo.data?.items])
+    const queryClient = useQueryClient()
+    const subscribeCb = useCallback(
+        (bentoVersion: IBentoSchema) => {
+            queryClient.setQueryData(queryKey, (oldData?: IListSchema<IBentoSchema>): IListSchema<IBentoSchema> => {
+                if (!oldData) {
+                    return {
+                        start: 0,
+                        count: 0,
+                        total: 0,
+                        items: [],
+                    }
+                }
+                return {
+                    ...oldData,
+                    items: oldData.items.map((oldBentoVersion) => {
+                        if (oldBentoVersion.uid === bentoVersion.uid) {
+                            return {
+                                ...oldBentoVersion,
+                                ...bentoVersion,
+                            }
+                        }
+                        return oldBentoVersion
+                    }),
+                }
+            })
+        },
+        [queryClient, queryKey]
+    )
+    const { subscribe, unsubscribe } = useSubscription()
+
+    useEffect(() => {
+        subscribe({
+            resourceType: 'bento',
+            resourceUids: uids,
+            cb: subscribeCb,
+        })
+        return () => {
+            unsubscribe({
+                resourceType: 'bento',
+                resourceUids: uids,
+                cb: subscribeCb,
+            })
+        }
+    }, [subscribe, subscribeCb, uids, unsubscribe])
 
     return (
         <Card
             title={t('sth list', [t('bento')])}
             titleIcon={resourceIconMapping.bento}
-            middle={
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        flexGrow: 1,
-                    }}
-                >
-                    <div
-                        style={{
-                            width: 100,
-                            flexGrow: 1,
-                        }}
-                    />
-                    <div
-                        style={{
-                            flexGrow: 2,
-                            flexShrink: 0,
-                            maxWidth: 1200,
-                        }}
-                    >
-                        <FilterInput
-                            filterConditions={[
-                                {
-                                    qStr: 'creator:@me',
-                                    label: t('the bentos I created'),
-                                },
-                                {
-                                    qStr: 'last_updater:@me',
-                                    label: t('my last updated bentos'),
-                                },
-                            ]}
-                        />
-                    </div>
-                </div>
-            }
             extra={
-                <Button size={ButtonSize.compact} onClick={() => setIsCreateBentoOpen(true)}>
+                <Button size={ButtonSize.compact} onClick={() => setIsCreateBentoVersionOpen(true)}>
                     {t('create')}
                 </Button>
             }
         >
-            <FilterBar
-                filters={[
-                    {
-                        showInput: true,
-                        multiple: true,
-                        options:
-                            membersInfo.data?.map(({ user }) => ({
-                                id: user.name,
-                                label: <User user={user} />,
-                            })) ?? [],
-                        value: ((q.creator as string[] | undefined) ?? []).map((v) => ({
-                            id: v,
-                        })),
-                        onChange: ({ value }) => {
-                            updateQ({
-                                creator: value.map((v) => String(v.id ?? '')),
-                            })
-                        },
-                        label: t('creator'),
-                    },
-                    {
-                        showInput: true,
-                        multiple: true,
-                        options:
-                            membersInfo.data?.map(({ user }) => ({
-                                id: user.name,
-                                label: <User user={user} />,
-                            })) ?? [],
-                        value: ((q.last_updater as string[] | undefined) ?? []).map((v) => ({
-                            id: v,
-                        })),
-                        onChange: ({ value }) => {
-                            updateQ({
-                                last_updater: value.map((v) => String(v.id ?? '')),
-                            })
-                        },
-                        label: t('last updater'),
-                    },
-                    {
-                        options: [
-                            {
-                                id: 'updated_at-desc',
-                                label: t('newest update'),
-                            },
-                            {
-                                id: 'updated_at-asc',
-                                label: t('oldest update'),
-                            },
-                        ],
-                        value: ((q.sort as string[] | undefined) ?? []).map((v) => ({
-                            id: v,
-                        })),
-                        onChange: ({ value }) => {
-                            updateQ({
-                                sort: value.map((v) => String(v.id ?? '')),
-                            })
-                        },
-                        label: t('sort'),
-                    },
-                ]}
-            />
             <Table
                 isLoading={bentosInfo.isLoading}
-                columns={[t('name'), t('latest version'), t('last updater'), t('updated_at')]}
+                columns={[t('name'), t('image build status'), t('description'), t('creator'), t('created_at')]}
                 data={
                     bentosInfo.data?.items.map((bento) => [
-                        <Link key={bento.uid} to={`/bentos/${bento.name}`}>
-                            {bento.name}
+                        <Link key={bento.uid} to={`/bento_repositories/${bentoRepositoryName}/bentos/${bento.version}`}>
+                            {bento.version}
                         </Link>,
-                        bento.latest_version?.version,
-                        bento.latest_version?.creator && <User user={bento.latest_version.creator} />,
-                        bento.latest_version?.updated_at && formatDateTime(bento.latest_version.updated_at),
+                        <BentoImageBuildStatusTag key={bento.uid} status={bento.image_build_status} />,
+                        bento.description,
+                        bento.creator && <User user={bento.creator} />,
+                        formatDateTime(bento.created_at),
                     ]) ?? []
                 }
                 paginationProps={{
@@ -164,10 +116,16 @@ export default function BentoListCard() {
                     },
                 }}
             />
-            <Modal isOpen={isCreateBentoOpen} onClose={() => setIsCreateBentoOpen(false)} closeable animate autoFocus>
-                <ModalHeader>{t('create sth', [t('bento')])}</ModalHeader>
+            <Modal
+                isOpen={isCreateBentoVersionOpen}
+                onClose={() => setIsCreateBentoVersionOpen(false)}
+                closeable
+                animate
+                autoFocus
+            >
+                <ModalHeader>{t('create sth', [t('version')])}</ModalHeader>
                 <ModalBody>
-                    <BentoForm onSubmit={handleCreateBento} />
+                    <BentoForm onSubmit={handleCreateBentoVersion} />
                 </ModalBody>
             </Modal>
         </Card>

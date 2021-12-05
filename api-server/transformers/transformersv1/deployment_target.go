@@ -31,9 +31,9 @@ func ToDeploymentTargetSchemas(ctx context.Context, deploymentTargets []*models.
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedCreatorSchema")
 		}
-		bentoVersionFullSchema, err := GetAssociatedBentoVersionFullSchema(ctx, deploymentTarget)
+		bentoFullSchema, err := GetAssociatedBentoFullSchema(ctx, deploymentTarget)
 		if err != nil {
-			return nil, errors.Wrap(err, "GetAssociatedBentoVersionFullSchema")
+			return nil, errors.Wrap(err, "GetAssociatedBentoFullSchema")
 		}
 		resourceSchema, ok := resourceSchemasMap[deploymentTarget.GetUid()]
 		if !ok {
@@ -44,10 +44,10 @@ func ToDeploymentTargetSchemas(ctx context.Context, deploymentTargets []*models.
 			DeploymentTargetTypeSchema: schemasv1.DeploymentTargetTypeSchema{
 				Type: deploymentTarget.Type,
 			},
-			Creator:      creatorSchema,
-			BentoVersion: bentoVersionFullSchema,
-			CanaryRules:  deploymentTarget.CanaryRules,
-			Config:       deploymentTarget.Config,
+			Creator:     creatorSchema,
+			Bento:       bentoFullSchema,
+			CanaryRules: deploymentTarget.CanaryRules,
+			Config:      deploymentTarget.Config,
 		})
 	}
 	return res, nil

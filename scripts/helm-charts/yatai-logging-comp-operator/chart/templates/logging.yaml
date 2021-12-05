@@ -6,3 +6,4 @@ spec:
   grafana:
     hostname: "{{ .Values.logging.grafana.hostname }}"
     rootUrl: "{{ .Values.logging.grafana.rootUrl }}"
+    ingressClassName: "{{ .Values.logging.grafana.ingressClassName }}"

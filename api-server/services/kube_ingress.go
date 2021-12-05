@@ -30,12 +30,7 @@ func (s *kubeIngressService) ToKubeIngresses(ctx context.Context, deploymentTarg
 		return
 	}
 
-	bentoVersion, err := BentoVersionService.GetAssociatedBentoVersion(ctx, deploymentTarget)
-	if err != nil {
-		return
-	}
-
-	bento, err := BentoService.GetAssociatedBento(ctx, bentoVersion)
+	bento, err := BentoService.GetAssociatedBento(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
@@ -50,11 +45,15 @@ func (s *kubeIngressService) ToKubeIngresses(ctx context.Context, deploymentTarg
 		return
 	}
 
+	tag, err := BentoService.GetTag(ctx, bento)
+	if err != nil {
+		return
+	}
+
 	annotations["nginx.ingress.kubernetes.io/configuration-snippet"] = fmt.Sprintf(`
 more_set_headers "X-Powered-By: Yatai";
 more_set_headers "X-Yatai-Bento: %s";
-more_set_headers "X-Yatai-Bento-Version: %s";
-`, bento.Name, bentoVersion.Version)
+`, string(tag))
 	if deploymentTarget.Type == modelschemas.DeploymentTargetTypeCanary && deploymentTarget.CanaryRules != nil {
 		annotations["nginx.ingress.kubernetes.io/canary"] = "true"
 		for _, rule := range *deploymentTarget.CanaryRules {

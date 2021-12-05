@@ -1,10 +1,10 @@
 import { IDeploymentFullSchema } from '@/schemas/deployment'
-import { IBentoSchema } from '@/schemas/bento'
+import { IBentoRepositorySchema } from '@/schemas/bento_repository'
 import { IClusterFullSchema } from '@/schemas/cluster'
 import { createGlobalState } from 'react-hooks-global-state'
 import { IUserSchema } from '@/schemas/user'
 import { IOrganizationFullSchema } from '@/schemas/organization'
-import { IModelSchema } from '@/schemas/model'
+import { IModelRepositorySchema } from '@/schemas/model_repository'
 
 export type BaseThemeType = 'light' | 'dark'
 export type ThemeType = BaseThemeType | 'followTheSystem'
@@ -18,12 +18,12 @@ const initialState = {
     organizationLoading: false,
     cluster: undefined as IClusterFullSchema | undefined,
     clusterLoading: false,
-    bento: undefined as IBentoSchema | undefined,
-    bentoLoading: false,
+    bentoRepository: undefined as IBentoRepositorySchema | undefined,
+    bentoRepositoryLoading: false,
     deployment: undefined as IDeploymentFullSchema | undefined,
     deploymentLoading: false,
-    model: undefined as IModelSchema | undefined,
-    modelLoading: false,
+    modelRepository: undefined as IModelRepositorySchema | undefined,
+    modelRepositoryLoading: false,
 }
 
 const { useGlobalState } = createGlobalState(initialState)

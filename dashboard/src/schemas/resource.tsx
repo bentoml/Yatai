@@ -6,13 +6,13 @@ export type ResourceType =
     | 'user_group'
     | 'organization'
     | 'cluster'
+    | 'bento_repository'
     | 'bento'
-    | 'bento_version'
     | 'deployment'
     | 'deployment_revision'
     | 'yatai_component'
+    | 'model_repository'
     | 'model'
-    | 'model_version'
     | 'api_token'
 
 export interface IResourceSchema extends IBaseSchema {

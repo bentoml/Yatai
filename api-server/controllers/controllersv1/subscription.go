@@ -75,8 +75,8 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 				actualUids := make([]string, 0, len(req.Payload.ResourceUids))
 				// nolint: exhaustive
 				switch req.Payload.ResourceType {
-				case modelschemas.ResourceTypeBentoVersion:
-					bentoVersions, err := services.BentoVersionService.ListByUids(ctx, req.Payload.ResourceUids)
+				case modelschemas.ResourceTypeBento:
+					bentos, err := services.BentoService.ListByUids(ctx, req.Payload.ResourceUids)
 					if err != nil {
 						_ = conn.WriteJSON(&schemasv1.WsRespSchema{
 							Type:    schemasv1.WsRespTypeError,
@@ -84,8 +84,8 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 						})
 						continue
 					}
-					for _, bentoVersion := range bentoVersions {
-						bento, err := services.BentoService.GetAssociatedBento(ctx, bentoVersion)
+					for _, bento := range bentos {
+						bentoRepository, err := services.BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 						if err != nil {
 							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
 								Type:    schemasv1.WsRespTypeError,
@@ -93,14 +93,41 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 							})
 							continue
 						}
-						if err = services.MemberService.CanView(ctx, &services.OrganizationMemberService, currentUser, bento.OrganizationId); err != nil {
+						if err = services.MemberService.CanView(ctx, &services.OrganizationMemberService, currentUser, bentoRepository.OrganizationId); err != nil {
 							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
 								Type:    schemasv1.WsRespTypeError,
 								Message: err.Error(),
 							})
 							continue
 						}
-						actualUids = append(actualUids, bentoVersion.Uid)
+						actualUids = append(actualUids, bento.Uid)
+					}
+				case modelschemas.ResourceTypeModel:
+					models, err := services.ModelService.ListByUids(ctx, req.Payload.ResourceUids)
+					if err != nil {
+						_ = conn.WriteJSON(&schemasv1.WsRespSchema{
+							Type:    schemasv1.WsRespTypeError,
+							Message: err.Error(),
+						})
+						continue
+					}
+					for _, model := range models {
+						modelRepository, err := services.ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+						if err != nil {
+							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
+								Type:    schemasv1.WsRespTypeError,
+								Message: err.Error(),
+							})
+							continue
+						}
+						if err = services.MemberService.CanView(ctx, &services.OrganizationMemberService, currentUser, modelRepository.OrganizationId); err != nil {
+							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
+								Type:    schemasv1.WsRespTypeError,
+								Message: err.Error(),
+							})
+							continue
+						}
+						actualUids = append(actualUids, model.Uid)
 					}
 				case modelschemas.ResourceTypeDeployment:
 					deployments, err := services.DeploymentService.ListByUids(ctx, req.Payload.ResourceUids)
@@ -166,24 +193,24 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 		for resourceType, uids := range resourceUidsMap {
 			// nolint: exhaustive
 			switch resourceType {
-			case modelschemas.ResourceTypeBentoVersion:
-				bentoVersions, err := services.BentoVersionService.ListByUids(ctx, uids)
+			case modelschemas.ResourceTypeBento:
+				bentos, err := services.BentoService.ListByUids(ctx, uids)
 				if err != nil {
 					return err
 				}
-				bentoVersionSchemas, err := transformersv1.ToBentoVersionSchemas(ctx, bentoVersions)
+				bentoSchemas, err := transformersv1.ToBentoSchemas(ctx, bentos)
 				if err != nil {
 					return err
 				}
-				for _, bentoVersionSchema := range bentoVersionSchemas {
+				for _, bentoSchema := range bentoSchemas {
 					isEqual := func() bool {
 						mu.Lock()
 						defer func() {
-							schemasCache[bentoVersionSchema.Uid] = bentoVersionSchema
+							schemasCache[bentoSchema.Uid] = bentoSchema
 						}()
 						defer mu.Unlock()
-						if oldSchema, ok := schemasCache[bentoVersionSchema.Uid]; ok {
-							return reflect.DeepEqual(oldSchema, bentoVersionSchema)
+						if oldSchema, ok := schemasCache[bentoSchema.Uid]; ok {
+							return reflect.DeepEqual(oldSchema, bentoSchema)
 						}
 						return false
 					}()
@@ -196,8 +223,46 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 						Type:    schemasv1.WsRespTypeSuccess,
 						Message: "",
 						Payload: &schemasv1.SubscriptionRespSchema{
-							ResourceType: bentoVersionSchema.ResourceType,
-							Payload:      bentoVersionSchema,
+							ResourceType: bentoSchema.ResourceType,
+							Payload:      bentoSchema,
+						},
+					})
+					if err != nil {
+						return err
+					}
+				}
+			case modelschemas.ResourceTypeModel:
+				models, err := services.ModelService.ListByUids(ctx, uids)
+				if err != nil {
+					return err
+				}
+				modelSchemas, err := transformersv1.ToModelSchemas(ctx, models)
+				if err != nil {
+					return err
+				}
+				for _, modelSchema := range modelSchemas {
+					isEqual := func() bool {
+						mu.Lock()
+						defer func() {
+							schemasCache[modelSchema.Uid] = modelSchema
+						}()
+						defer mu.Unlock()
+						if oldSchema, ok := schemasCache[modelSchema.Uid]; ok {
+							return reflect.DeepEqual(oldSchema, modelSchema)
+						}
+						return false
+					}()
+
+					if isEqual {
+						continue
+					}
+
+					err = conn.WriteJSON(&schemasv1.WsRespSchema{
+						Type:    schemasv1.WsRespTypeSuccess,
+						Message: "",
+						Payload: &schemasv1.SubscriptionRespSchema{
+							ResourceType: modelSchema.ResourceType,
+							Payload:      modelSchema,
 						},
 					})
 					if err != nil {

@@ -30,7 +30,7 @@ type CreateDeploymentTargetOption struct {
 	CreatorId            uint
 	DeploymentId         uint
 	DeploymentRevisionId uint
-	BentoVersionId       uint
+	BentoId              uint
 	Type                 modelschemas.DeploymentTargetType
 	CanaryRules          *modelschemas.DeploymentTargetCanaryRules
 	Config               *modelschemas.DeploymentTargetConfig
@@ -77,8 +77,8 @@ func (*deploymentTargetService) Create(ctx context.Context, opt CreateDeployment
 		DeploymentRevisionAssociate: models.DeploymentRevisionAssociate{
 			DeploymentRevisionId: opt.DeploymentRevisionId,
 		},
-		BentoVersionAssociate: models.BentoVersionAssociate{
-			BentoVersionId: opt.BentoVersionId,
+		BentoAssociate: models.BentoAssociate{
+			BentoId: opt.BentoId,
 		},
 		Type:        opt.Type,
 		CanaryRules: opt.CanaryRules,
@@ -186,12 +186,12 @@ func (s *deploymentTargetService) GetKubeLabels(ctx context.Context, deploymentT
 }
 
 func (s *deploymentTargetService) GetKubeAnnotations(ctx context.Context, deploymentTarget *models.DeploymentTarget) (map[string]string, error) {
-	bentoVersion, err := BentoVersionService.GetAssociatedBentoVersion(ctx, deploymentTarget)
+	bento, err := BentoService.GetAssociatedBento(ctx, deploymentTarget)
 	if err != nil {
 		return nil, err
 	}
 	return map[string]string{
-		consts.KubeAnnotationBentoVersion: bentoVersion.Version,
+		consts.KubeAnnotationBento: bento.Version,
 	}, nil
 }
 
