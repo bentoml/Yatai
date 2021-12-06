@@ -467,6 +467,13 @@ func (s *bentoService) Update(ctx context.Context, bento *models.Bento, opt Upda
 		},
 	}
 
+	// nolint: goconst
+	s3ForcePath := "true"
+	if s3Config.Endpoint == consts.AmazonS3Endpoint {
+		// nolint: goconst
+		s3ForcePath = "false"
+	}
+
 	envs := []apiv1.EnvVar{
 		{
 			Name:  "AWS_ACCESS_KEY_ID",
@@ -486,7 +493,7 @@ func (s *bentoService) Update(ctx context.Context, bento *models.Bento, opt Upda
 		},
 		{
 			Name:  "S3_FORCE_PATH_STYLE",
-			Value: "true",
+			Value: s3ForcePath,
 		},
 	}
 

@@ -340,9 +340,9 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 	if org.Config != nil && org.Config.AWS != nil && org.Config.AWS.S3 != nil {
 		awsS3Conf := org.Config.AWS.S3
 		conf = &S3Config{
-			Endpoint:                    "s3.amazonaws.com",
-			EndpointWithScheme:          "https://s3.amazonaws.com",
-			EndpointWithSchemeInCluster: "https://s3.amazonaws.com",
+			Endpoint:                    consts.AmazonS3Endpoint,
+			EndpointWithScheme:          fmt.Sprintf("https://%s", consts.AmazonS3Endpoint),
+			EndpointWithSchemeInCluster: fmt.Sprintf("https://%s", consts.AmazonS3Endpoint),
 			AccessKey:                   org.Config.AWS.AccessKeyId,
 			SecretKey:                   org.Config.AWS.SecretAccessKey,
 			Secure:                      true,

@@ -497,6 +497,13 @@ COPY . /model
 		},
 	}
 
+	// nolint: goconst
+	s3ForcePath := "true"
+	if s3Config.Endpoint == consts.AmazonS3Endpoint {
+		// nolint: goconst
+		s3ForcePath = "false"
+	}
+
 	envs := []apiv1.EnvVar{
 		{
 			Name:  "AWS_ACCESS_KEY_ID",
@@ -516,7 +523,7 @@ COPY . /model
 		},
 		{
 			Name:  "S3_FORCE_PATH_STYLE",
-			Value: "true",
+			Value: s3ForcePath,
 		},
 	}
 
