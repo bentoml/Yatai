@@ -21,4 +21,6 @@ const (
 	BentoServicePort = 5000
 
 	NoneStr = "None"
+
+	AmazonS3Endpoint = "s3.amazonaws.com"
 )
