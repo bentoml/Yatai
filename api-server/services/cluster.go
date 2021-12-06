@@ -8,6 +8,7 @@ import (
 	"net"
 	"strings"
 
+	apiv1 "k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
@@ -403,6 +404,87 @@ func (s *clusterService) GetGrafana(ctx context.Context, cluster *models.Cluster
 			},
 		},
 	}, err
+}
+
+func (s *clusterService) MakeSureDockerConfigCM(ctx context.Context, cluster *models.Cluster, namespace string) (dockerConfigCM *corev1.ConfigMap, err error) {
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
+	if err != nil {
+		return nil, err
+	}
+
+	dockerConfigCMKubeName := "docker-config"
+	dockerConfigObj := struct {
+		Auths map[string]struct {
+			Auth string `json:"auth"`
+		} `json:"auths,omitempty"`
+	}{}
+
+	if dockerRegistry.Username != "" {
+		dockerConfigObj.Auths = map[string]struct {
+			Auth string `json:"auth"`
+		}{
+			dockerRegistry.Server: {
+				Auth: base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", dockerRegistry.Username, dockerRegistry.Password))),
+			},
+		}
+	}
+
+	dockerConfigContent, err := json.Marshal(dockerConfigObj)
+	if err != nil {
+		return nil, err
+	}
+
+	kubeCli, _, err := s.GetKubeCliSet(ctx, cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	cmsCli := kubeCli.CoreV1().ConfigMaps(namespace)
+
+	dockerConfigCM, err = cmsCli.Get(ctx, dockerConfigCMKubeName, metav1.GetOptions{})
+	dockerConfigIsNotFound := apierrors.IsNotFound(err)
+	// nolint: gocritic
+	if err != nil && !dockerConfigIsNotFound {
+		return nil, err
+	}
+	err = nil
+	if dockerConfigIsNotFound {
+		dockerConfigCM = &apiv1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: dockerConfigCMKubeName},
+			Data: map[string]string{
+				"config.json": string(dockerConfigContent),
+			},
+		}
+		_, err_ := cmsCli.Create(ctx, dockerConfigCM, metav1.CreateOptions{})
+		if err_ != nil {
+			dockerConfigCM, err = cmsCli.Get(ctx, dockerConfigCMKubeName, metav1.GetOptions{})
+			dockerConfigIsNotFound = apierrors.IsNotFound(err)
+			if err != nil && !dockerConfigIsNotFound {
+				return nil, err
+			}
+			if dockerConfigIsNotFound {
+				return nil, err_
+			}
+			if err != nil {
+				err = nil
+			}
+		}
+	}
+
+	if !dockerConfigIsNotFound {
+		dockerConfigCM.Data["config.json"] = string(dockerConfigContent)
+		_, err = cmsCli.Update(ctx, dockerConfigCM, metav1.UpdateOptions{})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return
 }
 
 func (s *clusterService) MakeSureDockerRegcred(ctx context.Context, cluster *models.Cluster, namespace string) (secret *corev1.Secret, err error) {

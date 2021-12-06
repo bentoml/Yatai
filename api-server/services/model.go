@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
@@ -386,54 +384,18 @@ func (s *modelService) Update(ctx context.Context, model *models.Model, opt Upda
 		return nil, err
 	}
 
+	dockerConfigCM, err := ClusterService.MakeSureDockerConfigCM(ctx, majorCluster, kubeNamespace)
+	if err != nil {
+		return nil, err
+	}
+	dockerConfigCMKubeName := dockerConfigCM.Name
+
 	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
 	if err != nil {
 		return nil, err
 	}
 
-	dockerConfigObj := struct {
-		Auths map[string]struct {
-			Auth string `json:"auth"`
-		} `json:"auths,omitempty"`
-	}{}
-
-	if dockerRegistry.Username != "" {
-		dockerConfigObj.Auths = map[string]struct {
-			Auth string `json:"auth"`
-		}{
-			dockerRegistry.Server: {
-				Auth: base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", dockerRegistry.Username, dockerRegistry.Password))),
-			},
-		}
-	}
-
-	dockerConfigContent, err := json.Marshal(dockerConfigObj)
-	if err != nil {
-		return nil, err
-	}
 	cmsCli := kubeCli.CoreV1().ConfigMaps(kubeNamespace)
-	dockerConfigCMKubeName := "docker-config"
-	oldDockerConfigCM, err := cmsCli.Get(ctx, dockerConfigCMKubeName, metav1.GetOptions{})
-	// nolint: gocritic
-	if apierrors.IsNotFound(err) {
-		_, err = cmsCli.Create(ctx, &apiv1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{Name: dockerConfigCMKubeName},
-			Data: map[string]string{
-				"config.json": string(dockerConfigContent),
-			},
-		}, metav1.CreateOptions{})
-		if err != nil {
-			return nil, err
-		}
-	} else if err != nil {
-		return nil, err
-	} else {
-		oldDockerConfigCM.Data["config.json"] = string(dockerConfigContent)
-		_, err = cmsCli.Update(ctx, oldDockerConfigCM, metav1.UpdateOptions{})
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	dockerFileCMKubeName := fmt.Sprintf("docker-file-%d", model.ID)
 	dockerFileContent := `
