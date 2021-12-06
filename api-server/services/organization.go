@@ -276,6 +276,13 @@ func (c *S3Config) MakeSureBucket(ctx context.Context, bucketName string) error 
 	if !exists {
 		err = minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: c.Region})
 		if err != nil {
+			exists_, err_ := minioClient.BucketExists(ctx, bucketName)
+			if err_ != nil {
+				return errors.Wrapf(err_, "get bucket %s exist", bucketName)
+			}
+			if exists_ {
+				return nil
+			}
 			return errors.Wrapf(err, "make bucket %s", bucketName)
 		}
 	}

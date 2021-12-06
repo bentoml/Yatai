@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
@@ -416,53 +414,15 @@ func (s *bentoService) Update(ctx context.Context, bento *models.Bento, opt Upda
 		return nil, err
 	}
 
-	dockerCMKubeName := "docker-config"
-	cmObj := struct {
-		Auths map[string]struct {
-			Auth string `json:"auth"`
-		} `json:"auths,omitempty"`
-	}{}
-
-	if dockerRegistry.Username != "" {
-		cmObj.Auths = map[string]struct {
-			Auth string `json:"auth"`
-		}{
-			dockerRegistry.Server: {
-				Auth: base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", dockerRegistry.Username, dockerRegistry.Password))),
-			},
-		}
-	}
-
-	dockerCMContent, err := json.Marshal(cmObj)
+	dockerConfigCM, err := ClusterService.MakeSureDockerConfigCM(ctx, majorCluster, kubeNamespace)
 	if err != nil {
 		return nil, err
 	}
-	cmsCli := kubeCli.CoreV1().ConfigMaps(kubeNamespace)
-	oldCm, err := cmsCli.Get(ctx, dockerCMKubeName, metav1.GetOptions{})
-	// nolint: gocritic
-	if apierrors.IsNotFound(err) {
-		_, err = cmsCli.Create(ctx, &apiv1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{Name: dockerCMKubeName},
-			Data: map[string]string{
-				"config.json": string(dockerCMContent),
-			},
-		}, metav1.CreateOptions{})
-		if err != nil {
-			return nil, err
-		}
-	} else if err != nil {
-		return nil, err
-	} else {
-		oldCm.Data["config.json"] = string(dockerCMContent)
-		_, err = cmsCli.Update(ctx, oldCm, metav1.UpdateOptions{})
-		if err != nil {
-			return nil, err
-		}
-	}
+	dockerConfigCMKubeName := dockerConfigCM.Name
 
 	volumeMounts := []apiv1.VolumeMount{
 		{
-			Name:      dockerCMKubeName,
+			Name:      dockerConfigCMKubeName,
 			MountPath: "/kaniko/.docker/",
 		},
 	}
@@ -548,11 +508,11 @@ func (s *bentoService) Update(ctx context.Context, bento *models.Bento, opt Upda
 				RestartPolicy: apiv1.RestartPolicyNever,
 				Volumes: []apiv1.Volume{
 					{
-						Name: dockerCMKubeName,
+						Name: dockerConfigCMKubeName,
 						VolumeSource: apiv1.VolumeSource{
 							ConfigMap: &apiv1.ConfigMapVolumeSource{
 								LocalObjectReference: apiv1.LocalObjectReference{
-									Name: dockerCMKubeName,
+									Name: dockerConfigCMKubeName,
 								},
 							},
 						},
