@@ -260,6 +260,8 @@ func (s *yataiComponentService) getHelmReleaseNames(type_ modelschemas.YataiComp
 		return []string{
 			"yatai-grafana",
 			"yatai-loki",
+			"yatai-minio",
+			"yatai-promtail",
 		}
 	case modelschemas.YataiComponentTypeMonitoring:
 		return []string{
@@ -494,7 +496,8 @@ func (s *yataiComponentService) Delete(ctx context.Context, opt DeleteYataiCompo
 		if filepath.Base(f.Name) != resourceYamlFileName {
 			continue
 		}
-		err = yaml.Unmarshal(f.Data, meta_)
+		data := strings.Join(strings.Split(string(f.Data), "\n")[:2], "\n")
+		err = yaml.Unmarshal([]byte(data), meta_)
 		if err != nil {
 			return
 		}
