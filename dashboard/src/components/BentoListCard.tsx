@@ -18,8 +18,6 @@ import { IListSchema } from '@/schemas/list'
 import BentoImageBuildStatusTag from '@/components/BentoImageBuildStatus'
 import qs from 'qs'
 import ReactTimeAgo from 'react-time-ago'
-import FilterBar from './FilterBar'
-import FilterInput from './FilterInput'
 
 export interface IBentoListCardProps {
     bentoRepositoryName: string
@@ -104,19 +102,12 @@ export default function BentoListCard({ bentoRepositoryName }: IBentoListCardPro
                         <Link key={bento.uid} to={`/bento_repositories/${bentoRepositoryName}/bentos/${bento.version}`}>
                             {bento.version}
                         </Link>,
-                      <BentoImageBuildStatusTag key={bento.uid} status={bento.image_build_status} />,
+                        <BentoImageBuildStatusTag key={bento.uid} status={bento.image_build_status} />,
                         bento.description,
                         bento.creator && <User user={bento.creator} />,
-                        bento?.latest_version?.created_at && (
-                            <StatefulTooltip
-                                placement={PLACEMENT.bottom}
-                                content={() => bento.latest_version?.created_at}
-                            >
-                                <ReactTimeAgo
-                                    date={new Date(bento.latest_version?.created_at)}
-                                    timeStyle='round'
-                                    locale='en-US'
-                                />
+                        bento?.created_at && (
+                            <StatefulTooltip placement={PLACEMENT.bottom} content={() => bento?.created_at}>
+                                <ReactTimeAgo date={new Date(bento.created_at)} timeStyle='round' locale='en-US' />
                             </StatefulTooltip>
                         ),
                     ]) ?? []
