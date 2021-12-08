@@ -16,6 +16,9 @@ import { Input } from 'baseui/input'
 import { TiClipboard } from 'react-icons/ti'
 import { Notification } from 'baseui/notification'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import { StatefulTooltip } from 'baseui/tooltip'
+import { PLACEMENT } from 'baseui/toast'
+import ReactTimeAgo from 'react-time-ago'
 
 export default function ApiTokenListCard() {
     const [page] = usePage()
@@ -82,7 +85,7 @@ export default function ApiTokenListCard() {
                     t('description'),
                     t('last_used_at'),
                     t('expired_at'),
-                    t('created_at'),
+                    t('Time since Creation'),
                     t('operation'),
                 ]}
                 data={
@@ -99,7 +102,11 @@ export default function ApiTokenListCard() {
                         >
                             {apiToken.expired_at ? formatDateTime(apiToken.expired_at) : '-'}
                         </span>,
-                        formatDateTime(apiToken.created_at),
+                        apiToken?.created_at && (
+                            <StatefulTooltip placement={PLACEMENT.bottom} content={() => apiToken.created_at}>
+                                <ReactTimeAgo date={new Date(apiToken.created_at)} timeStyle='round' locale='en-US' />
+                            </StatefulTooltip>
+                        ),
                         <div
                             key={apiToken.uid}
                             style={{
