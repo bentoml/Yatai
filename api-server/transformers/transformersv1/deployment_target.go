@@ -21,25 +21,33 @@ func ToDeploymentTargetSchema(ctx context.Context, deploymentTarget *models.Depl
 }
 
 func ToDeploymentTargetSchemas(ctx context.Context, deploymentTargets []*models.DeploymentTarget) ([]*schemasv1.DeploymentTargetSchema, error) {
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, deploymentTargets)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
+	}
 	res := make([]*schemasv1.DeploymentTargetSchema, 0, len(deploymentTargets))
 	for _, deploymentTarget := range deploymentTargets {
 		creatorSchema, err := GetAssociatedCreatorSchema(ctx, deploymentTarget)
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedCreatorSchema")
 		}
-		bentoVersionFullSchema, err := GetAssociatedBentoVersionFullSchema(ctx, deploymentTarget)
+		bentoFullSchema, err := GetAssociatedBentoFullSchema(ctx, deploymentTarget)
 		if err != nil {
-			return nil, errors.Wrap(err, "GetAssociatedBentoVersionFullSchema")
+			return nil, errors.Wrap(err, "GetAssociatedBentoFullSchema")
+		}
+		resourceSchema, ok := resourceSchemasMap[deploymentTarget.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resourceSchema not found for deploymentTarget %s", deploymentTarget.GetUid())
 		}
 		res = append(res, &schemasv1.DeploymentTargetSchema{
-			ResourceSchema: ToResourceSchema(deploymentTarget),
+			ResourceSchema: resourceSchema,
 			DeploymentTargetTypeSchema: schemasv1.DeploymentTargetTypeSchema{
 				Type: deploymentTarget.Type,
 			},
-			Creator:      creatorSchema,
-			BentoVersion: bentoVersionFullSchema,
-			CanaryRules:  deploymentTarget.CanaryRules,
-			Config:       deploymentTarget.Config,
+			Creator:     creatorSchema,
+			Bento:       bentoFullSchema,
+			CanaryRules: deploymentTarget.CanaryRules,
+			Config:      deploymentTarget.Config,
 		})
 	}
 	return res, nil

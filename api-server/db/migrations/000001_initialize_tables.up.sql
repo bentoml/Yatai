@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS "cluster_member" (
 
 CREATE UNIQUE INDEX "uk_clusterMember_userGroupId_userId" ON "cluster_member" ("cluster_id", "user_group_id", "user_id");
 
-CREATE TABLE IF NOT EXISTS "bento" (
+CREATE TABLE IF NOT EXISTS "bento_repository" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     name VARCHAR(128) NOT NULL,
@@ -156,21 +156,21 @@ CREATE TABLE IF NOT EXISTS "bento" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE UNIQUE INDEX "uk_bento_orgId_name" ON bento ("organization_id", "name");
+CREATE UNIQUE INDEX "uk_bentoRepository_orgId_name" ON "bento_repository" ("organization_id", "name");
 
-CREATE TYPE "bento_version_upload_status" AS ENUM ('pending', 'uploading', 'success', 'failed');
-CREATE TYPE "bento_version_image_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
+CREATE TYPE "bento_upload_status" AS ENUM ('pending', 'uploading', 'success', 'failed');
+CREATE TYPE "bento_image_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
 
-CREATE TABLE IF NOT EXISTS "bento_version" (
+CREATE TABLE IF NOT EXISTS "bento" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     version VARCHAR(512) NOT NULL,
     description TEXT,
     manifest TEXT,
     file_path TEXT,
-    bento_id INTEGER NOT NULL REFERENCES bento("id") ON DELETE CASCADE,
-    upload_status bento_version_upload_status NOT NULL DEFAULT 'pending',
-    image_build_status bento_version_image_build_status NOT NULL DEFAULT 'pending',
+    bento_repository_id INTEGER NOT NULL REFERENCES "bento_repository"("id") ON DELETE CASCADE,
+    upload_status bento_upload_status NOT NULL DEFAULT 'pending',
+    image_build_status bento_image_build_status NOT NULL DEFAULT 'pending',
     image_build_status_syncing_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     image_build_status_updated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     upload_started_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
@@ -183,9 +183,9 @@ CREATE TABLE IF NOT EXISTS "bento_version" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE UNIQUE INDEX "uk_bentoVersion_bentoId_version" ON "bento_version" ("bento_id", "version");
+CREATE UNIQUE INDEX "uk_bento_bentoRepositoryId_version" ON "bento" ("bento_repository_id", "version");
 
-CREATE TABLE IF NOT EXISTS "model" (
+CREATE TABLE IF NOT EXISTS "model_repository" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     name VARCHAR(128) NOT NULL,
@@ -198,19 +198,19 @@ CREATE TABLE IF NOT EXISTS "model" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE UNIQUE INDEX "uk_model_orgId_name" ON "model" ("organization_id", "name");
+CREATE UNIQUE INDEX "uk_modelRepository_orgId_name" ON "model_repository" ("organization_id", "name");
 
-CREATE TYPE "model_version_upload_status" AS ENUM ('pending', 'uploading', 'success', 'failed');
-CREATE TYPE "model_version_image_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
+CREATE TYPE "model_upload_status" AS ENUM ('pending', 'uploading', 'success', 'failed');
+CREATE TYPE "model_image_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
 
-CREATE TABLE IF NOT EXISTS "model_version" (
+CREATE TABLE IF NOT EXISTS "model" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     version VARCHAR(512) NOT NULL,
     description TEXT,
-    model_id INTEGER NOT NULL REFERENCES "model"("id") ON DELETE CASCADE,
-    upload_status model_version_upload_status NOT NULL DEFAULT 'pending',
-    image_build_status model_version_image_build_status NOT NULL DEFAULT 'pending',
+    model_repository_id INTEGER NOT NULL REFERENCES "model_repository"("id") ON DELETE CASCADE,
+    upload_status model_upload_status NOT NULL DEFAULT 'pending',
+    image_build_status model_image_build_status NOT NULL DEFAULT 'pending',
     image_build_status_syncing_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     image_build_status_updated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     upload_started_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
@@ -224,7 +224,18 @@ CREATE TABLE IF NOT EXISTS "model_version" (
     manifest TEXT
 );
 
-CREATE UNIQUE INDEX "uk_modelVersion_modelId_version" ON "model_version" ("model_id", "version");
+CREATE UNIQUE INDEX "uk_model_modelRepositoryId_version" ON "model" ("model_repository_id", "version");
+
+CREATE TABLE IF NOT EXISTS "bento_model_rel" (
+    id SERIAL PRIMARY KEY,
+    bento_id INTEGER NOT NULL REFERENCES "bento"("id") ON DELETE CASCADE,
+    model_id INTEGER NOT NULL REFERENCES "model"("id") ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE UNIQUE INDEX "uk_bentoModelRel_bentoId_modelId" ON "bento_model_rel" ("bento_id", "model_id");
 
 CREATE TYPE "deployment_status" AS ENUM ('unknown', 'non-deployed', 'failed', 'unhealthy', 'deploying', 'running', 'terminating', 'terminated');
 
@@ -237,7 +248,7 @@ CREATE TABLE IF NOT EXISTS "deployment" (
     status deployment_status NOT NULL DEFAULT 'non-deployed',
     status_syncing_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     status_updated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
-    "kube_deploy_token" VARCHAR(128) DEFAULT '',
+    kube_deploy_token VARCHAR(128) DEFAULT '',
     creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE,
@@ -246,7 +257,7 @@ CREATE TABLE IF NOT EXISTS "deployment" (
 
 CREATE UNIQUE INDEX "uk_deployment_clusterId_name" ON "deployment" ("cluster_id", "name");
 
-CREATE TYPE deployment_revision_status AS ENUM ('active', 'inactive');
+CREATE TYPE "deployment_revision_status" AS ENUM ('active', 'inactive');
 
 CREATE TABLE IF NOT EXISTS deployment_revision (
     id SERIAL PRIMARY KEY,
@@ -260,16 +271,16 @@ CREATE TABLE IF NOT EXISTS deployment_revision (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TYPE deployment_target_type AS ENUM ('stable', 'canary');
+CREATE TYPE "deployment_target_type" AS ENUM ('stable', 'canary');
 
-CREATE TABLE IF NOT EXISTS deployment_target (
+CREATE TABLE IF NOT EXISTS "deployment_target" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     type deployment_target_type NOT NULL DEFAULT 'stable',
     canary_rules TEXT,
     deployment_revision_id INTEGER NOT NULL REFERENCES "deployment_revision"("id") ON DELETE CASCADE,
     deployment_id INTEGER NOT NULL REFERENCES "deployment"("id") ON DELETE CASCADE,
-    bento_version_id INTEGER REFERENCES "bento_version"("id") ON DELETE CASCADE,
+    bento_id INTEGER REFERENCES "bento"("id") ON DELETE CASCADE,
     config TEXT DEFAULT '{}',
     creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -277,7 +288,7 @@ CREATE TABLE IF NOT EXISTS deployment_target (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TYPE "resource_type" AS ENUM ('organization', 'cluster', 'bento', 'bento_version', 'deployment', 'deployment_revision', 'model', 'model_version', 'api_token');
+CREATE TYPE "resource_type" AS ENUM ('user', 'organization', 'cluster', 'bento_repository', 'bento', 'deployment', 'deployment_revision', 'model_repository', 'model', 'api_token');
 
 CREATE TABLE IF NOT EXISTS "event" (
     id SERIAL PRIMARY KEY,
@@ -322,3 +333,19 @@ CREATE TABLE IF NOT EXISTS "cache" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+
+CREATE TABLE IF NOT EXISTS "label" (
+    id SERIAL PRIMARY KEY,
+    uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
+    resource_type resource_type NOT NULL,
+    resource_id INTEGER NOT NULL,
+    key VARCHAR(128) NOT NULL,
+    value VARCHAR(128) NOT NULL,
+    creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
+    organization_id INTEGER REFERENCES "organization"("id") ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE UNIQUE INDEX "uk_label_orgId_resourceType_resourceId_key" on "label" ("organization_id", "resource_type", "resource_id", "key");

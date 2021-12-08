@@ -1,11 +1,15 @@
+// nolint: goconst
 package controllersv1
 
 import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/huandu/xstrings"
+
+	"github.com/bentoml/yatai/schemas/modelschemas"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -24,49 +28,49 @@ type bentoController struct {
 var BentoController = bentoController{}
 
 type GetBentoSchema struct {
-	GetOrganizationSchema
-	BentoName string `path:"bentoName"`
+	GetBentoRepositorySchema
+	Version string `path:"version"`
 }
 
 func (s *GetBentoSchema) GetBento(ctx context.Context) (*models.Bento, error) {
-	organization, err := s.GetOrganization(ctx)
+	bentoRepository, err := s.GetBentoRepository(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "get organization")
+		return nil, errors.Wrapf(err, "get bentoRepository %s", bentoRepository.Name)
 	}
-	bento, err := services.BentoService.GetByName(ctx, organization.ID, s.BentoName)
+	bento, err := services.BentoService.GetByVersion(ctx, bentoRepository.ID, s.Version)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get bento %s", s.BentoName)
+		return nil, errors.Wrapf(err, "get bentoRepository %s bento %s", bentoRepository.Name, s.Version)
 	}
 	return bento, nil
 }
 
 func (c *bentoController) canView(ctx context.Context, bento *models.Bento) error {
-	organization, err := services.OrganizationService.GetAssociatedOrganization(ctx, bento)
+	bentoRepository, err := services.BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 	if err != nil {
-		return errors.Wrap(err, "get associated organization")
+		return errors.Wrap(err, "get associated bentoRepository")
 	}
-	return OrganizationController.canView(ctx, organization)
+	return BentoRepositoryController.canView(ctx, bentoRepository)
 }
 
 func (c *bentoController) canUpdate(ctx context.Context, bento *models.Bento) error {
-	organization, err := services.OrganizationService.GetAssociatedOrganization(ctx, bento)
+	bentoRepository, err := services.BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 	if err != nil {
-		return errors.Wrap(err, "get associated organization")
+		return errors.Wrap(err, "get associated bentoRepository")
 	}
-	return OrganizationController.canUpdate(ctx, organization)
+	return BentoRepositoryController.canUpdate(ctx, bentoRepository)
 }
 
 func (c *bentoController) canOperate(ctx context.Context, bento *models.Bento) error {
-	organization, err := services.OrganizationService.GetAssociatedOrganization(ctx, bento)
+	bentoRepository, err := services.BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 	if err != nil {
-		return errors.Wrap(err, "get associated organization")
+		return errors.Wrap(err, "get associated bentoRepository")
 	}
-	return OrganizationController.canOperate(ctx, organization)
+	return BentoRepositoryController.canOperate(ctx, bentoRepository)
 }
 
 type CreateBentoSchema struct {
 	schemasv1.CreateBentoSchema
-	GetOrganizationSchema
+	GetBentoRepositorySchema
 }
 
 func (c *bentoController) Create(ctx *gin.Context, schema *CreateBentoSchema) (*schemasv1.BentoSchema, error) {
@@ -74,19 +78,25 @@ func (c *bentoController) Create(ctx *gin.Context, schema *CreateBentoSchema) (*
 	if err != nil {
 		return nil, err
 	}
-	organization, err := schema.GetOrganization(ctx)
+	bentoRepository, err := schema.GetBentoRepository(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	if err = OrganizationController.canUpdate(ctx, organization); err != nil {
+	if err = BentoRepositoryController.canUpdate(ctx, bentoRepository); err != nil {
 		return nil, err
 	}
-
+	buildAt, err := time.Parse("2006-01-02 15:04:05.000000", schema.BuildAt)
+	if err != nil {
+		return nil, errors.Wrapf(err, "parse build_at")
+	}
 	bento, err := services.BentoService.Create(ctx, services.CreateBentoOption{
-		CreatorId:      user.ID,
-		OrganizationId: organization.ID,
-		Name:           schema.Name,
+		CreatorId:         user.ID,
+		BentoRepositoryId: bentoRepository.ID,
+		Version:           schema.Version,
+		Description:       schema.Description,
+		Manifest:          schema.Manifest,
+		BuildAt:           buildAt,
+		Labels:            schema.Labels,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create bento")
@@ -108,7 +118,94 @@ func (c *bentoController) Update(ctx *gin.Context, schema *UpdateBentoSchema) (*
 		return nil, err
 	}
 	bento, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
-		Description: schema.Description,
+		Labels: schema.Labels,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "update bento")
+	}
+	return transformersv1.ToBentoSchema(ctx, bento)
+}
+
+func (c *bentoController) PreSignUploadUrl(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, bento); err != nil {
+		return nil, err
+	}
+	url, err := services.BentoService.PreSignUploadUrl(ctx, bento)
+	if err != nil {
+		return nil, errors.Wrap(err, "pre sign upload url")
+	}
+	bentoSchema, err := transformersv1.ToBentoSchema(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	bentoSchema.PresignedUploadUrl = url.String()
+	return bentoSchema, nil
+}
+
+func (c *bentoController) PreSignDownloadUrl(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, bento); err != nil {
+		return nil, err
+	}
+	url, err := services.BentoService.PreSignDownloadUrl(ctx, bento)
+	if err != nil {
+		return nil, errors.Wrap(err, "pre sign s3 upload url")
+	}
+	bentoSchema, err := transformersv1.ToBentoSchema(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	bentoSchema.PresignedDownloadUrl = url.String()
+	return bentoSchema, nil
+}
+
+func (c *bentoController) StartUpload(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, bento); err != nil {
+		return nil, err
+	}
+	uploadStatus := modelschemas.BentoUploadStatusUploading
+	now := time.Now()
+	nowPtr := &now
+	bento, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
+		UploadStatus:    &uploadStatus,
+		UploadStartedAt: &nowPtr,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "update bento")
+	}
+	return transformersv1.ToBentoSchema(ctx, bento)
+}
+
+type FinishUploadBentoSchema struct {
+	schemasv1.FinishUploadBentoSchema
+	GetBentoSchema
+}
+
+func (c *bentoController) FinishUpload(ctx *gin.Context, schema *FinishUploadBentoSchema) (*schemasv1.BentoSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, bento); err != nil {
+		return nil, err
+	}
+	now := time.Now()
+	nowPtr := &now
+	bento, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
+		UploadStatus:         schema.Status,
+		UploadFinishedAt:     &nowPtr,
+		UploadFinishedReason: schema.Reason,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "update bento")
@@ -129,25 +226,48 @@ func (c *bentoController) Get(ctx *gin.Context, schema *GetBentoSchema) (*schema
 
 type ListBentoSchema struct {
 	schemasv1.ListQuerySchema
-	GetOrganizationSchema
-}
-
-func processUserNamesFromQ(ctx context.Context, userNames []string) ([]string, error) {
-	currentUser, err := services.GetCurrentUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-	res := make([]string, 0, len(userNames))
-	for _, userName := range userNames {
-		if userName == schemasv1.ValueQMe {
-			userName = currentUser.Name
-		}
-		res = append(res, userName)
-	}
-	return res, nil
+	GetBentoRepositorySchema
 }
 
 func (c *bentoController) List(ctx *gin.Context, schema *ListBentoSchema) (*schemasv1.BentoListSchema, error) {
+	bentoRepository, err := schema.GetBentoRepository(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = BentoRepositoryController.canView(ctx, bentoRepository); err != nil {
+		return nil, err
+	}
+
+	bentos, total, err := services.BentoService.List(ctx, services.ListBentoOption{
+		BaseListOption: services.BaseListOption{
+			Start:  utils.UintPtr(schema.Start),
+			Count:  utils.UintPtr(schema.Count),
+			Search: schema.Search,
+		},
+		BentoRepositoryId: utils.UintPtr(bentoRepository.ID),
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "list bentos")
+	}
+
+	bentoSchemas, err := transformersv1.ToBentoSchemas(ctx, bentos)
+	return &schemasv1.BentoListSchema{
+		BaseListSchema: schemasv1.BaseListSchema{
+			Total: total,
+			Start: schema.Start,
+			Count: schema.Count,
+		},
+		Items: bentoSchemas,
+	}, err
+}
+
+type ListAllBentoSchema struct {
+	schemasv1.ListQuerySchema
+	GetOrganizationSchema
+}
+
+func (c *bentoController) ListAll(ctx *gin.Context, schema *ListAllBentoSchema) (*schemasv1.BentoWithRepositoryListSchema, error) {
 	organization, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
@@ -199,26 +319,11 @@ func (c *bentoController) List(ctx *gin.Context, schema *ListBentoSchema) (*sche
 			}
 			listOpt.CreatorIds = utils.UintSlicePtr(userIds)
 		}
-		if k == "last_updater" {
-			userNames, err := processUserNamesFromQ(ctx, v.([]string))
-			if err != nil {
-				return nil, err
-			}
-			users, err := services.UserService.ListByNames(ctx, userNames)
-			if err != nil {
-				return nil, err
-			}
-			userIds := make([]uint, 0, len(users))
-			for _, user := range users {
-				userIds = append(userIds, user.ID)
-			}
-			listOpt.LastUpdaterIds = utils.UintSlicePtr(userIds)
-		}
 		if k == "sort" {
 			fieldName, _, order := xstrings.LastPartition(v.([]string)[0], "-")
 			if _, ok := map[string]struct{}{
 				"created_at": {},
-				"updated_at": {},
+				"build_at":   {},
 			}[fieldName]; !ok {
 				continue
 			}
@@ -228,20 +333,24 @@ func (c *bentoController) List(ctx *gin.Context, schema *ListBentoSchema) (*sche
 			}[order]; !ok {
 				continue
 			}
-			if fieldName == "updated_at" {
-				fieldName = "bento_version.created_at"
-			}
-			listOpt.Order = utils.StringPtr(fmt.Sprintf("%s %s", fieldName, strings.ToUpper(order)))
+			listOpt.Order = utils.StringPtr(fmt.Sprintf("bento.%s %s", fieldName, strings.ToUpper(order)))
+		}
+		if k == "label" {
+			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
+			listOpt.LabelsList = &labelsSchema
+		}
+		if k == "-label" {
+			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
+			listOpt.LackLabelsList = &labelsSchema
 		}
 	}
-
 	bentos, total, err := services.BentoService.List(ctx, listOpt)
 	if err != nil {
 		return nil, errors.Wrap(err, "list bentos")
 	}
 
-	bentoSchemas, err := transformersv1.ToBentoSchemas(ctx, bentos)
-	return &schemasv1.BentoListSchema{
+	bentoSchemas, err := transformersv1.ToBentoWithRepositorySchemas(ctx, bentos)
+	return &schemasv1.BentoWithRepositoryListSchema{
 		BaseListSchema: schemasv1.BaseListSchema{
 			Total: total,
 			Start: schema.Start,

@@ -9,10 +9,10 @@ type DeploymentTargetTypeSchema struct {
 type DeploymentTargetSchema struct {
 	ResourceSchema
 	DeploymentTargetTypeSchema
-	Creator      *UserSchema                               `json:"creator"`
-	BentoVersion *BentoVersionFullSchema                   `json:"bento_version"`
-	CanaryRules  *modelschemas.DeploymentTargetCanaryRules `json:"canary_rules"`
-	Config       *modelschemas.DeploymentTargetConfig      `json:"config"`
+	Creator     *UserSchema                               `json:"creator"`
+	Bento       *BentoFullSchema                          `json:"bento"`
+	CanaryRules *modelschemas.DeploymentTargetCanaryRules `json:"canary_rules"`
+	Config      *modelschemas.DeploymentTargetConfig      `json:"config"`
 }
 
 type DeploymentTargetListSchema struct {
@@ -22,8 +22,8 @@ type DeploymentTargetListSchema struct {
 
 type CreateDeploymentTargetSchema struct {
 	DeploymentTargetTypeSchema
-	BentoName    string                                    `json:"bento_name"`
-	BentoVersion string                                    `json:"bento_version"`
-	CanaryRules  *modelschemas.DeploymentTargetCanaryRules `json:"canary_rules"`
-	Config       *modelschemas.DeploymentTargetConfig      `json:"config"`
+	BentoRepository string                                    `json:"bento_repository"`
+	Bento           string                                    `json:"bento"`
+	CanaryRules     *modelschemas.DeploymentTargetCanaryRules `json:"canary_rules"`
+	Config          *modelschemas.DeploymentTargetConfig      `json:"config"`
 }

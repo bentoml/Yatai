@@ -1,53 +1,90 @@
-import { usePage } from '@/hooks/usePage'
-import useTranslation from '@/hooks/useTranslation'
-import { ICreateModelSchema } from '@/schemas/model'
-import { createModel, listModels } from '@/services/model'
-import React, { useCallback, useState } from 'react'
-import { useQuery } from 'react-query'
+import { useCallback, useEffect, useMemo } from 'react'
+import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
-import { resourceIconMapping } from '@/consts'
-import { Button, SIZE as ButtonSize } from 'baseui/button'
-import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
-import Table from '@/components/Table'
+import { listModels } from '@/services/model'
+import { usePage } from '@/hooks/usePage'
+import { IModelSchema } from '@/schemas/model'
+import { formatDateTime } from '@/utils/datetime'
+import useTranslation from '@/hooks/useTranslation'
 import User from '@/components/User'
+import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
+import { resourceIconMapping } from '@/consts'
+import { useSubscription } from '@/hooks/useSubscription'
+import { IListSchema } from '@/schemas/list'
+import ModelImageBuildStatusTag from '@/components/ModelImageBuildStatus'
 import qs from 'qs'
 import { StatefulTooltip, PLACEMENT } from 'baseui/tooltip'
 import ReactTimeAgo from 'react-time-ago'
 
-export default function ModelListCard() {
+export interface IModelListCardProps {
+    modelRepositoryName: string
+}
+
+export default function ModelListCard({ modelRepositoryName }: IModelListCardProps) {
     const [page] = usePage()
-    const modelInfo = useQuery(`fetchModels:${qs.stringify(page)}`, () => listModels(page))
-    const [isCreateModelOpen, setIsCreateModelOpen] = useState(false)
-    // eslint-disable-next-line
-    const handleCreateModel = useCallback(
-        async (data: ICreateModelSchema) => {
-            await createModel(data)
-            await modelInfo.refetch()
-            setIsCreateModelOpen(false)
-        },
-        [modelInfo]
-    )
+    const queryKey = `fetchModels:${modelRepositoryName}:${qs.stringify(page)}`
+    const modelsInfo = useQuery(queryKey, () => listModels(modelRepositoryName, page))
     const [t] = useTranslation()
+
+    const uids = useMemo(() => modelsInfo.data?.items.map((model) => model.uid) ?? [], [modelsInfo.data?.items])
+    const queryClient = useQueryClient()
+    const subscribeCb = useCallback(
+        (modelVersion: IModelSchema) => {
+            queryClient.setQueryData(queryKey, (oldData?: IListSchema<IModelSchema>): IListSchema<IModelSchema> => {
+                if (!oldData) {
+                    return {
+                        start: 0,
+                        count: 0,
+                        total: 0,
+                        items: [],
+                    }
+                }
+                return {
+                    ...oldData,
+                    items: oldData.items.map((oldModelVersion) => {
+                        if (oldModelVersion.uid === modelVersion.uid) {
+                            return {
+                                ...oldModelVersion,
+                                ...modelVersion,
+                            }
+                        }
+                        return oldModelVersion
+                    }),
+                }
+            })
+        },
+        [queryClient, queryKey]
+    )
+    const { subscribe, unsubscribe } = useSubscription()
+
+    useEffect(() => {
+        subscribe({
+            resourceType: 'model',
+            resourceUids: uids,
+            cb: subscribeCb,
+        })
+        return () => {
+            unsubscribe({
+                resourceType: 'model',
+                resourceUids: uids,
+                cb: subscribeCb,
+            })
+        }
+    }, [subscribe, subscribeCb, uids, unsubscribe])
+
     return (
-        <Card
-            title={t('sth list', [t('model')])}
-            titleIcon={resourceIconMapping.model}
-            extra={
-                <Button size={ButtonSize.compact} onClick={() => setIsCreateModelOpen(true)}>
-                    {t('create')}
-                </Button>
-            }
-        >
+        <Card title={t('sth list', [t('model')])} titleIcon={resourceIconMapping.model}>
             <Table
-                isLoading={modelInfo.isLoading}
-                columns={[t('name'), t('version'), t('Time since Creation')]}
+                isLoading={modelsInfo.isLoading}
+                columns={[t('name'), t('image build status'), t('description'), t('creator'), t('Time since Creation')]}
                 data={
-                    modelInfo.data?.items?.map((model) => [
-                        <Link key={model.uid} to={`/models/${model.name}`}>
-                            {model.name}
+                    modelsInfo.data?.items.map((model) => [
+                        <Link key={model.uid} to={`/model_repositories/${modelRepositoryName}/models/${model.version}`}>
+                            {model.version}
                         </Link>,
-                        model.latest_version?.version,
+                        <ModelImageBuildStatusTag key={model.uid} status={model.image_build_status} />,
+                        model.description,
                         model.creator && <User user={model.creator} />,
                         model?.created_at && (
                             <StatefulTooltip placement={PLACEMENT.bottom} content={() => model.created_at}>
@@ -57,18 +94,14 @@ export default function ModelListCard() {
                     ]) ?? []
                 }
                 paginationProps={{
-                    start: modelInfo.data?.start,
-                    count: modelInfo.data?.count,
-                    total: modelInfo.data?.total,
+                    start: modelsInfo.data?.start,
+                    count: modelsInfo.data?.count,
+                    total: modelsInfo.data?.total,
                     afterPageChange: () => {
-                        modelInfo.refetch()
+                        modelsInfo.refetch()
                     },
                 }}
             />
-            <Modal isOpen={isCreateModelOpen} onClose={() => setIsCreateModelOpen(false)} closeable animate autoFocus>
-                <ModalHeader>{t('create sth', [t('model')])}</ModalHeader>
-                <ModalBody>Model form creat model</ModalBody>
-            </Modal>
         </Card>
     )
 }

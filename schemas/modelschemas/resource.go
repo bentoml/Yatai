@@ -6,12 +6,17 @@ const (
 	ResourceTypeUser               ResourceType = "user"
 	ResourceTypeOrganization       ResourceType = "organization"
 	ResourceTypeCluster            ResourceType = "cluster"
+	ResourceTypeBentoRepository    ResourceType = "bento_repository"
 	ResourceTypeBento              ResourceType = "bento"
-	ResourceTypeBentoVersion       ResourceType = "bento_version"
 	ResourceTypeDeployment         ResourceType = "deployment"
 	ResourceTypeDeploymentRevision ResourceType = "deployment_revision"
 	ResourceTypeTerminalRecord     ResourceType = "terminal_record"
+	ResourceTypeModelRepository    ResourceType = "model_repository"
 	ResourceTypeModel              ResourceType = "model"
-	ResourceTypeModelVersion       ResourceType = "model_version"
+	ResourceTypeLabel              ResourceType = "label"
 	ResourceTypeApiToken           ResourceType = "api_token"
 )
+
+func (type_ ResourceType) Ptr() *ResourceType {
+	return &type_
+}

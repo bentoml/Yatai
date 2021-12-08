@@ -1,5 +1,5 @@
 import { IUserSchema } from './user'
-import { IBentoVersionFullSchema } from './bento_version'
+import { IBentoFullSchema } from './bento'
 import { IResourceSchema } from './resource'
 
 export type DeploymentTargetType = 'stable' | 'canary'
@@ -11,15 +11,15 @@ export const DeploymentTargetTypeAddrs: { [k in DeploymentTargetType]: string } 
 export interface IDeploymentTargetSchema extends IResourceSchema {
     creator?: IUserSchema
     type: DeploymentTargetType
-    bento_version: IBentoVersionFullSchema
+    bento: IBentoFullSchema
     canary_rules?: IDeploymentTargetCanaryRule[]
     config?: IDeploymentTargetConfigSchema
 }
 
 export interface ICreateDeploymentTargetSchema {
     type: DeploymentTargetType
-    bento_name: string
-    bento_version: string
+    bento_repository: string
+    bento: string
     canary_rules?: IDeploymentTargetCanaryRule[]
     config?: IDeploymentTargetConfigSchema
 }

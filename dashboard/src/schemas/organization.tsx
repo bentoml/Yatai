@@ -2,12 +2,16 @@ import { IResourceSchema } from './resource'
 import { IUserSchema } from './user'
 
 export interface IAwsS3Schema {
-    bucket_name: string
+    bentos_bucket_name: string
+    models_bucket_name: string
     region: string
 }
 
 export interface IAwsECRSchema {
-    repository_uri: string
+    account_id: string
+    bentos_repository_name: string
+    models_repository_name: string
+    password: string
     region: string
 }
 
@@ -18,9 +22,30 @@ export interface IOrganizationAwsConfigSchema {
     ecr?: IAwsECRSchema
 }
 
+export interface IOrganizationS3Schema {
+    endpoint: string
+    access_key: string
+    secret_key: string
+    secure: boolean
+    region: string
+    bentos_bucket_name: string
+    models_bucket_name: string
+}
+
+export interface IOrganizationDockerRegistrySchema {
+    bentos_repository_uri: string
+    models_repository_uri: string
+    server: string
+    username: string
+    password: string
+    secure: boolean
+}
+
 export interface IOrganizationConfigSchema {
     major_cluster_uid?: string
     aws?: IOrganizationAwsConfigSchema
+    s3?: IOrganizationS3Schema
+    docker_registry?: IOrganizationDockerRegistrySchema
 }
 
 export interface IOrganizationSchema extends IResourceSchema {

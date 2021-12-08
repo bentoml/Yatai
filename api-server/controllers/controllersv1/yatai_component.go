@@ -94,7 +94,7 @@ func (c *yataiComponentController) Get(ctx *gin.Context, schema *GetYataiCompone
 		Type:      schema.Type,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "delete yatai component")
+		return nil, errors.Wrap(err, "get yatai component")
 	}
 	return transformersv1.ToYataiComponentSchema(ctx, comp)
 }

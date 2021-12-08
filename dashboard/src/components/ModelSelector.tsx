@@ -1,18 +1,22 @@
 import { listModels } from '@/services/model'
-import React, { useEffect, useState } from 'react'
-import { useQuery } from 'react-query'
-import _ from 'lodash'
 import { Select } from 'baseui/select'
+import _ from 'lodash'
+import React, { useState } from 'react'
+import { useQuery } from 'react-query'
 
 export interface IModelSelectorProps {
+    modelRepositoryName: string
     value?: string
     onChange?: (newValue: string) => void
 }
 
-export default function ModelSelector({ value, onChange }: IModelSelectorProps) {
+export default function ModelSelector({ modelRepositoryName, value, onChange }: IModelSelectorProps) {
     const [keyword, setKeyword] = useState<string>()
     const [options, setOptions] = useState<{ id: string; label: React.ReactNode }[]>([])
-    const modelsInfo = useQuery(`listModels:${keyword}`, () => listModels({ start: 0, count: 100, search: keyword }))
+    const modelsInfo = useQuery(`listModels:${modelRepositoryName}:${keyword}`, () => {
+        listModels(modelRepositoryName, { start: 0, count: 100, search: keyword })
+    })
+
     const handleModelInputChange = _.debounce((term: string) => {
         if (!term) {
             setOptions([])
@@ -21,22 +25,9 @@ export default function ModelSelector({ value, onChange }: IModelSelectorProps) 
         setKeyword(term)
     })
 
-    useEffect(() => {
-        if (modelsInfo.isSuccess) {
-            setOptions(
-                modelsInfo.data?.items.map((m) => ({
-                    id: m.name,
-                    label: m.name,
-                })) ?? []
-            )
-        } else {
-            setOptions([])
-        }
-    }, [modelsInfo.data?.items, modelsInfo.isSuccess])
-
     return (
         <Select
-            isLoading={modelsInfo.isFetching}
+            isLoading={modelsInfo.isLoading}
             options={options}
             onChange={(params) => {
                 if (!params.option) {

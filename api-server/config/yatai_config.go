@@ -24,6 +24,25 @@ type YataiPostgresqlConfigYaml struct {
 	Database string `yaml:"database"`
 }
 
+type YataiS3ConfigYaml struct {
+	Endpoint         string `yaml:"endpoint"`
+	AccessKey        string `yaml:"access_key"`
+	SecretKey        string `yaml:"secret_key"`
+	Region           string `yaml:"region"`
+	Secure           bool   `yaml:"secure"`
+	BentosBucketName string `yaml:"bentos_bucket_name"`
+	ModelsBucketName string `yaml:"models_bucket_name"`
+}
+
+type YataiDockerRegistryConfigYaml struct {
+	BentosRepositoryURI string `yaml:"bentos_repository_uri"`
+	ModelsRepositoryURI string `yaml:"models_repository_uri"`
+	Server              string `yaml:"server"`
+	Username            string `yaml:"username"`
+	Password            string `yaml:"password"`
+	Secure              bool   `yaml:"secure"`
+}
+
 type YataiOAuthGithubConfigYaml struct {
 	ClientId     string `yaml:"client_id"`
 	ClientSecret string `yaml:"client_secret"`
@@ -34,10 +53,12 @@ type YataiOAuthConfigYaml struct {
 }
 
 type YataiConfigYaml struct {
-	IsSass     bool                      `yaml:"is_sass"`
-	Server     YataiServerConfigYaml     `yaml:"server"`
-	Postgresql YataiPostgresqlConfigYaml `yaml:"postgresql"`
-	OAuth      YataiOAuthConfigYaml      `yaml:"oauth"`
+	IsSass         bool                           `yaml:"is_sass"`
+	Server         YataiServerConfigYaml          `yaml:"server"`
+	Postgresql     YataiPostgresqlConfigYaml      `yaml:"postgresql"`
+	S3             *YataiS3ConfigYaml             `yaml:"s3,omitempty"`
+	DockerRegistry *YataiDockerRegistryConfigYaml `yaml:"docker_registry,omitempty"`
+	OAuth          *YataiOAuthConfigYaml          `yaml:"oauth,omitempty"`
 }
 
 var YataiConfig = &YataiConfigYaml{}

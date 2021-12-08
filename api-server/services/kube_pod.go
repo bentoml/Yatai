@@ -3,6 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"strings"
+
+	"github.com/bentoml/yatai/common/utils"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -180,12 +184,37 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		return
 	}
 
-	bentoVersion, err := BentoVersionService.GetAssociatedBentoVersion(ctx, deploymentTarget)
+	bento, err := BentoService.GetAssociatedBento(ctx, deploymentTarget)
 	if err != nil {
 		return
 	}
 
-	imageName, err := BentoVersionService.GetImageName(ctx, bentoVersion)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
+	if err != nil {
+		return
+	}
+
+	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
+	if err != nil {
+		return
+	}
+
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
+	if err != nil {
+		return
+	}
+
+	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
+	if err != nil {
+		return
+	}
+
+	majorCluster, err := OrganizationService.GetMajorCluster(ctx, org)
+	if err != nil {
+		return
+	}
+
+	imageName, err := BentoService.GetImageName(ctx, bento, cluster.ID == majorCluster.ID)
 	if err != nil {
 		return
 	}
@@ -196,7 +225,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		FailureThreshold:    6,
 		Handler: apiv1.Handler{
 			HTTPGet: &apiv1.HTTPGetAction{
-				Path: "/healthz",
+				Path: "/livez",
 				Port: intstr.FromInt(consts.BentoServicePort),
 			},
 		},
@@ -208,7 +237,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		FailureThreshold:    6,
 		Handler: apiv1.Handler{
 			HTTPGet: &apiv1.HTTPGetAction{
-				Path: "/healthz",
+				Path: "/readyz",
 				Port: intstr.FromInt(consts.BentoServicePort),
 			},
 		},
@@ -216,13 +245,71 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 
 	containers := make([]apiv1.Container, 0, 1)
 
+	vs := make([]apiv1.Volume, 0)
+	vms := make([]apiv1.VolumeMount, 0)
+
+	models_, _, err := ModelService.List(ctx, ListModelOption{
+		BentoIds: &[]uint{bento.ID},
+		Order:    utils.StringPtr("model.build_at ASC"),
+	})
+	if err != nil {
+		return
+	}
+
+	args := make([]string, 0)
+	imageTlsVerify := "false"
+	if dockerRegistry.Secure {
+		imageTlsVerify = "true"
+	}
+
+	for _, model := range models_ {
+		var imageName_ string
+		imageName_, err = ModelService.GetImageName(ctx, model, cluster.ID == majorCluster.ID)
+		if err != nil {
+			return
+		}
+		var modelRepository *models.ModelRepository
+		modelRepository, err = ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+		if err != nil {
+			return
+		}
+		pvName := fmt.Sprintf("pv-%s", model.Version)
+		sourcePath := fmt.Sprintf("/models/%s/%s", modelRepository.Name, model.Version)
+		destDirPath := fmt.Sprintf("./models/%s", modelRepository.Name)
+		destPath := filepath.Join(destDirPath, model.Version)
+		args = append(args, "mkdir", "-p", destDirPath, ";", "ln", "-sf", filepath.Join(sourcePath, "model"), destPath, ";", "echo", "-n", fmt.Sprintf("'%s'", model.Version), ">", filepath.Join(destDirPath, "latest"), ";")
+		v := apiv1.Volume{
+			Name: pvName,
+			VolumeSource: apiv1.VolumeSource{
+				CSI: &apiv1.CSIVolumeSource{
+					Driver: consts.KubeCSIDriverImage,
+					VolumeAttributes: map[string]string{
+						"image":     imageName_,
+						"tlsVerify": imageTlsVerify,
+					},
+				},
+			},
+		}
+		vs = append(vs, v)
+		vm := apiv1.VolumeMount{
+			Name:      pvName,
+			MountPath: sourcePath,
+		}
+		vms = append(vms, vm)
+	}
+
+	args = append(args, "./env/docker/entrypoint.sh", "bentoml", "serve", ".")
+
 	container := apiv1.Container{
 		Name:           kubeName,
 		Image:          imageName,
+		Command:        []string{"sh", "-c"},
+		Args:           []string{strings.Join(args, " ")},
 		LivenessProbe:  livenessProbe,
 		ReadinessProbe: readinessProbe,
 		TTY:            true,
 		Stdin:          true,
+		VolumeMounts:   vms,
 	}
 
 	containers = append(containers, container)
@@ -236,7 +323,16 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		},
 		Spec: apiv1.PodSpec{
 			Containers: containers,
+			Volumes:    vs,
 		},
+	}
+
+	if dockerRegistry.Username != "" {
+		podTemplateSpec.Spec.ImagePullSecrets = []apiv1.LocalObjectReference{
+			{
+				Name: consts.KubeSecretNameRegcred,
+			},
+		}
 	}
 
 	return

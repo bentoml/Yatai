@@ -22,17 +22,18 @@ export const resourceIconMapping: Record<ResourceType, React.ComponentType<IconB
     user_group: HiOutlineUserGroup,
     organization: GrOrganization,
     cluster: GrServerCluster,
-    bento: GoPackage,
-    bento_version: AiOutlineCodeSandbox,
+    bento_repository: GoPackage,
+    bento: AiOutlineCodeSandbox,
     deployment: GrDeploy,
     deployment_revision: BiRevision,
     yatai_component: BiExtension,
+    model_repository: VscFileBinary,
     model: VscFileBinary,
-    model_version: VscFileBinary,
     api_token: HiOutlineKey,
 }
 
 export const yataiComponentIconMapping: Record<YataiComponentType, React.ComponentType<IconBaseProps>> = {
+    deployment: GrDeploy,
     logging: RiMistFill,
     monitoring: AiOutlineDashboard,
 }

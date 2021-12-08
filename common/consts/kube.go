@@ -7,20 +7,23 @@ import (
 )
 
 const (
-	KubeLabelYataiSelector     = "yatai.io/selector"
-	KubeLabelYataiBento        = "yatai.io/bento"
-	KubeLabelYataiBentoVersion = "yatai.io/bento-version"
-	KubeLabelYataiModel        = "yatai.io/model"
-	KubeLabelYataiModelVersion = "yatai.io/model-version"
+	// nolint: gosec
+	KubeSecretNameRegcred         = "yatai-regcred"
+	KubeIngressClassName          = "yatai-ingress"
+	KubeLabelYataiSelector        = "yatai.io/selector"
+	KubeLabelYataiBentoRepository = "yatai.io/bento-repository"
+	KubeLabelYataiBento           = "yatai.io/bento"
+	KubeLabelYataiModelRepository = "yatai.io/model-repository"
+	KubeLabelYataiModel           = "yatai.io/model"
 
 	KubeHPAQPSMetric = "http_request"
 	KubeHPAGPUMetric = "container_accelerator_duty_cycle"
 
-	KubeNamespaceYataiBentoVersionImageBuilder = "yatai-builders"
-	KubeNamespaceYataiModelVersionImageBuilder = "yatai-builders"
-	KubeNamespaceYataiDeployment               = "yatai-deployments"
-	KubeNamespaceYataiOperators                = "yatai-operators"
-	KubeNamespaceYataiComponents               = "yatai-components"
+	KubeNamespaceYataiBentoImageBuilder = "yatai-builders"
+	KubeNamespaceYataiModelImageBuilder = "yatai-builders"
+	KubeNamespaceYataiDeployment        = "yatai-deployments"
+	KubeNamespaceYataiOperators         = "yatai-operators"
+	KubeNamespaceYataiComponents        = "yatai-components"
 
 	KubeLabelMcdInfraCli               = "mcd-infra-cli"
 	KubeLabelMcdKubectl                = "mcd-kubectl"
@@ -53,7 +56,7 @@ const (
 	KubeLabelHelmHeritage = "heritage"
 	KubeLabelHelmRelease  = "release"
 
-	KubeAnnotationBentoVersion      = "yatai.io/bento-version"
+	KubeAnnotationBento             = "yatai.io/bento"
 	KubeAnnotationYataiDeploymentId = "yatai.io/deployment-id"
 	KubeAnnotationHelmReleaseName   = "meta.helm.sh/release-name"
 

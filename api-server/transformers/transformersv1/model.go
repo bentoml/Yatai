@@ -21,57 +21,124 @@ func ToModelSchema(ctx context.Context, model *models.Model) (*schemasv1.ModelSc
 	return ss[0], nil
 }
 
-func ToModelSchemas(ctx context.Context, models []*models.Model) ([]*schemasv1.ModelSchema, error) {
-	modelIds := make([]uint, 0, len(models))
-	for _, model := range models {
-		modelIds = append(modelIds, model.ID)
-	}
-	versions, err := services.ModelVersionService.ListLatestByModelIds(ctx, modelIds)
+func ToModelSchemas(ctx context.Context, models_ []*models.Model) ([]*schemasv1.ModelSchema, error) {
+	res := make([]*schemasv1.ModelSchema, 0, len(models_))
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, models_)
 	if err != nil {
-		return nil, errors.Wrap(err, "List Latest version ByModel Ids")
+		return nil, errors.Wrap(err, "ToResourceSchemasMap")
 	}
-	versionSchemas, err := ToModelVersionSchemas(ctx, versions)
-	if err != nil {
-		return nil, errors.Wrap(err, "ToModelVersionSchemas")
-	}
-	versionSchemasMap := make(map[string]*schemasv1.ModelVersionSchema, len(versions))
-	for _, s := range versionSchemas {
-		versionSchemasMap[s.ModelUid] = s
-	}
-	res := make([]*schemasv1.ModelSchema, 0, len(models))
-	for _, model := range models {
+	for _, model := range models_ {
 		creatorSchema, err := GetAssociatedCreatorSchema(ctx, model)
 		if err != nil {
-			return nil, errors.Wrap(err, "get associated creator schema")
+			return nil, errors.Wrap(err, "GetAssociatedCreatorSchema")
 		}
-		organizationSchema, err := GetAssociatedOrganizationSchema(ctx, model)
+		modelRepository, err := services.ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
 		if err != nil {
-			return nil, errors.Wrap(err, "GetAssociatedOrganizationSchema")
+			return nil, errors.Wrap(err, "GetAssociatedModelRepository")
+		}
+		resourceSchema, ok := resourceSchemasMap[model.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resourceSchema not found for model %s", model.GetUid())
 		}
 		res = append(res, &schemasv1.ModelSchema{
-			ResourceSchema: ToResourceSchema(model),
-			Creator:        creatorSchema,
-			Organization:   organizationSchema,
-			Description:    model.Description,
-			LatestVersion:  versionSchemasMap[model.GetUid()],
+			ResourceSchema:       resourceSchema,
+			ModelUid:             modelRepository.Uid,
+			Version:              model.Version,
+			Creator:              creatorSchema,
+			Description:          model.Description,
+			ImageBuildStatus:     model.ImageBuildStatus,
+			UploadStatus:         model.UploadStatus,
+			UploadStartedAt:      model.UploadStartedAt,
+			UploadFinishedAt:     model.UploadFinishedAt,
+			UploadFinishedReason: model.UploadFinishedReason,
+			Manifest:             model.Manifest,
+			BuildAt:              model.BuildAt,
 		})
 	}
 	return res, nil
 }
 
-type IModelAssociate interface {
-	services.IModelAssociate
-	models.IResource
+func ToModelFullSchema(ctx context.Context, model *models.Model) (*schemasv1.ModelFullSchema, error) {
+	if model == nil {
+		return nil, nil
+	}
+	ss, err := ToModelFullSchemas(ctx, []*models.Model{model})
+	if err != nil {
+		return nil, errors.Wrap(err, "ToModelFullSchemas")
+	}
+	return ss[0], nil
 }
 
-func GetAssociatedModelSchema(ctx context.Context, associate IModelAssociate) (*schemasv1.ModelSchema, error) {
-	user, err := services.ModelService.GetAssociatedModel(ctx, associate)
+func ToModelFullSchemas(ctx context.Context, models_ []*models.Model) ([]*schemasv1.ModelFullSchema, error) {
+	res := make([]*schemasv1.ModelFullSchema, 0, len(models_))
+	modelSchemas, err := ToModelWithRepositorySchemas(ctx, models_)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get %s %s associated cluster", associate.GetResourceType(), associate.GetName())
+		return nil, errors.Wrap(err, "ToModelSchemas")
 	}
-	userSchema, err := ToModelSchema(ctx, user)
+	modelSchemasMap := make(map[string]*schemasv1.ModelWithRepositorySchema)
+	for _, schema := range modelSchemas {
+		modelSchemasMap[schema.Uid] = schema
+	}
+	for _, model := range models_ {
+		bentos, _, err := services.BentoService.List(ctx, services.ListBentoOption{
+			ModelIds: &[]uint{model.ID},
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "ListBento")
+		}
+		bentoSchemas, err := ToBentoSchemas(ctx, bentos)
+		if err != nil {
+			return nil, errors.Wrap(err, "ToBentoSchemas")
+		}
+		res = append(res, &schemasv1.ModelFullSchema{
+			ModelWithRepositorySchema: *modelSchemasMap[model.GetUid()],
+			Bentos:                    bentoSchemas,
+		})
+	}
+	return res, nil
+}
+
+func ToModelWithRepositorySchemas(ctx context.Context, models_ []*models.Model) ([]*schemasv1.ModelWithRepositorySchema, error) {
+	res := make([]*schemasv1.ModelWithRepositorySchema, 0, len(models_))
+	modelSchemas, err := ToModelSchemas(ctx, models_)
 	if err != nil {
-		return nil, errors.Wrap(err, "ToModelSchema")
+		return nil, errors.Wrap(err, "ToModelSchemas")
 	}
-	return userSchema, nil
+	modelSchemasMap := make(map[string]*schemasv1.ModelSchema)
+	for _, schema := range modelSchemas {
+		modelSchemasMap[schema.Uid] = schema
+	}
+	modelRepositoryIds := make([]uint, 0, len(models_))
+	for _, model := range models_ {
+		modelRepositoryIds = append(modelRepositoryIds, model.ModelRepositoryId)
+	}
+	modelRepositories, _, err := services.ModelRepositoryService.List(ctx, services.ListModelRepositoryOption{
+		Ids: &modelRepositoryIds,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "ListModels")
+	}
+	modelRepositoryUidToIdMap := make(map[string]uint)
+	for _, modelRepository := range modelRepositories {
+		modelRepositoryUidToIdMap[modelRepository.Uid] = modelRepository.ID
+	}
+	modelRepositorySchemas, err := ToModelRepositorySchemas(ctx, modelRepositories)
+	if err != nil {
+		return nil, errors.Wrap(err, "ToModelRepositorySchemas")
+	}
+	modelRepositorySchemasMap := make(map[uint]*schemasv1.ModelRepositorySchema)
+	for _, schema := range modelRepositorySchemas {
+		modelRepositorySchemasMap[modelRepositoryUidToIdMap[schema.Uid]] = schema
+	}
+	for _, model := range models_ {
+		modelRepositorySchema, ok := modelRepositorySchemasMap[model.ModelRepositoryId]
+		if !ok {
+			return nil, errors.Errorf("cannot find modelRepository %d from map", model.ModelRepositoryId)
+		}
+		res = append(res, &schemasv1.ModelWithRepositorySchema{
+			ModelSchema: *modelSchemasMap[model.GetUid()],
+			Repository:  modelRepositorySchema,
+		})
+	}
+	return res, nil
 }

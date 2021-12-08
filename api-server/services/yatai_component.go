@@ -139,36 +139,48 @@ func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiCompo
 		return
 	}
 
-	var grafanaHostname string
-	grafanaHostname, err = ClusterService.GenerateGrafanaHostname(ctx, cluster)
-	if err != nil {
-		return
-	}
+	var values map[string]interface{}
 
-	var grafanaRootPath string
-	grafanaRootPath, err = ClusterService.GetGrafanaRootPath(ctx, cluster)
-	if err != nil {
-		return
-	}
-
-	var grafana *v1alpha1.Grafana
-	grafana, err = ClusterService.GetGrafana(ctx, cluster)
-	if err != nil && !k8serrors.IsNotFound(err) {
-		return
-	}
-	err = nil
-
-	if grafana != nil {
-		grafanaHostname = grafana.Spec.Ingress.Hostname
-	}
-
-	values := map[string]interface{}{
-		string(opt.Type): map[string]interface{}{
-			"grafana": map[string]interface{}{
-				"hostname": grafanaHostname,
-				"rootUrl":  fmt.Sprintf("%%(protocol)s://%%(domain)s:%%(http_port)s%s", grafanaRootPath),
+	if opt.Type == modelschemas.YataiComponentTypeDeployment {
+		values = map[string]interface{}{
+			string(opt.Type): map[string]interface{}{
+				"minio":          map[string]interface{}{},
+				"dockerRegistry": map[string]interface{}{},
 			},
-		},
+		}
+	} else {
+		var grafanaHostname string
+		grafanaHostname, err = ClusterService.GenerateGrafanaHostname(ctx, cluster)
+		if err != nil {
+			return
+		}
+
+		var grafanaRootPath string
+		grafanaRootPath, err = ClusterService.GetGrafanaRootPath(ctx, cluster)
+		if err != nil {
+			return
+		}
+
+		var grafana *v1alpha1.Grafana
+		grafana, err = ClusterService.GetGrafana(ctx, cluster)
+		if err != nil && !k8serrors.IsNotFound(err) {
+			return
+		}
+		err = nil
+
+		if grafana != nil {
+			grafanaHostname = grafana.Spec.Ingress.Hostname
+		}
+
+		values = map[string]interface{}{
+			string(opt.Type): map[string]interface{}{
+				"grafana": map[string]interface{}{
+					"hostname":         grafanaHostname,
+					"rootUrl":          fmt.Sprintf("%%(protocol)s://%%(domain)s:%%(http_port)s%s", grafanaRootPath),
+					"ingressClassName": consts.KubeIngressClassName,
+				},
+			},
+		}
 	}
 
 	if release_ == nil {
@@ -238,10 +250,18 @@ func (s *yataiComponentService) List(ctx context.Context, clusterId uint) (comps
 
 func (s *yataiComponentService) getHelmReleaseNames(type_ modelschemas.YataiComponentType) (releaseNames []string) {
 	switch type_ {
+	case modelschemas.YataiComponentTypeDeployment:
+		return []string{
+			"yatai-ingress-controller",
+			"yatai-minio",
+			"yatai-docker-registry",
+		}
 	case modelschemas.YataiComponentTypeLogging:
 		return []string{
 			"yatai-grafana",
 			"yatai-loki",
+			"yatai-minio",
+			"yatai-promtail",
 		}
 	case modelschemas.YataiComponentTypeMonitoring:
 		return []string{
@@ -384,7 +404,8 @@ func (s *yataiComponentService) Get(ctx context.Context, opt GetYataiComponentRe
 		if filepath.Base(f.Name) != resourceYamlFileName {
 			continue
 		}
-		err = yaml.Unmarshal(f.Data, meta_)
+		data := strings.Join(strings.Split(string(f.Data), "\n")[:2], "\n")
+		err = yaml.Unmarshal([]byte(data), meta_)
 		if err != nil {
 			return
 		}
@@ -424,6 +445,11 @@ func (s *yataiComponentService) Get(ctx context.Context, opt GetYataiComponentRe
 }
 
 func (s *yataiComponentService) Delete(ctx context.Context, opt DeleteYataiComponentReleaseOption) (comp *models.YataiComponent, err error) {
+	if opt.Type == modelschemas.YataiComponentTypeDeployment {
+		err = errors.New("not support delete yatai deployment component")
+		return
+	}
+
 	cluster, err := ClusterService.Get(ctx, opt.ClusterId)
 	if err != nil {
 		return
@@ -470,7 +496,8 @@ func (s *yataiComponentService) Delete(ctx context.Context, opt DeleteYataiCompo
 		if filepath.Base(f.Name) != resourceYamlFileName {
 			continue
 		}
-		err = yaml.Unmarshal(f.Data, meta_)
+		data := strings.Join(strings.Split(string(f.Data), "\n")[:2], "\n")
+		err = yaml.Unmarshal([]byte(data), meta_)
 		if err != nil {
 			return
 		}

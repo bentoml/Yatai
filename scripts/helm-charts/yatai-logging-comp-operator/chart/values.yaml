@@ -4,13 +4,13 @@
 
 replicaCount: 1
 
-registry: docker.io
+registry: quay.io/bentoml
 
 image:
-  repository: yetone/yatai-logging-comp-operator
+  repository: yatai-logging-comp-operator
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.0.25"
+  tag: "v0.0.1"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -84,6 +84,7 @@ tolerations: []
 affinity: {}
 
 logging:
+  minio: {}
   grafana:
     hostname: ""
     rootUrl: ""

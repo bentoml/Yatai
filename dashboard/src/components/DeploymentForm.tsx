@@ -15,8 +15,8 @@ import { Slider } from 'baseui/slider'
 import { ICreateDeploymentTargetSchema } from '@/schemas/deployment_target'
 import { useStyletron } from 'baseui'
 import DeploymentTargetTypeSelector from './DeploymentTargetTypeSelector'
+import BentoRepositorySelector from './BentoRepositorySelector'
 import BentoSelector from './BentoSelector'
-import BentoVersionSelector from './BentoVersionSelector'
 import FormGroup from './FormGroup'
 import { CPUResourceInput } from './CPUResourceInput'
 import MemoryResourceInput from './MemoryResourceInput'
@@ -28,8 +28,8 @@ const { Form, FormItem, useForm } = createForm<ICreateDeploymentSchema>()
 
 const defaultTarget: ICreateDeploymentTargetSchema = {
     type: 'stable',
-    bento_name: '',
-    bento_version: '',
+    bento_repository: '',
+    bento: '',
     config: {
         hpa_conf: {
             min_replicas: 2,
@@ -96,8 +96,8 @@ export default function DeploymentForm({
                 (target) =>
                     ({
                         type: target.type,
-                        bento_name: target.bento_version.bento.name,
-                        bento_version: target.bento_version.version,
+                        bento_repository: target.bento.repository.name,
+                        bento: target.bento.version,
                         canary_rules: target.canary_rules,
                         config: target.config,
                     } as ICreateDeploymentTargetSchema)
@@ -209,16 +209,16 @@ export default function DeploymentForm({
                                         />
                                     </FormItem>
                                 )}
-                                <FormItem required name={['targets', idx, 'bento_name']} label={t('bento')}>
-                                    <BentoSelector />
+                                <FormItem
+                                    required
+                                    name={['targets', idx, 'bento_repository']}
+                                    label={t('bento repository')}
+                                >
+                                    <BentoRepositorySelector />
                                 </FormItem>
-                                {target.bento_name && (
-                                    <FormItem
-                                        required
-                                        name={['targets', idx, 'bento_version']}
-                                        label={t('bento version')}
-                                    >
-                                        <BentoVersionSelector bentoName={target.bento_name} />
+                                {target.bento_repository && (
+                                    <FormItem required name={['targets', idx, 'bento']} label={t('bento')}>
+                                        <BentoSelector bentoRepositoryName={target.bento_repository} />
                                     </FormItem>
                                 )}
                                 <Accordion

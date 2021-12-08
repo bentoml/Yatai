@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/bentoml/yatai/api-server/controllers/web"
 
 	"github.com/bentoml/yatai/api-server/config"
@@ -145,10 +143,21 @@ func NewRouter() (*fizz.Fizz, error) {
 	userRoutes(apiRootGroup)
 	organizationRoutes(apiRootGroup)
 	apiTokenRoutes(apiRootGroup)
+	labelRoutes(apiRootGroup)
 	clusterRoutes(apiRootGroup)
-	bentoRoutes(apiRootGroup)
-	modelRoutes(apiRootGroup)
+	bentoRepositoryRoutes(apiRootGroup)
+	modelRepositoryRoutes(apiRootGroup)
 	terminalRecordRoutes(apiRootGroup)
+
+	apiRootGroup.GET("/bentos", []fizz.OperationOption{
+		fizz.ID("List all bentos"),
+		fizz.Summary("List all bentos"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.ListAll, 200))
+
+	apiRootGroup.GET("/models", []fizz.OperationOption{
+		fizz.ID("List all models"),
+		fizz.Summary("List all models"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.ListAll, 200))
 
 	if len(fizzApp.Errors()) != 0 {
 		return nil, fmt.Errorf("fizz errors: %v", fizzApp.Errors())
@@ -230,13 +239,6 @@ func getLoginUser(ctx *gin.Context) (user *models.User, err error) {
 }
 
 func requireLogin(ctx *gin.Context) {
-	defer func() {
-		if err := recover(); err != nil {
-			logrus.Errorf("recover panic: %s", err)
-			return
-		}
-	}()
-
 	_, loginErr := getLoginUser(ctx)
 	if loginErr != nil {
 		msg := schemasv1.MsgSchema{Message: loginErr.Error()}
@@ -325,8 +327,8 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.Create, 200))
 
 	// clusterRoutes(resourceGrp)
-	// bentoRoutes(resourceGrp)
-	// modelRoutes(resourceGrp)
+	// bentoRepositoryRoutes(resourceGrp)
+	// modelRepositoryRoutes(resourceGrp)
 }
 
 func apiTokenRoutes(grp *fizz.RouterGroup) {
@@ -358,6 +360,14 @@ func apiTokenRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Create api token"),
 		fizz.Summary("Create api token"),
 	}, requireLogin, tonic.Handler(controllersv1.ApiTokenController.Create, 200))
+}
+
+func labelRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/labels", "labels", "labels")
+	grp.GET("", []fizz.OperationOption{
+		fizz.ID("List Labels"),
+		fizz.Summary("List Labels"),
+	}, requireLogin, tonic.Handler(controllersv1.LabelController.List, 200))
 }
 
 func clusterRoutes(grp *fizz.RouterGroup) {
@@ -430,20 +440,63 @@ func yataiComponentRoutes(grp *fizz.RouterGroup) {
 	}, requireLogin, tonic.Handler(controllersv1.YataiComponentController.Create, 200))
 }
 
+func bentoRepositoryRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/bento_repositories", "bento repositories", "bento repositories")
+
+	resourceGrp := grp.Group("/:bentoRepositoryName", "bento repository resource", "bento repository resource")
+
+	resourceGrp.GET("", []fizz.OperationOption{
+		fizz.ID("Get a bento repository"),
+		fizz.Summary("Get a bento repository"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoRepositoryController.Get, 200))
+
+	resourceGrp.PATCH("", []fizz.OperationOption{
+		fizz.ID("Update a bento repository"),
+		fizz.Summary("Update a bento repository"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoRepositoryController.Update, 200))
+
+	grp.GET("", []fizz.OperationOption{
+		fizz.ID("List bento repositories"),
+		fizz.Summary("List bento repositories"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoRepositoryController.List, 200))
+
+	grp.POST("", []fizz.OperationOption{
+		fizz.ID("Create bento repository"),
+		fizz.Summary("Create bento repository"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoRepositoryController.Create, 200))
+
+	bentoRoutes(resourceGrp)
+}
+
 func bentoRoutes(grp *fizz.RouterGroup) {
 	grp = grp.Group("/bentos", "bentos", "bentos")
 
-	resourceGrp := grp.Group("/:bentoName", "bento resource", "bento resource")
+	resourceGrp := grp.Group("/:version", "bento resource", "bento resource")
 
 	resourceGrp.GET("", []fizz.OperationOption{
 		fizz.ID("Get a bento"),
 		fizz.Summary("Get a bento"),
 	}, requireLogin, tonic.Handler(controllersv1.BentoController.Get, 200))
 
-	resourceGrp.PATCH("", []fizz.OperationOption{
-		fizz.ID("Update a bento"),
-		fizz.Summary("Update a bento"),
-	}, requireLogin, tonic.Handler(controllersv1.BentoController.Update, 200))
+	resourceGrp.PATCH("/presign_upload_url", []fizz.OperationOption{
+		fizz.ID("Pre sign bento upload URL"),
+		fizz.Summary("Pre sign bento upload URL"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.PreSignUploadUrl, 200))
+
+	resourceGrp.PATCH("/presign_download_url", []fizz.OperationOption{
+		fizz.ID("Pre sign bento download URL"),
+		fizz.Summary("Pre sign bento download URL"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.PreSignDownloadUrl, 200))
+
+	resourceGrp.PATCH("/start_upload", []fizz.OperationOption{
+		fizz.ID("Start upload a bento"),
+		fizz.Summary("Start upload a bento"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.StartUpload, 200))
+
+	resourceGrp.PATCH("/finish_upload", []fizz.OperationOption{
+		fizz.ID("Finish upload a bento"),
+		fizz.Summary("Finish upload a bento"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.FinishUpload, 200))
 
 	grp.GET("", []fizz.OperationOption{
 		fizz.ID("List bentos"),
@@ -451,47 +504,9 @@ func bentoRoutes(grp *fizz.RouterGroup) {
 	}, requireLogin, tonic.Handler(controllersv1.BentoController.List, 200))
 
 	grp.POST("", []fizz.OperationOption{
-		fizz.ID("Create bento"),
-		fizz.Summary("Create bento"),
+		fizz.ID("Create a bento"),
+		fizz.Summary("Create a bento"),
 	}, requireLogin, tonic.Handler(controllersv1.BentoController.Create, 200))
-
-	bentoVersionRoutes(resourceGrp)
-}
-
-func bentoVersionRoutes(grp *fizz.RouterGroup) {
-	grp = grp.Group("/versions", "bento versions", "bento versions")
-
-	resourceGrp := grp.Group("/:version", "bento version resource", "bento version resource")
-
-	resourceGrp.GET("", []fizz.OperationOption{
-		fizz.ID("Get a bento version"),
-		fizz.Summary("Get a bento version"),
-	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.Get, 200))
-
-	resourceGrp.PATCH("/presign_s3_upload_url", []fizz.OperationOption{
-		fizz.ID("Pre sign bento version s3 upload URL"),
-		fizz.Summary("Pre sign bento version s3 upload URL"),
-	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.PreSignS3UploadUrl, 200))
-
-	resourceGrp.PATCH("/start_upload", []fizz.OperationOption{
-		fizz.ID("Start upload a bento version"),
-		fizz.Summary("Start upload a bento version"),
-	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.StartUpload, 200))
-
-	resourceGrp.PATCH("/finish_upload", []fizz.OperationOption{
-		fizz.ID("Finish upload a bento version"),
-		fizz.Summary("Finish upload a bento version"),
-	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.FinishUpload, 200))
-
-	grp.GET("", []fizz.OperationOption{
-		fizz.ID("List bento versions"),
-		fizz.Summary("List bento versions"),
-	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.List, 200))
-
-	grp.POST("", []fizz.OperationOption{
-		fizz.ID("Create bento version"),
-		fizz.Summary("Create bento version"),
-	}, requireLogin, tonic.Handler(controllersv1.BentoVersionController.Create, 200))
 }
 
 func deploymentRoutes(grp *fizz.RouterGroup) {
@@ -562,20 +577,63 @@ func terminalRecordRoutes(grp *fizz.RouterGroup) {
 	}, requireLogin, tonic.Handler(controllersv1.TerminalRecordController.Download, 200))
 }
 
+func modelRepositoryRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/model_repositories", "model repositories", "model repositories")
+
+	resourceGrp := grp.Group("/:modelRepositoryName", "model repository resource", "model repository resource")
+
+	resourceGrp.GET("", []fizz.OperationOption{
+		fizz.ID("Get a model repository"),
+		fizz.Summary("Get a model repository"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelRepositoryController.Get, 200))
+
+	resourceGrp.PATCH("", []fizz.OperationOption{
+		fizz.ID("Update a model repository"),
+		fizz.Summary("Update a model repository"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelRepositoryController.Update, 200))
+
+	grp.GET("", []fizz.OperationOption{
+		fizz.ID("List model repositories"),
+		fizz.Summary("List model repositories"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelRepositoryController.List, 200))
+
+	grp.POST("", []fizz.OperationOption{
+		fizz.ID("Create a model repository"),
+		fizz.Summary("Create a model repository"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelRepositoryController.Create, 200))
+
+	modelRoutes(resourceGrp)
+}
+
 func modelRoutes(grp *fizz.RouterGroup) {
 	grp = grp.Group("/models", "models", "models")
 
-	resourceGrp := grp.Group("/:modelName", "model resource", "model resource")
+	resourceGrp := grp.Group("/:version", "model resource", "model resource")
 
 	resourceGrp.GET("", []fizz.OperationOption{
 		fizz.ID("Get a model"),
 		fizz.Summary("Get a model"),
 	}, requireLogin, tonic.Handler(controllersv1.ModelController.Get, 200))
 
-	resourceGrp.PATCH("", []fizz.OperationOption{
-		fizz.ID("Update a model"),
-		fizz.Summary("Update a model"),
-	}, requireLogin, tonic.Handler(controllersv1.ModelController.Update, 200))
+	resourceGrp.PATCH("/presign_upload_url", []fizz.OperationOption{
+		fizz.ID("Pre sign model upload URL"),
+		fizz.Summary("Pre sign model upload URL"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.PreSignUploadUrl, 200))
+
+	resourceGrp.PATCH("/presign_download_url", []fizz.OperationOption{
+		fizz.ID("Pre sign model download URL"),
+		fizz.Summary("Pre sign model download URL"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.PreSignDownloadUrl, 200))
+
+	resourceGrp.PATCH("/start_upload", []fizz.OperationOption{
+		fizz.ID("Start upload a model"),
+		fizz.Summary("Start upload a model"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.StartUpload, 200))
+
+	resourceGrp.PATCH("/finish_upload", []fizz.OperationOption{
+		fizz.ID("Finish upload a model"),
+		fizz.Summary("Finish upload a model"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.FinishUpload, 200))
 
 	grp.GET("", []fizz.OperationOption{
 		fizz.ID("List models"),
@@ -583,42 +641,7 @@ func modelRoutes(grp *fizz.RouterGroup) {
 	}, requireLogin, tonic.Handler(controllersv1.ModelController.List, 200))
 
 	grp.POST("", []fizz.OperationOption{
-		fizz.ID("Create model"),
-		fizz.Summary("Create model"),
+		fizz.ID("Create a model"),
+		fizz.Summary("Create a model"),
 	}, requireLogin, tonic.Handler(controllersv1.ModelController.Create, 200))
-
-	modelVersionRoutes(resourceGrp)
-}
-
-func modelVersionRoutes(grp *fizz.RouterGroup) {
-	grp = grp.Group("/versions", "model versions", "model versions")
-
-	resourceGrp := grp.Group("/:version", "model version resource", "model version resource")
-
-	resourceGrp.GET("", []fizz.OperationOption{
-		fizz.ID("Get a model version"),
-		fizz.Summary("Get a model version"),
-	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.Get, 200))
-
-	// WIP patch s3 upload
-
-	resourceGrp.PATCH("/start_upload", []fizz.OperationOption{
-		fizz.ID("Start upload a model version"),
-		fizz.Summary("Start upload a model version"),
-	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.StartUpload, 200))
-
-	resourceGrp.PATCH("/finish_upload", []fizz.OperationOption{
-		fizz.ID("Finish upload a model version"),
-		fizz.Summary("Finish upload a model version"),
-	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.FinishUpload, 200))
-
-	grp.GET("", []fizz.OperationOption{
-		fizz.ID("List model versions"),
-		fizz.Summary("List model versions"),
-	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.List, 200))
-
-	grp.POST("", []fizz.OperationOption{
-		fizz.ID("Create model version"),
-		fizz.Summary("Create model version"),
-	}, requireLogin, tonic.Handler(controllersv1.ModelVersionController.Create, 200))
 }

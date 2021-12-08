@@ -18,6 +18,7 @@ type DeploymentListSchema struct {
 
 type UpdateDeploymentSchema struct {
 	Targets []*CreateDeploymentTargetSchema `json:"targets"`
+	Labels  *modelschemas.LabelItemsSchema  `json:"labels,omitempty"`
 }
 
 type CreateDeploymentSchema struct {

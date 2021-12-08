@@ -3,6 +3,8 @@ package transformersv1
 import (
 	"context"
 
+	"github.com/pkg/errors"
+
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/utils"
@@ -18,6 +20,10 @@ func ToTerminalRecordSchema(ctx context.Context, record *models.TerminalRecord) 
 }
 
 func ToTerminalRecordSchemas(ctx context.Context, records []*models.TerminalRecord) ([]*schemasv1.TerminalRecordSchema, error) {
+	resourceSchemasMap, err := ToResourceSchemasMap(ctx, records)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to transform terminal records to resource schemas")
+	}
 	ss := make([]*schemasv1.TerminalRecordSchema, 0, len(records))
 	for _, r := range records {
 		creatorSchema, err := GetAssociatedCreatorSchema(ctx, r)
@@ -42,11 +48,18 @@ func ToTerminalRecordSchemas(ctx context.Context, records []*models.TerminalReco
 		}
 		var rs *schemasv1.ResourceSchema
 		if !utils.IsNotFound(err) {
-			rs_ := ToResourceSchema(resource)
+			rs_, err := ToResourceSchema(ctx, resource)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to transform resource to resource schema")
+			}
 			rs = &rs_
 		}
+		resourceSchema, ok := resourceSchemasMap[r.GetUid()]
+		if !ok {
+			return nil, errors.Errorf("resource schema not found for terminal record %s", r.GetUid())
+		}
 		ss = append(ss, &schemasv1.TerminalRecordSchema{
-			ResourceSchema: ToResourceSchema(r),
+			ResourceSchema: resourceSchema,
 			Creator:        creatorSchema,
 			Organization:   orgSchema,
 			Cluster:        clusterSchema,

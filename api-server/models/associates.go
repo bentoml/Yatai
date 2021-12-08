@@ -119,6 +119,23 @@ func (a *NullableClusterAssociate) SetAssociatedClusterCache(cluster *Cluster) {
 	a.AssociatedClusterCache = cluster
 }
 
+type BentoRepositoryAssociate struct {
+	BentoRepositoryId              uint             `json:"bento_repository_id"`
+	AssociatedBentoRepositoryCache *BentoRepository `gorm:"foreignkey:BentoRepositoryId"`
+}
+
+func (a *BentoRepositoryAssociate) GetAssociatedBentoRepositoryId() uint {
+	return a.BentoRepositoryId
+}
+
+func (a *BentoRepositoryAssociate) GetAssociatedBentoRepositoryCache() *BentoRepository {
+	return a.AssociatedBentoRepositoryCache
+}
+
+func (a *BentoRepositoryAssociate) SetAssociatedBentoRepositoryCache(bentoRepository *BentoRepository) {
+	a.AssociatedBentoRepositoryCache = bentoRepository
+}
+
 type BentoAssociate struct {
 	BentoId              uint   `json:"bento_id"`
 	AssociatedBentoCache *Bento `gorm:"foreignkey:BentoId"`
@@ -134,23 +151,6 @@ func (a *BentoAssociate) GetAssociatedBentoCache() *Bento {
 
 func (a *BentoAssociate) SetAssociatedBentoCache(bento *Bento) {
 	a.AssociatedBentoCache = bento
-}
-
-type BentoVersionAssociate struct {
-	BentoVersionId              uint          `json:"bento_version_id"`
-	AssociatedBentoVersionCache *BentoVersion `gorm:"foreignkey:BentoVersionId"`
-}
-
-func (a *BentoVersionAssociate) GetAssociatedBentoVersionId() uint {
-	return a.BentoVersionId
-}
-
-func (a *BentoVersionAssociate) GetAssociatedBentoVersionCache() *BentoVersion {
-	return a.AssociatedBentoVersionCache
-}
-
-func (a *BentoVersionAssociate) SetAssociatedBentoVersionCache(bentoVersion *BentoVersion) {
-	a.AssociatedBentoVersionCache = bentoVersion
 }
 
 type DeploymentAssociate struct {
@@ -204,6 +204,23 @@ func (a *DeploymentRevisionAssociate) SetAssociatedDeploymentRevisionCache(deplo
 	a.AssociatedDeploymentRevisionCache = deploymentRevision
 }
 
+type ModelRepositoryAssociate struct {
+	ModelRepositoryId              uint             `json:"model_repository_id"`
+	AssociatedModelRepositoryCache *ModelRepository `gorm:"foreignkey:ModelRepositoryId"`
+}
+
+func (a *ModelRepositoryAssociate) GetAssociatedModelRepositoryId() uint {
+	return a.ModelRepositoryId
+}
+
+func (a *ModelRepositoryAssociate) GetAssociatedModelRepositoryCache() *ModelRepository {
+	return a.AssociatedModelRepositoryCache
+}
+
+func (a *ModelRepositoryAssociate) SetAssociatedModelRepositoryCache(modelRepository *ModelRepository) {
+	a.AssociatedModelRepositoryCache = modelRepository
+}
+
 type ModelAssociate struct {
 	ModelId              uint   `json:"model_id"`
 	AssociatedModelCache *Model `gorm:"foreignkey:ModelId"`
@@ -219,21 +236,4 @@ func (a *ModelAssociate) GetAssociatedModelCache() *Model {
 
 func (a *ModelAssociate) SetAssociatedModelCache(model *Model) {
 	a.AssociatedModelCache = model
-}
-
-type ModelVersionAssociate struct {
-	ModelVersionId              uint          `json:"model_version_id"`
-	AssociatedModelVersionCache *ModelVersion `gorm:"foreignkey:ModelVersionId"`
-}
-
-func (a *ModelVersionAssociate) GetAssociatedModelVersionId() uint {
-	return a.ModelVersionId
-}
-
-func (a *ModelVersionAssociate) GetAssociatedModelVersionCache() *ModelVersion {
-	return a.AssociatedModelVersionCache
-}
-
-func (a *ModelVersionAssociate) SetAssociatedModelVersionCache(modelVersion *ModelVersion) {
-	a.AssociatedModelVersionCache = modelVersion
 }
