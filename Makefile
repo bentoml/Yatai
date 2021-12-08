@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
 VERSION := $(shell git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)
-DOCKER_REGISTRY := 192023623294.dkr.ecr.ap-northeast-1.amazonaws.com
+DOCKER_REGISTRY := quay.io/bentoml
 
 BUILDER_IMG := $(DOCKER_REGISTRY)/yatai-builder:1.0
 UI_BUILDER_IMG := $(DOCKER_REGISTRY)/yatai-ui-builder:1.0

@@ -1,8 +1,11 @@
+
+---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.1
+  creationTimestamp: null
   name: loggings.component.yatai.ai
 spec:
   group: component.yatai.ai
@@ -34,7 +37,6 @@ spec:
             description: LoggingSpec defines the desired state of Logging
             properties:
               grafana:
-                description: Grafana specifications
                 properties:
                   hostname:
                     type: string
@@ -45,6 +47,18 @@ spec:
                 required:
                 - hostname
                 - rootUrl
+                type: object
+              minio:
+                properties:
+                  pool:
+                    properties:
+                      servers:
+                        type: integer
+                      size:
+                        type: string
+                      volumesPerServer:
+                        type: integer
+                    type: object
                 type: object
             required:
             - grafana

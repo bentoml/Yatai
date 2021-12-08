@@ -4,7 +4,7 @@
 
 replicaCount: 3
 
-registry: 192023623294.dkr.ecr.ap-northeast-1.amazonaws.com
+registry: quay.io/bentoml
 
 image:
   repository: yatai

@@ -110,7 +110,7 @@
     "eslint-plugin-react": "^7.24.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "http-proxy-middleware": "^2.0.1",
-    "node-sass": "^5.0.0",
+    "node-sass": "4.14.1",
     "prettier": "^2.3.2",
     "simple-progress-webpack-plugin": "^2.0.0"
   }

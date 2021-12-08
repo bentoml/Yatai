@@ -4,13 +4,13 @@
 
 replicaCount: 1
 
-registry: docker.io
+registry: quay.io/bentoml
 
 image:
-  repository: yetone/yatai-deployment-comp-operator
+  repository: yatai-deployment-comp-operator
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.0.7"
+  tag: "v0.0.1"
 
 imagePullSecrets: []
 nameOverride: ""
