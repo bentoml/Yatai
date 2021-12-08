@@ -20,12 +20,20 @@ func (s *kubeNamespaceService) MakeSureNamespace(ctx context.Context, cluster *m
 		return
 	}
 
-	kubeNs, err = kubeCli.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{})
+	nsCli := kubeCli.CoreV1().Namespaces()
+	kubeNs, err = nsCli.Get(ctx, namespace, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
-		_, err = kubeCli.CoreV1().Namespaces().Create(ctx, &apiv1.Namespace{ObjectMeta: metav1.ObjectMeta{
+		kubeNs = &apiv1.Namespace{ObjectMeta: metav1.ObjectMeta{
 			Name: namespace,
-		}}, metav1.CreateOptions{})
-		if err != nil {
+		}}
+		err = nil
+		_, err_ := nsCli.Create(ctx, kubeNs, metav1.CreateOptions{})
+		if err_ != nil {
+			kubeNs, err = nsCli.Get(ctx, namespace, metav1.GetOptions{})
+			if err == nil {
+				return
+			}
+			err = err_
 			return
 		}
 	} else if err != nil {

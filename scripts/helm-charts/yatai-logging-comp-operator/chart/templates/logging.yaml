@@ -2,8 +2,7 @@ apiVersion: component.yatai.ai/v1alpha1
 kind: Logging
 metadata:
   name: logging
+{{- with .Values.logging }}
 spec:
-  grafana:
-    hostname: "{{ .Values.logging.grafana.hostname }}"
-    rootUrl: "{{ .Values.logging.grafana.rootUrl }}"
-    ingressClassName: "{{ .Values.logging.grafana.ingressClassName }}"
+  {{- toYaml . | nindent 2 }}
+{{- end }}
