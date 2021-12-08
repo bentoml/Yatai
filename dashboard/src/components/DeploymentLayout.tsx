@@ -122,24 +122,15 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
         () => [
             {
                 title: t('sth list', [t('cluster')]),
-                path: '/clusters',
-                icon: resourceIconMapping.cluster,
-            },
-            {
-                title: clusterName,
-                path: `/clusters/${clusterName}`,
-            },
-            {
-                title: t('sth list', [t('deployment')]),
-                path: `/clusters/${clusterName}/deployments`,
+                path: '/deployments',
                 icon: resourceIconMapping.deployment,
             },
             {
                 title: deploymentName,
-                path: `/clusters/${clusterName}/deployments/${deploymentName}`,
+                path: `/deployments/${deploymentName}`,
             },
         ],
-        [clusterName, deploymentName, t]
+        [deploymentName, t]
     )
 
     const navItems: INavItem[] = useMemo(
@@ -147,24 +138,24 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
             [
                 {
                     title: t('overview'),
-                    path: `/clusters/${clusterName}/deployments/${deploymentName}`,
+                    path: `/deployments/${deploymentName}`,
                     icon: RiSurveyLine,
                 },
                 {
                     title: t('replicas'),
-                    path: `/clusters/${clusterName}/deployments/${deploymentName}/replicas`,
+                    path: `/deployments/${deploymentName}/replicas`,
                     icon: VscServerProcess,
                 },
                 {
                     title: t('view log'),
-                    path: `/clusters/${clusterName}/deployments/${deploymentName}/log`,
+                    path: `/deployments/${deploymentName}/log`,
                     icon: FaJournalWhills,
                     disabled: !hasLogging,
                     helpMessage: !hasLogging ? t('please install yatai component first', [t('logging')]) : undefined,
                 },
                 {
                     title: t('monitor'),
-                    path: `/clusters/${clusterName}/deployments/${deploymentName}/monitor`,
+                    path: `/deployments/${deploymentName}/monitor`,
                     icon: AiOutlineDashboard,
                     disabled: !hasMonitoring,
                     helpMessage: !hasMonitoring
@@ -173,11 +164,11 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                 },
                 {
                     title: t('sth list', [t('revision')]),
-                    path: `/clusters/${clusterName}/deployments/${deploymentName}/revisions`,
+                    path: `/deployments/${deploymentName}/revisions`,
                     icon: resourceIconMapping.deployment_revision,
                 },
             ] as INavItem[],
-        [clusterName, deploymentName, hasLogging, hasMonitoring, t]
+        [deploymentName, hasLogging, hasMonitoring, t]
     )
 
     const [, theme] = useStyletron()
