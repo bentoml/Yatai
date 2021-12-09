@@ -3,6 +3,12 @@ name: yatai
 description: Yatai Helm chart
 icon: file://../logo.png
 
+dependencies:
+  - condition: postgresql-ha.enabled
+    name: postgresql-ha
+    repository: https://charts.bitnami.com/bitnami
+    version: 8.x.x
+
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives

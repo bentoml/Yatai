@@ -30,18 +30,18 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
-infra:
+postgresql-ha:
+  enabled: true
+  postgresql:
+
+
+config:
   postgresql:  # the database config section
     host: localhost
     port: 5432
     user: yetone
     password: ''
     database: yatai
-
-oauth:
-  github:  # https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app
-    client_id: ''
-    client_secret: ''
 
 securityContext: {}
   # capabilities:
