@@ -42,21 +42,35 @@ spec:
             - name: http
               containerPort: 7777
               protocol: TCP
+          env:
+            - name: PG_HOST
+              value: {{ ternary (include "yatai.postgresql.host" .) .Values.externalPostgresql.host .Values.postgresql.enabled | quote }}
+            - name: PG_DATABASE
+              value: {{ ternary .Values.postgresql.postgresqlDatabase .Values.externalPostgresql.database .Values.postgresql.enabled }}
+            - name: PG_PORT
+              value: {{ ternary "5432" .Values.externalPostgresql.port .Values.postgresql.enabled | quote}}
+            - name: PG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "yatai.postgresql.secretName" . }}
+                  key: {{ include "yatai.postgresql.existingsecret.key" . }}
+            - name: PG_USER
+              value: {{ ternary .Values.postgresql.postgresqlUsername .Values.externalPostgresql.user .Values.postgresql.enabled | quote }}
           livenessProbe:
             failureThreshold: 10
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 10
             successThreshold: 1
-            timeoutSeconds: 5
+            timeoutSeconds: 10
             httpGet:
               path: /
               port: http
           readinessProbe:
-            failureThreshold: 10
-            initialDelaySeconds: 10
+            failureThreshold: 60
+            initialDelaySeconds: 30
             periodSeconds: 10
             successThreshold: 1
-            timeoutSeconds: 5
+            timeoutSeconds: 10
             httpGet:
               path: /
               port: http
