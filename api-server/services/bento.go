@@ -144,7 +144,7 @@ func (s *bentoService) PreSignUploadUrl(ctx context.Context, bento *models.Bento
 	if err != nil {
 		return
 	}
-	minioClient, err := s3Config.GetMinioClient()
+	minioClient, err := s3Config.GetMinioClientInCluster()
 	if err != nil {
 		err = errors.Wrap(err, "create s3 client")
 		return
@@ -170,6 +170,7 @@ func (s *bentoService) PreSignUploadUrl(ctx context.Context, bento *models.Bento
 		err = errors.Wrap(err, "presigned put object")
 		return
 	}
+	url.Host = s3Config.Endpoint
 	return
 }
 
@@ -186,7 +187,7 @@ func (s *bentoService) PreSignDownloadUrl(ctx context.Context, bento *models.Ben
 	if err != nil {
 		return
 	}
-	minioClient, err := s3Config.GetMinioClient()
+	minioClient, err := s3Config.GetMinioClientInCluster()
 	if err != nil {
 		err = errors.Wrap(err, "create s3 client")
 		return
@@ -212,6 +213,7 @@ func (s *bentoService) PreSignDownloadUrl(ctx context.Context, bento *models.Ben
 		err = errors.Wrap(err, "presigned get object")
 		return
 	}
+	url.Host = s3Config.Endpoint
 	return
 }
 

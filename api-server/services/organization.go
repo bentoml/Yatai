@@ -247,6 +247,7 @@ func (s *organizationService) GetMajorCluster(ctx context.Context, org *models.O
 
 type S3Config struct {
 	Endpoint                    string
+	EndpointInCluster           string
 	EndpointWithScheme          string
 	EndpointWithSchemeInCluster string
 	AccessKey                   string
@@ -259,6 +260,13 @@ type S3Config struct {
 
 func (c *S3Config) GetMinioClient() (*minio.Client, error) {
 	return minio.New(c.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(c.AccessKey, c.SecretKey, ""),
+		Secure: c.Secure,
+	})
+}
+
+func (c *S3Config) GetMinioClientInCluster() (*minio.Client, error) {
+	return minio.New(c.EndpointInCluster, &minio.Options{
 		Creds:  credentials.NewStaticV4(c.AccessKey, c.SecretKey, ""),
 		Secure: c.Secure,
 	})
@@ -305,6 +313,7 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		}
 		conf = &S3Config{
 			Endpoint:                    config.YataiConfig.S3.Endpoint,
+			EndpointInCluster:           config.YataiConfig.S3.Endpoint,
 			EndpointWithScheme:          fmt.Sprintf("%s://%s", scheme, config.YataiConfig.S3.Endpoint),
 			EndpointWithSchemeInCluster: fmt.Sprintf("%s://%s", scheme, config.YataiConfig.S3.Endpoint),
 			AccessKey:                   config.YataiConfig.S3.AccessKey,
@@ -333,6 +342,7 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		}
 		conf = &S3Config{
 			Endpoint:                    endpoint,
+			EndpointInCluster:           endpoint,
 			EndpointWithScheme:          fmt.Sprintf("%s://%s", scheme, endpoint),
 			EndpointWithSchemeInCluster: fmt.Sprintf("%s://%s", scheme, endpoint),
 			AccessKey:                   s3Config.AccessKey,
@@ -348,6 +358,7 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		awsS3Conf := org.Config.AWS.S3
 		conf = &S3Config{
 			Endpoint:                    consts.AmazonS3Endpoint,
+			EndpointInCluster:           consts.AmazonS3Endpoint,
 			EndpointWithScheme:          fmt.Sprintf("https://%s", consts.AmazonS3Endpoint),
 			EndpointWithSchemeInCluster: fmt.Sprintf("https://%s", consts.AmazonS3Endpoint),
 			AccessKey:                   org.Config.AWS.AccessKeyId,
@@ -391,6 +402,7 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 	endpoint := ing.Spec.Rules[0].Host
 	conf = &S3Config{
 		Endpoint:                    endpoint,
+		EndpointInCluster:           fmt.Sprintf("minio.%s", consts.KubeNamespaceYataiComponents),
 		EndpointWithScheme:          fmt.Sprintf("http://%s", endpoint),
 		EndpointWithSchemeInCluster: fmt.Sprintf("http://minio.%s", consts.KubeNamespaceYataiComponents),
 		AccessKey:                   string(accessKey),
