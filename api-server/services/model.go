@@ -121,7 +121,7 @@ func (s *modelService) PreSignUploadUrl(ctx context.Context, model *models.Model
 	if err != nil {
 		return
 	}
-	minioClient, err := s3Config.GetMinioClientInCluster()
+	minioClient, err := s3Config.GetMinioClient()
 	if err != nil {
 		err = errors.Wrap(err, "create s3 client")
 		return
@@ -147,7 +147,9 @@ func (s *modelService) PreSignUploadUrl(ctx context.Context, model *models.Model
 		err = errors.Wrap(err, "presigned put object")
 		return
 	}
-	url.Host = s3Config.Endpoint
+	if s3Config.Endpoint != s3Config.EndpointInCluster {
+		url.Host = s3Config.Endpoint
+	}
 	return
 }
 
@@ -164,7 +166,7 @@ func (s *modelService) PreSignDownloadUrl(ctx context.Context, model *models.Mod
 	if err != nil {
 		return
 	}
-	minioClient, err := s3Config.GetMinioClientInCluster()
+	minioClient, err := s3Config.GetMinioClient()
 	if err != nil {
 		err = errors.Wrap(err, "create s3 client")
 		return
@@ -190,7 +192,9 @@ func (s *modelService) PreSignDownloadUrl(ctx context.Context, model *models.Mod
 		err = errors.Wrap(err, "presigned get object")
 		return
 	}
-	url.Host = s3Config.Endpoint
+	if s3Config.Endpoint != s3Config.EndpointInCluster {
+		url.Host = s3Config.Endpoint
+	}
 	return
 }
 

@@ -54,6 +54,7 @@ type YataiOAuthConfigYaml struct {
 
 type YataiConfigYaml struct {
 	IsSass         bool                           `yaml:"is_sass"`
+	InCluster      bool                           `yaml:"in_cluster"`
 	Server         YataiServerConfigYaml          `yaml:"server"`
 	Postgresql     YataiPostgresqlConfigYaml      `yaml:"postgresql"`
 	S3             *YataiS3ConfigYaml             `yaml:"s3,omitempty"`

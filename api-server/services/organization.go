@@ -259,15 +259,12 @@ type S3Config struct {
 }
 
 func (c *S3Config) GetMinioClient() (*minio.Client, error) {
-	return minio.New(c.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(c.AccessKey, c.SecretKey, ""),
-		Secure: c.Secure,
-	})
-}
-
-func (c *S3Config) GetMinioClientInCluster() (*minio.Client, error) {
-	return minio.New(c.EndpointInCluster, &minio.Options{
-		Creds:  credentials.NewStaticV4(c.AccessKey, c.SecretKey, ""),
+	endpoint := c.Endpoint
+	if config.YataiConfig.InCluster && !config.YataiConfig.IsSass {
+		endpoint = c.EndpointInCluster
+	}
+	return minio.New(endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV2(c.AccessKey, c.SecretKey, ""),
 		Secure: c.Secure,
 	})
 }
