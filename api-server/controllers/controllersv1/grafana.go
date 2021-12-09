@@ -9,6 +9,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/bentoml/yatai/api-server/config"
+	"github.com/bentoml/yatai/common/consts"
+
 	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
 
 	"github.com/bentoml/yatai/api-server/models"
@@ -104,6 +107,22 @@ func (c *grafanaController) Proxy(ctx *gin.Context) {
 			_ = ctx.AbortWithError(500, err)
 			return
 		}
+
+		var org *models.Organization
+		org, err = services.OrganizationService.GetAssociatedOrganization(ctx, cluster)
+		if err != nil {
+			return
+		}
+		var majorCluster *models.Cluster
+		majorCluster, err = services.OrganizationService.GetMajorCluster(ctx, org)
+		if err != nil {
+			return
+		}
+
+		if majorCluster.ID == cluster.ID && config.YataiConfig.InCluster && !config.YataiConfig.IsSass {
+			grafana.Spec.Ingress.Hostname = fmt.Sprintf("yatai-grafana.%s", consts.KubeNamespaceYataiComponents)
+		}
+
 		err = services.CacheService.Set(ctx, grafanaCacheKey, grafana)
 		if err != nil {
 			_ = ctx.AbortWithError(500, err)
