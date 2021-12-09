@@ -95,3 +95,11 @@ fe-build: ## Build frontend for production
 	@cd dashboard && yarn build
 fe-run: ## Run frontend components
 	@cd dashboard && yarn start
+
+bootstrap:
+	bash ./scripts/bootstrap.sh
+
+install:
+	cd ./scripts/helm-charts && helm install yatai ./yatai -n yatai-system --create-namespace
+	kubectl -n yatai-system get pod -w
+

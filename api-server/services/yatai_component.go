@@ -71,7 +71,7 @@ type ListYataiComponentHelmChartReleaseResourcesOption struct {
 }
 
 func (s *yataiComponentService) ListOperatorHelmCharts(ctx context.Context) (charts []*chart.Chart, err error) {
-	dirPaths, err := filepath.Glob("scripts/helm-charts/yatai-*-comp-operator/chart")
+	dirPaths, err := filepath.Glob("scripts/helm-charts/yatai-*-comp-operator")
 
 	for _, dirPath := range dirPaths {
 		var chartLoader loader.ChartLoader
@@ -126,7 +126,7 @@ func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiCompo
 		}
 	}
 
-	dirPath := fmt.Sprintf("scripts/helm-charts/yatai-%s-comp-operator/chart", opt.Type)
+	dirPath := fmt.Sprintf("scripts/helm-charts/yatai-%s-comp-operator", opt.Type)
 	var chartLoader loader.ChartLoader
 	chartLoader, err = loader.Loader(dirPath)
 	if err != nil {

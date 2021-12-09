@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 3
+replicaCount: 1
 
 registry: quay.io/bentoml
 
@@ -10,7 +10,7 @@ image:
   repository: yatai
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 9cd82f4
+  tag: f898336
 
 imagePullSecrets: []
 nameOverride: ""
@@ -18,7 +18,7 @@ fullnameOverride: ""
 
 serviceAccount:
   # Specifies whether a service account should be created
-  create: false
+  create: true
   # Annotations to add to the service account
   annotations: {}
   # The name of the service account to use.
@@ -30,18 +30,24 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
-infra:
-  postgresql:  # the database config section
-    host: localhost
-    port: 5432
-    user: yetone
-    password: ''
-    database: yatai
+postgresql:
+  enabled: true
+  nameOverride: ""
+  postgresqlUsername: postgres
+  postgresqlDatabase: yatai
+  ## In case of postgresql.enabled = true, allow the usage of existing secrets for postgresql
+  ##
+  existingSecret: ""
 
-oauth:
-  github:  # https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app
-    client_id: ''
-    client_secret: ''
+externalPostgresql:
+  host: localhost
+  port: 5432
+  user: yatai
+  password: ''
+  database: yatai
+
+config:
+  # you can put your config.yaml here
 
 securityContext: {}
   # capabilities:
@@ -57,9 +63,10 @@ service:
   nodePort: 30080
 
 ingress:
+  className: yatai-ingress
   enabled: true
   hosts:
-    - host: dashboard.apps.yatai.dev
+    - host: yatai.127.0.0.1.sslip.io
       paths:
       - /
   tls: []

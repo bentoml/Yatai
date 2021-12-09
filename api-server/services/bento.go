@@ -170,6 +170,9 @@ func (s *bentoService) PreSignUploadUrl(ctx context.Context, bento *models.Bento
 		err = errors.Wrap(err, "presigned put object")
 		return
 	}
+	if s3Config.Endpoint != s3Config.EndpointInCluster {
+		url.Host = s3Config.Endpoint
+	}
 	return
 }
 
@@ -211,6 +214,9 @@ func (s *bentoService) PreSignDownloadUrl(ctx context.Context, bento *models.Ben
 	if err != nil {
 		err = errors.Wrap(err, "presigned get object")
 		return
+	}
+	if s3Config.Endpoint != s3Config.EndpointInCluster {
+		url.Host = s3Config.Endpoint
 	}
 	return
 }

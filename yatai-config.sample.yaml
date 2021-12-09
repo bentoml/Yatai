@@ -1,3 +1,5 @@
+in_cluster: false
+
 server:  # the server config section
   enable_https: false  # if the yatai is deployed as an https server, set it to ture
   port: 7777  # the server port

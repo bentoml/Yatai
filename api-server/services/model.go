@@ -147,6 +147,9 @@ func (s *modelService) PreSignUploadUrl(ctx context.Context, model *models.Model
 		err = errors.Wrap(err, "presigned put object")
 		return
 	}
+	if s3Config.Endpoint != s3Config.EndpointInCluster {
+		url.Host = s3Config.Endpoint
+	}
 	return
 }
 
@@ -188,6 +191,9 @@ func (s *modelService) PreSignDownloadUrl(ctx context.Context, model *models.Mod
 	if err != nil {
 		err = errors.Wrap(err, "presigned get object")
 		return
+	}
+	if s3Config.Endpoint != s3Config.EndpointInCluster {
+		url.Host = s3Config.Endpoint
 	}
 	return
 }
