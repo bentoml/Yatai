@@ -14,13 +14,13 @@ const (
 	BentoUploadStatusFailed    BentoUploadStatus = "failed"
 )
 
-type BentoImageBuildStatus string
+type ImageBuildStatus string
 
 const (
-	BentoImageBuildStatusPending  BentoImageBuildStatus = "pending"
-	BentoImageBuildStatusBuilding BentoImageBuildStatus = "building"
-	BentoImageBuildStatusSuccess  BentoImageBuildStatus = "success"
-	BentoImageBuildStatusFailed   BentoImageBuildStatus = "failed"
+	ImageBuildStatusPending  ImageBuildStatus = "pending"
+	ImageBuildStatusBuilding ImageBuildStatus = "building"
+	ImageBuildStatusSuccess  ImageBuildStatus = "success"
+	ImageBuildStatusFailed   ImageBuildStatus = "failed"
 )
 
 type BentoManifestApi struct {

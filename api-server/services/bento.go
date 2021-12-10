@@ -7,21 +7,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/xid"
+
 	"github.com/huandu/xstrings"
 
 	"github.com/bentoml/yatai/common/utils"
 
-	"k8s.io/apimachinery/pkg/labels"
-
 	"github.com/iancoleman/strcase"
-	apiv1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+
+	"github.com/bentoml/yatai/schemas/modelschemas"
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
@@ -46,7 +42,7 @@ type CreateBentoOption struct {
 }
 
 type UpdateBentoOption struct {
-	ImageBuildStatus          *modelschemas.BentoImageBuildStatus
+	ImageBuildStatus          *modelschemas.ImageBuildStatus
 	ImageBuildStatusSyncingAt **time.Time
 	ImageBuildStatusUpdatedAt **time.Time
 	UploadStatus              *modelschemas.BentoUploadStatus
@@ -85,7 +81,7 @@ func (s *bentoService) Create(ctx context.Context, opt CreateBentoOption) (bento
 		},
 		Version:          opt.Version,
 		Description:      opt.Description,
-		ImageBuildStatus: modelschemas.BentoImageBuildStatusPending,
+		ImageBuildStatus: modelschemas.ImageBuildStatusPending,
 		UploadStatus:     modelschemas.BentoUploadStatusPending,
 		BuildAt:          opt.BuildAt,
 		Manifest:         opt.Manifest,
@@ -383,6 +379,10 @@ func (s *bentoService) Update(ctx context.Context, bento *models.Bento, opt Upda
 		return bento, err
 	}
 
+	return s.CreateImageBuilderJob(ctx, bento)
+}
+
+func (s *bentoService) CreateImageBuilderJob(ctx context.Context, bento *models.Bento) (*models.Bento, error) {
 	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 	if err != nil {
 		return nil, err
@@ -397,73 +397,6 @@ func (s *bentoService) Update(ctx context.Context, bento *models.Bento, opt Upda
 	if err != nil {
 		return nil, err
 	}
-
-	kubeCli, _, err := ClusterService.GetKubeCliSet(ctx, majorCluster)
-	if err != nil {
-		return nil, err
-	}
-
-	kubeNamespace := consts.KubeNamespaceYataiBentoImageBuilder
-
-	_, err = KubeNamespaceService.MakeSureNamespace(ctx, majorCluster, kubeNamespace)
-	if err != nil {
-		return nil, err
-	}
-
-	s3Config, err := OrganizationService.GetS3Config(ctx, org)
-	if err != nil {
-		return nil, err
-	}
-
-	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
-	if err != nil {
-		return nil, err
-	}
-
-	dockerConfigCM, err := ClusterService.MakeSureDockerConfigCM(ctx, majorCluster, kubeNamespace)
-	if err != nil {
-		return nil, err
-	}
-	dockerConfigCMKubeName := dockerConfigCM.Name
-
-	volumeMounts := []apiv1.VolumeMount{
-		{
-			Name:      dockerConfigCMKubeName,
-			MountPath: "/kaniko/.docker/",
-		},
-	}
-
-	// nolint: goconst
-	s3ForcePath := "true"
-	if s3Config.Endpoint == consts.AmazonS3Endpoint {
-		// nolint: goconst
-		s3ForcePath = "false"
-	}
-
-	envs := []apiv1.EnvVar{
-		{
-			Name:  "AWS_ACCESS_KEY_ID",
-			Value: s3Config.AccessKey,
-		},
-		{
-			Name:  "AWS_SECRET_ACCESS_KEY",
-			Value: s3Config.SecretKey,
-		},
-		{
-			Name:  "AWS_REGION",
-			Value: s3Config.Region,
-		},
-		{
-			Name:  "S3_ENDPOINT",
-			Value: s3Config.EndpointWithSchemeInCluster,
-		},
-		{
-			Name:  "S3_FORCE_PATH_STYLE",
-			Value: s3ForcePath,
-		},
-	}
-
-	podsCli := kubeCli.CoreV1().Pods(kubeNamespace)
 
 	kubeName, err := s.GetImageBuilderKubeName(ctx, bento)
 	if err != nil {
@@ -485,69 +418,31 @@ func (s *bentoService) Update(ctx context.Context, bento *models.Bento, opt Upda
 		return nil, err
 	}
 
-	err = s3Config.MakeSureBucket(ctx, s3BucketName)
+	kubeLabels, err := s.GetImageBuilderKubeLabels(ctx, bento)
 	if err != nil {
 		return nil, err
 	}
 
-	args := []string{
-		"--dockerfile=./env/docker/Dockerfile",
-		fmt.Sprintf("--context=s3://%s/%s", s3BucketName, s3ObjectName),
-		fmt.Sprintf("--destination=%s", imageName),
-	}
-
-	if !dockerRegistry.Secure {
-		args = append(args, "--insecure")
-	}
-
-	_, err = podsCli.Get(ctx, kubeName, metav1.GetOptions{})
-	if apierrors.IsNotFound(err) {
-		_, err = podsCli.Create(ctx, &apiv1.Pod{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: kubeName,
-				Labels: map[string]string{
-					consts.KubeLabelYataiBentoRepository: bentoRepository.Name,
-					consts.KubeLabelYataiBento:           bento.Version,
-				},
-			},
-			Spec: apiv1.PodSpec{
-				RestartPolicy: apiv1.RestartPolicyNever,
-				Volumes: []apiv1.Volume{
-					{
-						Name: dockerConfigCMKubeName,
-						VolumeSource: apiv1.VolumeSource{
-							ConfigMap: &apiv1.ConfigMapVolumeSource{
-								LocalObjectReference: apiv1.LocalObjectReference{
-									Name: dockerConfigCMKubeName,
-								},
-							},
-						},
-					},
-				},
-				Containers: []apiv1.Container{
-					{
-						Name:         "builder",
-						Image:        "gcr.io/kaniko-project/executor:latest",
-						Args:         args,
-						VolumeMounts: volumeMounts,
-						Env:          envs,
-						TTY:          true,
-						Stdin:        true,
-					},
-				},
-			},
-		}, metav1.CreateOptions{})
-
-		if err != nil {
-			return nil, err
-		}
-	} else if err != nil {
+	err = ImageBuilderService.CreateImageBuilderJob(ctx, CreateImageBuilderJobOption{
+		KubeName:             kubeName,
+		ImageName:            imageName,
+		S3ObjectName:         s3ObjectName,
+		S3BucketName:         s3BucketName,
+		Cluster:              majorCluster,
+		DockerFileCMKubeName: nil,
+		DockerFileContent:    nil,
+		DockerFilePath:       utils.StringPtr("./env/docker/Dockerfile"),
+		KubeLabels:           kubeLabels,
+	})
+	if err != nil {
 		return nil, err
 	}
 
 	go func() {
 		_, _ = s.SyncImageBuilderStatus(ctx, bento)
 	}()
+
+	bento.ImageBuildStatus = modelschemas.ImageBuildStatusBuilding
 
 	return bento, nil
 }
@@ -563,7 +458,8 @@ func (s *bentoService) GetImageBuilderKubeName(ctx context.Context, bento *model
 		return "", err
 	}
 
-	return strings.ReplaceAll(strcase.ToKebab(fmt.Sprintf("yatai-bento-image-builder-%s-%s-%s", org.Name, bentoRepository.Name, bento.Version)), ".", "-"), nil
+	guid := xid.New()
+	return strings.ReplaceAll(strcase.ToKebab(fmt.Sprintf("yatai-bento-image-builder-%s-%s-%s-%s", org.Name, bentoRepository.Name, bento.Version, guid.String())), ".", "-"), nil
 }
 
 func (s *bentoService) Get(ctx context.Context, id uint) (*models.Bento, error) {
@@ -722,6 +618,18 @@ func (s *bentoService) ListLatestByBentoRepositoryIds(ctx context.Context, bento
 	return bentos, err
 }
 
+func (s *bentoService) GetImageBuilderKubeLabels(ctx context.Context, bento *models.Bento) (map[string]string, error) {
+	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{
+		consts.KubeLabelYataiBentoRepository: bentoRepository.Name,
+		consts.KubeLabelYataiBento:           bento.Version,
+	}, nil
+}
+
 func (s *bentoService) ListImageBuilderPods(ctx context.Context, bento *models.Bento) ([]*models.KubePodWithStatus, error) {
 	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 	if err != nil {
@@ -735,107 +643,49 @@ func (s *bentoService) ListImageBuilderPods(ctx context.Context, bento *models.B
 	if err != nil {
 		return nil, err
 	}
-	_, podLister, err := GetPodInformer(ctx, cluster, consts.KubeNamespaceYataiBentoImageBuilder)
+
+	kubeLabels, err := s.GetImageBuilderKubeLabels(ctx, bento)
 	if err != nil {
 		return nil, err
 	}
 
-	selector, err := labels.Parse(fmt.Sprintf("%s = %s, %s = %s", consts.KubeLabelYataiBentoRepository, bentoRepository.Name, consts.KubeLabelYataiBento, bento.Version))
+	pods, err := ImageBuilderService.ListImageBuilderPods(ctx, cluster, kubeLabels)
 	if err != nil {
 		return nil, err
 	}
 
-	pods, err := podLister.List(selector)
-	if err != nil {
-		return nil, err
+	models_, err := s.ListModelsFromManifests(ctx, bento)
+	for _, model := range models_ {
+		pods_, err := ModelService.ListImageBuilderPods(ctx, model)
+		if err != nil {
+			return nil, err
+		}
+		pods = append(pods, pods_...)
 	}
 
-	_, eventLister, err := GetEventInformer(ctx, cluster, consts.KubeNamespaceYataiBentoImageBuilder)
-	if err != nil {
-		return nil, err
-	}
-
-	events, err := eventLister.List(labels.Everything())
-	if err != nil {
-		return nil, err
-	}
-
-	pods_ := make([]apiv1.Pod, 0, len(pods))
-	for _, p := range pods {
-		pods_ = append(pods_, *p)
-	}
-
-	events_ := make([]apiv1.Event, 0, len(pods))
-	for _, e := range events {
-		events_ = append(events_, *e)
-	}
-
-	return KubePodService.MapKubePodsToKubePodWithStatuses(ctx, pods_, events_), nil
+	return pods, nil
 }
 
-func (s *bentoService) CalculateImageBuildStatus(ctx context.Context, bento *models.Bento) (modelschemas.BentoImageBuildStatus, error) {
-	defaultStatus := modelschemas.BentoImageBuildStatusPending
+func (s *bentoService) CalculateImageBuildStatus(ctx context.Context, bento *models.Bento) (modelschemas.ImageBuildStatus, error) {
+	defaultStatus := modelschemas.ImageBuildStatusPending
 	pods, err := s.ListImageBuilderPods(ctx, bento)
 	if err != nil {
 		return defaultStatus, err
 	}
-
-	if len(pods) == 0 {
-		return defaultStatus, nil
-	}
-
-	for _, p := range pods {
-		if p.Status.Status == modelschemas.KubePodActualStatusRunning || p.Status.Status == modelschemas.KubePodActualStatusPending {
-			return modelschemas.BentoImageBuildStatusBuilding, nil
-		}
-		if p.Status.Status == modelschemas.KubePodActualStatusTerminating || p.Status.Status == modelschemas.KubePodActualStatusUnknown || p.Status.Status == modelschemas.KubePodActualStatusFailed {
-			return modelschemas.BentoImageBuildStatusFailed, nil
-		}
-	}
-
-	hasPending := false
-	hasFailed := false
-	hasBuilding := false
-
-	models_, err := s.ListModelsFromManifests(ctx, bento)
-	if err != nil {
-		return defaultStatus, err
-	}
-
-	for _, model := range models_ {
-		if model.ImageBuildStatus == modelschemas.ModelImageBuildStatusPending {
-			hasPending = true
-		}
-		if model.ImageBuildStatus == modelschemas.ModelImageBuildStatusFailed {
-			hasFailed = true
-		}
-		if model.ImageBuildStatus == modelschemas.ModelImageBuildStatusBuilding {
-			hasBuilding = true
-		}
-	}
-
-	if hasFailed {
-		return modelschemas.BentoImageBuildStatusFailed, nil
-	}
-
-	if hasBuilding || hasPending {
-		return modelschemas.BentoImageBuildStatusBuilding, nil
-	}
-
-	return modelschemas.BentoImageBuildStatusSuccess, nil
+	return ImageBuilderService.CalculateImageBuildStatus(pods)
 }
 
 func (s *bentoService) ListImageBuildStatusUnsynced(ctx context.Context) ([]*models.Bento, error) {
 	q := getBaseQuery(ctx, s)
 	now := time.Now()
 	t := now.Add(-time.Minute)
-	q = q.Where("image_build_status != ? and (image_build_status_syncing_at is null or image_build_status_syncing_at < ? or image_build_status_updated_at is null or image_build_status_updated_at < ?)", modelschemas.BentoImageBuildStatusSuccess, t, t)
+	q = q.Where("image_build_status != ? and (image_build_status_syncing_at is null or image_build_status_syncing_at < ? or image_build_status_updated_at is null or image_build_status_updated_at < ?)", modelschemas.ImageBuildStatusSuccess, t, t)
 	bentos := make([]*models.Bento, 0)
 	err := q.Order("id DESC").Find(&bentos).Error
 	return bentos, err
 }
 
-func (s *bentoService) SyncImageBuilderStatus(ctx context.Context, bento *models.Bento) (modelschemas.BentoImageBuildStatus, error) {
+func (s *bentoService) SyncImageBuilderStatus(ctx context.Context, bento *models.Bento) (modelschemas.ImageBuildStatus, error) {
 	now := time.Now()
 	nowPtr := &now
 	_, err := s.Update(ctx, bento, UpdateBentoOption{
