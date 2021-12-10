@@ -16,6 +16,8 @@ import { Input } from 'baseui/input'
 import { TiClipboard } from 'react-icons/ti'
 import { Notification } from 'baseui/notification'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import { CopyBlock, solarizedDark, solarizedLight } from 'react-code-blocks'  // eslint-disable-line
+import useGlobalState from '@/hooks/global'
 
 export default function ApiTokenListCard() {
     const [page] = usePage()
@@ -26,6 +28,7 @@ export default function ApiTokenListCard() {
     const [isCreateApiTokenOpen, setIsCreateApiTokenOpen] = useState(false)
     const [copyNotification, setCopyNotification] = useState<string>()
     const [deleteApiTokenLoading, setDeleteApiTokenLoading] = useState(false)
+    const [themeType] = useGlobalState('themeType')
     const handleCreateApiToken = useCallback(
         async (data: ICreateApiTokenSchema) => {
             const apiToken = await createApiToken(data)
@@ -63,6 +66,9 @@ export default function ApiTokenListCard() {
 
     const [t] = useTranslation()
     const [, theme] = useStyletron()
+    const copyCliCommand =
+        `bentoml yatai login --api-token ${theTokenWishToShow} --endpoint ${window.location.origin}` ?? ''
+    const codeTheme = themeType === 'light' ? solarizedLight : solarizedDark
 
     return (
         <Card
@@ -201,60 +207,73 @@ export default function ApiTokenListCard() {
             <Modal
                 isOpen={!!theTokenWishToShow}
                 onClose={() => setTheTokenWishToShow(undefined)}
-                size='default'
+                size='auto'
                 closeable
                 animate
                 autoFocus
             >
                 <ModalHeader>{t('api token only show once time tips')}</ModalHeader>
                 <ModalBody>
-                    <div
-                        style={{
-                            display: 'flex',
-                            gap: 10,
-                        }}
-                    >
+                    <div>
                         <div
                             style={{
                                 display: 'flex',
-                                flexDirection: 'column',
-                                gap: 4,
-                                flexGrow: 1,
+                                gap: 10,
                             }}
                         >
-                            <Input value={theTokenWishToShow} disabled />
-                            {copyNotification && (
-                                <Notification
-                                    closeable
-                                    onClose={() => setCopyNotification(undefined)}
-                                    kind='positive'
-                                    overrides={{
-                                        Body: {
-                                            style: {
-                                                width: '100%',
-                                                boxSizing: 'border-box',
-                                                padding: '8px !important',
-                                                borderRadius: '3px !important',
-                                                fontSize: '13px !important',
-                                            },
-                                        },
-                                    }}
-                                >
-                                    {copyNotification}
-                                </Notification>
-                            )}
-                        </div>
-                        <div>
-                            <CopyToClipboard
-                                text={theTokenWishToShow ?? ''}
-                                onCopy={() => {
-                                    setCopyNotification(t('copied to clipboard'))
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 4,
+                                    flexGrow: 1,
                                 }}
                             >
-                                <Button startEnhancer={<TiClipboard size={14} />} kind='secondary'>
-                                    {t('copy')}
-                                </Button>
-                            </CopyToClipboard>
+                                <Input value={theTokenWishToShow} disabled />
+                                {copyNotification && (
+                                    <Notification
+                                        closeable
+                                        onClose={() => setCopyNotification(undefined)}
+                                        kind='positive'
+                                        overrides={{
+                                            Body: {
+                                                style: {
+                                                    width: '100%',
+                                                    boxSizing: 'border-box',
+                                                    padding: '8px !important',
+                                                    borderRadius: '3px !important',
+                                                    fontSize: '13px !important',
+                                                },
+                                            },
+                                        }}
+                                    >
+                                        {copyNotification}
+                                    </Notification>
+                                )}
+                            </div>
+                            <div>
+                                <CopyToClipboard
+                                    text={theTokenWishToShow ?? ''}
+                                    onCopy={() => {
+                                        setCopyNotification(t('copied to clipboard'))
+                                    }}
+                                >
+                                    <Button startEnhancer={<TiClipboard size={14} />} kind='secondary'>
+                                        {t('copy')}
+                                    </Button>
+                                </CopyToClipboard>
+                            </div>
+                        </div>
+                        <div>
+                            <p>{t('copy command to login yatai')}</p>
+                            <CopyBlock
+                                text={copyCliCommand}
+                                language='shell'
+                                showLineNumbers={false}
+                                theme={codeTheme}
+                                wrapLongLines
+                                codeBlock
+                            />
                         </div>
                     </div>
                 </ModalBody>
