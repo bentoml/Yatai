@@ -12,13 +12,13 @@ import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
-import ModelImageBuildStatusTag from '@/components/ModelImageBuildStatus'
 import qs from 'qs'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import { useQ } from '@/hooks/useQ'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
 import { ResourceLabels } from './ResourceLabels'
+import ImageBuildStatusTag from './ImageBuildStatusTag'
 
 export default function ModelFlatListCard() {
     const { q, updateQ } = useQ()
@@ -175,7 +175,11 @@ export default function ModelFlatListCard() {
                             </Link>
                             <ResourceLabels resource={model} />
                         </div>,
-                        <ModelImageBuildStatusTag key={model.uid} status={model.image_build_status} />,
+                        <ImageBuildStatusTag
+                            key={model.uid}
+                            status={model.image_build_status}
+                            podsSelector={`yatai.io/model=${model.version},yatai.io/model-repository=${model.repository.name}`}
+                        />,
                         model.description,
                         model.creator && <User user={model.creator} />,
                         formatDateTime(model.build_at),

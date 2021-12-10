@@ -213,6 +213,36 @@ func (c *bentoController) FinishUpload(ctx *gin.Context, schema *FinishUploadBen
 	return transformersv1.ToBentoSchema(ctx, bento)
 }
 
+func (c *bentoController) RecreateImageBuilderJob(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, bento); err != nil {
+		return nil, err
+	}
+	bento, err = services.BentoService.CreateImageBuilderJob(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	return transformersv1.ToBentoSchema(ctx, bento)
+}
+
+func (c *bentoController) ListImageBuilderPods(ctx *gin.Context, schema *GetBentoSchema) ([]*schemasv1.KubePodSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, bento); err != nil {
+		return nil, err
+	}
+	pods, err := services.BentoService.ListImageBuilderPods(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	return transformersv1.ToKubePodSchemas(ctx, pods)
+}
+
 func (c *bentoController) Get(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
 	bento, err := schema.GetBento(ctx)
 	if err != nil {

@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
-import BentoImageBuildStatusTag from '@/components/BentoImageBuildStatus'
+import ImageBuildStatusTag from '@/components/ImageBuildStatusTag'
 import qs from 'qs'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import { useQ } from '@/hooks/useQ'
@@ -175,7 +175,13 @@ export default function BentoFlatListCard() {
                             </Link>
                             <ResourceLabels resource={bento} />
                         </div>,
-                        <BentoImageBuildStatusTag key={bento.uid} status={bento.image_build_status} />,
+                        <ImageBuildStatusTag
+                            key={bento.uid}
+                            status={bento.image_build_status}
+                            podsSelector={`yatai.io/bento=${bento.version},yatai.io/bento-repository=${
+                                bento.repository.name
+                            };yatai.io/model in (${bento.manifest.models.map((x) => x.split(':')[1]).join(',')})`}
+                        />,
                         bento.description,
                         bento.creator && <User user={bento.creator} />,
                         formatDateTime(bento.build_at),
