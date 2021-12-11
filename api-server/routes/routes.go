@@ -291,6 +291,11 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Get an organization"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.Get, 200))
 
+	resourceGrp.GET("/major_cluster", []fizz.OperationOption{
+		fizz.ID("Get an organization major cluster"),
+		fizz.Summary("Get an organization major cluster"),
+	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.GetMajorCluster, 200))
+
 	resourceGrp.PATCH("", []fizz.OperationOption{
 		fizz.ID("Update an organization"),
 		fizz.Summary("Update an organization"),

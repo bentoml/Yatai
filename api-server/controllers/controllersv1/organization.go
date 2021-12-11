@@ -113,6 +113,21 @@ func (c *organizationController) Get(ctx *gin.Context, schema *GetOrganizationSc
 	return transformersv1.ToOrganizationFullSchema(ctx, organization)
 }
 
+func (c *organizationController) GetMajorCluster(ctx *gin.Context, schema *GetOrganizationSchema) (*schemasv1.ClusterFullSchema, error) {
+	organization, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, organization); err != nil {
+		return nil, err
+	}
+	cluster, err := services.OrganizationService.GetMajorCluster(ctx, organization)
+	if err != nil {
+		return nil, errors.Wrap(err, "get major cluster")
+	}
+	return transformersv1.ToClusterFullSchema(ctx, cluster)
+}
+
 func (c *organizationController) List(ctx *gin.Context, schema *schemasv1.ListQuerySchema) (*schemasv1.OrganizationListSchema, error) {
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
