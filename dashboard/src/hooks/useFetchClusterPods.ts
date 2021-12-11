@@ -70,7 +70,7 @@ export function useFetchClusterPods({
                 if (selfClose) {
                     return
                 }
-                const resp = JSON.parse(event.data) as IWsRespSchema<IKubePodSchema[]>
+                const resp = JSON.parse(event.data) as IWsRespSchema<IKubePodSchema[] | null>
                 if (resp.type === 'error') {
                     if (getErr) {
                         getErr(resp.message)
@@ -82,7 +82,7 @@ export function useFetchClusterPods({
                     return
                 }
                 const { payload } = resp
-                setPods(payload)
+                setPods(payload ?? [])
                 setPodsLoading(false)
             }
         }

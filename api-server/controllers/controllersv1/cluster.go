@@ -2,6 +2,7 @@ package controllersv1
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -197,17 +198,21 @@ func (c *clusterController) WsPods(ctx *gin.Context, schema *GetClusterSchema) (
 			msg := schemasv1.WsRespSchema{
 				Type:    schemasv1.WsRespTypeError,
 				Message: err.Error(),
-				Payload: nil,
+				Payload: make([]*schemasv1.KubePodSchema, 0),
 			}
 			_ = conn.WriteJSON(&msg)
 		}
 	}()
 
 	namespace := ctx.Query("namespace")
-	selector_ := ctx.Query("selector")
-	selector, err := labels.Parse(selector_)
-	if err != nil {
-		return
+	selectors_ := strings.Split(ctx.Query("selector"), ";")
+	selectors := make([]labels.Selector, 0, len(selectors_))
+	for _, selector_ := range selectors_ {
+		selector, err := labels.Parse(selector_)
+		if err != nil {
+			return errors.Wrap(err, "parse selector")
+		}
+		selectors = append(selectors, selector)
 	}
 
 	podInformer, podLister, err := services.GetPodInformer(ctx, cluster, namespace)
@@ -241,9 +246,13 @@ func (c *clusterController) WsPods(ctx *gin.Context, schema *GetClusterSchema) (
 				fail()
 			}
 		}()
-		pods, err := services.KubePodService.ListPodsBySelector(ctx, cluster, namespace, podLister, selector)
-		if err != nil {
-			return
+		pods := make([]*models.KubePodWithStatus, 0)
+		for _, selector := range selectors {
+			pods_, err := services.KubePodService.ListPodsBySelector(ctx, cluster, namespace, podLister, selector)
+			if err != nil {
+				return
+			}
+			pods = append(pods, pods_...)
 		}
 		podSchemas, err := transformersv1.ToKubePodSchemas(ctx, pods)
 		if err != nil {
@@ -266,7 +275,12 @@ func (c *clusterController) WsPods(ctx *gin.Context, schema *GetClusterSchema) (
 		if !ok {
 			return false
 		}
-		return selector.Matches(labels.Set(pod.Labels))
+		for _, selector := range selectors {
+			if selector.Matches(labels.Set(pod.Labels)) {
+				return true
+			}
+		}
+		return false
 	}
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{

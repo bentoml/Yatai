@@ -25,10 +25,11 @@ import PodMonitor from './PodMonitor'
 
 export interface IPodListProps {
     loading?: boolean
+    clusterName?: string
     pods: IKubePodSchema[]
 }
 
-export default ({ loading = false, pods }: IPodListProps) => {
+export default ({ loading = false, clusterName: clusterName_, pods }: IPodListProps) => {
     const [t] = useTranslation()
     const { organization } = useOrganization()
     const { cluster } = useCluster()
@@ -38,7 +39,11 @@ export default ({ loading = false, pods }: IPodListProps) => {
     const [desiredShowMonitorPod, setDesiredShowMonitorPod] = useState<IKubePodSchema>()
     const [desiredShowTerminalPod, setDesiredShowTerminalPod] = useState<IKubePodSchema>()
     const [advancedLog, setAdvancedLog] = useState(false)
-    const { yataiComponentsInfo } = useFetchYataiComponents(cluster?.name)
+    let clusterName = clusterName_
+    if (cluster) {
+        clusterName = cluster.name
+    }
+    const { yataiComponentsInfo } = useFetchYataiComponents(clusterName)
 
     const hasLogging = yataiComponentsInfo.data?.find((x) => x.type === 'logging') !== undefined
     const hasMonitoring = yataiComponentsInfo.data?.find((x) => x.type === 'monitoring') !== undefined
@@ -57,7 +62,18 @@ export default ({ loading = false, pods }: IPodListProps) => {
                     t('operation'),
                 ]}
                 data={pods.map((pod) => [
-                    pod.name,
+                    <StatefulTooltip key={pod.name} content={pod.name} showArrow>
+                        <div
+                            style={{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                maxWidth: 320,
+                            }}
+                        >
+                            {pod.name}
+                        </div>
+                    </StatefulTooltip>,
                     <PodStatus key={pod.name} pod={pod} pods={pods} />,
                     t(pod.pod_status.status),
                     pod.deployment_target ? t(pod.deployment_target.type) : '-',
@@ -165,7 +181,7 @@ export default ({ loading = false, pods }: IPodListProps) => {
                 </ModalHeader>
                 <ModalBody>
                     {organization &&
-                        cluster &&
+                        clusterName &&
                         desiredShowLogsPod &&
                         (advancedLog ? (
                             <div style={{ height: 'calc(80vh - 100px)' }}>
@@ -174,7 +190,7 @@ export default ({ loading = false, pods }: IPodListProps) => {
                         ) : (
                             <Log
                                 open={desiredShowLogsPod !== undefined}
-                                clusterName={cluster.name}
+                                clusterName={clusterName}
                                 deploymentName={deployment?.name}
                                 namespace={desiredShowLogsPod.namespace}
                                 podName={desiredShowLogsPod.name}
@@ -201,10 +217,10 @@ export default ({ loading = false, pods }: IPodListProps) => {
             >
                 <ModalHeader>{t('events')}</ModalHeader>
                 <ModalBody>
-                    {organization && cluster && desiredShowKubeEventsPod && (
+                    {organization && clusterName && desiredShowKubeEventsPod && (
                         <KubePodEvents
                             open={desiredShowKubeEventsPod !== undefined}
-                            clusterName={cluster.name}
+                            clusterName={clusterName}
                             deploymentName={deployment?.name}
                             namespace={desiredShowKubeEventsPod.namespace}
                             podName={desiredShowKubeEventsPod.name}
@@ -231,7 +247,7 @@ export default ({ loading = false, pods }: IPodListProps) => {
             >
                 <ModalHeader>{t('monitor')}</ModalHeader>
                 <ModalBody>
-                    {organization && cluster && desiredShowMonitorPod && <PodMonitor pod={desiredShowMonitorPod} />}
+                    {organization && clusterName && desiredShowMonitorPod && <PodMonitor pod={desiredShowMonitorPod} />}
                 </ModalBody>
             </Modal>
             <Modal
@@ -253,10 +269,10 @@ export default ({ loading = false, pods }: IPodListProps) => {
             >
                 <ModalHeader>{t('terminal')}</ModalHeader>
                 <ModalBody style={{ flex: '1 1 0' }}>
-                    {organization && cluster && desiredShowTerminalPod && (
+                    {organization && clusterName && desiredShowTerminalPod && (
                         <Terminal
                             open={desiredShowTerminalPod !== undefined}
-                            clusterName={cluster.name}
+                            clusterName={clusterName}
                             deploymentName={deployment?.name}
                             namespace={desiredShowTerminalPod.namespace}
                             podName={desiredShowTerminalPod.name}
