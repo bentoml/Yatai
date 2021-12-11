@@ -1,14 +1,16 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Tag, KIND as TagKind, VARIANT as TagVariant } from 'baseui/tag'
 import { ImageBuildStatus } from '@/schemas/bento'
 import { StyledSpinnerNext } from 'baseui/spinner'
 import useTranslation from '@/hooks/useTranslation'
 import { IKubePodSchema } from '@/schemas/kube_pod'
 import { useFetchClusterPods } from '@/hooks/useFetchClusterPods'
-import { useStyletron } from 'baseui'
 import { StatefulPopover } from 'baseui/popover'
+import { Button } from 'baseui/button'
+import { VscDebugRerun } from 'react-icons/vsc'
 import PodList from './PodList'
+import Card from './Card'
 
 const imageBuildStatusColorMap: Record<ImageBuildStatus, keyof TagKind> = {
     pending: TagKind.primary,
@@ -38,12 +40,22 @@ function Pods({ selector }: IPodsProps) {
 export interface IBentoImageBuildStatusProps {
     status: ImageBuildStatus
     podsSelector?: string
+    onRerunClick?: () => Promise<void>
 }
 
-export default function ImageBuildStatusTag({ status, podsSelector }: IBentoImageBuildStatusProps) {
+export default function ImageBuildStatusTag({ status, podsSelector, onRerunClick }: IBentoImageBuildStatusProps) {
     const [t] = useTranslation()
+    const [rerunLoading, setRerunLoading] = useState(false)
 
-    const [, theme] = useStyletron()
+    const handleRerunClick = useCallback(async () => {
+        setRerunLoading(true)
+        try {
+            await onRerunClick?.()
+        } finally {
+            setRerunLoading(false)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return (
         <StatefulPopover
@@ -54,14 +66,25 @@ export default function ImageBuildStatusTag({ status, podsSelector }: IBentoImag
             content={() => {
                 return (
                     podsSelector && (
-                        <div
+                        <Card
                             style={{
-                                boxShadow: theme.lighting.shadow400,
+                                margin: 0,
                             }}
-                            onClick={(e) => e.stopPropagation()}
+                            extra={
+                                onRerunClick && (
+                                    <Button
+                                        startEnhancer={<VscDebugRerun />}
+                                        size='compact'
+                                        onClick={handleRerunClick}
+                                        isLoading={rerunLoading}
+                                    >
+                                        {t('rerun')}
+                                    </Button>
+                                )
+                            }
                         >
                             <Pods selector={podsSelector} />
-                        </div>
+                        </Card>
                     )
                 )
             }}

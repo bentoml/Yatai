@@ -655,6 +655,10 @@ func (s *bentoService) ListImageBuilderPods(ctx context.Context, bento *models.B
 	}
 
 	models_, err := s.ListModelsFromManifests(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, model := range models_ {
 		pods_, err := ModelService.ListImageBuilderPods(ctx, model)
 		if err != nil {

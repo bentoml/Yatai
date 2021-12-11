@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
-import { listAllBentos } from '@/services/bento'
+import { listAllBentos, recreateBentoImageBuilderJob } from '@/services/bento'
 import { usePage } from '@/hooks/usePage'
 import { IBentoSchema } from '@/schemas/bento'
 import { formatDateTime } from '@/utils/datetime'
@@ -181,6 +181,9 @@ export default function BentoFlatListCard() {
                             podsSelector={`yatai.io/bento=${bento.version},yatai.io/bento-repository=${
                                 bento.repository.name
                             };yatai.io/model in (${bento.manifest.models.map((x) => x.split(':')[1]).join(',')})`}
+                            onRerunClick={async () => {
+                                await recreateBentoImageBuilderJob(bento.repository.name, bento.version)
+                            }}
                         />,
                         bento.description,
                         bento.creator && <User user={bento.creator} />,

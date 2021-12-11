@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
-import { listAllModels } from '@/services/model'
+import { listAllModels, recreateModelImageBuilderJob } from '@/services/model'
 import { usePage } from '@/hooks/usePage'
 import { IModelSchema } from '@/schemas/model'
 import { formatDateTime } from '@/utils/datetime'
@@ -179,6 +179,9 @@ export default function ModelFlatListCard() {
                             key={model.uid}
                             status={model.image_build_status}
                             podsSelector={`yatai.io/model=${model.version},yatai.io/model-repository=${model.repository.name}`}
+                            onRerunClick={async () => {
+                                await recreateModelImageBuilderJob(model.repository.name, model.version)
+                            }}
                         />,
                         model.description,
                         model.creator && <User user={model.creator} />,

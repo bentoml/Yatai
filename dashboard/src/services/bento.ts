@@ -56,7 +56,7 @@ export async function recreateBentoImageBuilderJob(
     bentoRepositoryName: string,
     version: string
 ): Promise<IBentoSchema> {
-    const resp = await axios.post<IBentoSchema>(
+    const resp = await axios.patch<IBentoSchema>(
         `/api/v1/bento_repositories/${bentoRepositoryName}/bentos/${version}/recreate_image_builder_job`
     )
     return resp.data

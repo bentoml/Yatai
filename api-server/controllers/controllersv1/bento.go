@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/huandu/xstrings"
 
 	"github.com/bentoml/yatai/schemas/modelschemas"
@@ -220,6 +222,19 @@ func (c *bentoController) RecreateImageBuilderJob(ctx *gin.Context, schema *GetB
 	}
 	if err = c.canUpdate(ctx, bento); err != nil {
 		return nil, err
+	}
+	models_, err := services.BentoService.ListModelsFromManifests(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	for _, model := range models_ {
+		model := model
+		go func() {
+			_, err := services.ModelService.CreateImageBuilderJob(ctx, model)
+			if err != nil {
+				logrus.Errorf("failed to create image builder job for model %s: %v", model.Version, err)
+			}
+		}()
 	}
 	bento, err = services.BentoService.CreateImageBuilderJob(ctx, bento)
 	if err != nil {

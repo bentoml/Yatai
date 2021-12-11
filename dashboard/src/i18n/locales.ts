@@ -1030,6 +1030,11 @@ const locales0 = {
         cn: '你确定要删除此 API 令牌吗？',
         ja: 'この API トークンを削除してもよろしいですか？',
     },
+    'rerun': {
+        en: 'Rerun',
+        cn: '重新运行',
+        ja: '再実行',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

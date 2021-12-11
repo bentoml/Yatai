@@ -62,7 +62,7 @@ export async function recreateModelImageBuilderJob(
     modelRepositoryName: string,
     version: string
 ): Promise<IModelSchema> {
-    const resp = await axios.post<IModelSchema>(
+    const resp = await axios.patch<IModelSchema>(
         `/api/v1/model_repositories/${modelRepositoryName}/models/${version}/recreate_image_builder_job`
     )
     return resp.data
