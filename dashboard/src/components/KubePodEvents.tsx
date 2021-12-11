@@ -100,7 +100,7 @@ export default function KubePodEvents({
                 if (selfCloseRef.current) {
                     return
                 }
-                connect()
+                setTimeout(connect, 3000)
             }
         }
         connect()

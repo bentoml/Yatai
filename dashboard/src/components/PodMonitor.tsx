@@ -1,4 +1,5 @@
 import { useCluster } from '@/hooks/useCluster'
+import { useFetchOrganizationMajorCluster } from '@/hooks/useFetchOrganizationMajorCluster'
 import { IKubePodSchema } from '@/schemas/kube_pod'
 import React from 'react'
 import GrafanaIFrame from './GrafanaIFrame'
@@ -12,7 +13,11 @@ export default function PodMonitor({ pod }: IPodMonitorProps) {
         height: 300,
     }
 
-    const { cluster } = useCluster()
+    const majorClusterInfo = useFetchOrganizationMajorCluster()
+    let { cluster } = useCluster()
+    if (cluster === undefined && majorClusterInfo !== undefined) {
+        cluster = majorClusterInfo.data
+    }
 
     if (!pod || !cluster) {
         return <div>no data</div>
