@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/huandu/xstrings"
 
 	"github.com/bentoml/yatai/schemas/modelschemas"
@@ -211,6 +213,49 @@ func (c *bentoController) FinishUpload(ctx *gin.Context, schema *FinishUploadBen
 		return nil, errors.Wrap(err, "update bento")
 	}
 	return transformersv1.ToBentoSchema(ctx, bento)
+}
+
+func (c *bentoController) RecreateImageBuilderJob(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, bento); err != nil {
+		return nil, err
+	}
+	models_, err := services.BentoService.ListModelsFromManifests(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	for _, model := range models_ {
+		model := model
+		go func() {
+			_, err := services.ModelService.CreateImageBuilderJob(ctx, model)
+			if err != nil {
+				logrus.Errorf("failed to create image builder job for model %s: %v", model.Version, err)
+			}
+		}()
+	}
+	bento, err = services.BentoService.CreateImageBuilderJob(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	return transformersv1.ToBentoSchema(ctx, bento)
+}
+
+func (c *bentoController) ListImageBuilderPods(ctx *gin.Context, schema *GetBentoSchema) ([]*schemasv1.KubePodSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, bento); err != nil {
+		return nil, err
+	}
+	pods, err := services.BentoService.ListImageBuilderPods(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	return transformersv1.ToKubePodSchemas(ctx, pods)
 }
 
 func (c *bentoController) Get(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {

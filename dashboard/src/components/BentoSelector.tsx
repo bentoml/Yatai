@@ -3,7 +3,7 @@ import { Select } from 'baseui/select'
 import _ from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
-import BentoImageBuildStatusTag from './BentoImageBuildStatus'
+import ImageBuildStatusTag from './ImageBuildStatusTag'
 
 export interface IBentoSelectorProps {
     bentoRepositoryName: string
@@ -41,7 +41,7 @@ export default function BentoSelector({ bentoRepositoryName, value, onChange }: 
                             }}
                         >
                             {item.version}
-                            <BentoImageBuildStatusTag key={item.uid} status={item.image_build_status} />
+                            <ImageBuildStatusTag key={item.uid} status={item.image_build_status} />
                         </div>
                     ),
                 })) ?? []

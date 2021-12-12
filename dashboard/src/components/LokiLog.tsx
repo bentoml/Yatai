@@ -14,6 +14,7 @@ import { Button } from 'baseui/button'
 import { Input } from 'baseui/input'
 import { Search } from 'baseui/icon'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
+import { useFetchOrganizationMajorCluster } from '@/hooks/useFetchOrganizationMajorCluster'
 import Card from './Card'
 import GrafanaIFrame from './GrafanaIFrame'
 import LokiFiltersForm from './LokiFiltersForm'
@@ -79,7 +80,11 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
 
     const [t] = useTranslation()
 
-    const { cluster } = useCluster()
+    const majorClusterInfo = useFetchOrganizationMajorCluster()
+    let { cluster } = useCluster()
+    if (cluster === undefined && majorClusterInfo !== undefined) {
+        cluster = majorClusterInfo.data
+    }
     const { deployment: deployment0 } = useDeployment()
 
     let deployment = deployment_

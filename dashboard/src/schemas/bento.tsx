@@ -6,28 +6,27 @@ import { IUserSchema } from './user'
 
 export type BentoUploadStatus = 'pending' | 'uploading' | 'success' | 'failed'
 
-export type BentoImageBuildStatus = 'pending' | 'building' | 'success' | 'failed'
+export type ImageBuildStatus = 'pending' | 'building' | 'success' | 'failed'
 
 export interface IBentoManifestSchema {
-    metadata: {
-        service_name: string
-        service_version: string
-        module_name: string
-        module_version: string
-    }
+    service: string
+    bento_version: string
+    models: string[]
     apis: {
-        name: string
-        docs: string
-        input_type: string
-        output_type: string
-    }[]
+        [key: string]: {
+            route: string
+            doc: string
+            input: string
+            output: string
+        }
+    }
 }
 
 export interface IBentoSchema extends IResourceSchema {
     creator?: IUserSchema
     version: string
     description: string
-    image_build_status: BentoImageBuildStatus
+    image_build_status: ImageBuildStatus
     upload_status: BentoUploadStatus
     upload_started_at?: string
     upload_finished_at?: string

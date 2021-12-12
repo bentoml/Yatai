@@ -211,6 +211,36 @@ func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadMod
 	return transformersv1.ToModelSchema(ctx, model)
 }
 
+func (c *modelController) RecreateImageBuilderJob(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
+	model, err := schema.GetModel(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, model); err != nil {
+		return nil, err
+	}
+	model, err = services.ModelService.CreateImageBuilderJob(ctx, model)
+	if err != nil {
+		return nil, err
+	}
+	return transformersv1.ToModelSchema(ctx, model)
+}
+
+func (c *modelController) ListImageBuilderPods(ctx *gin.Context, schema *GetModelSchema) ([]*schemasv1.KubePodSchema, error) {
+	model, err := schema.GetModel(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, model); err != nil {
+		return nil, err
+	}
+	pods, err := services.ModelService.ListImageBuilderPods(ctx, model)
+	if err != nil {
+		return nil, err
+	}
+	return transformersv1.ToKubePodSchemas(ctx, pods)
+}
+
 func (c *modelController) Get(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
 	model, err := schema.GetModel(ctx)
 	if err != nil {

@@ -1035,6 +1035,11 @@ const locales0 = {
         cn: '通过运行以下命令与 Yatai 进行验证:',
         ja: '次のコマンドを実行して、Yataiで認証します:',
     },
+    'rerun': {
+        en: 'Rerun',
+        cn: '重新运行',
+        ja: '再実行',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

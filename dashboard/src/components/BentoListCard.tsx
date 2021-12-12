@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
-import BentoImageBuildStatusTag from '@/components/BentoImageBuildStatus'
+import ImageBuildStatusTag from '@/components/ImageBuildStatusTag'
 import qs from 'qs'
 
 export interface IBentoListCardProps {
@@ -101,7 +101,7 @@ export default function BentoListCard({ bentoRepositoryName }: IBentoListCardPro
                         <Link key={bento.uid} to={`/bento_repositories/${bentoRepositoryName}/bentos/${bento.version}`}>
                             {bento.version}
                         </Link>,
-                        <BentoImageBuildStatusTag key={bento.uid} status={bento.image_build_status} />,
+                        <ImageBuildStatusTag key={bento.uid} status={bento.image_build_status} />,
                         bento.description,
                         bento.creator && <User user={bento.creator} />,
                         formatDateTime(bento.created_at),

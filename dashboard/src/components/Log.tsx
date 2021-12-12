@@ -116,7 +116,7 @@ export default ({ clusterName, deploymentName, namespace, podName, open, width =
                 if (selfCloseRef.current) {
                     return
                 }
-                connect()
+                setTimeout(connect, 3000)
             }
         }
         connect()

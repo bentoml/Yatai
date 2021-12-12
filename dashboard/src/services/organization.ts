@@ -1,3 +1,4 @@
+import { IClusterFullSchema } from '@/schemas/cluster'
 import axios from 'axios'
 import {
     ICreateOrganizationSchema,
@@ -14,6 +15,11 @@ export async function listOrganizations(query: IListQuerySchema): Promise<IListS
 
 export async function fetchOrganization(): Promise<IOrganizationFullSchema> {
     const resp = await axios.get<IOrganizationFullSchema>('/api/v1/current_org')
+    return resp.data
+}
+
+export async function fetchOrganizationMajorCluster(): Promise<IClusterFullSchema> {
+    const resp = await axios.get<IClusterFullSchema>('/api/v1/current_org/major_cluster')
     return resp.data
 }
 

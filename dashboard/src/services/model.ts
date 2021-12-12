@@ -7,6 +7,7 @@ import {
     IModelWithRepositorySchema,
 } from '@/schemas/model'
 import { IListQuerySchema, IListSchema } from '@/schemas/list'
+import { IKubePodSchema } from '@/schemas/kube_pod'
 
 export async function listAllModels(query: IListQuerySchema): Promise<IListSchema<IModelWithRepositorySchema>> {
     const resp = await axios.get<IListSchema<IModelWithRepositorySchema>>('/api/v1/models', {
@@ -53,6 +54,26 @@ export async function finishModelUpload(
     const resp = await axios.post<IModelSchema>(
         `/api/v1/model_repositories/${modelRepositoryName}/models/${version}/finish_upload`,
         data
+    )
+    return resp.data
+}
+
+export async function recreateModelImageBuilderJob(
+    modelRepositoryName: string,
+    version: string
+): Promise<IModelSchema> {
+    const resp = await axios.patch<IModelSchema>(
+        `/api/v1/model_repositories/${modelRepositoryName}/models/${version}/recreate_image_builder_job`
+    )
+    return resp.data
+}
+
+export async function listModelImageBuilderPods(
+    modelRepositoryName: string,
+    version: string
+): Promise<IKubePodSchema[]> {
+    const resp = await axios.post<IKubePodSchema[]>(
+        `/api/v1/model_repositories/${modelRepositoryName}/models/${version}/image_builder_pods`
     )
     return resp.data
 }

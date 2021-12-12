@@ -91,10 +91,6 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 			return err
 		}
 
-		if pod.Labels[consts.KubeLabelYataiDeployment] != cluster.Name {
-			return errors.Errorf("pod %s not in this cluster", podName)
-		}
-
 		filter = func(event *apiv1.Event) bool {
 			return event.InvolvedObject.Kind == consts.KubeEventResourceKindPod && event.InvolvedObject.UID == pod.UID
 		}

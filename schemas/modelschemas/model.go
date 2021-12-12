@@ -14,15 +14,6 @@ const (
 	ModelUploadStatusFailed    ModelUploadStatus = "failed"
 )
 
-type ModelImageBuildStatus string
-
-const (
-	ModelImageBuildStatusPending  ModelImageBuildStatus = "pending"
-	ModelImageBuildStatusBuilding ModelImageBuildStatus = "building"
-	ModelImageBuildStatusSuccess  ModelImageBuildStatus = "success"
-	ModelImageBuildStatusFailed   ModelImageBuildStatus = "failed"
-)
-
 type ModelManifestSchema struct {
 	BentomlVersion string                 `json:"bentoml_version"`
 	ApiVersion     string                 `json:"api_version"`
