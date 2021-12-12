@@ -1030,6 +1030,11 @@ const locales0 = {
         cn: '你确定要删除此 API 令牌吗？',
         ja: 'この API トークンを削除してもよろしいですか？',
     },
+    'copy command to login yatai': {
+        en: 'Authenticate with Yatai by running the following command:',
+        cn: '通过运行以下命令与 Yatai 进行验证:',
+        ja: '次のコマンドを実行して、Yataiで認証します:',
+    },
     'rerun': {
         en: 'Rerun',
         cn: '重新运行',
