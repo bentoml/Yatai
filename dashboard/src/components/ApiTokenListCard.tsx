@@ -16,7 +16,7 @@ import { Input } from 'baseui/input'
 import { TiClipboard } from 'react-icons/ti'
 import { Notification } from 'baseui/notification'
 import CopyToClipboard from 'react-copy-to-clipboard'
-import { CopyBlock, solarizedDark, solarizedLight } from 'react-code-blocks'  // eslint-disable-line
+import { CopyBlock, solarizedDark, solarizedLight } from 'react-code-blocks'
 import useGlobalState from '@/hooks/global'
 
 export default function ApiTokenListCard() {
@@ -66,8 +66,9 @@ export default function ApiTokenListCard() {
 
     const [t] = useTranslation()
     const [, theme] = useStyletron()
-    const copyCliCommand =
-        `bentoml yatai login --api-token ${theTokenWishToShow} --endpoint ${window.location.origin}` ?? ''
+    const copyCliCommand = theTokenWishToShow
+        ? `bentoml yatai login --api-token ${theTokenWishToShow} --endpoint ${window.location.origin}`
+        : ''
     const codeTheme = themeType === 'light' ? solarizedLight : solarizedDark
 
     return (
