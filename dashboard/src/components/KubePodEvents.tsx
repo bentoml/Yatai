@@ -55,16 +55,16 @@ export default function KubePodEvents({
     const [items, setItems] = useState<string[]>([])
     const wsRef = useRef(null as null | WebSocket)
     const wsOpenRef = useRef(false)
-    const selfCloseRef = useRef(false)
 
     useEffect(() => {
         if (!open) {
             return undefined
         }
         let ws: WebSocket | undefined
+        let selfClose = false
         const connect = () => {
             ws = new WebSocket(wsUrl)
-            selfCloseRef.current = false
+            selfClose = false
             ws.onmessage = (e) => {
                 const resp = JSON.parse(e.data) as IWsRespSchema<IKubeEventSchema[]>
                 if (resp.type !== 'success') {
@@ -97,7 +97,7 @@ export default function KubePodEvents({
             }
             ws.onclose = () => {
                 wsOpenRef.current = false
-                if (selfCloseRef.current) {
+                if (selfClose) {
                     return
                 }
                 setTimeout(connect, 3000)
@@ -106,7 +106,7 @@ export default function KubePodEvents({
         connect()
         return () => {
             ws?.close()
-            selfCloseRef.current = true
+            selfClose = true
             wsRef.current = null
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

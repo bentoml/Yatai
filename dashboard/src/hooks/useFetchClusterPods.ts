@@ -49,6 +49,7 @@ export function useFetchClusterPods({
             }
             setPodsLoading(true)
             ws = new WebSocket(wsUrl)
+            selfClose = false
             const heartbeat = () => {
                 if (ws?.readyState === ws?.OPEN) {
                     ws?.send('')

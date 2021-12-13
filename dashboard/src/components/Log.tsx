@@ -52,7 +52,6 @@ export default ({ clusterName, deploymentName, namespace, podName, open, width =
     const reqIdRef = useRef('')
     const wsRef = useRef(null as null | WebSocket)
     const wsOpenRef = useRef(false)
-    const selfCloseRef = useRef(false)
 
     const sendTailReq = useCallback(() => {
         if (!wsOpenRef.current) {
@@ -81,9 +80,10 @@ export default ({ clusterName, deploymentName, namespace, podName, open, width =
             return undefined
         }
         let ws: WebSocket | undefined
+        let selfClose = false
         const connect = () => {
             ws = new WebSocket(wsUrl)
-            selfCloseRef.current = false
+            selfClose = false
             ws.onmessage = (event) => {
                 const resp = JSON.parse(event.data) as IWsRespSchema<{
                     req_id: string
@@ -113,7 +113,7 @@ export default ({ clusterName, deploymentName, namespace, podName, open, width =
             }
             ws.onclose = () => {
                 wsOpenRef.current = false
-                if (selfCloseRef.current) {
+                if (selfClose) {
                     return
                 }
                 setTimeout(connect, 3000)
@@ -122,7 +122,7 @@ export default ({ clusterName, deploymentName, namespace, podName, open, width =
         connect()
         return () => {
             ws?.close()
-            selfCloseRef.current = true
+            selfClose = true
             wsRef.current = null
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -32,6 +32,7 @@ export function useFetchYataiComponentHelmChartReleaseResources(
             }
             setKubeResourcesLoading(true)
             ws = new WebSocket(wsUrl)
+            selfClose = false
             const heartbeat = () => {
                 if (ws?.readyState === ws?.OPEN) {
                     ws?.send('')
