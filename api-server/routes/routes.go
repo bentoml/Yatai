@@ -144,6 +144,7 @@ func NewRouter() (*fizz.Fizz, error) {
 	organizationRoutes(apiRootGroup)
 	apiTokenRoutes(apiRootGroup)
 	labelRoutes(apiRootGroup)
+	labelConfigurationRoutes(apiRootGroup)
 	clusterRoutes(apiRootGroup)
 	bentoRepositoryRoutes(apiRootGroup)
 	modelRepositoryRoutes(apiRootGroup)
@@ -373,6 +374,37 @@ func labelRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("List Labels"),
 		fizz.Summary("List Labels"),
 	}, requireLogin, tonic.Handler(controllersv1.LabelController.List, 200))
+}
+
+func labelConfigurationRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/label_configurations", "label configurations", "label configurations")
+
+	resourceGrp := grp.Group("/:key", "label configuration resource", "label configuration resource")
+
+	resourceGrp.GET("", []fizz.OperationOption{
+		fizz.ID("Get a label configuration"),
+		fizz.Summary("Get a label configuration"),
+	}, requireLogin, tonic.Handler(controllersv1.LabelConfigurationController.Get, 200))
+
+	resourceGrp.PATCH("", []fizz.OperationOption{
+		fizz.ID("Update a label configuration"),
+		fizz.Summary("Update a label configuration"),
+	}, requireLogin, tonic.Handler(controllersv1.LabelConfigurationController.Update, 200))
+
+	resourceGrp.DELETE("", []fizz.OperationOption{
+		fizz.ID("Delete a label configuration"),
+		fizz.Summary("Delete a label configuration"),
+	}, requireLogin, tonic.Handler(controllersv1.LabelConfigurationController.Delete, 200))
+
+	grp.GET("", []fizz.OperationOption{
+		fizz.ID("List label configurations"),
+		fizz.Summary("List label configurations"),
+	}, requireLogin, tonic.Handler(controllersv1.LabelConfigurationController.List, 200))
+
+	grp.POST("", []fizz.OperationOption{
+		fizz.ID("Create a label configuration"),
+		fizz.Summary("Create a label configuration"),
+	}, requireLogin, tonic.Handler(controllersv1.LabelConfigurationController.Create, 200))
 }
 
 func clusterRoutes(grp *fizz.RouterGroup) {
