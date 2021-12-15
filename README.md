@@ -8,7 +8,49 @@
     </p>
 </div>
 
-_wip_
+
+# Running Yatai on minikube
+
+### Prerequisites
+
+  - Minikube. Visit [minikube.io](https://minikube.io/) to install and manage minikube.
+  - Helm. Visit [helm.sh](https://helm.sh/) to install and manage helm.
+
+
+
+**1. Install and update helm repo**
+
+```bash
+helm repo add yatai https://bentoml.github.io/yatai-chart
+```
+
+```bash
+helm repo update
+```
+
+**2. Install Yatai**
+
+```bash
+helm install yatai yatai/yatai -n yatai-system --create-namespace
+```
+
+**3. Access Yatai**
+
+Create minikube tunnel:
+```bash
+sudo minikube tunnel
+```
+Visit [Yatai](http://yatai.127.0.0.1.sslip.io/) on the browser. To login, use the following credentials:
+username: `admin`, password: `admin`
+
+
+**Delete Yatai**
+
+```bash
+helm uninstall yatai
+```
+
+
 
 # Development guide
 
@@ -73,19 +115,6 @@ make fe-run
 ```
 
 Visit React App via [`localhost:3000`](http://localhost:3000). You can also accessed swagger via [`localhost:3000/swagger`](http://localhost:3000/swagger)
-
-
-## Other Configuration
-
-**Github OAuth Config**
-
-Generate Github OAuth token and add it to `yatai-config.{dev,test,production}.yaml`.
-1. Visit [GitHub OAuth](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app) to create a new app.
-2. Add `http://localhost:3000` to the Homepage URL.
-3. Add `http://localhost:3000` to the authorization callback URL.
-4. Generate client secret after created the oauth app.
-5. Update `yatai-config.{dev,test,production}.yaml` with the following: CLIENT_ID, CLIENT_SECRET
-
 
 ## Docker
 
