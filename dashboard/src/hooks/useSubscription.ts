@@ -84,6 +84,7 @@ export function useSubscription() {
                 return
             }
             ws = new WebSocket(wsUrl)
+            selfClose = false
             const heartbeat = () => {
                 if (ws?.readyState === ws?.OPEN) {
                     ws?.send(
@@ -120,25 +121,21 @@ export function useSubscription() {
             }
 
             ws.onmessage = (event) => {
-                try {
-                    const resp = JSON.parse(event.data) as IWsRespSchema<ISubscriptionRespSchema<any>>
-                    if (resp.type === 'error') {
-                        toaster.negative(resp.message, {})
+                const resp = JSON.parse(event.data) as IWsRespSchema<ISubscriptionRespSchema<any>>
+                if (resp.type === 'error') {
+                    toaster.negative(resp.message, {})
+                    return
+                }
+                const { payload } = resp
+                cbItemsRef.current.forEach((cbItem) => {
+                    if (cbItem.resourceType !== payload.resource_type) {
                         return
                     }
-                    const { payload } = resp
-                    cbItemsRef.current.forEach((cbItem) => {
-                        if (cbItem.resourceType !== payload.resource_type) {
-                            return
-                        }
-                        if (cbItem.resourceUids.indexOf(payload.payload.uid) < 0) {
-                            return
-                        }
-                        cbItem.cb(payload.payload)
-                    })
-                } catch {
-                    //
-                }
+                    if (cbItem.resourceUids.indexOf(payload.payload.uid) < 0) {
+                        return
+                    }
+                    cbItem.cb(payload.payload)
+                })
             }
             ws.onerror = () => {
                 // eslint-disable-next-line no-console
