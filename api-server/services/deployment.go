@@ -572,7 +572,7 @@ func (s *deploymentService) GenerateDefaultHostname(ctx context.Context, deploym
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s.yatai.%s.sslip.io", deployment.Name, ip), nil
+	return fmt.Sprintf("%s-yatai-%s.apps.yatai.dev", deployment.Name, strings.ReplaceAll(ip, ".", "-")), nil
 }
 
 func (s *deploymentService) GetURLs(ctx context.Context, deployment *models.Deployment) ([]string, error) {

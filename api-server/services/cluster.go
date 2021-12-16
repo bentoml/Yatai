@@ -358,7 +358,7 @@ func (s *clusterService) GenerateGrafanaHostname(ctx context.Context, cluster *m
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("grafana.yatai-infra.%s.sslip.io", ip), nil
+	return fmt.Sprintf("grafana-yatai-infra-external-%s.apps.yatai.dev", strings.ReplaceAll(ip, ".", "-")), nil
 }
 
 func (s *clusterService) GetGrafanaRootPath(ctx context.Context, cluster *models.Cluster) (string, error) {
