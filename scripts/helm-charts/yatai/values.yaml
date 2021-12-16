@@ -1,4 +1,4 @@
-# Default values for mcd.
+# Default values for yatai.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -10,7 +10,7 @@ image:
   repository: yatai
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: f898336
+  tag: 1bf68c0
 
 imagePullSecrets: []
 nameOverride: ""
