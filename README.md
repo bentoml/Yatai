@@ -17,6 +17,10 @@
   - Helm. Visit [helm.sh](https://helm.sh/) to install and manage helm.
 
 
+**Start minkube cluster**
+```bash
+minikube start --memory 8192 --cpus 8
+
 
 **1. Install and update helm repo**
 
@@ -48,6 +52,8 @@ username: `admin`, password: `admin`
 
 ```bash
 helm uninstall yatai
+kubectl delete ns yatai-components
+kubectl delete ns yatai-operators
 ```
 
 
