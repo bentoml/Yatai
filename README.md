@@ -18,8 +18,10 @@
 
 
 **Start minkube cluster**
+
 ```bash
 minikube start --memory 8192 --cpus 8
+```
 
 
 **1. Install and update helm repo**
