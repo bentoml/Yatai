@@ -57,6 +57,71 @@ func (m *resourceService) Get(ctx context.Context, resourceType modelschemas.Res
 	}
 }
 
+func (m *resourceService) List(ctx context.Context, resourceType modelschemas.ResourceType, resourceIds []uint) (interface{}, error) {
+	switch resourceType {
+	case modelschemas.ResourceTypeUser:
+		users, err := UserService.ListByIds(ctx, resourceIds)
+		return users, err
+	case modelschemas.ResourceTypeOrganization:
+		orgs, _, err := OrganizationService.List(ctx, ListOrganizationOption{
+			Ids: &resourceIds,
+		})
+		return orgs, err
+	case modelschemas.ResourceTypeCluster:
+		clusters, _, err := ClusterService.List(ctx, ListClusterOption{
+			Ids: &resourceIds,
+		})
+		return clusters, err
+	case modelschemas.ResourceTypeBentoRepository:
+		bentoRepositories, _, err := BentoRepositoryService.List(ctx, ListBentoRepositoryOption{
+			Ids: &resourceIds,
+		})
+		return bentoRepositories, err
+	case modelschemas.ResourceTypeBento:
+		bentos, _, err := BentoService.List(ctx, ListBentoOption{
+			Ids: &resourceIds,
+		})
+		return bentos, err
+	case modelschemas.ResourceTypeDeployment:
+		deployments, _, err := DeploymentService.List(ctx, ListDeploymentOption{
+			Ids: &resourceIds,
+		})
+		return deployments, err
+	case modelschemas.ResourceTypeDeploymentRevision:
+		deploymentRevisions, _, err := DeploymentRevisionService.List(ctx, ListDeploymentRevisionOption{
+			Ids: &resourceIds,
+		})
+		return deploymentRevisions, err
+	case modelschemas.ResourceTypeTerminalRecord:
+		terminalRecords, _, err := TerminalRecordService.List(ctx, ListTerminalRecordOption{
+			Ids: &resourceIds,
+		})
+		return terminalRecords, err
+	case modelschemas.ResourceTypeModelRepository:
+		modelRepositories, _, err := ModelRepositoryService.List(ctx, ListModelRepositoryOption{
+			Ids: &resourceIds,
+		})
+		return modelRepositories, err
+	case modelschemas.ResourceTypeModel:
+		models, _, err := ModelService.List(ctx, ListModelOption{
+			Ids: &resourceIds,
+		})
+		return models, err
+	case modelschemas.ResourceTypeApiToken:
+		apiTokens, _, err := ApiTokenService.List(ctx, ListApiTokenOption{
+			Ids: &resourceIds,
+		})
+		return apiTokens, err
+	case modelschemas.ResourceTypeLabel:
+		labels, _, err := LabelService.List(ctx, ListLabelOption{
+			Ids: &resourceIds,
+		})
+		return labels, err
+	default:
+		return nil, errors.Errorf("cannot recognize this resource type: %s", resourceType)
+	}
+}
+
 func (m *resourceService) GetByUid(ctx context.Context, resourceType modelschemas.ResourceType, resourceUid string) (models.IResource, error) {
 	switch resourceType {
 	case modelschemas.ResourceTypeUser:

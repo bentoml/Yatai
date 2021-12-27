@@ -108,7 +108,7 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
 
     return (
         <Card
-            title={t('sth list', [t('deployment')])}
+            title={t('deployments')}
             titleIcon={resourceIconMapping.deployment}
             middle={
                 <div

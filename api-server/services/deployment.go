@@ -72,6 +72,8 @@ type ListDeploymentOption struct {
 	CreatorIds      *[]uint
 	LastUpdaterIds  *[]uint
 	OrganizationIds *[]uint
+	Ids             *[]uint
+	BentoIds        *[]uint
 	Statuses        *[]modelschemas.DeploymentStatus
 	Order           *string
 }
@@ -207,6 +209,9 @@ func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) 
 		query = query.Joins("LEFT JOIN cluster ON cluster.id = deployment.cluster_id")
 		query = query.Where("cluster.organization_id = ?", *opt.OrganizationId)
 	}
+	if opt.Ids != nil {
+		query = query.Where("deployment.id in (?)", *opt.Ids)
+	}
 	if opt.OrganizationIds != nil {
 		query = query.Joins("LEFT JOIN cluster ON cluster.id = deployment.cluster_id")
 		query = query.Where("cluster.organization_id IN (?)", *opt.OrganizationIds)
@@ -217,6 +222,9 @@ func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) 
 	}
 	if opt.LastUpdaterIds != nil {
 		query = query.Where("deployment_revision.creator_id IN (?)", *opt.LastUpdaterIds)
+	}
+	if opt.BentoIds != nil {
+		query = query.Joins("LEFT JOIN deployment_target ON deployment_target.deployment_revision_id = deployment_revision.id").Where("deployment_target.bento_id IN (?)", *opt.BentoIds)
 	}
 	if opt.ClusterId != nil {
 		query = query.Where("deployment.cluster_id = ?", *opt.ClusterId)
@@ -235,7 +243,7 @@ func (s *deploymentService) List(ctx context.Context, opt ListDeploymentOption) 
 	}
 	query = opt.BindQueryWithKeywords(query, "deployment")
 	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeDeployment)
-	query = query.Select("distinct(deployment.*)")
+	query = query.Select("deployment_revision.*, deployment.*")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
@@ -624,4 +632,127 @@ func (s *deploymentService) GetURLs(ctx context.Context, deployment *models.Depl
 		}
 	}
 	return urls, nil
+}
+
+func (s *deploymentService) GroupByBentoRepositoryIds(ctx context.Context, bentoRepositoryIds []uint, count uint) (map[uint][]*models.Deployment, error) {
+	db := mustGetSession(ctx)
+
+	query := db.Raw(`select deployment_target.deployment_id as deployment_id, deployment_target.deployment_revision_id as deployment_revision_id, bento.bento_repository_id as bento_repository_id from deployment_target join bento on deployment_target.bento_id = bento.id where bento.bento_repository_id in (?)`, bentoRepositoryIds)
+
+	type Item struct {
+		DeploymentId         uint
+		DeploymentRevisionId uint
+		BentoRepositoryId    uint
+	}
+
+	items := make([]*Item, 0, len(bentoRepositoryIds))
+	err := query.Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+
+	deploymentId2BentoRepositoryId := make(map[uint]uint, len(items))
+	for _, item := range items {
+		deploymentId2BentoRepositoryId[item.DeploymentId] = item.BentoRepositoryId
+	}
+
+	deploymentIds := make([]uint, 0, len(items))
+	deploymentIdsSeen := make(map[uint]struct{})
+
+	for _, item := range items {
+		if _, ok := deploymentIdsSeen[item.DeploymentId]; !ok {
+			deploymentIds = append(deploymentIds, item.DeploymentId)
+			deploymentIdsSeen[item.DeploymentId] = struct{}{}
+		}
+	}
+
+	deploymentRevisions, _, err := DeploymentRevisionService.List(ctx, ListDeploymentRevisionOption{
+		DeploymentIds: utils.UintSlicePtr(deploymentIds),
+		Status:        modelschemas.DeploymentRevisionStatusPtr(modelschemas.DeploymentRevisionStatusActive),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	activeDeploymentIds := make([]uint, 0, len(deploymentRevisions))
+	activeDeploymentIdsSeen := make(map[uint]struct{})
+
+	for _, deploymentRevision := range deploymentRevisions {
+		if _, ok := activeDeploymentIdsSeen[deploymentRevision.DeploymentId]; !ok {
+			activeDeploymentIds = append(activeDeploymentIds, deploymentRevision.DeploymentId)
+			activeDeploymentIdsSeen[deploymentRevision.DeploymentId] = struct{}{}
+		}
+	}
+
+	deployments, _, err := s.List(ctx, ListDeploymentOption{
+		Ids: utils.UintSlicePtr(activeDeploymentIds),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[uint][]*models.Deployment, len(deploymentId2BentoRepositoryId))
+	for _, deployment := range deployments {
+		bentoRepositoryId, ok := deploymentId2BentoRepositoryId[deployment.ID]
+		if !ok {
+			continue
+		}
+		deployments_ := res[bentoRepositoryId]
+		if len(deployments_) < int(count) {
+			res[bentoRepositoryId] = append(deployments_, deployment)
+		}
+	}
+
+	return res, nil
+}
+
+func (s *deploymentService) CountByBentoRepositoryIds(ctx context.Context, bentoRepositoryIds []uint) (map[uint]uint, error) {
+	db := mustGetSession(ctx)
+
+	query := db.Raw(`select deployment_target.deployment_id as deployment_id, deployment_target.deployment_revision_id as deployment_revision_id, bento.bento_repository_id as bento_repository_id from deployment_target join bento on deployment_target.bento_id = bento.id where bento.bento_repository_id in (?)`, bentoRepositoryIds)
+
+	type Item struct {
+		DeploymentId         uint
+		DeploymentRevisionId uint
+		BentoRepositoryId    uint
+	}
+
+	items := make([]*Item, 0, len(bentoRepositoryIds))
+	err := query.Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+
+	deploymentRevisionId2BentoRepositoryId := make(map[uint]uint, len(items))
+	for _, item := range items {
+		deploymentRevisionId2BentoRepositoryId[item.DeploymentRevisionId] = item.BentoRepositoryId
+	}
+
+	deploymentIds := make([]uint, 0, len(items))
+	deploymentIdsSeen := make(map[uint]struct{})
+
+	for _, item := range items {
+		if _, ok := deploymentIdsSeen[item.DeploymentId]; !ok {
+			deploymentIds = append(deploymentIds, item.DeploymentId)
+			deploymentIdsSeen[item.DeploymentId] = struct{}{}
+		}
+	}
+
+	deploymentRevisions, _, err := DeploymentRevisionService.List(ctx, ListDeploymentRevisionOption{
+		DeploymentIds: utils.UintSlicePtr(deploymentIds),
+		Status:        modelschemas.DeploymentRevisionStatusPtr(modelschemas.DeploymentRevisionStatusActive),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[uint]uint, len(deploymentRevisions))
+	for _, deploymentRevision := range deploymentRevisions {
+		count := res[deploymentRevision.DeploymentId]
+		if _, ok := deploymentRevisionId2BentoRepositoryId[deploymentRevision.ID]; ok {
+			res[deploymentRevision.DeploymentId] = count + 1
+		}
+	}
+
+	return res, nil
 }

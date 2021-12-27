@@ -2,7 +2,6 @@ import React from 'react'
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
 import Header from '@/components/Header'
 import OrganizationLayout from '@/components/OrganizationLayout'
-import OrganizationOverview from '@/pages/Organization/Overview'
 import ClusterOverview from '@/pages/Cluster/Overview'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
@@ -38,6 +37,10 @@ import ModelRepositoryOverview from '@/pages/ModelRepository/Overview'
 import ModelRepositoryModels from '@/pages/ModelRepository/Models'
 import OrganizationModelRepositories from '@/pages/Organization/ModelRepositories'
 import { ChatWidget } from '@papercups-io/chat-widget'
+import ModelLayout from './components/ModelLayout'
+import ModelOverview from './pages/Model/Overview'
+import BentoRepositoryDeployments from './pages/BentoRepository/Deployments'
+import Home from './pages/Yatai/Home'
 
 const useStyles = createUseStyles({
     'root': ({ theme }: IThemedStyleProps) => ({
@@ -93,6 +96,11 @@ const Routes = () => {
                                     exact
                                     path='/bento_repositories/:bentoRepositoryName/bentos'
                                     component={BentoRepositoryBentos}
+                                />
+                                <Route
+                                    exact
+                                    path='/bento_repositories/:bentoRepositoryName/deployments'
+                                    component={BentoRepositoryDeployments}
                                 />
                             </Switch>
                         </BentoRepositoryLayout>
@@ -153,6 +161,17 @@ const Routes = () => {
                             </Switch>
                         </ClusterLayout>
                     </Route>
+                    <Route exact path='/model_repositories/:modelRepositoryName/models/:modelVersion/:path?/:path?'>
+                        <ModelLayout>
+                            <Switch>
+                                <Route
+                                    exact
+                                    path='/model_repositories/:modelRepositoryName/models/:modelVersion'
+                                    component={ModelOverview}
+                                />
+                            </Switch>
+                        </ModelLayout>
+                    </Route>
                     <Route exact path='/model_repositories/:modelRepositoryName/:path?/:path?'>
                         <ModelRepositoryLayout>
                             <Switch>
@@ -173,7 +192,7 @@ const Routes = () => {
                     <Route>
                         <OrganizationLayout>
                             <Switch>
-                                <Route exact path='/' component={OrganizationOverview} />
+                                <Route exact path='/' component={Home} />
                                 <Route exact path='/bentos' component={OrganizationBentos} />
                                 <Route exact path='/models' component={OrganizationModels} />
                                 <Route exact path='/api_tokens' component={OrganizationApiTokens} />

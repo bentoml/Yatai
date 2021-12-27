@@ -1,16 +1,9 @@
 import moment from 'moment'
 import { dateTimeFormat } from '@/consts'
-import TimeAgo from 'javascript-time-ago'
-
-import en from 'javascript-time-ago/locale/en.json'
-import ru from 'javascript-time-ago/locale/ru.json'
 
 export function formatDateTime(s: string, format = 'YYYY-MM-DDTHH:mm:ssZ'): string {
     return moment(s, format).format(dateTimeFormat)
 }
-
-TimeAgo.addDefaultLocale(en)
-TimeAgo.addLocale(ru)
 
 export function durationToStr(v: number) {
     const units = ['μs', 'ms', 's', 'm', 'h', 'd']

@@ -49,7 +49,7 @@ export default function ClusterLayout({ children }: IClusterLayoutProps) {
     const breadcrumbItems: INavItem[] = useMemo(
         () => [
             {
-                title: t('sth list', [t('cluster')]),
+                title: t('clusters'),
                 path: '/clusters',
                 icon: resourceIconMapping.cluster,
             },
@@ -69,17 +69,17 @@ export default function ClusterLayout({ children }: IClusterLayoutProps) {
                 icon: RiSurveyLine,
             },
             {
-                title: t('sth list', [t('yatai component')]),
+                title: t('yatai components'),
                 path: `/clusters/${clusterName}/yatai_components`,
                 icon: resourceIconMapping.yatai_component,
             },
             {
-                title: t('sth list', [t('deployment')]),
+                title: t('deployments'),
                 path: `/clusters/${clusterName}/deployments`,
                 icon: resourceIconMapping.deployment,
             },
             {
-                title: t('sth list', [t('member')]),
+                title: t('members'),
                 path: `/clusters/${clusterName}/members`,
                 icon: resourceIconMapping.user_group,
             },

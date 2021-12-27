@@ -42,10 +42,10 @@ export default function DeploymentRevisionListCard({ clusterName, deploymentName
     const [t] = useTranslation()
 
     return (
-        <Card title={t('sth list', [t('revision')])} titleIcon={resourceIconMapping.deployment_revision}>
+        <Card title={t('revisions')} titleIcon={resourceIconMapping.deployment_revision}>
             <Table
                 isLoading={deploymentRevisionsInfo.isLoading}
-                columns={['ID', t('sth list', [t('deployment target')]), t('creator'), t('created_at'), t('operation')]}
+                columns={['ID', t('deployment targets'), t('creator'), t('created_at'), t('operation')]}
                 data={
                     deploymentRevisionsInfo.data?.items.map((deploymentRevision) => [
                         deploymentRevision.uid,

@@ -47,6 +47,7 @@ type ListDeploymentRevisionOption struct {
 	BaseListByLabelsOption
 	DeploymentId  *uint
 	DeploymentIds *[]uint
+	Ids           *[]uint
 	Status        *modelschemas.DeploymentRevisionStatus
 }
 
@@ -125,6 +126,9 @@ func (s *deploymentRevisionService) List(ctx context.Context, opt ListDeployment
 	}
 	if opt.Status != nil {
 		query = query.Where("deployment_revision.status = ?", *opt.Status)
+	}
+	if opt.Ids != nil {
+		query = query.Where("deployment_revision.id in (?)", *opt.Ids)
 	}
 	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeDeploymentRevision)
 	query = query.Select("distinct(deployment_revision.*)")

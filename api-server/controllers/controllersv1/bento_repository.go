@@ -129,6 +129,53 @@ func (c *bentoRepositoryController) Get(ctx *gin.Context, schema *GetBentoReposi
 	return transformersv1.ToBentoRepositorySchema(ctx, bentoRepository)
 }
 
+type ListBentoDeploymentSchema struct {
+	schemasv1.ListQuerySchema
+	GetBentoRepositorySchema
+}
+
+func (c *bentoRepositoryController) ListDeployment(ctx *gin.Context, schema *ListBentoDeploymentSchema) (*schemasv1.DeploymentListSchema, error) {
+	bentoRepository, err := schema.GetBentoRepository(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, bentoRepository); err != nil {
+		return nil, err
+	}
+	bentos, _, err := services.BentoService.List(ctx, services.ListBentoOption{
+		BentoRepositoryId: &bentoRepository.ID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	bentoIds := make([]uint, 0, len(bentos))
+	for _, bento := range bentos {
+		bentoIds = append(bentoIds, bento.ID)
+	}
+	deployments, total, err := services.DeploymentService.List(ctx, services.ListDeploymentOption{
+		BaseListOption: services.BaseListOption{
+			Start: &schema.Start,
+			Count: &schema.Count,
+		},
+		BentoIds: &bentoIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	deploymentSchemas, err := transformersv1.ToDeploymentSchemas(ctx, deployments)
+	if err != nil {
+		return nil, err
+	}
+	return &schemasv1.DeploymentListSchema{
+		BaseListSchema: schemasv1.BaseListSchema{
+			Start: schema.Start,
+			Count: schema.Count,
+			Total: total,
+		},
+		Items: deploymentSchemas,
+	}, nil
+}
+
 type ListBentoRepositorySchema struct {
 	schemasv1.ListQuerySchema
 	GetOrganizationSchema
@@ -149,7 +196,7 @@ func processUserNamesFromQ(ctx context.Context, userNames []string) ([]string, e
 	return res, nil
 }
 
-func (c *bentoRepositoryController) List(ctx *gin.Context, schema *ListBentoRepositorySchema) (*schemasv1.BentoRepositoryListSchema, error) {
+func (c *bentoRepositoryController) List(ctx *gin.Context, schema *ListBentoRepositorySchema) (*schemasv1.BentoRepositoryWithLatestDeploymentsListSchema, error) {
 	organization, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
@@ -250,8 +297,8 @@ func (c *bentoRepositoryController) List(ctx *gin.Context, schema *ListBentoRepo
 		return nil, errors.Wrap(err, "list bentoRepositories")
 	}
 
-	bentoRepositorySchemas, err := transformersv1.ToBentoRepositorySchemas(ctx, bentoRepositories)
-	return &schemasv1.BentoRepositoryListSchema{
+	bentoRepositorySchemas, err := transformersv1.ToBentoRepositoryWithLatestDeploymentsSchemas(ctx, bentoRepositories)
+	return &schemasv1.BentoRepositoryWithLatestDeploymentsListSchema{
 		BaseListSchema: schemasv1.BaseListSchema{
 			Total: total,
 			Start: schema.Start,

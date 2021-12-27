@@ -42,6 +42,7 @@ type ListLabelOption struct {
 	ResourceType   *modelschemas.ResourceType
 	ResourceId     *uint
 	ResourceIds    *[]uint
+	Ids            *[]uint
 }
 
 type ListLabelKeysOption struct {
@@ -160,6 +161,9 @@ func (s *labelService) List(ctx context.Context, opt ListLabelOption) ([]*models
 	}
 	if opt.ResourceIds != nil {
 		query = query.Where("resource_id in (?)", *opt.ResourceIds)
+	}
+	if opt.Ids != nil {
+		query = query.Where("id in (?)", *opt.Ids)
 	}
 
 	var total int64

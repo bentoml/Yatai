@@ -7,6 +7,7 @@ import {
     IUpdateOrganizationSchema,
 } from '@/schemas/organization'
 import { IListQuerySchema, IListSchema } from '@/schemas/list'
+import { IEventSchema } from '@/schemas/event'
 
 export async function listOrganizations(query: IListQuerySchema): Promise<IListSchema<IOrganizationSchema>> {
     const resp = await axios.get<IListSchema<IOrganizationSchema>>('/api/v1/orgs', { params: query })
@@ -18,8 +19,18 @@ export async function fetchOrganization(): Promise<IOrganizationFullSchema> {
     return resp.data
 }
 
+export async function listOrganizationModelModules(): Promise<string[]> {
+    const resp = await axios.get<string[]>('/api/v1/current_org/model_modules')
+    return resp.data
+}
+
 export async function fetchOrganizationMajorCluster(): Promise<IClusterFullSchema> {
     const resp = await axios.get<IClusterFullSchema>('/api/v1/current_org/major_cluster')
+    return resp.data
+}
+
+export async function listOrganizationEvents(query: IListQuerySchema): Promise<IListSchema<IEventSchema>> {
+    const resp = await axios.get<IListSchema<IEventSchema>>('/api/v1/current_org/events', { params: query })
     return resp.data
 }
 

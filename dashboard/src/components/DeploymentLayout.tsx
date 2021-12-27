@@ -121,17 +121,8 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
     const breadcrumbItems: INavItem[] = useMemo(
         () => [
             {
-                title: t('sth list', [t('cluster')]),
-                path: '/clusters',
-                icon: resourceIconMapping.cluster,
-            },
-            {
-                title: clusterName,
-                path: `/clusters/${clusterName}`,
-            },
-            {
-                title: t('sth list', [t('deployment')]),
-                path: `/clusters/${clusterName}/deployments`,
+                title: t('deployments'),
+                path: '/deployments',
                 icon: resourceIconMapping.deployment,
             },
             {
@@ -172,7 +163,7 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                         : undefined,
                 },
                 {
-                    title: t('sth list', [t('revision')]),
+                    title: t('revisions'),
                     path: `/clusters/${clusterName}/deployments/${deploymentName}/revisions`,
                     icon: resourceIconMapping.deployment_revision,
                 },

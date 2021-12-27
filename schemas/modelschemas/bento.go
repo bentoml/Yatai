@@ -35,13 +35,14 @@ type BentoManifestSchema struct {
 	BentomlVersion string                      `json:"bentoml_version"`
 	Apis           map[string]BentoManifestApi `json:"apis"`
 	Models         []string                    `json:"models"`
+	SizeBytes      uint                        `json:"size_bytes"`
 }
 
 func (c *BentoManifestSchema) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	return json.Unmarshal([]byte(value.(string)), c)
+	return json.Unmarshal(value.([]byte), c)
 }
 
 func (c *BentoManifestSchema) Value() (driver.Value, error) {

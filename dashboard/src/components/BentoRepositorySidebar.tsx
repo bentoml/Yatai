@@ -50,7 +50,7 @@ export default function BentoRepositorySidebar({ style }: IComposedSidebarProps)
                 icon: RiSurveyLine,
             },
             {
-                title: t('sth list', [t('bento')]),
+                title: t('bentos'),
                 path: `/bento_repositories/${bentoRepositoryName}/bentos`,
                 icon: resourceIconMapping.bento,
             },

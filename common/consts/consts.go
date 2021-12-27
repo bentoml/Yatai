@@ -1,6 +1,7 @@
 package consts
 
 const (
+	DefaultNewsURL                         = "https://raw.githubusercontent.com/bentoml/yatai-homepage-news/main/news.json"
 	DefaultETCDTimeoutSeconds              = 5
 	DefaultETCDDialKeepaliveTimeSeconds    = 30
 	DefaultETCDDialKeepaliveTimeoutSeconds = 10

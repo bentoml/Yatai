@@ -10,6 +10,7 @@ import (
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
 	"github.com/bentoml/yatai/common/utils"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
@@ -126,6 +127,56 @@ func (c *organizationController) GetMajorCluster(ctx *gin.Context, schema *GetOr
 		return nil, errors.Wrap(err, "get major cluster")
 	}
 	return transformersv1.ToClusterFullSchema(ctx, cluster)
+}
+
+type ListOrginizationEventsSchema struct {
+	schemasv1.ListQuerySchema
+	GetOrganizationSchema
+}
+
+func (c *organizationController) ListEvents(ctx *gin.Context, schema *ListOrginizationEventsSchema) (*schemasv1.EventListSchema, error) {
+	organization, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, organization); err != nil {
+		return nil, err
+	}
+	events, total, err := services.EventService.List(ctx, services.ListEventOption{
+		BaseListOption: services.BaseListOption{
+			Start: &schema.Start,
+			Count: &schema.Count,
+		},
+		OrganizationId: &organization.ID,
+		Status:         modelschemas.EventStatusSuccess.Ptr(),
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "list events")
+	}
+	eventSchemas, err := transformersv1.ToEventSchemas(ctx, events)
+	if err != nil {
+		return nil, errors.Wrap(err, "transform events")
+	}
+	return &schemasv1.EventListSchema{
+		BaseListSchema: schemasv1.BaseListSchema{
+			Total: total,
+			Start: schema.Start,
+			Count: schema.Count,
+		},
+		Items: eventSchemas,
+	}, nil
+}
+
+func (c *organizationController) ListModelModules(ctx *gin.Context, schema *GetOrganizationSchema) ([]string, error) {
+	organization, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, organization); err != nil {
+		return nil, err
+	}
+	modules, err := services.ModelService.ListAllModules(ctx, organization.ID)
+	return modules, err
 }
 
 func (c *organizationController) List(ctx *gin.Context, schema *schemasv1.ListQuerySchema) (*schemasv1.OrganizationListSchema, error) {

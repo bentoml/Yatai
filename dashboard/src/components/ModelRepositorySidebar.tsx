@@ -50,7 +50,7 @@ export default function ModelRepositorySidebar({ style }: IComposedSidebarProps)
                 icon: RiSurveyLine,
             },
             {
-                title: t('sth list', [t('model')]),
+                title: t('models'),
                 path: `/model_repositories/${modelRepositoryName}/models`,
                 icon: resourceIconMapping.model,
             },

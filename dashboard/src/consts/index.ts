@@ -1,6 +1,6 @@
 import { YataiComponentType } from '@/schemas/yatai_component'
 import { ResourceType } from '@/schemas/resource'
-import type { IconBaseProps } from 'react-icons/lib'
+import type { IconType } from 'react-icons/lib'
 import { GrOrganization, GrServerCluster, GrDeploy, GrUser } from 'react-icons/gr'
 import { AiOutlineDashboard, AiOutlineCodeSandbox } from 'react-icons/ai'
 import { HiOutlineUserGroup, HiOutlineKey } from 'react-icons/hi'
@@ -17,7 +17,7 @@ export const dateFormat = 'YYYY-MM-DD'
 export const dateWithZeroTimeFormat = 'YYYY-MM-DD 00:00:00'
 export const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss'
 
-export const resourceIconMapping: Record<ResourceType, React.ComponentType<IconBaseProps>> = {
+export const resourceIconMapping: Record<ResourceType, IconType> = {
     user: GrUser,
     user_group: HiOutlineUserGroup,
     organization: GrOrganization,
@@ -32,7 +32,7 @@ export const resourceIconMapping: Record<ResourceType, React.ComponentType<IconB
     api_token: HiOutlineKey,
 }
 
-export const yataiComponentIconMapping: Record<YataiComponentType, React.ComponentType<IconBaseProps>> = {
+export const yataiComponentIconMapping: Record<YataiComponentType, IconType> = {
     deployment: GrDeploy,
     logging: RiMistFill,
     monitoring: AiOutlineDashboard,

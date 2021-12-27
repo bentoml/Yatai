@@ -5,7 +5,7 @@ import Text from './Text'
 
 export interface IUserProps {
     user: IUserSchema
-    size?: 'scale800' | 'scale1000' | 'scale1200' | 'scale1400' | '64px' | '32px' | '16px'
+    size?: 'scale700' | 'scale800' | 'scale1000' | 'scale1200' | 'scale1400' | '64px' | '32px' | '16px' | '14px'
     style?: React.CSSProperties
 }
 

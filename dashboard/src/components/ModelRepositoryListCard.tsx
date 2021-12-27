@@ -32,7 +32,7 @@ export default function ModelRepositoryListCard() {
     const [t] = useTranslation()
     return (
         <Card
-            title={t('sth list', [t('model repository')])}
+            title={t('model repositories')}
             titleIcon={resourceIconMapping.model}
             extra={
                 <Button size={ButtonSize.compact} onClick={() => setIsCreateModelOpen(true)}>

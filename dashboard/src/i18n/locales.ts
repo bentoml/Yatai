@@ -100,11 +100,6 @@ const locales0 = {
         cn: '创建{{0}}',
         ja: '{{0}}を作成',
     },
-    'sth list': {
-        en: '{{0}} List',
-        cn: '{{0}}列表',
-        ja: '{{0}}リスト',
-    },
     'select sth': {
         en: 'Select {{0}}',
         cn: '选择{{0}}',
@@ -1039,6 +1034,171 @@ const locales0 = {
         en: 'Rerun',
         cn: '重新运行',
         ja: '再実行',
+    },
+    'n_bentos': {
+        en: '{{0}} Bento(s)',
+        cn: '{{0}} 个 Bento',
+        ja: '{{0}} 個 Bento',
+    },
+    'n_versions': {
+        en: '{{0}} Version(s)',
+        cn: '{{0}} 个版本',
+        ja: '{{0}} 個バージョン',
+    },
+    'n_deployments': {
+        en: '{{0}} Deployment(s)',
+        cn: '{{0}} 个部署',
+        ja: '{{0}} 個デプロイ',
+    },
+    'largest': {
+        en: 'Largest',
+        cn: '最大',
+        ja: '最大',
+    },
+    'smallest': {
+        en: 'Smallest',
+        cn: '最小',
+        ja: '最小',
+    },
+    'latest deployments': {
+        en: 'Latest deployments',
+        cn: '最新部署',
+        ja: '最新のデプロイ',
+    },
+    'latest versions': {
+        en: 'Latest versions',
+        cn: '最新版本',
+        ja: '最新のバージョン',
+    },
+    'module': {
+        en: 'Module',
+        cn: '模块',
+        ja: 'モジュール',
+    },
+    'label': {
+        en: 'Label',
+        cn: '标签',
+        ja: 'ラベル',
+    },
+    'context': {
+        en: 'Context',
+        cn: '上下文',
+        ja: 'コンテキスト',
+    },
+    'download': {
+        en: 'Download',
+        cn: '下载',
+        ja: 'ダウンロード',
+    },
+    'key': {
+        en: 'Key',
+        cn: '键',
+        ja: 'キー',
+    },
+    'value': {
+        en: 'Value',
+        cn: '值',
+        ja: '値',
+    },
+    'recent activities': {
+        en: 'Recent Activities',
+        cn: '最近活动',
+        ja: '最近の活動',
+    },
+    'pushed': {
+        en: 'Pushed',
+        cn: '推送',
+        ja: 'プッシュ',
+    },
+    'active deployments': {
+        en: 'Active Deployments',
+        cn: '活动部署',
+        ja: 'アクティブなデプロイ',
+    },
+    'revisions': {
+        en: 'Revisions',
+        cn: '版本列表',
+        ja: 'リビジョン',
+    },
+    'labels': {
+        en: 'Labels',
+        cn: '标签列表',
+        ja: 'ラベル',
+    },
+    'models': {
+        en: 'Models',
+        cn: '模型列表',
+        ja: 'モデル',
+    },
+    'bentos': {
+        en: 'Bentos',
+        cn: 'Bentos',
+        ja: 'Bentos',
+    },
+    'deployments': {
+        en: 'Deployments',
+        cn: '部署列表',
+        ja: 'デプロイ',
+    },
+    'model repositories': {
+        en: 'Model Repositories',
+        cn: '模型仓库列表',
+        ja: 'モデルリポジトリ',
+    },
+    'bento repositories': {
+        en: 'Bento Repositories',
+        cn: 'Bento 仓库列表',
+        ja: 'Bento リポジトリ',
+    },
+    'users': {
+        en: 'Users',
+        cn: '用户列表',
+        ja: 'ユーザー',
+    },
+    'members': {
+        en: 'Members',
+        cn: '成员列表',
+        ja: 'メンバー',
+    },
+    'organizations': {
+        en: 'Organizations',
+        cn: '组织列表',
+        ja: '組織',
+    },
+    'clusters': {
+        en: 'Clusters',
+        cn: '集群列表',
+        ja: 'クラスター',
+    },
+    'yatai components': {
+        en: 'Yatai Components',
+        cn: 'Yatai 组件列表',
+        ja: 'Yatai コンポーネント',
+    },
+    'deployment targets': {
+        en: 'Deployment Targets',
+        cn: '部署目标列表',
+        ja: 'デプロイターゲット',
+    },
+    'api tokens': {
+        en: 'API Tokens',
+        cn: 'API 令牌列表',
+        ja: 'API トークン',
+    },
+    'documentation': {
+        en: 'Documentation',
+        cn: '文档',
+        ja: 'ドキュメント',
+    },
+    'release notes': {
+        en: 'Release Notes',
+        cn: '发布说明',
+        ja: 'リリースノート',
+    },
+    'blog posts': {
+        en: 'Blog Posts',
+        cn: '博客文章',
+        ja: 'ブログ記事',
     },
 }
 

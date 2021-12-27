@@ -176,7 +176,7 @@ export default function DeploymentForm({
                     <Textarea />
                 </FormItem>
             )}
-            <Label style={{ paddingBottom: 10, display: 'block' }}>{t('sth list', [t('deployment target')])} *</Label>
+            <Label style={{ paddingBottom: 10, display: 'block' }}>{t('deployment targets')} *</Label>
             <div
                 style={{
                     background: theme.colors.backgroundSecondary,

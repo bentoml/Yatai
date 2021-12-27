@@ -208,6 +208,34 @@ func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadMod
 	if err != nil {
 		return nil, errors.Wrap(err, "update model")
 	}
+	if schema.Status != nil {
+		user, err := services.GetCurrentUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		modelRepository, err := services.ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+		if err != nil {
+			return nil, err
+		}
+		org, err := services.OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+		if err != nil {
+			return nil, err
+		}
+		createEventOpt := services.CreateEventOption{
+			CreatorId:      user.ID,
+			OrganizationId: &org.ID,
+			ResourceType:   modelschemas.ResourceTypeModel,
+			ResourceId:     model.ID,
+			Status:         modelschemas.EventStatusSuccess,
+			OperationName:  "pushed",
+		}
+		if *schema.Status != modelschemas.ModelUploadStatusSuccess {
+			createEventOpt.Status = modelschemas.EventStatusFailure
+		}
+		if _, err = services.EventService.Create(ctx, createEventOpt); err != nil {
+			return nil, errors.Wrap(err, "create event")
+		}
+	}
 	return transformersv1.ToModelSchema(ctx, model)
 }
 
@@ -241,7 +269,7 @@ func (c *modelController) ListImageBuilderPods(ctx *gin.Context, schema *GetMode
 	return transformersv1.ToKubePodSchemas(ctx, pods)
 }
 
-func (c *modelController) Get(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
+func (c *modelController) Get(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelFullSchema, error) {
 	model, err := schema.GetModel(ctx)
 	if err != nil {
 		return nil, err
@@ -249,7 +277,93 @@ func (c *modelController) Get(ctx *gin.Context, schema *GetModelSchema) (*schema
 	if err = c.canView(ctx, model); err != nil {
 		return nil, err
 	}
-	return transformersv1.ToModelSchema(ctx, model)
+	return transformersv1.ToModelFullSchema(ctx, model)
+}
+
+type ListModelDeploymentSchema struct {
+	schemasv1.ListQuerySchema
+	GetModelSchema
+}
+
+func (c *modelController) ListDeployment(ctx *gin.Context, schema *ListModelDeploymentSchema) (*schemasv1.DeploymentListSchema, error) {
+	model, err := schema.GetModel(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, model); err != nil {
+		return nil, err
+	}
+	bentos, _, err := services.BentoService.List(ctx, services.ListBentoOption{
+		ModelIds: &[]uint{model.ID},
+	})
+	if err != nil {
+		return nil, err
+	}
+	bentoIds := make([]uint, 0, len(bentos))
+	for _, bento := range bentos {
+		bentoIds = append(bentoIds, bento.ID)
+	}
+	deployments, total, err := services.DeploymentService.List(ctx, services.ListDeploymentOption{
+		BaseListOption: services.BaseListOption{
+			Start:  &schema.Start,
+			Count:  &schema.Count,
+			Search: schema.Search,
+		},
+		BentoIds: &bentoIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	deploymentSchemas, err := transformersv1.ToDeploymentSchemas(ctx, deployments)
+	if err != nil {
+		return nil, err
+	}
+	return &schemasv1.DeploymentListSchema{
+		BaseListSchema: schemasv1.BaseListSchema{
+			Total: total,
+			Start: schema.Start,
+			Count: schema.Count,
+		},
+		Items: deploymentSchemas,
+	}, nil
+}
+
+type ListModelBentoSchema struct {
+	schemasv1.ListQuerySchema
+	GetModelSchema
+}
+
+func (c *modelController) ListBento(ctx *gin.Context, schema *ListModelBentoSchema) (*schemasv1.BentoWithRepositoryListSchema, error) {
+	model, err := schema.GetModel(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, model); err != nil {
+		return nil, err
+	}
+	bentos, total, err := services.BentoService.List(ctx, services.ListBentoOption{
+		BaseListOption: services.BaseListOption{
+			Start:  &schema.Start,
+			Count:  &schema.Count,
+			Search: schema.Search,
+		},
+		ModelIds: &[]uint{model.ID},
+	})
+	if err != nil {
+		return nil, err
+	}
+	bentoSchemas, err := transformersv1.ToBentoWithRepositorySchemas(ctx, bentos)
+	if err != nil {
+		return nil, err
+	}
+	return &schemasv1.BentoWithRepositoryListSchema{
+		BaseListSchema: schemasv1.BaseListSchema{
+			Total: total,
+			Start: schema.Start,
+			Count: schema.Count,
+		},
+		Items: bentoSchemas,
+	}, nil
 }
 
 type ListModelSchema struct {
@@ -331,6 +445,9 @@ func (c *modelController) ListAll(ctx *gin.Context, schema *ListAllModelSchema) 
 		if k == schemasv1.KeyQKeywords {
 			listOpt.Keywords = utils.StringSlicePtr(v.([]string))
 		}
+		if k == "module" {
+			listOpt.Modules = utils.StringSlicePtr(v.([]string))
+		}
 		if k == "creator" {
 			userNames, err := processUserNamesFromQ(ctx, v.([]string))
 			if err != nil {
@@ -351,8 +468,12 @@ func (c *modelController) ListAll(ctx *gin.Context, schema *ListAllModelSchema) 
 			if _, ok := map[string]struct{}{
 				"created_at": {},
 				"build_at":   {},
+				"size":       {},
 			}[fieldName]; !ok {
 				continue
+			}
+			if fieldName == "size" {
+				fieldName = "manifest->'size_bytes'"
 			}
 			if _, ok := map[string]struct{}{
 				"desc": {},

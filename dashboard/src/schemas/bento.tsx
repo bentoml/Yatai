@@ -20,6 +20,7 @@ export interface IBentoManifestSchema {
             output: string
         }
     }
+    size_bytes: number
 }
 
 export interface IBentoSchema extends IResourceSchema {

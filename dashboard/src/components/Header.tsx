@@ -449,7 +449,7 @@ export default function Header() {
                     <div className={styles.userMenu}>
                         <Link className={styles.userMenuItem} to='/api_tokens'>
                             {React.createElement(resourceIconMapping.api_token, { size: 12 })}
-                            <span>{t('sth list', [t('api token')])}</span>
+                            <span>{t('api tokens')}</span>
                         </Link>
                         <div
                             role='button'

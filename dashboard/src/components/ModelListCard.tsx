@@ -72,7 +72,7 @@ export default function ModelListCard({ modelRepositoryName }: IModelListCardPro
     }, [subscribe, subscribeCb, uids, unsubscribe])
 
     return (
-        <Card title={t('sth list', [t('model')])} titleIcon={resourceIconMapping.model}>
+        <Card title={t('models')} titleIcon={resourceIconMapping.model}>
             <Table
                 isLoading={modelsInfo.isLoading}
                 columns={[t('name'), t('image build status'), t('description'), t('creator'), t('created_at')]}

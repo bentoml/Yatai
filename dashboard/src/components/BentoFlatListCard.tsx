@@ -3,22 +3,24 @@ import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
 import { listAllBentos, recreateBentoImageBuilderJob } from '@/services/bento'
 import { usePage } from '@/hooks/usePage'
-import { IBentoSchema } from '@/schemas/bento'
-import { formatDateTime } from '@/utils/datetime'
+import { IBentoSchema, IBentoWithRepositorySchema } from '@/schemas/bento'
 import useTranslation from '@/hooks/useTranslation'
 import User from '@/components/User'
-import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
-import ImageBuildStatusTag from '@/components/ImageBuildStatusTag'
 import qs from 'qs'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import { useQ } from '@/hooks/useQ'
+import prettyBytes from 'pretty-bytes'
+import { ListItem } from 'baseui/list'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
 import { ResourceLabels } from './ResourceLabels'
+import ImageBuildStatusIcon from './ImageBuildStatusIcon'
+import Time from './Time'
+import List from './List'
 
 export default function BentoFlatListCard() {
     const { q, updateQ } = useQ()
@@ -77,9 +79,73 @@ export default function BentoFlatListCard() {
         }
     }, [subscribe, subscribeCb, uids, unsubscribe])
 
+    const handleRenderItem = useCallback(
+        (bento: IBentoWithRepositorySchema) => {
+            return (
+                <ListItem
+                    key={bento.uid}
+                    artwork={() => (
+                        <ImageBuildStatusIcon
+                            key={bento.uid}
+                            status={bento.image_build_status}
+                            podsSelector={`yatai.io/bento=${bento.version},yatai.io/bento-repository=${bento.repository.name}`}
+                            onRerunClick={async () => {
+                                await recreateBentoImageBuilderJob(bento.repository.name, bento.version)
+                            }}
+                        />
+                    )}
+                    endEnhancer={() => (
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 8,
+                            }}
+                        >
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 8,
+                                }}
+                            >
+                                <div>{prettyBytes(bento.manifest.size_bytes)}</div>
+                            </div>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 8,
+                                }}
+                            >
+                                {bento.creator && <User size='16px' user={bento.creator} />}
+                                {t('Created At')}
+                                <Time time={bento.created_at} />
+                            </div>
+                        </div>
+                    )}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 10,
+                        }}
+                    >
+                        <Link to={`/bento_repositories/${bento.repository.name}/bentos/${bento.version}`}>
+                            {bento.repository.name}:{bento.version}
+                        </Link>
+                        <ResourceLabels resource={bento} />
+                    </div>
+                </ListItem>
+            )
+        },
+        [t]
+    )
+
     return (
         <Card
-            title={t('sth list', [t('bento')])}
+            title={t('bentos')}
             titleIcon={resourceIconMapping.bento}
             middle={
                 <div
@@ -157,39 +223,10 @@ export default function BentoFlatListCard() {
                     },
                 ]}
             />
-            <Table
+            <List
                 isLoading={bentosInfo.isLoading}
-                columns={[t('name'), t('image build status'), t('description'), t('creator'), t('build_at')]}
-                data={
-                    bentosInfo.data?.items.map((bento) => [
-                        <div
-                            key={bento.uid}
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 10,
-                            }}
-                        >
-                            <Link to={`/bento_repositories/${bento.repository.name}/bentos/${bento.version}`}>
-                                {bento.repository.name}:{bento.version}
-                            </Link>
-                            <ResourceLabels resource={bento} />
-                        </div>,
-                        <ImageBuildStatusTag
-                            key={bento.uid}
-                            status={bento.image_build_status}
-                            podsSelector={`yatai.io/bento=${bento.version},yatai.io/bento-repository=${
-                                bento.repository.name
-                            };yatai.io/model in (${bento.manifest.models.map((x) => x.split(':')[1]).join(',')})`}
-                            onRerunClick={async () => {
-                                await recreateBentoImageBuilderJob(bento.repository.name, bento.version)
-                            }}
-                        />,
-                        bento.description,
-                        bento.creator && <User user={bento.creator} />,
-                        formatDateTime(bento.build_at),
-                    ]) ?? []
-                }
+                items={bentosInfo.data?.items ?? []}
+                onRenderItem={handleRenderItem}
                 paginationProps={{
                     start: bentosInfo.data?.start,
                     count: bentosInfo.data?.count,

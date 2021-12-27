@@ -47,7 +47,7 @@ export default function MemberForm({ member, onSubmit }: IMemberFormProps) {
 
     return (
         <Form initialValues={initialValue} onFinish={handleFinish}>
-            <FormItem name='usernames' label={t('sth list', [t('user')])}>
+            <FormItem name='usernames' label={t('users')}>
                 <UserSelector />
             </FormItem>
             <FormItem name='role' label={t('role')}>

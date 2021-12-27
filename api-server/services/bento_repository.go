@@ -165,24 +165,24 @@ func (s *bentoRepositoryService) List(ctx context.Context, opt ListBentoReposito
 	}
 	query = opt.BindQueryWithKeywords(query, "bento_repository")
 	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeBentoRepository)
-	query = query.Select("distinct(bento_repository.*)")
+	query = query.Select("bento.*, bento_repository.*")
 	var total int64
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	bentos := make([]*models.BentoRepository, 0)
+	bentoRepositories := make([]*models.BentoRepository, 0)
 	query = opt.BindQueryWithLimit(query)
 	if opt.Order != nil {
 		query = query.Order(*opt.Order)
 	} else {
 		query = query.Order("bento_repository.id DESC")
 	}
-	err = query.Find(&bentos).Error
+	err = query.Find(&bentoRepositories).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	return bentos, uint(total), err
+	return bentoRepositories, uint(total), err
 }
 
 type IBentoRepositoryAssociate interface {

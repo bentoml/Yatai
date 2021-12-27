@@ -16,31 +16,31 @@ export interface IBentoRepositoryLayoutProps {
 
 export default function BentoRepositoryLayout({ children }: IBentoRepositoryLayoutProps) {
     const { bentoRepositoryName } = useParams<{ bentoRepositoryName: string }>()
-    const bentoInfo = useQuery(`fetchBentoRepository:${bentoRepositoryName}`, () =>
+    const bentoRepositoryInfo = useQuery(`fetchBentoRepository:${bentoRepositoryName}`, () =>
         fetchBentoRepository(bentoRepositoryName)
     )
-    const { bentoRepository: bento, setBentoRepository: setBento } = useBentoRepository()
+    const { bentoRepository, setBentoRepository } = useBentoRepository()
     const { organization, setOrganization } = useOrganization()
     const { setBentoRepositoryLoading: setBentoLoading } = useBentoRepositoryLoading()
     useEffect(() => {
-        setBentoLoading(bentoInfo.isLoading)
-        if (bentoInfo.isSuccess) {
-            if (bentoInfo.data.uid !== bento?.uid) {
-                setBento(bentoInfo.data)
+        setBentoLoading(bentoRepositoryInfo.isLoading)
+        if (bentoRepositoryInfo.isSuccess) {
+            if (bentoRepositoryInfo.data.uid !== bentoRepository?.uid) {
+                setBentoRepository(bentoRepositoryInfo.data)
             }
-            if (bentoInfo.data.organization?.uid !== organization?.uid) {
-                setOrganization(bentoInfo.data.organization)
+            if (bentoRepositoryInfo.data.organization?.uid !== organization?.uid) {
+                setOrganization(bentoRepositoryInfo.data.organization)
             }
-        } else if (bentoInfo.isLoading) {
-            setBento(undefined)
+        } else if (bentoRepositoryInfo.isLoading) {
+            setBentoRepository(undefined)
         }
     }, [
-        bento?.uid,
-        bentoInfo.data,
-        bentoInfo.isLoading,
-        bentoInfo.isSuccess,
+        bentoRepository?.uid,
+        bentoRepositoryInfo.data,
+        bentoRepositoryInfo.isLoading,
+        bentoRepositoryInfo.isSuccess,
         organization?.uid,
-        setBento,
+        setBentoRepository,
         setBentoLoading,
         setOrganization,
     ])
@@ -50,7 +50,7 @@ export default function BentoRepositoryLayout({ children }: IBentoRepositoryLayo
     const breadcrumbItems: INavItem[] = useMemo(
         () => [
             {
-                title: t('sth list', [t('bento repository')]),
+                title: t('bento repositories'),
                 path: '/bento_repositories',
                 icon: resourceIconMapping.bento,
             },
@@ -70,9 +70,14 @@ export default function BentoRepositoryLayout({ children }: IBentoRepositoryLayo
                 icon: RiSurveyLine,
             },
             {
-                title: t('sth list', [t('bento')]),
+                title: t('bentos'),
                 path: `/bento_repositories/${bentoRepositoryName}/bentos`,
                 icon: resourceIconMapping.bento,
+            },
+            {
+                title: t('deployments'),
+                path: `/bento_repositories/${bentoRepositoryName}/deployments`,
+                icon: resourceIconMapping.deployment,
             },
         ],
         [bentoRepositoryName, t]

@@ -8,7 +8,7 @@ import { Theme } from 'baseui/theme'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import Text from '@/components/Text'
-import type { IconBaseProps } from 'react-icons/lib'
+import type { IconType } from 'react-icons/lib'
 
 import styles from './index.module.scss'
 
@@ -35,7 +35,7 @@ const useStyles = createUseStyles({
 export interface ICardProps {
     title?: string | React.ReactNode
     onTitleChange?: (title: string) => Promise<void>
-    titleIcon?: React.ComponentType<IconBaseProps>
+    titleIcon?: IconType
     titleTail?: React.ReactNode
     style?: React.CSSProperties
     headStyle?: React.CSSProperties
