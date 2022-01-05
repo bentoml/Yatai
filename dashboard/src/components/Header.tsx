@@ -423,19 +423,24 @@ export default function Header() {
                         getValueLabel={handleRenderLanguageOption}
                         options={[
                             {
-                                id: 'zh-CN',
-                                text: '中文',
-                                flag: <ReactCountryFlag countryCode='CN' svg />,
-                            },
-                            {
                                 id: 'en',
                                 text: 'English',
                                 flag: <ReactCountryFlag countryCode='US' svg />,
                             },
                             {
+                                id: 'zh-CN',
+                                text: '中文',
+                                flag: <ReactCountryFlag countryCode='CN' svg />,
+                            },
+                            {
                                 id: 'ja',
                                 text: '日本語',
                                 flag: <ReactCountryFlag countryCode='JP' svg />,
+                            },
+                            {
+                                id: 'kr',
+                                text: '한국어',
+                                flag: <ReactCountryFlag countryCode='KR' svg />,
                             },
                         ]}
                     />

@@ -41,6 +41,14 @@ i18n.use(LanguageDetector)
                     }
                 }, {}),
             },
+            'kr': {
+                translations: Object.entries(locales).reduce((p, [k, v]) => {
+                    return {
+                        ...p,
+                        [k]: v.kr,
+                    }
+                }, {}),
+            },
         },
         fallbackLng: 'en',
         debug: false,
