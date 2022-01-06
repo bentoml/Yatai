@@ -393,7 +393,7 @@ export default function Header() {
                 <ThemeToggle />
                 <div
                     style={{
-                        width: 120,
+                        width: 140,
                     }}
                 >
                     <Select
@@ -412,7 +412,7 @@ export default function Header() {
                         clearable={false}
                         searchable={false}
                         size='mini'
-                        value={[{ id: i18n.language }]}
+                        value={[{ id: i18n.language ? i18n.language.split('-')[0] : '' }]}
                         onChange={(params) => {
                             if (!params.option?.id) {
                                 return
@@ -428,7 +428,7 @@ export default function Header() {
                                 flag: <ReactCountryFlag countryCode='US' svg />,
                             },
                             {
-                                id: 'zh-CN',
+                                id: 'zh',
                                 text: '中文',
                                 flag: <ReactCountryFlag countryCode='CN' svg />,
                             },
@@ -438,9 +438,14 @@ export default function Header() {
                                 flag: <ReactCountryFlag countryCode='JP' svg />,
                             },
                             {
-                                id: 'kr',
+                                id: 'ko',
                                 text: '한국어',
                                 flag: <ReactCountryFlag countryCode='KR' svg />,
+                            },
+                            {
+                                id: 'vi',
+                                text: 'Tiếng Việt',
+                                flag: <ReactCountryFlag countryCode='VN' svg />,
                             },
                         ]}
                     />

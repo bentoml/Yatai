@@ -7,17 +7,21 @@ import TimeAgo from 'javascript-time-ago'
 import en from 'javascript-time-ago/locale/en.json'
 import zh from 'javascript-time-ago/locale/zh.json'
 import ja from 'javascript-time-ago/locale/ja.json'
+import ko from 'javascript-time-ago/locale/ko.json'
+import vi from 'javascript-time-ago/locale/vi.json'
 
 TimeAgo.addDefaultLocale(en)
 TimeAgo.addLocale(zh)
 TimeAgo.addLocale(ja)
+TimeAgo.addLocale(ko)
+TimeAgo.addLocale(vi)
 
 i18n.use(LanguageDetector)
     .use(initReactI18next)
     .init({
         // we init with resources
         resources: {
-            'en': {
+            en: {
                 translations: Object.entries(locales).reduce((p, [k, v]) => {
                     return {
                         ...p,
@@ -25,15 +29,15 @@ i18n.use(LanguageDetector)
                     }
                 }, {}),
             },
-            'zh-CN': {
+            zh: {
                 translations: Object.entries(locales).reduce((p, [k, v]) => {
                     return {
                         ...p,
-                        [k]: v.cn,
+                        [k]: v.zh,
                     }
                 }, {}),
             },
-            'ja': {
+            ja: {
                 translations: Object.entries(locales).reduce((p, [k, v]) => {
                     return {
                         ...p,
@@ -41,11 +45,19 @@ i18n.use(LanguageDetector)
                     }
                 }, {}),
             },
-            'kr': {
+            ko: {
                 translations: Object.entries(locales).reduce((p, [k, v]) => {
                     return {
                         ...p,
-                        [k]: v.kr,
+                        [k]: v.ko,
+                    }
+                }, {}),
+            },
+            vi: {
+                translations: Object.entries(locales).reduce((p, [k, v]) => {
+                    return {
+                        ...p,
+                        [k]: v.vi,
                     }
                 }, {}),
             },
