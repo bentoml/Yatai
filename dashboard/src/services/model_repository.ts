@@ -24,9 +24,12 @@ export async function createModelRepository(data: ICreateModelRepositorySchema):
 }
 
 export async function updateModelRepository(
-    modelName: string,
+    modelRepositoryName: string,
     data: IUpdateModelRepositorySchema
 ): Promise<IModelRepositorySchema> {
-    const response = await axios.patch<IModelRepositorySchema>(`/api/v1/model_repositories/${modelName}`, data)
+    const response = await axios.patch<IModelRepositorySchema>(
+        `/api/v1/model_repositories/${modelRepositoryName}`,
+        data
+    )
     return response.data
 }

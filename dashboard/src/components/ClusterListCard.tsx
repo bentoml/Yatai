@@ -30,7 +30,7 @@ export default function ClusterListCard() {
 
     return (
         <Card
-            title={t('sth list', [t('cluster')])}
+            title={t('clusters')}
             titleIcon={resourceIconMapping.cluster}
             extra={
                 <Button size={ButtonSize.compact} onClick={() => setIsCreateClusterOpen(true)}>

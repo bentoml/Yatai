@@ -1,11 +1,16 @@
 .DEFAULT_GOAL := help
 
-VERSION := $(shell git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)
+GIT_COMMIT := $(shell git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)
+BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+VERSION := $(shell git describe --tags `git rev-list --tags --max-count=1` | sed 's/v\(\)/\1/')
+
+PKG := github.com/bentoml/yatai
+VERSION_BUILDFLAGS := -X '$(PKG)/api-server/version.GitCommit=$(GIT_COMMIT)' -X '$(PKG)/api-server/version.Version=$(VERSION)' -X '$(PKG)/api-server/version.BuildDate=$(BUILD_DATE)'
 DOCKER_REGISTRY := quay.io/bentoml
 
 BUILDER_IMG := $(DOCKER_REGISTRY)/yatai-builder:1.0
 UI_BUILDER_IMG := $(DOCKER_REGISTRY)/yatai-ui-builder:1.0
-YATAI_IMG := $(DOCKER_REGISTRY)/yatai:$(VERSION)
+YATAI_IMG := $(DOCKER_REGISTRY)/yatai:$(GIT_COMMIT)
 
 GOMOD_CACHE ?= "$(GOPATH)/pkg/mod"
 
@@ -50,7 +55,7 @@ docker-ui-typecheck: pull-ui-builder-image ## Docker typecheck
 	$(UI_BUILDER_CNTR_CMD) sh -c "cd dashboard; ln -s /cache/node_modules ./node_modules; yarn typecheck"
 
 docker-build-api-server: pull-builder-image ## Build api-server binary
-	$(BUILDER_CNTR_CMD) sh -c "mkdir -p ./bin; go build -o ./bin/api-server ./api-server/main.go"
+	$(BUILDER_CNTR_CMD) sh -c "mkdir -p ./bin; go build -ldflags "$(VERSION_BUILDFLAGS)"  -o ./bin/api-server ./api-server/main.go"
 
 build-builder-image: ## Build builder image
 	docker build -f Dockerfile-builder -t $(BUILDER_IMG) . || exit 1
@@ -78,16 +83,15 @@ yatai-dev: ## Run yatai(be and fe) in development mode
 be-deps: ## Fetch Golang deps
 	@echo "Downloading go modules..."
 	@go mod download
-be-build: ## Build backend binary
-	@go build -o ./bin/yatai-api-server ./api-server/main.go
-be-run: be-build ## Start backend API server
+be-run:
 	@echo "Make sure to install postgresql and create yatai DB with 'createdb yatai'"
 	@if [[ ! -f ./yatai-config.dev.yaml ]]; then \
 		echo "yatai-config.dev.yaml not found. Creating one with postgresql user: " $$(whoami); \
 		cp ./yatai-config.sample.yaml ./yatai-config.dev.yaml; \
 		sed -i 's/user: .*/user: '$$(whoami)'/' ./yatai-config.dev.yaml; \
 	fi; \
-	./bin/yatai-api-server serve -d -c ./yatai-config.dev.yaml
+	go run -ldflags "$(VERSION_BUILDFLAGS)" ./api-server/main.go version
+	go run -ldflags "$(VERSION_BUILDFLAGS)" ./api-server/main.go serve -d -c ./yatai-config.dev.yaml
 
 fe-deps: ## Fetch frontend deps
 	@cd dashboard && yarn

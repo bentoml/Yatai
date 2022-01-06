@@ -12,6 +12,9 @@ import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import color from 'color'
 import Text from '@/components/Text'
 import useTranslation from '@/hooks/useTranslation'
+import { useQuery } from 'react-query'
+import { fetchVersion } from '@/services/version'
+import { formatDateTime } from '@/utils/datetime'
 
 export interface IComposedSidebarProps {
     style?: React.CSSProperties
@@ -25,6 +28,8 @@ export interface INavItem {
     children?: INavItem[]
     disabled?: boolean
     helpMessage?: React.ReactNode
+    activePathPattern?: RegExp
+    isActive?: () => boolean
 }
 
 function transformNavItems(navItems: INavItem[], expanded = true): Item[] {
@@ -61,6 +66,7 @@ export interface IBaseSideBarProps extends IComposedSidebarProps {
 }
 
 export default function BaseSidebar({ navItems, style, title, icon, settingsPath }: IBaseSideBarProps) {
+    const versionInfo = useQuery('version', fetchVersion)
     const width = useSidebarWidth()
     const ctx = useContext(SidebarContext)
 
@@ -83,12 +89,25 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
         if (checkIsSettingsPage(location.pathname)) {
             return undefined
         }
-        const item = baseuiNavItems
-            .slice()
-            .reverse()
-            .find((item_) => _.startsWith(location.pathname, item_.itemId))
-        return item?.itemId
-    }, [baseuiNavItems, checkIsSettingsPage, location.pathname])
+        const items = baseuiNavItems.slice().reverse()
+        let activeItem = items.find((item_) => {
+            const item = navItems.find((item__) => item_.itemId === item__.path)
+            if (!item) {
+                return false
+            }
+            if (item.activePathPattern) {
+                return item.activePathPattern.test(location.pathname)
+            }
+            if (item.isActive) {
+                return item.isActive()
+            }
+            return false
+        })
+        if (!activeItem) {
+            activeItem = items.find((item_) => _.startsWith(location.pathname, item_.itemId))
+        }
+        return activeItem?.itemId
+    }, [baseuiNavItems, checkIsSettingsPage, location.pathname, navItems])
 
     const [, theme] = useStyletron()
 
@@ -167,6 +186,20 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
                     history.push(item.itemId)
                 }}
             />
+            <div
+                style={{
+                    fontSize: '11px',
+                    display: ctx.expanded ? 'flex' : 'none',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 4,
+                }}
+            >
+                <div>
+                    {versionInfo.isLoading ? '-' : `v${versionInfo.data?.version}-${versionInfo.data?.git_commit}`}
+                </div>
+                <div>Build at {versionInfo.data ? formatDateTime(versionInfo.data.build_date) : '-'}</div>
+            </div>
             <div
                 style={{
                     display: 'flex',

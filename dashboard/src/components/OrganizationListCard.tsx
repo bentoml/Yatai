@@ -30,7 +30,7 @@ export default function OrganizationListCard() {
 
     return (
         <Card
-            title={t('sth list', [t('organization')])}
+            title={t('organizations')}
             titleIcon={resourceIconMapping.organization}
             extra={
                 <Button size={ButtonSize.compact} onClick={() => setIsCreateOrganizationOpen(true)}>

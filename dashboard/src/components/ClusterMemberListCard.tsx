@@ -31,7 +31,7 @@ export default function ClusterMemberListCard({ clusterName }: IClusterMemberLis
     return (
         <>
             <Card
-                title={t('sth list', [t('member')])}
+                title={t('members')}
                 titleIcon={resourceIconMapping.user_group}
                 extra={
                     <Button size={ButtonSize.compact} onClick={() => setIsCreateMembersOpen(true)}>

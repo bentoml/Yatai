@@ -13,8 +13,8 @@ export async function listAllBentos(query: IListQuerySchema): Promise<IListSchem
 export async function listBentos(
     bentoRepositoryName: string,
     query: IListQuerySchema
-): Promise<IListSchema<IBentoSchema>> {
-    const resp = await axios.get<IListSchema<IBentoSchema>>(
+): Promise<IListSchema<IBentoWithRepositorySchema>> {
+    const resp = await axios.get<IListSchema<IBentoWithRepositorySchema>>(
         `/api/v1/bento_repositories/${bentoRepositoryName}/bentos`,
         {
             params: query,

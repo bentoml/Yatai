@@ -19,7 +19,7 @@ type Model struct {
 	UploadStartedAt           *time.Time                        `json:"upload_started_at"`
 	UploadFinishedAt          *time.Time                        `json:"upload_finished_at"`
 	UploadFinishedReason      string                            `json:"upload_finished_reason"`
-	Manifest                  *modelschemas.ModelManifestSchema `json:"manifest"`
+	Manifest                  *modelschemas.ModelManifestSchema `json:"manifest" type:"jsonb"`
 	BuildAt                   time.Time                         `json:"build_at"`
 }
 

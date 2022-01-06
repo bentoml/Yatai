@@ -3,34 +3,38 @@ import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
 import { listAllModels, recreateModelImageBuilderJob } from '@/services/model'
 import { usePage } from '@/hooks/usePage'
-import { IModelSchema } from '@/schemas/model'
-import { formatDateTime } from '@/utils/datetime'
+import { IModelSchema, IModelWithRepositorySchema } from '@/schemas/model'
 import useTranslation from '@/hooks/useTranslation'
 import User from '@/components/User'
-import Table from '@/components/Table'
 import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
 import qs from 'qs'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
+import { useFetchOrganizationModelModules } from '@/hooks/useFetchOrganizationModelModules'
 import { useQ } from '@/hooks/useQ'
+import { ListItem } from 'baseui/list'
+import prettyBytes from 'pretty-bytes'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
 import { ResourceLabels } from './ResourceLabels'
-import ImageBuildStatusTag from './ImageBuildStatusTag'
+import List from './List'
+import ImageBuildStatusIcon from './ImageBuildStatusIcon'
+import Time from './Time'
 
 export default function ModelFlatListCard() {
     const { q, updateQ } = useQ()
     const [page] = usePage()
     const queryKey = `fetchAllModels:${qs.stringify(page)}`
-    const modelVersionsInfo = useQuery(queryKey, () => listAllModels(page))
+    const modelsInfo = useQuery(queryKey, () => listAllModels(page))
     const membersInfo = useFetchOrganizationMembers()
+    const modelModulesInfo = useFetchOrganizationModelModules()
     const [t] = useTranslation()
 
     const uids = useMemo(
-        () => modelVersionsInfo.data?.items.map((modelVersion) => modelVersion.uid) ?? [],
-        [modelVersionsInfo.data?.items]
+        () => modelsInfo.data?.items.map((modelVersion) => modelVersion.uid) ?? [],
+        [modelsInfo.data?.items]
     )
     const queryClient = useQueryClient()
     const subscribeCb = useCallback(
@@ -77,9 +81,74 @@ export default function ModelFlatListCard() {
         }
     }, [subscribe, subscribeCb, uids, unsubscribe])
 
+    const handleRenderItem = useCallback(
+        (model: IModelWithRepositorySchema) => {
+            return (
+                <ListItem
+                    key={model.uid}
+                    artwork={() => (
+                        <ImageBuildStatusIcon
+                            key={model.uid}
+                            status={model.image_build_status}
+                            podsSelector={`yatai.io/model=${model.version},yatai.io/model-repository=${model.repository.name}`}
+                            onRerunClick={async () => {
+                                await recreateModelImageBuilderJob(model.repository.name, model.version)
+                            }}
+                        />
+                    )}
+                    endEnhancer={() => (
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 8,
+                            }}
+                        >
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 20,
+                                }}
+                            >
+                                <div>{prettyBytes(model.manifest.size_bytes)}</div>
+                                <div>{model.manifest.module}</div>
+                            </div>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 8,
+                                }}
+                            >
+                                {model.creator && <User size='16px' user={model.creator} />}
+                                {t('Created At')}
+                                <Time time={model.created_at} />
+                            </div>
+                        </div>
+                    )}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 10,
+                        }}
+                    >
+                        <Link to={`/model_repositories/${model.repository.name}/models/${model.version}`}>
+                            {model.repository.name}:{model.version}
+                        </Link>
+                        <ResourceLabels resource={model} />
+                    </div>
+                </ListItem>
+            )
+        },
+        [t]
+    )
+
     return (
         <Card
-            title={t('sth list', [t('model')])}
+            title={t('models')}
             titleIcon={resourceIconMapping.model}
             middle={
                 <div
@@ -120,6 +189,24 @@ export default function ModelFlatListCard() {
                         showInput: true,
                         multiple: true,
                         options:
+                            modelModulesInfo.data?.map((module) => ({
+                                id: module,
+                                label: module,
+                            })) ?? [],
+                        value: ((q.module as string[] | undefined) ?? []).map((v) => ({
+                            id: v,
+                        })),
+                        onChange: ({ value }) => {
+                            updateQ({
+                                module: value.map((v) => String(v.id ?? '')),
+                            })
+                        },
+                        label: t('module'),
+                    },
+                    {
+                        showInput: true,
+                        multiple: true,
+                        options:
                             membersInfo.data?.map(({ user }) => ({
                                 id: user.name,
                                 label: <User user={user} />,
@@ -144,6 +231,14 @@ export default function ModelFlatListCard() {
                                 id: 'build_at-asc',
                                 label: t('oldest build'),
                             },
+                            {
+                                id: 'size-desc',
+                                label: t('largest'),
+                            },
+                            {
+                                id: 'size-asc',
+                                label: t('smallest'),
+                            },
                         ],
                         value: ((q.sort as string[] | undefined) ?? []).map((v) => ({
                             id: v,
@@ -157,43 +252,16 @@ export default function ModelFlatListCard() {
                     },
                 ]}
             />
-            <Table
-                isLoading={modelVersionsInfo.isLoading}
-                columns={[t('name'), t('image build status'), t('description'), t('creator'), t('build_at')]}
-                data={
-                    modelVersionsInfo.data?.items.map((model) => [
-                        <div
-                            key={model.uid}
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 10,
-                            }}
-                        >
-                            <Link to={`/model_repositories/${model.repository.name}/models/${model.version}`}>
-                                {model.repository.name}:{model.version}
-                            </Link>
-                            <ResourceLabels resource={model} />
-                        </div>,
-                        <ImageBuildStatusTag
-                            key={model.uid}
-                            status={model.image_build_status}
-                            podsSelector={`yatai.io/model=${model.version},yatai.io/model-repository=${model.repository.name}`}
-                            onRerunClick={async () => {
-                                await recreateModelImageBuilderJob(model.repository.name, model.version)
-                            }}
-                        />,
-                        model.description,
-                        model.creator && <User user={model.creator} />,
-                        formatDateTime(model.build_at),
-                    ]) ?? []
-                }
+            <List
+                isLoading={modelsInfo.isFetching}
+                items={modelsInfo.data?.items ?? []}
+                onRenderItem={handleRenderItem}
                 paginationProps={{
-                    start: modelVersionsInfo.data?.start,
-                    count: modelVersionsInfo.data?.count,
-                    total: modelVersionsInfo.data?.total,
+                    start: modelsInfo.data?.start,
+                    count: modelsInfo.data?.count,
+                    total: modelsInfo.data?.total,
                     afterPageChange: () => {
-                        modelVersionsInfo.refetch()
+                        modelsInfo.refetch()
                     },
                 }}
             />

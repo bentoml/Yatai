@@ -17,7 +17,7 @@ import { TiClipboard } from 'react-icons/ti'
 import { Notification } from 'baseui/notification'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import { CopyBlock, solarizedDark, solarizedLight } from 'react-code-blocks'
-import useGlobalState from '@/hooks/global'
+import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 
 export default function ApiTokenListCard() {
     const [page] = usePage()
@@ -28,7 +28,6 @@ export default function ApiTokenListCard() {
     const [isCreateApiTokenOpen, setIsCreateApiTokenOpen] = useState(false)
     const [copyNotification, setCopyNotification] = useState<string>()
     const [deleteApiTokenLoading, setDeleteApiTokenLoading] = useState(false)
-    const [themeType] = useGlobalState('themeType')
     const handleCreateApiToken = useCallback(
         async (data: ICreateApiTokenSchema) => {
             const apiToken = await createApiToken(data)
@@ -69,11 +68,12 @@ export default function ApiTokenListCard() {
     const copyCliCommand = theTokenWishToShow
         ? `bentoml yatai login --api-token ${theTokenWishToShow} --endpoint ${window.location.origin}`
         : ''
+    const themeType = useCurrentThemeType()
     const codeTheme = themeType === 'light' ? solarizedLight : solarizedDark
 
     return (
         <Card
-            title={t('sth list', [t('api token')])}
+            title={t('api tokens')}
             titleIcon={resourceIconMapping.api_token}
             extra={
                 <Button size={ButtonSize.compact} onClick={() => setIsCreateApiTokenOpen(true)}>

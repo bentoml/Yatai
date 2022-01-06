@@ -20,7 +20,7 @@ type Bento struct {
 	UploadStartedAt           *time.Time                        `json:"upload_started_at"`
 	UploadFinishedAt          *time.Time                        `json:"upload_finished_at"`
 	UploadFinishedReason      string                            `json:"upload_finished_reason"`
-	Manifest                  *modelschemas.BentoManifestSchema `json:"manifest"`
+	Manifest                  *modelschemas.BentoManifestSchema `json:"manifest" type:"jsonb"`
 	BuildAt                   time.Time                         `json:"build_at"`
 }
 

@@ -60,6 +60,7 @@ type YataiConfigYaml struct {
 	S3             *YataiS3ConfigYaml             `yaml:"s3,omitempty"`
 	DockerRegistry *YataiDockerRegistryConfigYaml `yaml:"docker_registry,omitempty"`
 	OAuth          *YataiOAuthConfigYaml          `yaml:"oauth,omitempty"`
+	NewsURL        string                         `yaml:"news_url"`
 }
 
 var YataiConfig = &YataiConfigYaml{}

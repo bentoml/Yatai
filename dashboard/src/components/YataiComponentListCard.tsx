@@ -153,7 +153,7 @@ export default function YataiComponentListCard({ clusterName }: IYataiComponentL
 
     return (
         <Card
-            title={t('sth list', [t('yatai component')])}
+            title={t('yatai components')}
             titleIcon={resourceIconMapping.yatai_component}
             extra={
                 <Button size={ButtonSize.compact} onClick={() => setIsCreateYataiComponentOpen(true)}>

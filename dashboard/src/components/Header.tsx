@@ -423,19 +423,24 @@ export default function Header() {
                         getValueLabel={handleRenderLanguageOption}
                         options={[
                             {
-                                id: 'zh-CN',
-                                text: '中文',
-                                flag: <ReactCountryFlag countryCode='CN' svg />,
-                            },
-                            {
                                 id: 'en',
                                 text: 'English',
                                 flag: <ReactCountryFlag countryCode='US' svg />,
                             },
                             {
+                                id: 'zh-CN',
+                                text: '中文',
+                                flag: <ReactCountryFlag countryCode='CN' svg />,
+                            },
+                            {
                                 id: 'ja',
                                 text: '日本語',
                                 flag: <ReactCountryFlag countryCode='JP' svg />,
+                            },
+                            {
+                                id: 'kr',
+                                text: '한국어',
+                                flag: <ReactCountryFlag countryCode='KR' svg />,
                             },
                         ]}
                     />
@@ -449,7 +454,7 @@ export default function Header() {
                     <div className={styles.userMenu}>
                         <Link className={styles.userMenuItem} to='/api_tokens'>
                             {React.createElement(resourceIconMapping.api_token, { size: 12 })}
-                            <span>{t('sth list', [t('api token')])}</span>
+                            <span>{t('api tokens')}</span>
                         </Link>
                         <div
                             role='button'

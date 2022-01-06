@@ -212,6 +212,34 @@ func (c *bentoController) FinishUpload(ctx *gin.Context, schema *FinishUploadBen
 	if err != nil {
 		return nil, errors.Wrap(err, "update bento")
 	}
+	if schema.Status != nil {
+		user, err := services.GetCurrentUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		bentoRepository, err := services.BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+		if err != nil {
+			return nil, err
+		}
+		org, err := services.OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
+		if err != nil {
+			return nil, err
+		}
+		createEventOpt := services.CreateEventOption{
+			CreatorId:      user.ID,
+			OrganizationId: &org.ID,
+			ResourceType:   modelschemas.ResourceTypeBento,
+			ResourceId:     bento.ID,
+			Status:         modelschemas.EventStatusSuccess,
+			OperationName:  "pushed",
+		}
+		if *schema.Status != modelschemas.BentoUploadStatusSuccess {
+			createEventOpt.Status = modelschemas.EventStatusFailure
+		}
+		if _, err = services.EventService.Create(ctx, createEventOpt); err != nil {
+			return nil, errors.Wrap(err, "create event")
+		}
+	}
 	return transformersv1.ToBentoSchema(ctx, bento)
 }
 
@@ -274,7 +302,73 @@ type ListBentoSchema struct {
 	GetBentoRepositorySchema
 }
 
-func (c *bentoController) List(ctx *gin.Context, schema *ListBentoSchema) (*schemasv1.BentoListSchema, error) {
+func (c *bentoController) buildListOpt(ctx context.Context, listOpt *services.ListBentoOption, q schemasv1.Q) error {
+	queryMap := q.ToMap()
+	for k, v := range queryMap {
+		if k == schemasv1.KeyQIn {
+			fieldNames := make([]string, 0, len(v.([]string)))
+			for _, fieldName := range v.([]string) {
+				if _, ok := map[string]struct{}{
+					"name":        {},
+					"description": {},
+				}[fieldName]; !ok {
+					continue
+				}
+				fieldNames = append(fieldNames, fieldName)
+			}
+			listOpt.KeywordFieldNames = &fieldNames
+		}
+		if k == schemasv1.KeyQKeywords {
+			listOpt.Keywords = utils.StringSlicePtr(v.([]string))
+		}
+		if k == "creator" {
+			userNames, err := processUserNamesFromQ(ctx, v.([]string))
+			if err != nil {
+				return err
+			}
+			users, err := services.UserService.ListByNames(ctx, userNames)
+			if err != nil {
+				return err
+			}
+			userIds := make([]uint, 0, len(users))
+			for _, user := range users {
+				userIds = append(userIds, user.ID)
+			}
+			listOpt.CreatorIds = utils.UintSlicePtr(userIds)
+		}
+		if k == "sort" {
+			fieldName, _, order := xstrings.LastPartition(v.([]string)[0], "-")
+			if _, ok := map[string]struct{}{
+				"created_at": {},
+				"build_at":   {},
+				"size":       {},
+			}[fieldName]; !ok {
+				continue
+			}
+			if fieldName == "size" {
+				fieldName = "manifest->'size_bytes'"
+			}
+			if _, ok := map[string]struct{}{
+				"desc": {},
+				"asc":  {},
+			}[order]; !ok {
+				continue
+			}
+			listOpt.Order = utils.StringPtr(fmt.Sprintf("bento.%s %s", fieldName, strings.ToUpper(order)))
+		}
+		if k == "label" {
+			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
+			listOpt.LabelsList = &labelsSchema
+		}
+		if k == "-label" {
+			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
+			listOpt.LackLabelsList = &labelsSchema
+		}
+	}
+	return nil
+}
+
+func (c *bentoController) List(ctx *gin.Context, schema *ListBentoSchema) (*schemasv1.BentoWithRepositoryListSchema, error) {
 	bentoRepository, err := schema.GetBentoRepository(ctx)
 	if err != nil {
 		return nil, err
@@ -284,20 +378,27 @@ func (c *bentoController) List(ctx *gin.Context, schema *ListBentoSchema) (*sche
 		return nil, err
 	}
 
-	bentos, total, err := services.BentoService.List(ctx, services.ListBentoOption{
+	listOpt := services.ListBentoOption{
 		BaseListOption: services.BaseListOption{
 			Start:  utils.UintPtr(schema.Start),
 			Count:  utils.UintPtr(schema.Count),
 			Search: schema.Search,
 		},
 		BentoRepositoryId: utils.UintPtr(bentoRepository.ID),
-	})
+	}
+
+	err = c.buildListOpt(ctx, &listOpt, schema.Q)
+	if err != nil {
+		return nil, err
+	}
+
+	bentos, total, err := services.BentoService.List(ctx, listOpt)
 	if err != nil {
 		return nil, errors.Wrap(err, "list bentos")
 	}
 
-	bentoSchemas, err := transformersv1.ToBentoSchemas(ctx, bentos)
-	return &schemasv1.BentoListSchema{
+	bentoSchemas, err := transformersv1.ToBentoWithRepositorySchemas(ctx, bentos)
+	return &schemasv1.BentoWithRepositoryListSchema{
 		BaseListSchema: schemasv1.BaseListSchema{
 			Total: total,
 			Start: schema.Start,
@@ -331,64 +432,11 @@ func (c *bentoController) ListAll(ctx *gin.Context, schema *ListAllBentoSchema) 
 		OrganizationId: utils.UintPtr(organization.ID),
 	}
 
-	queryMap := schema.Q.ToMap()
-	for k, v := range queryMap {
-		if k == schemasv1.KeyQIn {
-			fieldNames := make([]string, 0, len(v.([]string)))
-			for _, fieldName := range v.([]string) {
-				if _, ok := map[string]struct{}{
-					"name":        {},
-					"description": {},
-				}[fieldName]; !ok {
-					continue
-				}
-				fieldNames = append(fieldNames, fieldName)
-			}
-			listOpt.KeywordFieldNames = &fieldNames
-		}
-		if k == schemasv1.KeyQKeywords {
-			listOpt.Keywords = utils.StringSlicePtr(v.([]string))
-		}
-		if k == "creator" {
-			userNames, err := processUserNamesFromQ(ctx, v.([]string))
-			if err != nil {
-				return nil, err
-			}
-			users, err := services.UserService.ListByNames(ctx, userNames)
-			if err != nil {
-				return nil, err
-			}
-			userIds := make([]uint, 0, len(users))
-			for _, user := range users {
-				userIds = append(userIds, user.ID)
-			}
-			listOpt.CreatorIds = utils.UintSlicePtr(userIds)
-		}
-		if k == "sort" {
-			fieldName, _, order := xstrings.LastPartition(v.([]string)[0], "-")
-			if _, ok := map[string]struct{}{
-				"created_at": {},
-				"build_at":   {},
-			}[fieldName]; !ok {
-				continue
-			}
-			if _, ok := map[string]struct{}{
-				"desc": {},
-				"asc":  {},
-			}[order]; !ok {
-				continue
-			}
-			listOpt.Order = utils.StringPtr(fmt.Sprintf("bento.%s %s", fieldName, strings.ToUpper(order)))
-		}
-		if k == "label" {
-			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
-			listOpt.LabelsList = &labelsSchema
-		}
-		if k == "-label" {
-			labelsSchema := services.ParseQueryLabelsToLabelsList(v.([]string))
-			listOpt.LackLabelsList = &labelsSchema
-		}
+	err = c.buildListOpt(ctx, &listOpt, schema.Q)
+	if err != nil {
+		return nil, err
 	}
+
 	bentos, total, err := services.BentoService.List(ctx, listOpt)
 	if err != nil {
 		return nil, errors.Wrap(err, "list bentos")

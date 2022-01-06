@@ -48,17 +48,17 @@ export default function ClusterSidebar({ style }: IComposedSidebarProps) {
                 icon: RiSurveyLine,
             },
             {
-                title: t('sth list', [t('yatai component')]),
+                title: t('yatai components'),
                 path: `/clusters/${clusterName}/yatai_components`,
                 icon: resourceIconMapping.yatai_component,
             },
             {
-                title: t('sth list', [t('deployment')]),
+                title: t('deployments'),
                 path: `/clusters/${clusterName}/deployments`,
                 icon: resourceIconMapping.deployment,
             },
             {
-                title: t('sth list', [t('member')]),
+                title: t('members'),
                 path: `/clusters/${clusterName}/members`,
                 icon: resourceIconMapping.user_group,
             },

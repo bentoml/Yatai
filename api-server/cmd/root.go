@@ -18,6 +18,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&command.GlobalCommandOption.Debug, "debug", "d", false, "debug mode, output verbose output")
 	rootCmd.AddCommand(getServeCmd())
+	rootCmd.AddCommand(getVersionCmd())
 }
 
 func Execute() {

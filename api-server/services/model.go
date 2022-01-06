@@ -51,6 +51,7 @@ type ListModelOption struct {
 	BaseListOption
 	BaseListByLabelsOption
 	ModelRepositoryId *uint
+	Ids               *[]uint
 	Versions          *[]string
 	BentoIds          *[]uint
 	OrganizationId    *uint
@@ -58,6 +59,7 @@ type ListModelOption struct {
 	CreatorIds        *[]uint
 	Order             *string
 	Names             *[]string
+	Modules           *[]string
 }
 
 func (s *modelService) Create(ctx context.Context, opt CreateModelOption) (model *models.Model, err error) {
@@ -318,9 +320,6 @@ func (s *modelService) Update(ctx context.Context, model *models.Model, opt Upda
 			}
 		}()
 	}
-	if len(updaters) == 0 {
-		return model, nil
-	}
 
 	// nolint: ineffassign,staticcheck
 	db, ctx, df, err := startTransaction(ctx)
@@ -329,17 +328,19 @@ func (s *modelService) Update(ctx context.Context, model *models.Model, opt Upda
 	}
 	defer func() { df(err) }()
 
-	err = db.Model(&models.Model{}).Where("id = ?", model.ID).Updates(updaters).Error
-	if err != nil {
-		return nil, err
-	}
-
-	if opt.Labels != nil {
-		model, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+	if len(updaters) > 0 {
+		err = db.Model(&models.Model{}).Where("id = ?", model.ID).Updates(updaters).Error
 		if err != nil {
 			return nil, err
 		}
-		org, err := OrganizationService.GetAssociatedOrganization(ctx, model)
+	}
+
+	if opt.Labels != nil {
+		modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+		if err != nil {
+			return nil, err
+		}
+		org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
 		if err != nil {
 			return nil, err
 		}
@@ -490,6 +491,14 @@ func (s *modelService) ListByUids(ctx context.Context, uids []string) ([]*models
 	return models_, err
 }
 
+func (s *modelService) ListAllModules(ctx context.Context, organizationId uint) ([]string, error) {
+	db := s.getBaseDB(ctx)
+	query := db.Raw(`select distinct(model.manifest->>'module') from model join model_repository on model.model_repository_id = model_repository.id where model_repository.organization_id = ?`, organizationId)
+	res := make([]string, 0)
+	err := query.Find(&res).Error
+	return res, err
+}
+
 func (s *modelService) List(ctx context.Context, opt ListModelOption) ([]*models.Model, uint, error) {
 	query := getBaseQuery(ctx, s)
 	query = query.Joins("LEFT JOIN model_repository ON model.model_repository_id = model_repository.id")
@@ -498,6 +507,9 @@ func (s *modelService) List(ctx context.Context, opt ListModelOption) ([]*models
 	}
 	if opt.OrganizationId != nil {
 		query = query.Where("model_repository.organization_id = ?", *opt.OrganizationId)
+	}
+	if opt.Ids != nil {
+		query = query.Where("model.id in (?)", *opt.Ids)
 	}
 	if opt.Versions != nil {
 		query = query.Where("model.version in (?)", *opt.Versions)
@@ -514,6 +526,9 @@ func (s *modelService) List(ctx context.Context, opt ListModelOption) ([]*models
 	if opt.CreatorIds != nil {
 		query = query.Where("model.creator_id in (?)", *opt.CreatorIds)
 	}
+	if opt.Modules != nil {
+		query = query.Where("model.manifest->>'module' in (?)", *opt.Modules)
+	}
 	query = opt.BindQueryWithKeywords(query, "model_repository")
 	query = opt.BindQueryWithLabels(query, modelschemas.ResourceTypeModel)
 	query = query.Select("distinct(model.*)")
@@ -522,6 +537,7 @@ func (s *modelService) List(ctx context.Context, opt ListModelOption) ([]*models
 	if err != nil {
 		return nil, 0, err
 	}
+	query = s.getBaseDB(ctx).Table("(?) as model", query)
 	models_ := make([]*models.Model, 0)
 	query = opt.BindQueryWithLimit(query)
 	if opt.Order != nil {

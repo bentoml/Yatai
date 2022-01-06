@@ -122,14 +122,14 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("List yatai component helm chart release resources"),
 	}, requireLogin, tonic.Handler(controllersv1.YataiComponentController.ListHelmChartReleaseResources, 200))
 
-	ginGroup := engine.Group("/api/v1/clusters/:clusterName")
+	clusterGroup := engine.Group("/api/v1/clusters/:clusterName")
 
-	ginGroup.GET("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
-	ginGroup.POST("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
-	ginGroup.PUT("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
-	ginGroup.PATCH("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
-	ginGroup.HEAD("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
-	ginGroup.DELETE("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
+	clusterGroup.GET("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
+	clusterGroup.POST("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
+	clusterGroup.PUT("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
+	clusterGroup.PATCH("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
+	clusterGroup.HEAD("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
+	clusterGroup.DELETE("/grafana/*path", requireLogin, controllersv1.GrafanaController.Proxy)
 
 	apiRootGroup := fizzApp.Group("/api/v1", "api v1", "api v1")
 
@@ -148,6 +148,16 @@ func NewRouter() (*fizz.Fizz, error) {
 	bentoRepositoryRoutes(apiRootGroup)
 	modelRepositoryRoutes(apiRootGroup)
 	terminalRecordRoutes(apiRootGroup)
+
+	apiRootGroup.GET("/version", []fizz.OperationOption{
+		fizz.ID("Get version"),
+		fizz.Summary("Get version"),
+	}, tonic.Handler(controllersv1.VersionController.GetVersion, 200))
+
+	apiRootGroup.GET("/news", []fizz.OperationOption{
+		fizz.ID("Get news"),
+		fizz.Summary("Get news"),
+	}, requireLogin, tonic.Handler(controllersv1.NewsController.GetNews, 200))
 
 	apiRootGroup.GET("/bentos", []fizz.OperationOption{
 		fizz.ID("List all bentos"),
@@ -295,6 +305,16 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Get an organization major cluster"),
 		fizz.Summary("Get an organization major cluster"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.GetMajorCluster, 200))
+
+	resourceGrp.GET("/model_modules", []fizz.OperationOption{
+		fizz.ID("Get an organization model modules"),
+		fizz.Summary("Get an organization model modules"),
+	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.ListModelModules, 200))
+
+	resourceGrp.GET("/events", []fizz.OperationOption{
+		fizz.ID("List current organization events"),
+		fizz.Summary("List current organization events"),
+	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.ListEvents, 200))
 
 	resourceGrp.PATCH("", []fizz.OperationOption{
 		fizz.ID("Update an organization"),
@@ -459,6 +479,11 @@ func bentoRepositoryRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Update a bento repository"),
 		fizz.Summary("Update a bento repository"),
 	}, requireLogin, tonic.Handler(controllersv1.BentoRepositoryController.Update, 200))
+
+	resourceGrp.GET("/deployments", []fizz.OperationOption{
+		fizz.ID("List bento deployments"),
+		fizz.Summary("List bento deployments"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoRepositoryController.ListDeployment, 200))
 
 	grp.GET("", []fizz.OperationOption{
 		fizz.ID("List bento repositories"),
@@ -629,6 +654,21 @@ func modelRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Get a model"),
 		fizz.Summary("Get a model"),
 	}, requireLogin, tonic.Handler(controllersv1.ModelController.Get, 200))
+
+	resourceGrp.PATCH("", []fizz.OperationOption{
+		fizz.ID("Update a model"),
+		fizz.Summary("Update a model"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.Update, 200))
+
+	resourceGrp.GET("/bentos", []fizz.OperationOption{
+		fizz.ID("List model bentos"),
+		fizz.Summary("List model bentos"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.ListBento, 200))
+
+	resourceGrp.GET("/deployments", []fizz.OperationOption{
+		fizz.ID("List model deployments"),
+		fizz.Summary("List model deployments"),
+	}, requireLogin, tonic.Handler(controllersv1.ModelController.ListDeployment, 200))
 
 	resourceGrp.PATCH("/presign_upload_url", []fizz.OperationOption{
 		fizz.ID("Pre sign model upload URL"),

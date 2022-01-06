@@ -37,13 +37,13 @@ function Pods({ selector }: IPodsProps) {
     return <PodList clusterName='default' loading={podsLoading} pods={pods} />
 }
 
-export interface IBentoImageBuildStatusProps {
+export interface IImageBuildStatusTagProps {
     status: ImageBuildStatus
     podsSelector?: string
     onRerunClick?: () => Promise<void>
 }
 
-export default function ImageBuildStatusTag({ status, podsSelector, onRerunClick }: IBentoImageBuildStatusProps) {
+export default function ImageBuildStatusTag({ status, podsSelector, onRerunClick }: IImageBuildStatusTagProps) {
     const [t] = useTranslation()
     const [rerunLoading, setRerunLoading] = useState(false)
 

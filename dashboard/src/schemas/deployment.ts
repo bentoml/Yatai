@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { ICreateDeploymentTargetSchema } from './deployment_target'
 import { IDeploymentRevisionSchema } from './deployment_revision'
 import { IUserSchema } from './user'

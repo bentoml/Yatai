@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { IUserSchema } from './user'
 import { IBentoFullSchema } from './bento'
 import { IResourceSchema } from './resource'

@@ -6,14 +6,10 @@ import { FiInbox } from 'react-icons/fi'
 import useTranslation from '@/hooks/useTranslation'
 import Text from '@/components/Text'
 import { usePage } from '@/hooks/usePage'
+import { IPaginationProps } from '@/interfaces/IPaginationProps'
 
 export interface ITableProps extends BaseTableProps {
-    paginationProps?: {
-        total?: number
-        start?: number
-        count?: number
-        afterPageChange?: (page: number) => void
-    }
+    paginationProps?: IPaginationProps
 }
 
 export default function Table({ isLoading, columns, data, overrides, paginationProps }: ITableProps) {
@@ -69,11 +65,16 @@ export default function Table({ isLoading, columns, data, overrides, paginationP
                                 : 0
                         }
                         onPageChange={({ nextPage }) => {
-                            setPage({
-                                ...page,
-                                start: (nextPage - 1) * page.count,
-                            })
-                            paginationProps.afterPageChange?.(nextPage)
+                            if (paginationProps.onPageChange) {
+                                paginationProps.onPageChange(nextPage)
+                            }
+                            if (paginationProps.afterPageChange) {
+                                setPage({
+                                    ...page,
+                                    start: (nextPage - 1) * page.count,
+                                })
+                                paginationProps.afterPageChange(nextPage)
+                            }
                         }}
                     />
                 </div>

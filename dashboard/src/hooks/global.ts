@@ -5,6 +5,8 @@ import { createGlobalState } from 'react-hooks-global-state'
 import { IUserSchema } from '@/schemas/user'
 import { IOrganizationFullSchema } from '@/schemas/organization'
 import { IModelRepositorySchema } from '@/schemas/model_repository'
+import { IModelFullSchema } from '@/schemas/model'
+import { IBentoFullSchema } from '@/schemas/bento'
 
 export type BaseThemeType = 'light' | 'dark'
 export type ThemeType = BaseThemeType | 'followTheSystem'
@@ -24,6 +26,10 @@ const initialState = {
     deploymentLoading: false,
     modelRepository: undefined as IModelRepositorySchema | undefined,
     modelRepositoryLoading: false,
+    model: undefined as IModelFullSchema | undefined,
+    modelLoading: false,
+    bento: undefined as IBentoFullSchema | undefined,
+    bentoLoading: false,
 }
 
 const { useGlobalState } = createGlobalState(initialState)

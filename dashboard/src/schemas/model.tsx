@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable import/no-cycle */
 import { IBentoSchema, ImageBuildStatus } from './bento'
+import { ILabelItemSchema } from './label'
 import { IModelRepositorySchema } from './model_repository'
 import { IResourceSchema } from './resource'
 import { IUserSchema } from './user'
@@ -20,6 +21,7 @@ export interface IModelManifestSchema {
     options: {
         [key: string]: any
     }
+    size_bytes: number
 }
 
 export interface IModelSchema extends IResourceSchema {
@@ -48,6 +50,12 @@ export interface ICreateModelSchema {
     version: string
     manifest: IModelManifestSchema
     description?: string
+}
+
+export interface IUpdateModelSchema {
+    description?: string
+    manifest: IModelManifestSchema
+    labels: ILabelItemSchema[]
 }
 
 export interface IFinishedUploadModelSchema {

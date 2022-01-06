@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS "bento_repository" (
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     name VARCHAR(128) NOT NULL,
     description TEXT,
-    manifest TEXT,
+    manifest JSONB,
     organization_id INTEGER NOT NULL REFERENCES "organization"("id") ON DELETE CASCADE,
     creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS "bento" (
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     version VARCHAR(512) NOT NULL,
     description TEXT,
-    manifest TEXT,
+    manifest JSONB,
     file_path TEXT,
     bento_repository_id INTEGER NOT NULL REFERENCES "bento_repository"("id") ON DELETE CASCADE,
     upload_status bento_upload_status NOT NULL DEFAULT 'pending',
@@ -190,7 +190,7 @@ CREATE TABLE IF NOT EXISTS "model_repository" (
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     name VARCHAR(128) NOT NULL,
     description TEXT,
-    manifest TEXT,
+    manifest JSONB,
     organization_id INTEGER NOT NULL REFERENCES "organization"("id") ON DELETE CASCADE,
     creator_id INTEGER NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -208,6 +208,7 @@ CREATE TABLE IF NOT EXISTS "model" (
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     version VARCHAR(512) NOT NULL,
     description TEXT,
+    manifest JSONB,
     model_repository_id INTEGER NOT NULL REFERENCES "model_repository"("id") ON DELETE CASCADE,
     upload_status model_upload_status NOT NULL DEFAULT 'pending',
     image_build_status model_image_build_status NOT NULL DEFAULT 'pending',
@@ -220,8 +221,7 @@ CREATE TABLE IF NOT EXISTS "model" (
     build_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE,
-    deleted_at TIMESTAMP WITH TIME ZONE,
-    manifest TEXT
+    deleted_at TIMESTAMP WITH TIME ZONE
 );
 
 CREATE UNIQUE INDEX "uk_model_modelRepositoryId_version" ON "model" ("model_repository_id", "version");
@@ -290,10 +290,13 @@ CREATE TABLE IF NOT EXISTS "deployment_target" (
 
 CREATE TYPE "resource_type" AS ENUM ('user', 'organization', 'cluster', 'bento_repository', 'bento', 'deployment', 'deployment_revision', 'model_repository', 'model', 'api_token');
 
+CREATE TYPE "event_status" AS ENUM ('pending', 'success', 'failed');
+
 CREATE TABLE IF NOT EXISTS "event" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
     name VARCHAR(128) NOT NULL,
+    status event_status NOT NULL DEFAULT 'pending',
     organization_id INTEGER REFERENCES "organization"("id") ON DELETE CASCADE,
     cluster_id INTEGER REFERENCES "cluster"("id") ON DELETE CASCADE,
     resource_type resource_type NOT NULL,

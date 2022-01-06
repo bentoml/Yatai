@@ -63,6 +63,7 @@ type ListBentoOption struct {
 	CreatorIds        *[]uint
 	Order             *string
 	Names             *[]string
+	Ids               *[]uint
 }
 
 func (s *bentoService) Create(ctx context.Context, opt CreateBentoOption) (bento *models.Bento, err error) {
@@ -566,6 +567,9 @@ func (s *bentoService) List(ctx context.Context, opt ListBentoOption) ([]*models
 	if opt.BentoRepositoryId != nil {
 		query = query.Where("bento.bento_repository_id = ?", *opt.BentoRepositoryId)
 	}
+	if opt.Ids != nil {
+		query = query.Where("bento.id in (?)", *opt.Ids)
+	}
 	if opt.Versions != nil {
 		query = query.Where("bento.version in (?)", *opt.Versions)
 	}
@@ -586,6 +590,7 @@ func (s *bentoService) List(ctx context.Context, opt ListBentoOption) ([]*models
 	if err != nil {
 		return nil, 0, err
 	}
+	query = s.getBaseDB(ctx).Table("(?) as bento", query)
 	bentos := make([]*models.Bento, 0)
 	query = opt.BindQueryWithLimit(query)
 	if opt.Order != nil {
@@ -598,6 +603,83 @@ func (s *bentoService) List(ctx context.Context, opt ListBentoOption) ([]*models
 		return nil, 0, err
 	}
 	return bentos, uint(total), err
+}
+
+func (s *bentoService) GroupByBentoRepositoryIds(ctx context.Context, bentoRepositoryIds []uint, count uint) (map[uint][]*models.Bento, error) {
+	db := mustGetSession(ctx)
+
+	query := db.Raw(`select bento_repository_id, id from bento where bento_repository_id in (?) order by id desc`, bentoRepositoryIds)
+
+	type Item struct {
+		BentoRepositoryId uint `gorm:"column:bento_repository_id"`
+		Id                uint `gorm:"column:id"`
+	}
+
+	items := make([]*Item, 0)
+	err := query.Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]uint, 0)
+	idsMap := make(map[uint][]uint)
+	for _, item := range items {
+		ids_ := idsMap[item.BentoRepositoryId]
+		if len(ids_) < int(count) {
+			ids = append(ids, item.Id)
+			ids_ = append(ids_, item.Id)
+			idsMap[item.BentoRepositoryId] = ids_
+		}
+	}
+
+	bentos, _, err := s.List(ctx, ListBentoOption{
+		Ids: &ids,
+	})
+	if err != nil {
+		return nil, err
+	}
+	bentoMap := make(map[uint]*models.Bento)
+	for _, bento := range bentos {
+		bentoMap[bento.ID] = bento
+	}
+
+	res := make(map[uint][]*models.Bento)
+
+	for bentoRepositoryId, ids_ := range idsMap {
+		bentos_ := make([]*models.Bento, 0)
+		for _, id := range ids_ {
+			bentos_ = append(bentos_, bentoMap[id])
+		}
+		res[bentoRepositoryId] = bentos_
+	}
+
+	return res, nil
+}
+
+func (s *bentoService) CountByBentoRepositoryIds(ctx context.Context, bentoRepositoryIds []uint) (map[uint]uint, error) {
+	db := mustGetSession(ctx)
+
+	query := db.Raw(`select bento_repository_id, count(1) as count from bento
+						where bento_repository_id in (?) group by bento_repository_id
+					`, bentoRepositoryIds)
+
+	type Item struct {
+		BentoRepositoryId uint `gorm:"column:bento_repository_id"`
+		Count             uint `gorm:"column:count"`
+	}
+
+	items := make([]*Item, 0, len(bentoRepositoryIds))
+	err := query.Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[uint]uint, len(items))
+	for _, item := range items {
+		res[item.BentoRepositoryId] = item.Count
+	}
+
+	return res, err
 }
 
 func (s *bentoService) ListLatestByBentoRepositoryIds(ctx context.Context, bentoRepositoryIds []uint) ([]*models.Bento, error) {

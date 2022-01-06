@@ -1,7 +1,7 @@
 import useTranslation from '@/hooks/useTranslation'
 import { DeploymentStatus } from '@/schemas/deployment'
 import { StyledSpinnerNext } from 'baseui/spinner'
-import { Tag, KIND as TagKind } from 'baseui/tag'
+import { Tag, KIND as TagKind, SIZE } from 'baseui/tag'
 
 const statusColorMap: Record<DeploymentStatus, keyof TagKind> = {
     'unknown': TagKind.black,
@@ -16,12 +16,13 @@ const statusColorMap: Record<DeploymentStatus, keyof TagKind> = {
 
 export interface IDeploymentStatusProps {
     status: DeploymentStatus
+    size?: SIZE[keyof SIZE]
 }
 
-export default function DeploymentStatusTag({ status }: IDeploymentStatusProps) {
+export default function DeploymentStatusTag({ status, size = 'small' }: IDeploymentStatusProps) {
     const [t] = useTranslation()
     return (
-        <Tag closeable={false} variant='light' kind={statusColorMap[status]}>
+        <Tag closeable={false} size={size} variant='light' kind={statusColorMap[status]}>
             <div
                 style={{
                     display: 'flex',

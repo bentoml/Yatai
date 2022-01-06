@@ -36,6 +36,7 @@ type ListTerminalRecordOption struct {
 	OrganizationId *uint
 	ClusterId      *uint
 	DeploymentId   *uint
+	Ids            *[]uint
 }
 
 func (s *terminalRecordService) Create(ctx context.Context, opt CreateTerminalRecordOption) (*models.TerminalRecord, error) {
@@ -114,6 +115,9 @@ func (s *terminalRecordService) List(ctx context.Context, opt ListTerminalRecord
 	}
 	if opt.DeploymentId != nil {
 		query = query.Where("deployment_id = ?", *opt.DeploymentId)
+	}
+	if opt.Ids != nil {
+		query = query.Where("id IN (?)", *opt.Ids)
 	}
 	var total int64
 	err := query.Count(&total).Error
