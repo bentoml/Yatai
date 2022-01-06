@@ -20,9 +20,8 @@ import qs from 'qs'
 import { useQ } from '@/hooks/useQ'
 import FilterBar from '@/components/FilterBar'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
-import { StatefulTooltip, PLACEMENT } from 'baseui/tooltip'
-import ReactTimeAgo from 'react-time-ago'
 import FilterInput from './FilterInput'
+import Time from './Time'
 
 export interface IDeploymentListCardProps {
     clusterName?: string
@@ -243,27 +242,8 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                             ),
                             <DeploymentStatusTag key={deployment.uid} status={deployment.status} />,
                             deployment?.creator && <User user={deployment.creator} />,
-                            deployment?.created_at && (
-                                <StatefulTooltip placement={PLACEMENT.bottom} content={() => deployment.created_at}>
-                                    <ReactTimeAgo
-                                        date={new Date(deployment.created_at)}
-                                        timeStyle='round'
-                                        locale='en-US'
-                                    />
-                                </StatefulTooltip>
-                            ),
-                            deployment?.latest_revision && (
-                                <StatefulTooltip
-                                    placement={PLACEMENT.bottom}
-                                    content={() => deployment.latest_revision?.created_at}
-                                >
-                                    <ReactTimeAgo
-                                        date={new Date(deployment.latest_revision?.created_at)}
-                                        locale='en-US'
-                                        timeStyle='round'
-                                    />
-                                </StatefulTooltip>
-                            ),
+                            deployment?.created_at && <Time time={deployment.created_at} />,
+                            deployment?.latest_revision && <Time time={deployment.latest_revision.updated_at} />,
                         ]
                     }) ?? []
                 }
