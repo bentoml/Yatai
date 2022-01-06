@@ -55,7 +55,8 @@ docker-ui-typecheck: pull-ui-builder-image ## Docker typecheck
 	$(UI_BUILDER_CNTR_CMD) sh -c "cd dashboard; ln -s /cache/node_modules ./node_modules; yarn typecheck"
 
 docker-build-api-server: pull-builder-image ## Build api-server binary
-	$(BUILDER_CNTR_CMD) sh -c "mkdir -p ./bin; go build -ldflags "$(VERSION_BUILDFLAGS)"  -o ./bin/api-server ./api-server/main.go"
+	mkdir -p ./bin
+	$(BUILDER_CNTR_CMD) go build -ldflags "$(VERSION_BUILDFLAGS)" -o ./bin/api-server ./api-server/main.go
 
 build-builder-image: ## Build builder image
 	docker build -f Dockerfile-builder -t $(BUILDER_IMG) . || exit 1
