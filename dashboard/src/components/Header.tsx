@@ -393,7 +393,7 @@ export default function Header() {
                 <ThemeToggle />
                 <div
                     style={{
-                        width: 120,
+                        width: 140,
                     }}
                 >
                     <Select
