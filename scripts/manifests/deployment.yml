@@ -20,7 +20,7 @@ spec:
         command:
         - sh
         - -c
-        image: 192023623294.dkr.ecr.ap-northeast-1.amazonaws.com/yatai:10dd31c
+        image: quay.io/bentoml/yatai:e15222c
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 10
