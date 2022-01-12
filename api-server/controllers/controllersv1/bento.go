@@ -234,7 +234,7 @@ func (c *bentoController) FinishUpload(ctx *gin.Context, schema *FinishUploadBen
 			OperationName:  "pushed",
 		}
 		if *schema.Status != modelschemas.BentoUploadStatusSuccess {
-			createEventOpt.Status = modelschemas.EventStatusFailure
+			createEventOpt.Status = modelschemas.EventStatusFailed
 		}
 		if _, err = services.EventService.Create(ctx, createEventOpt); err != nil {
 			return nil, errors.Wrap(err, "create event")
