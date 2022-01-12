@@ -230,7 +230,7 @@ func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadMod
 			OperationName:  "pushed",
 		}
 		if *schema.Status != modelschemas.ModelUploadStatusSuccess {
-			createEventOpt.Status = modelschemas.EventStatusFailure
+			createEventOpt.Status = modelschemas.EventStatusFailed
 		}
 		if _, err = services.EventService.Create(ctx, createEventOpt); err != nil {
 			return nil, errors.Wrap(err, "create event")
