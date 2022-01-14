@@ -237,7 +237,7 @@ export function numberToPercentStr(v: number): string {
 const keyQKeywords = '__keywords'
 
 export type QKey = string
-export type QValue = string[] | boolean
+export type QValue = string[] | boolean | undefined
 export type Q = Record<QKey, QValue>
 
 export function parseQ(q_: string): Q {
@@ -285,6 +285,9 @@ export function qToString(q: Q): string {
     return _.trim(
         Object.keys(q).reduce((acc, key) => {
             const value = q[key]
+            if (value === undefined) {
+                return acc
+            }
             if (value === true) {
                 return `${acc} is:${key}`
             }

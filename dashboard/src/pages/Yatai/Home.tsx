@@ -12,16 +12,8 @@ import Card from '@/components/Card'
 import { FiActivity } from 'react-icons/fi'
 import List from '@/components/List'
 import { ListItem } from 'baseui/list'
-import User from '@/components/User'
-import { IEventSchema } from '@/schemas/event'
 import { listOrganizationEvents } from '@/services/organization'
-import { IUserSchema } from '@/schemas/user'
-import { IModelWithRepositorySchema } from '@/schemas/model'
 import { Link } from 'react-router-dom'
-import { IBentoWithRepositorySchema } from '@/schemas/bento'
-import { IBentoRepositorySchema } from '@/schemas/bento_repository'
-import { IModelRepositorySchema } from '@/schemas/model_repository'
-import { AiOutlineFileUnknown } from 'react-icons/ai'
 import { resourceIconMapping } from '@/consts'
 import Time from '@/components/Time'
 import { listOrganizationDeployments } from '@/services/deployment'
@@ -31,6 +23,7 @@ import DeploymentStatusTag from '@/components/DeploymentStatusTag'
 import { GrBlog, GrDocumentText } from 'react-icons/gr'
 import { BiNotepad } from 'react-icons/bi'
 import Image from 'rc-image'
+import EventList from '@/components/EventList'
 
 const useStyles = createUseStyles({
     root: {},
@@ -107,97 +100,7 @@ export default function Home() {
                 </div>
             )}
             <Card title={t('recent activities')} titleIcon={FiActivity}>
-                <List
-                    isLoading={eventsInfo.isLoading}
-                    items={eventsInfo.data?.items ?? []}
-                    onRenderItem={(item: IEventSchema) => {
-                        let resourceIcon = AiOutlineFileUnknown
-                        let resourceTypeName = t('unknown')
-                        let resourceLink = <span>{'<unknown>'}</span>
-                        switch (item.resource?.resource_type) {
-                            case 'user':
-                                resourceIcon = resourceIconMapping.user
-                                resourceTypeName = t('user')
-                                resourceLink = <User user={item.resource as IUserSchema} />
-                                break
-                            case 'model':
-                                resourceIcon = resourceIconMapping.model
-                                resourceTypeName = t('model')
-                                const model = item.resource as IModelWithRepositorySchema
-                                resourceLink = (
-                                    <Link to={`/model_repositories/${model.repository.name}/models/${model.version}`}>
-                                        {model.repository.name}:{model.version}
-                                    </Link>
-                                )
-                                break
-                            case 'bento':
-                                resourceIcon = resourceIconMapping.bento
-                                resourceTypeName = t('bento')
-                                const bento = item.resource as IBentoWithRepositorySchema
-                                resourceLink = (
-                                    <Link to={`/bento_repositories/${bento.repository.name}/bentos/${bento.version}`}>
-                                        {bento.repository.name}:{bento.version}
-                                    </Link>
-                                )
-                                break
-                            case 'bento_repository':
-                                resourceIcon = resourceIconMapping.bento_repository
-                                resourceTypeName = t('bento repository')
-                                const bentoRepository = item.resource as IBentoRepositorySchema
-                                resourceLink = (
-                                    <Link to={`/bento_repositories/${bentoRepository.name}`}>
-                                        {bentoRepository.name}
-                                    </Link>
-                                )
-                                break
-                            case 'model_repository':
-                                resourceIcon = resourceIconMapping.model_repository
-                                resourceTypeName = t('model repository')
-                                const modelRepository = item.resource as IModelRepositorySchema
-                                resourceLink = (
-                                    <Link to={`/model_repositories/${modelRepository.name}`}>
-                                        {modelRepository.name}
-                                    </Link>
-                                )
-                                break
-                            default:
-                                break
-                        }
-                        return (
-                            <ListItem
-                                overrides={{
-                                    Content: {
-                                        style: {},
-                                    },
-                                }}
-                                sublist
-                                endEnhancer={() => <Time time={item.updated_at} />}
-                            >
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 10,
-                                    }}
-                                >
-                                    {item.creator && <User user={item.creator} />}
-                                    <span>{t(item.operation_name as any)}</span>
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 3,
-                                        }}
-                                    >
-                                        {React.createElement(resourceIcon, { size: 14 })}
-                                        <span>{resourceTypeName}</span>
-                                    </div>
-                                    {resourceLink}
-                                </div>
-                            </ListItem>
-                        )
-                    }}
-                />
+                <EventList events={eventsInfo.data?.items ?? []} isLoading={eventsInfo.isLoading} />
             </Card>
             <Card title={t('active deployments')} titleIcon={resourceIconMapping.deployment}>
                 <List

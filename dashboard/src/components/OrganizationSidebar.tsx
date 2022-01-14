@@ -6,6 +6,7 @@ import React, { useEffect, useMemo } from 'react'
 import { useQuery } from 'react-query'
 import BaseSidebar, { IComposedSidebarProps, INavItem } from '@/components/BaseSidebar'
 import { resourceIconMapping } from '@/consts'
+import { FiActivity } from 'react-icons/fi'
 
 export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
     const orgInfo = useQuery('fetchOrg', () => fetchOrganization())
@@ -47,17 +48,17 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
                 activePathPattern: /^\/(deployments|clusters\/[^/]+\/deployments\/[^/]+)\/?/,
             },
             {
+                title: t('events'),
+                path: '/events',
+                icon: FiActivity,
+            },
+            {
                 title: t('clusters'),
                 path: '/clusters',
                 icon: resourceIconMapping.cluster,
             },
-            {
-                title: t('members'),
-                path: '/members',
-                icon: resourceIconMapping.user_group,
-            },
         ],
         [t]
     )
-    return <BaseSidebar navItems={navItems} style={style} settingsPath='/settings' />
+    return <BaseSidebar navItems={navItems} style={style} />
 }

@@ -7,10 +7,11 @@ import { AiOutlineClear } from 'react-icons/ai'
 import Filter, { IFilterProps } from './Filter'
 
 export interface IFilterBarProps {
+    prefix?: React.ReactNode
     filters: IFilterProps[]
 }
 
-export default function FilterBar({ filters }: IFilterBarProps) {
+export default function FilterBar({ prefix, filters }: IFilterBarProps) {
     const [, theme] = useStyletron()
     const { q, clearQ } = useQ()
     const [t] = useTranslation()
@@ -48,10 +49,20 @@ export default function FilterBar({ filters }: IFilterBarProps) {
                     gap: 40,
                 }}
             >
-                {filters.map((filter, idx) => (
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    <Filter key={idx} {...filter} />
-                ))}
+                {prefix}
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 40,
+                        flexShrink: 0,
+                    }}
+                >
+                    {filters.map((filter, idx) => (
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        <Filter key={idx} {...filter} />
+                    ))}
+                </div>
             </div>
         </div>
     )

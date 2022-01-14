@@ -1680,6 +1680,62 @@ const locales0 = {
         ko: '블로그 게시물',
         vi: 'Bài viết blog',
     },
+    'contact': {
+        en: 'Contact',
+        zh: '联系',
+        ja: 'お問い合わせ',
+        ko: '연락',
+        vi: 'Liên hệ',
+    },
+    'docs': {
+        en: 'Docs',
+        zh: '文档',
+        ja: 'ドキュメント',
+        ko: '문서',
+        vi: 'Tài liệu',
+    },
+    'community': {
+        en: 'Community',
+        zh: '社区',
+        ja: 'コミュニティ',
+        ko: '커뮤니티',
+        vi: 'Cộng đồng',
+    },
+    'the events I created': {
+        en: 'The events I created',
+        zh: '我创建的事件',
+        ja: '私が作成したイベント',
+        ko: '내가 만든 이벤트',
+        vi: 'Sự kiện tôi tạo',
+    },
+    'oldest create': {
+        en: 'Oldest create',
+        zh: '最早创建',
+        ja: '最初に作成',
+        ko: '최초 만들기',
+        vi: 'Tạo nhất',
+    },
+    'newest create': {
+        en: 'Newest create',
+        zh: '最新创建',
+        ja: '最新に作成',
+        ko: '최신 만들기',
+        vi: 'Tạo mới nhất',
+    },
+    'resource type': {
+        en: 'Resource Type',
+        zh: '资源类型',
+        ja: 'リソースタイプ',
+        ko: '자원 유형',
+        vi: 'Loại tài nguyên',
+    },
+    'operation name': {
+        en: 'Operation Name',
+        zh: '操作名称',
+        ja: '操作名',
+        ko: '작업 이름',
+        vi: 'Tên thao tác',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

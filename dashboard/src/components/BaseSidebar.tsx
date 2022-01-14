@@ -15,6 +15,8 @@ import useTranslation from '@/hooks/useTranslation'
 import { useQuery } from 'react-query'
 import { fetchVersion } from '@/services/version'
 import { formatDateTime } from '@/utils/datetime'
+import { StatefulTooltip } from 'baseui/tooltip'
+import { StyledLink } from 'baseui/link'
 
 export interface IComposedSidebarProps {
     style?: React.CSSProperties
@@ -129,6 +131,17 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
 
     const [t] = useTranslation()
 
+    const bottomItemStyle = useMemo(() => {
+        return {
+            display: ctx.expanded ? 'flex' : 'none',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '14px 0',
+            fontSize: '11px',
+            borderTop: `1px solid ${theme.borders.border100.borderColor}`,
+        }
+    }, [ctx.expanded, theme.borders.border100.borderColor])
+
     return (
         <div
             style={{
@@ -186,101 +199,133 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
                     history.push(item.itemId)
                 }}
             />
-            <div
-                style={{
-                    fontSize: '11px',
-                    display: ctx.expanded ? 'flex' : 'none',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 4,
-                }}
-            >
-                <div>
-                    {versionInfo.isLoading ? '-' : `v${versionInfo.data?.version}-${versionInfo.data?.git_commit}`}
+            <div>
+                <div style={bottomItemStyle}>
+                    <StyledLink href='' target='_blank'>
+                        {t('community')}
+                    </StyledLink>
                 </div>
-                <div>Build at {versionInfo.data ? formatDateTime(versionInfo.data.build_date) : '-'}</div>
-            </div>
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: ctx.expanded ? 'row' : 'column',
-                }}
-            >
-                {settingsPath ? (
+                <div style={bottomItemStyle}>
+                    <StyledLink href='' target='_blank'>
+                        {t('docs')}
+                    </StyledLink>
+                </div>
+                <div style={bottomItemStyle}>
+                    <StyledLink href='' target='_blank'>
+                        {t('contact')}
+                    </StyledLink>
+                </div>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: ctx.expanded ? 'row' : 'column',
+                        alignItems: 'center',
+                        height: 48,
+                        position: 'relative',
+                        borderTop: `1px solid ${theme.borders.border100.borderColor}`,
+                    }}
+                >
+                    {settingsPath ? (
+                        <div
+                            role='button'
+                            tabIndex={0}
+                            style={{
+                                flexGrow: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                flexDirection: 'row',
+                                height: 48,
+                                cursor: 'pointer',
+                                transition: 'all 250ms cubic-bezier(0.7, 0.1, 0.33, 1) 0ms',
+                                width: ctx.expanded ? sidebarExpandedWidth - sidebarFoldedWidth : sidebarFoldedWidth,
+                                overflow: 'hidden',
+                                borderLeftWidth: 4,
+                                borderLeftStyle: 'solid',
+                                borderLeftColor: isSettingsPage ? theme.colors.primary : 'transparent',
+                                background: isSettingsPage ? settingNavActiveBackground : 'transparent',
+                            }}
+                            title={t('settings')}
+                            onClick={(e) => {
+                                e.preventDefault()
+                                history.push(settingsPath)
+                            }}
+                        >
+                            <div
+                                style={{
+                                    paddingLeft: 24,
+                                    marginRight: 12,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <AiOutlineSetting />
+                            </div>
+                            <div
+                                style={{
+                                    display: ctx.expanded ? 'block' : 'none',
+                                    fontSize: 14,
+                                }}
+                            >
+                                {t('settings')}
+                            </div>
+                        </div>
+                    ) : (
+                        <div
+                            style={{
+                                flexGrow: 1,
+                                width: ctx.expanded ? sidebarExpandedWidth - sidebarFoldedWidth : sidebarFoldedWidth,
+                            }}
+                        >
+                            <StatefulTooltip
+                                content={
+                                    <div>
+                                        Build at {versionInfo.data ? formatDateTime(versionInfo.data.build_date) : '-'}
+                                    </div>
+                                }
+                            >
+                                <div
+                                    style={{
+                                        fontSize: '11px',
+                                        display: ctx.expanded ? 'flex' : 'none',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: 4,
+                                    }}
+                                >
+                                    {versionInfo.isLoading
+                                        ? '-'
+                                        : `v${versionInfo.data?.version}-${versionInfo.data?.git_commit}`}
+                                </div>
+                            </StatefulTooltip>
+                        </div>
+                    )}
                     <div
                         role='button'
                         tabIndex={0}
+                        onClick={handleExpandedClick}
                         style={{
-                            flexGrow: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            flexDirection: 'row',
-                            height: 48,
+                            position: 'absolute',
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
                             cursor: 'pointer',
-                            transition: 'all 250ms cubic-bezier(0.7, 0.1, 0.33, 1) 0ms',
-                            width: ctx.expanded ? sidebarExpandedWidth - sidebarFoldedWidth : sidebarFoldedWidth,
-                            overflow: 'hidden',
-                            borderLeftWidth: 4,
-                            borderLeftStyle: 'solid',
-                            borderLeftColor: isSettingsPage ? theme.colors.primary : 'transparent',
-                            background: isSettingsPage ? settingNavActiveBackground : 'transparent',
-                        }}
-                        title={t('settings')}
-                        onClick={(e) => {
-                            e.preventDefault()
-                            history.push(settingsPath)
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            background: ctx.expanded && isSettingsPage ? settingNavActiveBackground : 'transparent',
                         }}
                     >
                         <div
                             style={{
-                                paddingLeft: 24,
-                                marginRight: 12,
-                                display: 'flex',
-                                alignItems: 'center',
+                                display: 'inline-flex',
+                                float: 'right',
+                                alignSelf: 'center',
+                                width: sidebarFoldedWidth,
+                                justifyContent: 'center',
                             }}
                         >
-                            <AiOutlineSetting />
+                            {ctx.expanded ? <AiOutlineDoubleLeft /> : <AiOutlineDoubleRight />}
                         </div>
-                        <div
-                            style={{
-                                display: ctx.expanded ? 'block' : 'none',
-                                fontSize: 14,
-                            }}
-                        >
-                            {t('settings')}
-                        </div>
-                    </div>
-                ) : (
-                    <div
-                        style={{
-                            flexGrow: 1,
-                            width: ctx.expanded ? sidebarExpandedWidth - sidebarFoldedWidth : sidebarFoldedWidth,
-                        }}
-                    />
-                )}
-                <div
-                    role='button'
-                    tabIndex={0}
-                    onClick={handleExpandedClick}
-                    style={{
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'row',
-                        height: 48,
-                        alignItems: 'center',
-                        background: ctx.expanded && isSettingsPage ? settingNavActiveBackground : 'transparent',
-                    }}
-                >
-                    <div
-                        style={{
-                            display: 'inline-flex',
-                            float: 'right',
-                            alignSelf: 'center',
-                            width: sidebarFoldedWidth,
-                            justifyContent: 'center',
-                        }}
-                    >
-                        {ctx.expanded ? <AiOutlineDoubleLeft /> : <AiOutlineDoubleRight />}
                     </div>
                 </div>
             </div>

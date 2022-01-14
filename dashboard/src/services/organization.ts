@@ -8,6 +8,7 @@ import {
 } from '@/schemas/organization'
 import { IListQuerySchema, IListSchema } from '@/schemas/list'
 import { IEventSchema } from '@/schemas/event'
+import { ResourceType } from '@/schemas/resource'
 
 export async function listOrganizations(query: IListQuerySchema): Promise<IListSchema<IOrganizationSchema>> {
     const resp = await axios.get<IListSchema<IOrganizationSchema>>('/api/v1/orgs', { params: query })
@@ -31,6 +32,15 @@ export async function fetchOrganizationMajorCluster(): Promise<IClusterFullSchem
 
 export async function listOrganizationEvents(query: IListQuerySchema): Promise<IListSchema<IEventSchema>> {
     const resp = await axios.get<IListSchema<IEventSchema>>('/api/v1/current_org/events', { params: query })
+    return resp.data
+}
+
+export async function listOrganizationEventOperationNames(resourceType: ResourceType): Promise<string[]> {
+    const resp = await axios.get<string[]>('/api/v1/current_org/event_operation_names', {
+        params: {
+            resource_type: resourceType,
+        },
+    })
     return resp.data
 }
 

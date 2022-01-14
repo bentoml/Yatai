@@ -2,8 +2,12 @@ package controllersv1
 
 import (
 	"context"
+	"fmt"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/huandu/xstrings"
 	"github.com/pkg/errors"
 
 	"github.com/bentoml/yatai/api-server/models"
@@ -129,6 +133,22 @@ func (c *organizationController) GetMajorCluster(ctx *gin.Context, schema *GetOr
 	return transformersv1.ToClusterFullSchema(ctx, cluster)
 }
 
+type ListEventOperationNames struct {
+	GetOrganizationSchema
+	ResourceType modelschemas.ResourceType `query:"resource_type"`
+}
+
+func (c *organizationController) ListEventOperationNames(ctx *gin.Context, schema *ListEventOperationNames) ([]string, error) {
+	organization, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, organization); err != nil {
+		return nil, err
+	}
+	return services.EventService.ListOperationNames(ctx, organization.ID, schema.ResourceType)
+}
+
 type ListOrginizationEventsSchema struct {
 	schemasv1.ListQuerySchema
 	GetOrganizationSchema
@@ -142,14 +162,73 @@ func (c *organizationController) ListEvents(ctx *gin.Context, schema *ListOrgini
 	if err = c.canView(ctx, organization); err != nil {
 		return nil, err
 	}
-	events, total, err := services.EventService.List(ctx, services.ListEventOption{
+
+	listOpt := services.ListEventOption{
 		BaseListOption: services.BaseListOption{
 			Start: &schema.Start,
 			Count: &schema.Count,
 		},
 		OrganizationId: &organization.ID,
 		Status:         modelschemas.EventStatusSuccess.Ptr(),
-	})
+	}
+
+	queryMap := schema.Q.ToMap()
+	for k, v := range queryMap {
+		if k == "status" {
+			listOpt.Status = modelschemas.EventStatus(v.([]string)[0]).Ptr()
+		}
+		if k == "creator" {
+			userNames, err := processUserNamesFromQ(ctx, v.([]string))
+			if err != nil {
+				return nil, err
+			}
+			users, err := services.UserService.ListByNames(ctx, userNames)
+			if err != nil {
+				return nil, err
+			}
+			userIds := make([]uint, 0, len(users))
+			for _, user := range users {
+				userIds = append(userIds, user.ID)
+			}
+			listOpt.CreatorIds = utils.UintSlicePtr(userIds)
+		}
+		if k == "resource_type" {
+			listOpt.ResourceType = modelschemas.ResourceType(v.([]string)[0]).Ptr()
+		}
+		if k == "started_at" {
+			startedAtStr := v.([]string)[0]
+			startedAt, err := time.Parse("2006-01-02", startedAtStr)
+			if err != nil {
+				return nil, errors.Wrap(err, "parse started_at")
+			}
+			listOpt.StartedAt = &startedAt
+		}
+		if k == "ended_at" {
+			endedAtStr := v.([]string)[0]
+			endedAt, err := time.Parse("2006-01-02", endedAtStr)
+			if err != nil {
+				return nil, errors.Wrap(err, "parse ended_at")
+			}
+			listOpt.EndedAt = &endedAt
+		}
+		if k == "sort" {
+			fieldName, _, order := xstrings.LastPartition(v.([]string)[0], "-")
+			if _, ok := map[string]struct{}{
+				"created_at": {},
+			}[fieldName]; !ok {
+				continue
+			}
+			if _, ok := map[string]struct{}{
+				"desc": {},
+				"asc":  {},
+			}[order]; !ok {
+				continue
+			}
+			listOpt.Order = utils.StringPtr(fmt.Sprintf("event.%s %s", fieldName, strings.ToUpper(order)))
+		}
+	}
+
+	events, total, err := services.EventService.List(ctx, listOpt)
 	if err != nil {
 		return nil, errors.Wrap(err, "list events")
 	}
