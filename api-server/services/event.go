@@ -37,9 +37,11 @@ type ListEventOption struct {
 	ResourceType   *modelschemas.ResourceType
 	ResourceId     *uint
 	CreatorId      *uint
+	CreatorIds     *[]uint
 	Order          *string
 	StartedAt      *time.Time
 	EndedAt        *time.Time
+	OperationNames *[]string
 	Status         *modelschemas.EventStatus
 }
 
@@ -80,6 +82,13 @@ func (s *eventService) Create(ctx context.Context, opt CreateEventOption) (event
 	return
 }
 
+func (s *eventService) ListOperationNames(ctx context.Context, organizationId uint, resourceType modelschemas.ResourceType) (names []string, err error) {
+	db := s.getBaseDB(ctx)
+	query := db.Raw(`select distinct(operation_name) from event where organization_id = ? and resource_type = ?`, organizationId, resourceType)
+	err = query.Find(&names).Error
+	return
+}
+
 func (s *eventService) List(ctx context.Context, opt ListEventOption) (events []*models.Event, total uint, err error) {
 	query := getBaseQuery(ctx, s)
 	if opt.OrganizationId != nil {
@@ -97,6 +106,9 @@ func (s *eventService) List(ctx context.Context, opt ListEventOption) (events []
 	if opt.CreatorId != nil {
 		query = query.Where("creator_id = ?", *opt.CreatorId)
 	}
+	if opt.CreatorIds != nil {
+		query = query.Where("creator_id in (?)", *opt.CreatorIds)
+	}
 	if opt.StartedAt != nil {
 		query = query.Where("created_at >= ?", *opt.StartedAt)
 	}
@@ -105,6 +117,9 @@ func (s *eventService) List(ctx context.Context, opt ListEventOption) (events []
 	}
 	if opt.Status != nil {
 		query = query.Where("status = ?", *opt.Status)
+	}
+	if opt.OperationNames != nil {
+		query = query.Where("operation_name in (?)", *opt.OperationNames)
 	}
 	var total_ int64
 	err = query.Count(&total_).Error

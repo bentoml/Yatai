@@ -186,7 +186,7 @@ func (s *labelService) List(ctx context.Context, opt ListLabelOption) ([]*models
 
 func (s *labelService) ListLabelKeys(ctx context.Context, opt ListLabelKeysOption) (keys []string, err error) {
 	query := getBaseQuery(ctx, s).Select("DISTINCT key")
-	query = query.Where("organization_id = id ?", opt.OrganizationId)
+	query = query.Where("organization_id = ?", opt.OrganizationId)
 
 	if opt.ResourceType != nil {
 		query = query.Where("resource_type = ?", *opt.ResourceType)

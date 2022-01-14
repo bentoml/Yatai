@@ -457,6 +457,10 @@ export default function Header() {
                         <User user={currentUser} />
                     </div>
                     <div className={styles.userMenu}>
+                        <Link className={styles.userMenuItem} to='/members'>
+                            {React.createElement(resourceIconMapping.user_group, { size: 12 })}
+                            <span>{t('members')}</span>
+                        </Link>
                         <Link className={styles.userMenuItem} to='/api_tokens'>
                             {React.createElement(resourceIconMapping.api_token, { size: 12 })}
                             <span>{t('api tokens')}</span>

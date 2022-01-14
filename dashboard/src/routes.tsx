@@ -22,6 +22,7 @@ import ClusterLayout from '@/components/ClusterLayout'
 import OrganizationBentoRepositories from '@/pages/Organization/BentoRepositories'
 import OrganizationBentos from '@/pages/Organization/Bentos'
 import OrganizationModels from '@/pages/Organization/Models'
+import OrganizationEvents from '@/pages/Organization/Events'
 import BentoRepositoryOverview from '@/pages/BentoRepository/Overview'
 import BentoRepositoryBentos from '@/pages/BentoRepository/Bentos'
 import DeploymentOverview from '@/pages/Deployment/Overview'
@@ -195,6 +196,7 @@ const Routes = () => {
                                 <Route exact path='/' component={Home} />
                                 <Route exact path='/bentos' component={OrganizationBentos} />
                                 <Route exact path='/models' component={OrganizationModels} />
+                                <Route exact path='/events' component={OrganizationEvents} />
                                 <Route exact path='/api_tokens' component={OrganizationApiTokens} />
                                 <Route exact path='/clusters' component={OrganizationClusters} />
                                 <Route exact path='/members' component={OrganizationMembers} />

@@ -234,7 +234,10 @@ export default function YataiComponentListCard({ clusterName }: IYataiComponentL
                                     overrides={{
                                         Root: {
                                             style: {
-                                                background: theme.colors.negative,
+                                                ':hover': {
+                                                    background: theme.colors.negative,
+                                                    color: theme.colors.white,
+                                                },
                                             },
                                         },
                                     }}

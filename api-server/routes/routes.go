@@ -316,6 +316,11 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("List current organization events"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.ListEvents, 200))
 
+	resourceGrp.GET("/event_operation_names", []fizz.OperationOption{
+		fizz.ID("List current organization event operation names"),
+		fizz.Summary("List current organization event operation names"),
+	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.ListEventOperationNames, 200))
+
 	resourceGrp.PATCH("", []fizz.OperationOption{
 		fizz.ID("Update an organization"),
 		fizz.Summary("Update an organization"),
