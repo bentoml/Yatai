@@ -303,13 +303,13 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		if config.YataiConfig.S3.Secure {
 			scheme = "https"
 		}
-		bentosBucketName := "bentos"
-		if config.YataiConfig.S3.BentosBucketName != "" {
-			bentosBucketName = config.YataiConfig.S3.BentosBucketName
+		bentosBucketName := "yatai"
+		if config.YataiConfig.S3.BucketName != "" {
+			bentosBucketName = config.YataiConfig.S3.BucketName
 		}
-		modelsBucketName := "models"
-		if config.YataiConfig.S3.ModelsBucketName != "" {
-			modelsBucketName = config.YataiConfig.S3.ModelsBucketName
+		modelsBucketName := "yatai"
+		if config.YataiConfig.S3.BucketName != "" {
+			modelsBucketName = config.YataiConfig.S3.BucketName
 		}
 		conf = &S3Config{
 			Endpoint:                    config.YataiConfig.S3.Endpoint,
@@ -426,8 +426,8 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		SecretKey:                   string(secretKey),
 		Secure:                      secure,
 		Region:                      "i-dont-known",
-		BentosBucketName:            "bentos",
-		ModelsBucketName:            "models",
+		BentosBucketName:            "yatai",
+		ModelsBucketName:            "yatai",
 	}
 	return
 }
@@ -445,11 +445,25 @@ type DockerRegistry struct {
 
 func (s *organizationService) GetDockerRegistry(ctx context.Context, org *models.Organization) (repo *DockerRegistry, err error) {
 	if config.YataiConfig.DockerRegistry != nil {
+		bentoRepositoryName := "yatai-bentos"
+		modelRepositoryName := "yatai-models"
+		if config.YataiConfig.DockerRegistry.BentoRepositoryName != "" {
+			bentoRepositoryName = config.YataiConfig.DockerRegistry.BentoRepositoryName
+		}
+		if config.YataiConfig.DockerRegistry.ModelRepositoryName != "" {
+			modelRepositoryName = config.YataiConfig.DockerRegistry.ModelRepositoryName
+		}
+		bentoRepositoryURI := fmt.Sprintf("%s/%s", strings.TrimRight(config.YataiConfig.DockerRegistry.Server, "/"), bentoRepositoryName)
+		modelRepositoryURI := fmt.Sprintf("%s/%s", strings.TrimRight(config.YataiConfig.DockerRegistry.Server, "/"), modelRepositoryName)
+		if strings.Contains(config.YataiConfig.DockerRegistry.Server, "docker.io") {
+			bentoRepositoryURI = fmt.Sprintf("docker.io/%s", bentoRepositoryName)
+			modelRepositoryURI = fmt.Sprintf("docker.io/%s", modelRepositoryName)
+		}
 		repo = &DockerRegistry{
-			BentosRepositoryURI:          config.YataiConfig.DockerRegistry.BentosRepositoryURI,
-			ModelsRepositoryURI:          config.YataiConfig.DockerRegistry.ModelsRepositoryURI,
-			BentosRepositoryURIInCluster: config.YataiConfig.DockerRegistry.BentosRepositoryURI,
-			ModelsRepositoryURIInCluster: config.YataiConfig.DockerRegistry.ModelsRepositoryURI,
+			BentosRepositoryURI:          bentoRepositoryURI,
+			ModelsRepositoryURI:          modelRepositoryURI,
+			BentosRepositoryURIInCluster: bentoRepositoryURI,
+			ModelsRepositoryURIInCluster: modelRepositoryURI,
 			Server:                       config.YataiConfig.DockerRegistry.Server,
 			Username:                     config.YataiConfig.DockerRegistry.Username,
 			Password:                     config.YataiConfig.DockerRegistry.Password,
