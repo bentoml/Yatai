@@ -25,18 +25,17 @@ type YataiPostgresqlConfigYaml struct {
 }
 
 type YataiS3ConfigYaml struct {
-	Endpoint         string `yaml:"endpoint"`
-	AccessKey        string `yaml:"access_key"`
-	SecretKey        string `yaml:"secret_key"`
-	Region           string `yaml:"region"`
-	Secure           bool   `yaml:"secure"`
-	BentosBucketName string `yaml:"bentos_bucket_name"`
-	ModelsBucketName string `yaml:"models_bucket_name"`
+	Endpoint   string `yaml:"endpoint"`
+	AccessKey  string `yaml:"access_key"`
+	SecretKey  string `yaml:"secret_key"`
+	Region     string `yaml:"region"`
+	Secure     bool   `yaml:"secure"`
+	BucketName string `yaml:"bucket_name"`
 }
 
 type YataiDockerRegistryConfigYaml struct {
-	BentosRepositoryURI string `yaml:"bentos_repository_uri"`
-	ModelsRepositoryURI string `yaml:"models_repository_uri"`
+	BentoRepositoryName string `yaml:"bento_repository_name"`
+	ModelRepositoryName string `yaml:"model_repository_name"`
 	Server              string `yaml:"server"`
 	Username            string `yaml:"username"`
 	Password            string `yaml:"password"`
