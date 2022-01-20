@@ -5,6 +5,7 @@ import { useLocation, useHistory } from 'react-router-dom'
 import useSidebarWidth from '@/hooks/useSidebarWidth'
 import { useStyletron } from 'baseui'
 import type { IconBaseProps } from 'react-icons/lib'
+import { CgCommunity, CgFileDocument } from 'react-icons/cg'
 import { SidebarContext } from '@/contexts/SidebarContext'
 import { sidebarExpandedWidth, sidebarFoldedWidth } from '@/consts'
 import { AiOutlineSetting, AiOutlineDoubleLeft, AiOutlineDoubleRight } from 'react-icons/ai'
@@ -17,6 +18,7 @@ import { fetchVersion } from '@/services/version'
 import { formatDateTime } from '@/utils/datetime'
 import { StatefulTooltip } from 'baseui/tooltip'
 import { StyledLink } from 'baseui/link'
+import { GrContact } from 'react-icons/gr'
 
 export interface IComposedSidebarProps {
     style?: React.CSSProperties
@@ -134,13 +136,12 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
     const bottomItemStyle = useMemo(() => {
         return {
             display: ctx.expanded ? 'flex' : 'none',
+            gap: 8,
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: '14px 0',
+            padding: '14px 0 14px 28px',
             fontSize: '11px',
-            borderTop: `1px solid ${theme.borders.border100.borderColor}`,
         }
-    }, [ctx.expanded, theme.borders.border100.borderColor])
+    }, [ctx.expanded])
 
     return (
         <div
@@ -201,16 +202,19 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
             />
             <div>
                 <div style={bottomItemStyle}>
+                    <CgCommunity />
                     <StyledLink href='' target='_blank'>
                         {t('community')}
                     </StyledLink>
                 </div>
                 <div style={bottomItemStyle}>
+                    <CgFileDocument />
                     <StyledLink href='' target='_blank'>
                         {t('docs')}
                     </StyledLink>
                 </div>
                 <div style={bottomItemStyle}>
+                    <GrContact />
                     <StyledLink href='' target='_blank'>
                         {t('contact')}
                     </StyledLink>
@@ -287,9 +291,7 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
                                     style={{
                                         fontSize: '11px',
                                         display: ctx.expanded ? 'flex' : 'none',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        gap: 4,
+                                        paddingLeft: 28,
                                     }}
                                 >
                                     {versionInfo.isLoading
