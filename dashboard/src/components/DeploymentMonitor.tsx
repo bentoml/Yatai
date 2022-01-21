@@ -27,7 +27,7 @@ export default function DeploymentMonitor({ deployment }: IDeploymentMonitorProp
         'from': 'now-12h',
         'to': 'now',
         'var-datasource': 'Prometheus',
-        'var-namespace': 'yatai-deployments',
+        'var-namespace': deployment.kube_namespace,
         'var-pod': `yatai-${deployment.name}-stb`,
         'var-container': 'All',
         'fullscreen': true,

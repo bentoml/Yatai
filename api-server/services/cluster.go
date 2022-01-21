@@ -260,6 +260,18 @@ func (s *clusterService) GetRESTClientGetter(ctx context.Context, c *models.Clus
 	return helmchart.NewRESTClientGetter(namespace, nil, &restConfig), nil
 }
 
+func (s *clusterService) GetDeploymentKubeNamespace(c *models.Cluster) string {
+	defaultKubeNamespace := consts.KubeNamespaceYataiDeployment
+	if c.Config == nil {
+		return defaultKubeNamespace
+	}
+	kubeNamespace := strings.TrimSpace(c.Config.DefaultDeploymentKubeNamespace)
+	if kubeNamespace == "" {
+		return defaultKubeNamespace
+	}
+	return kubeNamespace
+}
+
 func (s *clusterService) GetKubeCliSet(ctx context.Context, c *models.Cluster) (clientSet *kubernetes.Clientset, restConfig *rest.Config, err error) {
 	if !config.YataiConfig.IsSass && c.KubeConfig == "" {
 		restConfig, err = rest.InClusterConfig()

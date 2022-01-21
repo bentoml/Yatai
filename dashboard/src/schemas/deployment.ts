@@ -22,6 +22,7 @@ export interface IDeploymentSchema extends IResourceSchema {
     status: DeploymentStatus
     urls: string[]
     latest_revision?: IDeploymentRevisionSchema
+    kube_namespace: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

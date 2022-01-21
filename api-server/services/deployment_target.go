@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"github.com/bentoml/yatai/common/sync/errsgroup"
 
 	"k8s.io/utils/pointer"
@@ -199,15 +201,15 @@ func (s *deploymentTargetService) Deploy(ctx context.Context, deploymentTarget *
 	var eg errsgroup.Group
 
 	eg.Go(func() error {
-		return KubeDeploymentService.DeployDeploymentTargetAsKubeDeployment(ctx, deploymentTarget, deployOption)
+		return errors.Wrap(KubeDeploymentService.DeployDeploymentTargetAsKubeDeployment(ctx, deploymentTarget, deployOption), "deploy deployment target as kube deployment")
 	})
 
 	eg.Go(func() error {
-		return KubeServiceService.DeployDeploymentTargetAsKubeService(ctx, deploymentTarget, deployOption)
+		return errors.Wrap(KubeServiceService.DeployDeploymentTargetAsKubeService(ctx, deploymentTarget, deployOption), "deploy deployment target as kube service")
 	})
 
 	eg.Go(func() error {
-		return KubeIngressService.DeployDeploymentTargetAsKubeIngresses(ctx, deploymentTarget, deployOption)
+		return errors.Wrap(KubeIngressService.DeployDeploymentTargetAsKubeIngresses(ctx, deploymentTarget, deployOption), "deploy deployment target as kube ingress")
 	})
 
 	err = eg.Wait()

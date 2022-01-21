@@ -329,6 +329,7 @@ func (s *deploymentRevisionService) Deploy(ctx context.Context, deploymentRevisi
 
 	_, err = KubeNamespaceService.MakeSureNamespace(ctx, cluster, kubeNs)
 	if err != nil {
+		err = errors.Wrapf(err, "make sure kube namespace %s", kubeNs)
 		return
 	}
 

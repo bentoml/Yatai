@@ -87,6 +87,7 @@ func ToDeploymentSchemas(ctx context.Context, deployments []*models.Deployment) 
 			Status:         deployment.Status,
 			LatestRevision: deploymentRevisionSchema,
 			URLs:           urls,
+			KubeNamespace:  deployment.KubeNamespace,
 		})
 	}
 	return res, nil

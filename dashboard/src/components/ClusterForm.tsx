@@ -58,6 +58,12 @@ export default function ClusterForm({ cluster, onSubmit }: IClusterFormProps) {
             <FormItem name={['config', 'ingress_ip']} label='Ingress IPv4 address or hostname'>
                 <Input />
             </FormItem>
+            <FormItem
+                name={['config', 'default_deployment_kube_namespace']}
+                label={t('the default kube namespace for deployments')}
+            >
+                <Input />
+            </FormItem>
             <FormItem>
                 <div style={{ display: 'flex' }}>
                     <div style={{ flexGrow: 1 }} />

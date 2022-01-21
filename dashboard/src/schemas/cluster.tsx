@@ -9,6 +9,7 @@ export interface IClusterSchema extends IResourceSchema {
 
 export interface IClusterConfigSchema {
     ingress_ip: string
+    default_deployment_kube_namespace: string
 }
 
 export interface IClusterFullSchema extends IClusterSchema {
