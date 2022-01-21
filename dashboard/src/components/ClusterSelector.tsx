@@ -8,9 +8,10 @@ export interface IClusterSelectorProps {
     value?: string
     onChange?: (newValue: string) => void
     overrides?: SelectProps['overrides']
+    disabled?: boolean
 }
 
-export default function ClusterSelector({ value, onChange, overrides }: IClusterSelectorProps) {
+export default function ClusterSelector({ value, onChange, overrides, disabled }: IClusterSelectorProps) {
     const [keyword, setKeyword] = useState<string>()
     const [options, setOptions] = useState<{ id: string; label: React.ReactNode }[]>([])
     const clustersInfo = useQuery(`listClusters:${keyword}`, () =>
@@ -40,6 +41,7 @@ export default function ClusterSelector({ value, onChange, overrides }: ICluster
 
     return (
         <Select
+            disabled={disabled}
             overrides={overrides}
             isLoading={clustersInfo.isFetching}
             options={options}
