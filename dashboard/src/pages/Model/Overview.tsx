@@ -249,7 +249,7 @@ export default function ModelOverview() {
                                             </Notification>
                                         )}
                                     </div>
-                                    <div>
+                                    <div style={{ flexShrink: 0 }}>
                                         <CopyToClipboard
                                             text={downloadCommand}
                                             onCopy={() => {
