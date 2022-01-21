@@ -54,7 +54,7 @@ const useStyles = createUseStyles({
             right: 0,
             left: 0,
             position: 'fixed',
-            zIndex: 1000,
+            zIndex: 999,
             transition: 'all 200ms cubic-bezier(0.7, 0.1, 0.33, 1) 0ms',
         }
     },
