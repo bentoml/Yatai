@@ -273,6 +273,7 @@ export default function LabelList({ value = [], onChange, style }: ILabelListPro
                 <div
                     style={{
                         display: 'flex',
+                        flexShrink: 0,
                         alignItems: 'center',
                         gap: 10,
                     }}
