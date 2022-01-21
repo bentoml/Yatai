@@ -9,8 +9,9 @@ type ClusterConfigAWSSchema struct {
 	Region string `json:"region"`
 }
 type ClusterConfigSchema struct {
-	IngressIp string                  `json:"ingress_ip"`
-	AWS       *ClusterConfigAWSSchema `json:"aws"`
+	DefaultDeploymentKubeNamespace string                  `json:"default_deployment_kube_namespace"`
+	IngressIp                      string                  `json:"ingress_ip"`
+	AWS                            *ClusterConfigAWSSchema `json:"aws"`
 }
 
 func (c *ClusterConfigSchema) Scan(value interface{}) error {

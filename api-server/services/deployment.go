@@ -41,11 +41,12 @@ func (s *deploymentService) getBaseDB(ctx context.Context) *gorm.DB {
 }
 
 type CreateDeploymentOption struct {
-	CreatorId   uint
-	ClusterId   uint
-	Name        string
-	Description string
-	Labels      modelschemas.LabelItemsSchema
+	CreatorId     uint
+	ClusterId     uint
+	Name          string
+	Description   string
+	Labels        modelschemas.LabelItemsSchema
+	KubeNamespace string
 }
 
 type UpdateDeploymentOption struct {
@@ -99,6 +100,7 @@ func (*deploymentService) Create(ctx context.Context, opt CreateDeploymentOption
 		Description:     opt.Description,
 		Status:          modelschemas.DeploymentStatusNonDeployed,
 		KubeDeployToken: guid.String(),
+		KubeNamespace:   opt.KubeNamespace,
 	}
 	err := mustGetSession(ctx).Create(&deployment).Error
 	if err != nil {
@@ -328,7 +330,7 @@ func (s *deploymentService) GetAssociatedNullableDeployment(ctx context.Context,
 }
 
 func (s *deploymentService) GetKubeNamespace(d *models.Deployment) string {
-	return consts.KubeNamespaceYataiDeployment
+	return d.KubeNamespace
 }
 
 func (s *deploymentService) GetKubeCliSet(ctx context.Context, d *models.Deployment) (*kubernetes.Clientset, *rest.Config, error) {

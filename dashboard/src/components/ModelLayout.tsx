@@ -26,16 +26,12 @@ export default function ModelLayout({ children }: IModelLayoutProps) {
     const breadcrumbItems: INavItem[] = useMemo(
         () => [
             {
-                title: t('model repositories'),
-                path: '/model_repositories',
-                icon: resourceIconMapping.bento,
+                title: t('models'),
+                path: '/models',
+                icon: resourceIconMapping.model,
             },
             {
-                title: modelRepositoryName,
-                path: `/model_repositories/${modelRepositoryName}`,
-            },
-            {
-                title: modelVersion,
+                title: `${modelRepositoryName}:${modelVersion}`,
                 path: `/model_repositories/${modelRepositoryName}/models/${modelVersion}`,
             },
         ],

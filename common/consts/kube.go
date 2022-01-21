@@ -21,7 +21,7 @@ const (
 
 	KubeNamespaceYataiBentoImageBuilder = "yatai-builders"
 	KubeNamespaceYataiModelImageBuilder = "yatai-builders"
-	KubeNamespaceYataiDeployment        = "yatai-deployments"
+	KubeNamespaceYataiDeployment        = "yatai"
 	KubeNamespaceYataiOperators         = "yatai-operators"
 	KubeNamespaceYataiComponents        = "yatai-components"
 

@@ -9,6 +9,7 @@ type DeploymentSchema struct {
 	Status         modelschemas.DeploymentStatus `json:"status" enum:"unknown,non-deployed,running,unhealthy,failed,deploying"`
 	URLs           []string                      `json:"urls"`
 	LatestRevision *DeploymentRevisionSchema     `json:"latest_revision"`
+	KubeNamespace  string                        `json:"kube_namespace"`
 }
 
 type DeploymentListSchema struct {
@@ -22,7 +23,8 @@ type UpdateDeploymentSchema struct {
 }
 
 type CreateDeploymentSchema struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	KubeNamespace string `json:"kube_namespace"`
 	UpdateDeploymentSchema
 }

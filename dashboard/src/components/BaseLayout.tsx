@@ -82,9 +82,11 @@ export default function BaseLayout({
                                             }}
                                             key={item.path}
                                             onClick={
-                                                idx !== breadcrumbItems.length - 1
+                                                item.path && idx !== breadcrumbItems.length - 1
                                                     ? () => {
-                                                          history.push(item.path)
+                                                          if (item.path) {
+                                                              history.push(item.path)
+                                                          }
                                                       }
                                                     : undefined
                                             }

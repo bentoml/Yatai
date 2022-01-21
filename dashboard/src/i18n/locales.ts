@@ -1736,6 +1736,13 @@ const locales0 = {
         ko: '작업 이름',
         vi: 'Tên thao tác',
     },
+    'the default kube namespace for deployments': {
+        en: 'The default k8s namespace for deployments',
+        zh: '部署的默认 k8s 命名空间',
+        ja: 'デプロイのデフォルトの k8s ネームスペース',
+        ko: '배포에 대한 기본 k8s 네임스페이스',
+        vi: 'Không gian k8s mặc định cho phân phối',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

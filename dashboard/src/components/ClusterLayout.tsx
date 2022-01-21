@@ -8,6 +8,7 @@ import { INavItem } from '@/components/BaseSidebar'
 import { fetchCluster } from '@/services/cluster'
 import { useOrganization } from '@/hooks/useOrganization'
 import { resourceIconMapping } from '@/consts'
+import { AiOutlineSetting } from 'react-icons/ai'
 import BaseSubLayout from './BaseSubLayout'
 
 export interface IClusterLayoutProps {
@@ -76,6 +77,11 @@ export default function ClusterLayout({ children }: IClusterLayoutProps) {
                 title: t('deployments'),
                 path: `/clusters/${clusterName}/deployments`,
                 icon: resourceIconMapping.deployment,
+            },
+            {
+                title: t('settings'),
+                path: `/clusters/${clusterName}/settings`,
+                icon: AiOutlineSetting,
             },
         ],
         [clusterName, t]
