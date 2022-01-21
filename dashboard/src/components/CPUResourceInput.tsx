@@ -1,18 +1,20 @@
 import React from 'react'
 import { strToCPUMilliCores } from '@/utils'
-import { Input } from 'baseui/input'
+import { Input, InputProps } from 'baseui/input'
 
 interface ICPUResourceInputProps {
     value?: string
     onChange?: (value: string) => void
+    overrides?: InputProps['overrides']
 }
 
-export const CPUResourceInput = ({ value, onChange }: ICPUResourceInputProps) => {
+export const CPUResourceInput = ({ value, onChange, overrides }: ICPUResourceInputProps) => {
     const milliCores = strToCPUMilliCores(value)
     const n = milliCores === 0 ? '' : String(milliCores)
 
     return (
         <Input
+            overrides={overrides}
             type='number'
             value={n}
             min={0}

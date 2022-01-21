@@ -45,9 +45,10 @@ const useStyles = createUseStyles({
 interface ILabelListProps {
     value?: ILabelItemSchema[]
     onChange?: (value: ILabelItemSchema[]) => Promise<void>
+    style?: React.CSSProperties
 }
 
-export default function LabelList({ value = [], onChange }: ILabelListProps) {
+export default function LabelList({ value = [], onChange, style }: ILabelListProps) {
     const themeType = useCurrentThemeType()
     const [, theme] = useStyletron()
     const styles = useStyles({ theme, themeType })
@@ -90,17 +91,21 @@ export default function LabelList({ value = [], onChange }: ILabelListProps) {
         }
     }, [addingKey, addingValue, onChange, value])
 
-    const handleEditSubmit = useCallback(async () => {
-        setEditLoading(true)
-        try {
-            await onChange?.(
-                value.map((label) => (label.key === editingKey ? { key: editingKey, value: editingValue } : label))
-            )
-            setEditingKey(undefined)
-        } finally {
-            setEditLoading(false)
-        }
-    }, [editingKey, editingValue, onChange, value])
+    const handleEditSubmit = useCallback(
+        async (e) => {
+            e.preventDefault()
+            setEditLoading(true)
+            try {
+                await onChange?.(
+                    value.map((label) => (label.key === editingKey ? { key: editingKey, value: editingValue } : label))
+                )
+                setEditingKey(undefined)
+            } finally {
+                setEditLoading(false)
+            }
+        },
+        [editingKey, editingValue, onChange, value]
+    )
 
     const handleDeleteSubmit = useCallback(
         async (deletingKey: string) => {
@@ -115,7 +120,7 @@ export default function LabelList({ value = [], onChange }: ILabelListProps) {
     )
 
     return (
-        <div className={styles.root}>
+        <div className={styles.root} style={style}>
             <div className={styles.items}>
                 {value.map((label) => (
                     <div className={styles.item} key={label.key}>
@@ -140,7 +145,10 @@ export default function LabelList({ value = [], onChange }: ILabelListProps) {
                                             }}
                                         >
                                             <Button
-                                                onClick={() => setEditingKey(undefined)}
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    setEditingKey(undefined)
+                                                }}
                                                 isLoading={editLoading}
                                                 size='mini'
                                                 kind='secondary'
@@ -162,7 +170,8 @@ export default function LabelList({ value = [], onChange }: ILabelListProps) {
                                 shape='circle'
                                 size='mini'
                                 disabled={editingKey === label.key}
-                                onClick={() => {
+                                onClick={(e) => {
+                                    e.preventDefault()
                                     setEditingKey(label.key)
                                     setEditingValue(label.value)
                                 }}
@@ -173,7 +182,10 @@ export default function LabelList({ value = [], onChange }: ILabelListProps) {
                                 shape='circle'
                                 size='mini'
                                 isLoading={deleteLoading}
-                                onClick={() => handleDeleteSubmit(label.key)}
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    handleDeleteSubmit(label.key)
+                                }}
                             >
                                 <RiDeleteBin5Line />
                             </Button>
@@ -274,7 +286,10 @@ export default function LabelList({ value = [], onChange }: ILabelListProps) {
                             },
                         }}
                         isLoading={addLoading}
-                        onClick={() => setShowAddInputs(false)}
+                        onClick={(e) => {
+                            e.preventDefault()
+                            setShowAddInputs(false)
+                        }}
                         size='mini'
                         kind='secondary'
                     >
@@ -282,7 +297,14 @@ export default function LabelList({ value = [], onChange }: ILabelListProps) {
                     </Button>
                     <Button
                         isLoading={addLoading}
-                        onClick={() => (showAddInputs ? handleAddSubmit() : setShowAddInputs(true))}
+                        onClick={(e) => {
+                            e.preventDefault()
+                            if (showAddInputs) {
+                                handleAddSubmit()
+                            } else {
+                                setShowAddInputs(true)
+                            }
+                        }}
                         size='mini'
                     >
                         {t(showAddInputs ? 'ok' : 'add')}

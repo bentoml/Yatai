@@ -1,5 +1,5 @@
 import { listClusters } from '@/services/cluster'
-import { Select } from 'baseui/select'
+import { Select, SelectProps } from 'baseui/select'
 import _ from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
@@ -7,9 +7,10 @@ import { useQuery } from 'react-query'
 export interface IClusterSelectorProps {
     value?: string
     onChange?: (newValue: string) => void
+    overrides?: SelectProps['overrides']
 }
 
-export default function ClusterSelector({ value, onChange }: IClusterSelectorProps) {
+export default function ClusterSelector({ value, onChange, overrides }: IClusterSelectorProps) {
     const [keyword, setKeyword] = useState<string>()
     const [options, setOptions] = useState<{ id: string; label: React.ReactNode }[]>([])
     const clustersInfo = useQuery(`listClusters:${keyword}`, () =>
@@ -39,6 +40,7 @@ export default function ClusterSelector({ value, onChange }: IClusterSelectorPro
 
     return (
         <Select
+            overrides={overrides}
             isLoading={clustersInfo.isFetching}
             options={options}
             onChange={(params) => {

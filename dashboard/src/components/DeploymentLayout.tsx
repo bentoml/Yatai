@@ -1,6 +1,7 @@
 import { resourceIconMapping } from '@/consts'
 import { useCluster } from '@/hooks/useCluster'
 import { useDeployment, useDeploymentLoading } from '@/hooks/useDeployment'
+import { useFetchDeployment } from '@/hooks/useFetchDeployment'
 import { useFetchDeploymentRevisions } from '@/hooks/useFetchDeploymentRevisions'
 import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
 import { useOrganization } from '@/hooks/useOrganization'
@@ -8,7 +9,7 @@ import { usePage } from '@/hooks/usePage'
 import { useSubscription } from '@/hooks/useSubscription'
 import useTranslation from '@/hooks/useTranslation'
 import { IDeploymentFullSchema, IDeploymentSchema, IUpdateDeploymentSchema } from '@/schemas/deployment'
-import { deleteDeployment, fetchDeployment, terminateDeployment, updateDeployment } from '@/services/deployment'
+import { deleteDeployment, terminateDeployment, updateDeployment } from '@/services/deployment'
 import { useStyletron } from 'baseui'
 import { Button } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
@@ -19,7 +20,7 @@ import { AiOutlineDashboard } from 'react-icons/ai'
 import { FaJournalWhills } from 'react-icons/fa'
 import { RiSurveyLine } from 'react-icons/ri'
 import { VscServerProcess } from 'react-icons/vsc'
-import { useQuery, useQueryClient } from 'react-query'
+import { useQueryClient } from 'react-query'
 import { useHistory, useParams } from 'react-router-dom'
 import { INavItem } from './BaseSidebar'
 import BaseSubLayout from './BaseSubLayout'
@@ -34,8 +35,7 @@ export interface IDeploymentLayoutProps {
 
 export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
     const { clusterName, deploymentName } = useParams<{ clusterName: string; deploymentName: string }>()
-    const queryKey = `fetchDeployment:${clusterName}:${deploymentName}`
-    const deploymentInfo = useQuery(queryKey, () => fetchDeployment(clusterName, deploymentName))
+    const { queryKey, deploymentInfo } = useFetchDeployment(clusterName, deploymentName)
     const { deployment, setDeployment } = useDeployment()
     const { organization, setOrganization } = useOrganization()
     const { cluster, setCluster } = useCluster()
@@ -250,7 +250,12 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                                     {t('delete')}
                                 </Button>
                             )}
-                            <Button onClick={() => setIsCreateDeploymentRevisionOpen(true)} size='compact'>
+                            <Button
+                                onClick={() =>
+                                    history.push(`/clusters/${clusterName}/deployments/${deploymentName}/edit`)
+                                }
+                                size='compact'
+                            >
                                 {isTerminated ? t('restore') : t('update')}
                             </Button>
                         </div>

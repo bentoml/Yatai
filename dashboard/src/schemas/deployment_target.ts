@@ -2,6 +2,7 @@
 import { IUserSchema } from './user'
 import { IBentoFullSchema } from './bento'
 import { IResourceSchema } from './resource'
+import { ILabelItemSchema } from './label'
 
 export type DeploymentTargetType = 'stable' | 'canary'
 export const DeploymentTargetTypeAddrs: { [k in DeploymentTargetType]: string } = {
@@ -63,4 +64,5 @@ export interface IKubeHPAConf {
 export interface IDeploymentTargetConfigSchema {
     resources?: IKubeResources
     hpa_conf?: IKubeHPAConf
+    envs?: ILabelItemSchema[]
 }

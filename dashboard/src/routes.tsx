@@ -12,6 +12,7 @@ import OrganizationApiTokens from '@/pages/Organization/ApiTokens'
 import OrganizationClusters from '@/pages/Organization/Clusters'
 import OrganizationMembers from '@/pages/Organization/Members'
 import OrganizationDeployments from '@/pages/Organization/Deployments'
+import OrganizationDeploymentForm from '@/pages/Organization/DeploymentForm'
 import OrganizationSettings from '@/pages/Organization/Settings'
 import ClusterYataiComponents from '@/pages/Cluster/YataiComponents'
 import ClusterYataiComponentDetail from '@/pages/Cluster/YataiComponentDetail'
@@ -31,6 +32,7 @@ import DeploymentTerminalRecordPlayer from '@/pages/Deployment/TerminalRecordPla
 import DeploymentReplicas from '@/pages/Deployment/Replicas'
 import DeploymentLog from '@/pages/Deployment/Log'
 import DeploymentMonitor from '@/pages/Deployment/Monitor'
+import DeploymentEdit from '@/pages/Deployment/Edit'
 import BentoRepositoryLayout from '@/components/BentoRepositoryLayout'
 import DeploymentLayout from '@/components/DeploymentLayout'
 import ModelRepositoryLayout from '@/components/ModelRepositoryLayout'
@@ -105,6 +107,15 @@ const Routes = () => {
                                 />
                             </Switch>
                         </BentoRepositoryLayout>
+                    </Route>
+                    <Route exact path='/clusters/:clusterName/deployments/:deploymentName/:path?/edit'>
+                        <OrganizationLayout>
+                            <Route
+                                exact
+                                path='/clusters/:clusterName/deployments/:deploymentName/edit'
+                                component={DeploymentEdit}
+                            />
+                        </OrganizationLayout>
                     </Route>
                     <Route exact path='/clusters/:clusterName/deployments/:deploymentName/:path?/:path?'>
                         <DeploymentLayout>
@@ -203,6 +214,7 @@ const Routes = () => {
                                 <Route exact path='/bento_repositories' component={OrganizationBentoRepositories} />
                                 <Route exact path='/model_repositories' component={OrganizationModelRepositories} />
                                 <Route exact path='/deployments' component={OrganizationDeployments} />
+                                <Route exact path='/new_deployment' component={OrganizationDeploymentForm} />
                                 <Route exact path='/settings' component={OrganizationSettings} />
                             </Switch>
                         </OrganizationLayout>

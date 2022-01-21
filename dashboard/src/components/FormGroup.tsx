@@ -16,10 +16,11 @@ export default function FormGroup({ children, icon, style }: IFormGroupProps) {
                 flexDirection: 'row',
                 justifyContent: 'center',
                 marginBottom: 10,
+                gap: 16,
                 ...style,
             }}
         >
-            <div style={{ marginRight: 16, paddingTop: 6 }}>{icon && React.createElement(icon, { size: 20 })}</div>
+            <div style={{ paddingTop: 6 }}>{icon && React.createElement(icon, { size: 20 })}</div>
             <div style={{ flexGrow: 1 }}>{children}</div>
         </div>
     )
