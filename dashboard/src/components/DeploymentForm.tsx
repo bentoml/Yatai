@@ -247,7 +247,13 @@ export default function DeploymentForm({
                     />
                 </FormItem>
                 {!deployment && (
-                    <FormItem name='description' label={t('description')}>
+                    <FormItem
+                        name='description'
+                        label={t('description')}
+                        style={{
+                            width: 838,
+                        }}
+                    >
                         <Textarea />
                     </FormItem>
                 )}
