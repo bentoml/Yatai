@@ -1,6 +1,5 @@
 import { ICreateDeploymentSchema, IDeploymentSchema } from '@/schemas/deployment'
-import { DeleteAlt } from 'baseui/icon'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { createForm } from '@/components/Form'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
@@ -10,10 +9,19 @@ import { Accordion, Panel } from 'baseui/accordion'
 import { IDeploymentRevisionSchema } from '@/schemas/deployment_revision'
 import { RiCpuLine } from 'react-icons/ri'
 import { FaMemory } from 'react-icons/fa'
-import { VscServerProcess } from 'react-icons/vsc'
-import { Slider } from 'baseui/slider'
 import { ICreateDeploymentTargetSchema } from '@/schemas/deployment_target'
 import { useStyletron } from 'baseui'
+import { createUseStyles } from 'react-jss'
+import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
+import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
+import { resourceIconMapping, sidebarExpandedWidth, sidebarFoldedWidth } from '@/consts'
+import { SidebarContext } from '@/contexts/SidebarContext'
+import color from 'color'
+import { Label2, Label3 } from 'baseui/typography'
+import { useHistory } from 'react-router-dom'
+import { VscServerProcess, VscSymbolVariable } from 'react-icons/vsc'
+import { GrResources } from 'react-icons/gr'
+import { FiMaximize2, FiMinimize2 } from 'react-icons/fi'
 import DeploymentTargetTypeSelector from './DeploymentTargetTypeSelector'
 import BentoRepositorySelector from './BentoRepositorySelector'
 import BentoSelector from './BentoSelector'
@@ -22,7 +30,41 @@ import { CPUResourceInput } from './CPUResourceInput'
 import MemoryResourceInput from './MemoryResourceInput'
 import DeploymentTargetCanaryRulesForm from './DeploymentTargetCanaryRulesForm'
 import ClusterSelector from './ClusterSelector'
-import Label from './Label'
+import Divider from './Divider'
+import LabelList from './LabelList'
+import NumberInput from './NumberInput'
+
+const useStyles = createUseStyles({
+    wrapper: () => {
+        return {
+            width: '100%',
+            paddingBottom: '40px',
+        }
+    },
+    header: (props: IThemedStyleProps) => {
+        return {
+            boxSizing: 'border-box',
+            display: 'flex',
+            alignItems: 'center',
+            borderBottom: `1px solid ${props.theme.borders.border300.borderColor}`,
+            background: color(props.theme.colors.backgroundPrimary).fade(0.5).rgb().string(),
+            backdropFilter: 'blur(10px)',
+            padding: '0.9rem 1rem',
+            marginTop: '-20px',
+            right: 0,
+            left: 0,
+            position: 'fixed',
+            zIndex: 1000,
+            transition: 'all 200ms cubic-bezier(0.7, 0.1, 0.33, 1) 0ms',
+        }
+    },
+    body: {
+        paddingTop: '70px',
+    },
+    headerLabel: {
+        flexGrow: 1,
+    },
+})
 
 const { Form, FormItem, useForm } = createForm<ICreateDeploymentSchema>()
 
@@ -63,9 +105,13 @@ export default function DeploymentForm({
     deploymentRevision,
     onSubmit,
 }: IDeploymentFormProps) {
-    const [form] = useForm()
-
+    const paddingLeft = 20
+    const ctx = useContext(SidebarContext)
+    const themeType = useCurrentThemeType()
     const [, theme] = useStyletron()
+    const styles = useStyles({ theme, themeType })
+    const [form] = useForm()
+    const history = useHistory()
 
     const [values, setValues] = useState<ICreateDeploymentSchema>({
         cluster_name: clusterName,
@@ -91,48 +137,21 @@ export default function DeploymentForm({
         const values0 = {
             name: deployment.name,
             description: deployment.description,
-            cluster_name: clusterName,
-            targets: deploymentRevision.targets.map(
-                (target) =>
-                    ({
-                        type: target.type,
-                        bento_repository: target.bento.repository.name,
-                        bento: target.bento.version,
-                        canary_rules: target.canary_rules,
-                        config: target.config,
-                    } as ICreateDeploymentTargetSchema)
-            ),
+            cluster_name: clusterName || deployment.cluster?.name,
+            targets: deploymentRevision.targets.map((target) => {
+                return {
+                    type: target.type,
+                    bento_repository: target.bento.repository.name,
+                    bento: target.bento.version,
+                    canary_rules: target.canary_rules,
+                    config: target.config,
+                } as ICreateDeploymentTargetSchema
+            }),
         }
         setValues(values0)
     }, [clusterName, deployment, deploymentRevision])
 
     const [loading, setLoading] = useState(false)
-
-    const addTarget = useCallback(() => {
-        setValues((values_) => {
-            const values0: ICreateDeploymentSchema = {
-                ...values_,
-                targets: [
-                    ...values_.targets,
-                    {
-                        ...defaultTarget,
-                        type: values_.targets.length > 0 ? 'canary' : 'stable',
-                    },
-                ],
-            }
-            return values0
-        })
-    }, [])
-
-    const removeTarget = useCallback((idx: number) => {
-        setValues((values_) => {
-            const values0 = {
-                ...values_,
-                targets: values_.targets.filter((_target, idx_) => idx !== idx_),
-            }
-            return values0
-        })
-    }, [])
 
     const handleFinish = useCallback(async () => {
         if (!values) {
@@ -145,10 +164,11 @@ export default function DeploymentForm({
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ...(values as any),
             })
+            history.goBack()
         } finally {
             setLoading(false)
         }
-    }, [onSubmit, values])
+    }, [history, onSubmit, values])
 
     const handleChange = useCallback((changes, values_) => {
         setValues(values_)
@@ -157,222 +177,349 @@ export default function DeploymentForm({
     const [t] = useTranslation()
 
     return (
-        <Form form={form} initialValues={values} onFinish={handleFinish} onValuesChange={handleChange}>
-            <FormItem
-                required
-                name='cluster_name'
-                label={t('cluster')}
-                style={{ display: clusterName ? 'none' : 'block' }}
-            >
-                <ClusterSelector />
-            </FormItem>
-            {!deployment && (
-                <FormItem required name='name' label={t('name')}>
-                    <Input />
-                </FormItem>
-            )}
-            {!deployment && (
-                <FormItem name='description' label={t('description')}>
-                    <Textarea />
-                </FormItem>
-            )}
-            <Label style={{ paddingBottom: 10, display: 'block' }}>{t('deployment targets')} *</Label>
+        <Form
+            className={styles.wrapper}
+            form={form}
+            initialValues={values}
+            onFinish={handleFinish}
+            onValuesChange={handleChange}
+        >
             <div
+                className={styles.header}
                 style={{
-                    background: theme.colors.backgroundSecondary,
-                    marginBottom: 10,
+                    left: (ctx.expanded ? sidebarExpandedWidth : sidebarFoldedWidth) + 1,
                 }}
             >
-                {values.targets.map((target, idx) => {
-                    return (
-                        <div
-                            key={idx}
-                            style={{
-                                borderBottom: `1px solid ${theme.borders.border400.borderColor}`,
-                                padding: '10px 10px 10px 20px',
-                            }}
-                        >
-                            <div>
-                                <FormItem required name={['targets', idx, 'type']} label={t('type')}>
-                                    <DeploymentTargetTypeSelector />
-                                </FormItem>
-                                {target.type === 'canary' && (
-                                    <FormItem
-                                        required
-                                        name={['targets', idx, 'canary_rules']}
-                                        label={t('canary rules')}
-                                    >
-                                        <DeploymentTargetCanaryRulesForm
-                                            style={{
-                                                paddingLeft: 40,
-                                            }}
-                                        />
-                                    </FormItem>
-                                )}
-                                <FormItem
-                                    required
-                                    name={['targets', idx, 'bento_repository']}
-                                    label={t('bento repository')}
-                                >
-                                    <BentoRepositorySelector />
-                                </FormItem>
-                                {target.bento_repository && (
-                                    <FormItem required name={['targets', idx, 'bento']} label={t('bento')}>
-                                        <BentoSelector bentoRepositoryName={target.bento_repository} />
-                                    </FormItem>
-                                )}
-                                <Accordion
-                                    overrides={{
-                                        Root: {
-                                            style: {
-                                                marginBottom: '10px',
-                                            },
-                                        },
-                                    }}
-                                    renderAll
-                                >
-                                    <Panel title={t('advanced')}>
-                                        <FormGroup
-                                            icon={VscServerProcess}
-                                            style={{
-                                                marginTop: 30,
-                                            }}
-                                        >
-                                            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                                            <label
-                                                style={{
-                                                    fontWeight: 500,
-                                                }}
-                                            >
-                                                {t('replicas')}
-                                            </label>
-                                            <Slider
-                                                min={0}
-                                                max={10}
-                                                step={1}
-                                                persistentThumb
-                                                value={[
-                                                    target.config?.hpa_conf?.min_replicas === undefined
-                                                        ? 2
-                                                        : target.config?.hpa_conf?.min_replicas,
-                                                    target.config?.hpa_conf?.max_replicas === undefined
-                                                        ? 10
-                                                        : target.config?.hpa_conf?.max_replicas,
-                                                ]}
-                                                onChange={({ value }) => {
-                                                    if (!value) {
-                                                        return
-                                                    }
-                                                    setValues((values_) => {
-                                                        const values0 = {
-                                                            ...values_,
-                                                            targets: values_.targets.map((target_, idx_) => {
-                                                                if (idx !== idx_) {
-                                                                    return target_
-                                                                }
-                                                                return {
-                                                                    ...target_,
-                                                                    config: {
-                                                                        ...target_.config,
-                                                                        hpa_conf: {
-                                                                            ...target_.config?.hpa_conf,
-                                                                            min_replicas: value[0],
-                                                                            max_replicas: value[1],
-                                                                        },
-                                                                    },
-                                                                }
-                                                            }),
-                                                        } as ICreateDeploymentSchema
-                                                        return values0
-                                                    })
-                                                }}
-                                            />
-                                        </FormGroup>
-                                        <FormItem
-                                            name={['targets', idx, 'config', 'hpa_conf', 'min_replicas']}
-                                            style={{ display: 'none ' }}
-                                        >
-                                            <Input type='number' />
-                                        </FormItem>
-                                        <FormItem
-                                            name={['targets', idx, 'config', 'hpa_conf', 'max_replicas']}
-                                            style={{ display: 'none ' }}
-                                        >
-                                            <Input type='number' />
-                                        </FormItem>
-                                        <FormGroup icon={RiCpuLine}>
-                                            <FormItem
-                                                name={['targets', idx, 'config', 'resources', 'requests', 'cpu']}
-                                                label={t('cpu requests')}
-                                            >
-                                                <CPUResourceInput />
-                                            </FormItem>
-                                            <FormItem
-                                                name={['targets', idx, 'config', 'resources', 'limits', 'cpu']}
-                                                label={t('cpu limits')}
-                                            >
-                                                <CPUResourceInput />
-                                            </FormItem>
-                                        </FormGroup>
-                                        <FormGroup icon={FaMemory}>
-                                            <FormItem
-                                                name={['targets', idx, 'config', 'resources', 'requests', 'memory']}
-                                                label={t('memory requests')}
-                                            >
-                                                <MemoryResourceInput />
-                                            </FormItem>
-                                            <FormItem
-                                                name={['targets', idx, 'config', 'resources', 'limits', 'memory']}
-                                                label={t('memory limits')}
-                                            >
-                                                <MemoryResourceInput />
-                                            </FormItem>
-                                        </FormGroup>
-                                    </Panel>
-                                </Accordion>
-                            </div>
-                            <Button
-                                size='mini'
-                                disabled={values.targets.length === 1}
-                                overrides={{
-                                    Root: {
-                                        style: {
-                                            background: theme.colors.negative,
-                                        },
-                                    },
-                                }}
-                                onClick={(e) => {
-                                    e.preventDefault()
-                                    removeTarget(idx)
-                                }}
-                            >
-                                <DeleteAlt />
-                                <span style={{ marginLeft: 6 }}>{t('delete')}</span>
-                            </Button>
-                        </div>
-                    )
-                })}
-                <div style={{ padding: 10 }}>
+                <div className={styles.headerLabel}>
+                    <Label2>{deployment ? t('update deployment') : t('new deployment')}</Label2>
+                </div>
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 20,
+                    }}
+                >
                     <Button
-                        size='mini'
+                        isLoading={loading}
+                        size={ButtonSize.compact}
+                        kind='secondary'
                         onClick={(e) => {
                             e.preventDefault()
-                            addTarget()
+                            history.goBack()
                         }}
                     >
-                        {t('add sth', [t('deployment target')])}
+                        {t('cancel')}
                     </Button>
-                </div>
-            </div>
-
-            <FormItem>
-                <div style={{ display: 'flex' }}>
-                    <div style={{ flexGrow: 1 }} />
                     <Button isLoading={loading} size={ButtonSize.compact}>
                         {t('submit')}
                     </Button>
                 </div>
-            </FormItem>
+            </div>
+
+            <div className={styles.body}>
+                <FormItem
+                    required
+                    name='cluster_name'
+                    label={t('cluster')}
+                    style={{ display: clusterName ? 'none' : 'block' }}
+                >
+                    <ClusterSelector
+                        overrides={{
+                            Root: {
+                                style: {
+                                    width: '392px',
+                                },
+                            },
+                        }}
+                    />
+                </FormItem>
+                <FormItem required name='name' label={t('deployment name')}>
+                    <Input
+                        disabled={!!deployment}
+                        overrides={{
+                            Root: {
+                                style: {
+                                    width: '392px',
+                                },
+                            },
+                        }}
+                    />
+                </FormItem>
+                {!deployment && (
+                    <FormItem name='description' label={t('description')}>
+                        <Textarea />
+                    </FormItem>
+                )}
+                <div>
+                    {values.targets.map((target, idx) => {
+                        return (
+                            <div key={idx}>
+                                <Divider orientation='left'>{t('select bento')}</Divider>
+                                <div>
+                                    <FormItem
+                                        style={{ display: 'none' }}
+                                        required
+                                        name={['targets', idx, 'type']}
+                                        label={t('type')}
+                                    >
+                                        <DeploymentTargetTypeSelector />
+                                    </FormItem>
+                                    {target.type === 'canary' && (
+                                        <FormItem
+                                            required
+                                            name={['targets', idx, 'canary_rules']}
+                                            label={t('canary rules')}
+                                        >
+                                            <DeploymentTargetCanaryRulesForm
+                                                style={{
+                                                    paddingLeft: 40,
+                                                }}
+                                            />
+                                        </FormItem>
+                                    )}
+                                    <div
+                                        style={{
+                                            paddingLeft,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 20,
+                                        }}
+                                    >
+                                        <FormItem
+                                            required
+                                            name={['targets', idx, 'bento_repository']}
+                                            style={{ marginBottom: 0, width: 370 }}
+                                            label={
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 5,
+                                                    }}
+                                                >
+                                                    {React.createElement(resourceIconMapping.bento_repository, {})}
+                                                    <div>{t('bento repository')}</div>
+                                                </div>
+                                            }
+                                        >
+                                            <BentoRepositorySelector />
+                                        </FormItem>
+                                        {target.bento_repository && (
+                                            <FormItem
+                                                required
+                                                name={['targets', idx, 'bento']}
+                                                label={
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 5,
+                                                        }}
+                                                    >
+                                                        {React.createElement(resourceIconMapping.bento, {})}
+                                                        <div>{t('bento')}</div>
+                                                    </div>
+                                                }
+                                                style={{ width: 370 }}
+                                            >
+                                                <BentoSelector bentoRepositoryName={target.bento_repository} />
+                                            </FormItem>
+                                        )}
+                                    </div>
+                                    <Divider orientation='left'>{t('configurations')}</Divider>
+                                    <div
+                                        style={{
+                                            paddingLeft,
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 10,
+                                            }}
+                                        >
+                                            <VscServerProcess />
+                                            <Label3>{t('number of replicas')}</Label3>
+                                        </div>
+                                        <div
+                                            style={{
+                                                paddingLeft,
+                                                marginTop: 10,
+                                            }}
+                                        >
+                                            <FormItem
+                                                name={['targets', idx, 'config', 'hpa_conf', 'min_replicas']}
+                                                label={
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 16,
+                                                        }}
+                                                    >
+                                                        <FiMinimize2 size={20} />
+                                                        <div>{t('min')}</div>
+                                                    </div>
+                                                }
+                                            >
+                                                <NumberInput
+                                                    overrides={{
+                                                        Root: {
+                                                            style: {
+                                                                width: '220px',
+                                                                marginLeft: '36px',
+                                                            },
+                                                        },
+                                                    }}
+                                                />
+                                            </FormItem>
+                                            <FormItem
+                                                name={['targets', idx, 'config', 'hpa_conf', 'max_replicas']}
+                                                label={
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 16,
+                                                        }}
+                                                    >
+                                                        <FiMaximize2 size={20} />
+                                                        <div>{t('max')}</div>
+                                                    </div>
+                                                }
+                                            >
+                                                <NumberInput
+                                                    overrides={{
+                                                        Root: {
+                                                            style: {
+                                                                width: '220px',
+                                                                marginLeft: '36px',
+                                                            },
+                                                        },
+                                                    }}
+                                                />
+                                            </FormItem>
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 10,
+                                            }}
+                                        >
+                                            <GrResources />
+                                            <Label3>{t('resource per replicas')}</Label3>
+                                        </div>
+                                        <div
+                                            style={{
+                                                paddingLeft,
+                                                marginTop: 10,
+                                            }}
+                                        >
+                                            <FormGroup icon={RiCpuLine}>
+                                                <FormItem
+                                                    name={['targets', idx, 'config', 'resources', 'requests', 'cpu']}
+                                                    label={t('cpu requests')}
+                                                >
+                                                    <CPUResourceInput
+                                                        overrides={{
+                                                            Root: {
+                                                                style: {
+                                                                    width: '220px',
+                                                                },
+                                                            },
+                                                        }}
+                                                    />
+                                                </FormItem>
+                                                <FormItem
+                                                    name={['targets', idx, 'config', 'resources', 'limits', 'cpu']}
+                                                    label={t('cpu limits')}
+                                                >
+                                                    <CPUResourceInput
+                                                        overrides={{
+                                                            Root: {
+                                                                style: {
+                                                                    width: '220px',
+                                                                },
+                                                            },
+                                                        }}
+                                                    />
+                                                </FormItem>
+                                            </FormGroup>
+                                            <FormGroup icon={FaMemory}>
+                                                <FormItem
+                                                    name={['targets', idx, 'config', 'resources', 'requests', 'memory']}
+                                                    label={t('memory requests')}
+                                                >
+                                                    <MemoryResourceInput
+                                                        overrides={{
+                                                            Root: {
+                                                                style: {
+                                                                    width: '130px',
+                                                                },
+                                                            },
+                                                        }}
+                                                    />
+                                                </FormItem>
+                                                <FormItem
+                                                    name={['targets', idx, 'config', 'resources', 'limits', 'memory']}
+                                                    label={t('memory limits')}
+                                                >
+                                                    <MemoryResourceInput
+                                                        overrides={{
+                                                            Root: {
+                                                                style: {
+                                                                    width: '130px',
+                                                                },
+                                                            },
+                                                        }}
+                                                    />
+                                                </FormItem>
+                                            </FormGroup>
+                                        </div>
+                                    </div>
+                                    <Accordion
+                                        overrides={{
+                                            Root: {
+                                                style: {
+                                                    marginBottom: '10px',
+                                                },
+                                            },
+                                        }}
+                                        renderAll
+                                    >
+                                        <Panel title={t('advanced')}>
+                                            <FormItem
+                                                name={['targets', idx, 'config', 'envs']}
+                                                label={
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 5,
+                                                        }}
+                                                    >
+                                                        <VscSymbolVariable />
+                                                        <div>{t('environment variables')}</div>
+                                                    </div>
+                                                }
+                                            >
+                                                <LabelList
+                                                    style={{
+                                                        width: 440,
+                                                    }}
+                                                />
+                                            </FormItem>
+                                        </Panel>
+                                    </Accordion>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
         </Form>
     )
 }

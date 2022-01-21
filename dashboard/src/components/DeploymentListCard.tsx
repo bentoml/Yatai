@@ -10,7 +10,7 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 import { IListSchema } from '@/schemas/list'
 import { useSubscription } from '@/hooks/useSubscription'
@@ -105,6 +105,8 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
         }
     }, [subscribe, subscribeCb, uids, unsubscribe])
 
+    const history = useHistory()
+
     return (
         <Card
             title={t('deployments')}
@@ -146,7 +148,7 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                 </div>
             }
             extra={
-                <Button size={ButtonSize.compact} onClick={() => setIsCreateDeploymentOpen(true)}>
+                <Button size={ButtonSize.compact} onClick={() => history.push('/new_deployment')}>
                     {t('create')}
                 </Button>
             }

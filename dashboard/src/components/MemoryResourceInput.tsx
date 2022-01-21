@@ -1,13 +1,14 @@
-import { Input } from 'baseui/input'
+import { Input, InputProps } from 'baseui/input'
 import { Select } from 'baseui/select'
 import React, { useRef } from 'react'
 
 interface IMemoryResourceInputProps {
     value?: string
     onChange?: (value: string) => void
+    overrides?: InputProps['overrides']
 }
 
-export default function MemoryResourceInput({ value, onChange }: IMemoryResourceInputProps) {
+export default function MemoryResourceInput({ value, onChange, overrides }: IMemoryResourceInputProps) {
     const unitRef = useRef('Mi')
     const vRef = useRef<number | undefined>(undefined)
     if (value) {
@@ -27,6 +28,7 @@ export default function MemoryResourceInput({ value, onChange }: IMemoryResource
             }}
         >
             <Input
+                overrides={overrides}
                 type='number'
                 min={0}
                 value={String(vRef.current)}
@@ -44,10 +46,12 @@ export default function MemoryResourceInput({ value, onChange }: IMemoryResource
                 }}
             />
             <Select
+                clearable={false}
+                searchable={false}
                 overrides={{
                     Root: {
                         style: {
-                            width: '120px',
+                            width: '90px',
                         },
                     },
                 }}

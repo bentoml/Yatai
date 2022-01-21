@@ -298,6 +298,17 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		vms = append(vms, vm)
 	}
 
+	var envs []apiv1.EnvVar
+	if deploymentTarget.Config != nil && deploymentTarget.Config.Envs != nil {
+		envs = make([]apiv1.EnvVar, 0, len(*deploymentTarget.Config.Envs))
+		for _, v := range *deploymentTarget.Config.Envs {
+			envs = append(envs, apiv1.EnvVar{
+				Name:  v.Key,
+				Value: v.Value,
+			})
+		}
+	}
+
 	args = append(args, "./env/docker/entrypoint.sh", "bentoml", "serve", ".")
 
 	container := apiv1.Container{
@@ -307,6 +318,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		Args:           []string{strings.Join(args, " ")},
 		LivenessProbe:  livenessProbe,
 		ReadinessProbe: readinessProbe,
+		Env:            envs,
 		TTY:            true,
 		Stdin:          true,
 		VolumeMounts:   vms,
