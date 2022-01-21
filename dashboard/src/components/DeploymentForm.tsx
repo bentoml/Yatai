@@ -225,6 +225,7 @@ export default function DeploymentForm({
                     style={{ display: clusterName ? 'none' : 'block' }}
                 >
                     <ClusterSelector
+                        disabled={!!deployment}
                         overrides={{
                             Root: {
                                 style: {
