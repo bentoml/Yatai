@@ -15,3 +15,14 @@ export async function listDeploymentRevisions(
     )
     return resp.data
 }
+
+export async function fetchDeploymentRevision(
+    clusterName: string,
+    deploymentName: string,
+    revisionUid: string
+): Promise<IDeploymentRevisionSchema> {
+    const resp = await axios.get<IDeploymentRevisionSchema>(
+        `/api/v1/clusters/${clusterName}/deployments/${deploymentName}/revisions/${revisionUid}`
+    )
+    return resp.data
+}

@@ -16,6 +16,7 @@ import color from 'color'
 import { useFetchDeploymentRevisions } from '@/hooks/useFetchDeploymentRevisions'
 import { IDeploymentRevisionSchema } from '@/schemas/deployment_revision'
 import { Button } from 'baseui/button'
+import { useHistory } from 'react-router-dom'
 import DeploymentTargetInfo from './DeploymentTargetInfo'
 
 export interface IDeploymentRevisionListCardProps {
@@ -29,6 +30,7 @@ export default function DeploymentRevisionListCard({ clusterName, deploymentName
     const { deploymentRevisionsInfo } = useFetchDeploymentRevisions(clusterName, deploymentName, page)
     const [wishToDeployRevision, setWishToDeployRevision] = useState<IDeploymentRevisionSchema>()
     const [isCreateDeploymentRevisionOpen, setIsCreateDeploymentRevisionOpen] = useState(false)
+    const history = useHistory()
     const handleCreateDeploymentRevision = useCallback(
         async (data: IUpdateDeploymentSchema) => {
             await updateDeployment(clusterName, deploymentName, data)
@@ -58,7 +60,14 @@ export default function DeploymentRevisionListCard({ clusterName, deploymentName
                         formatDateTime(deploymentRevision.created_at),
                         <div key={deploymentRevision.uid}>
                             {deploymentRevision.status !== 'active' && (
-                                <Button size='mini' onClick={() => setWishToDeployRevision(deploymentRevision)}>
+                                <Button
+                                    size='mini'
+                                    onClick={() =>
+                                        history.push(
+                                            `/clusters/${clusterName}/deployments/${deploymentName}/revisions/${deploymentRevision.uid}/rollback`
+                                        )
+                                    }
+                                >
                                     {t('rollback')}
                                 </Button>
                             )}

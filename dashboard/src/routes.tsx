@@ -33,6 +33,7 @@ import DeploymentReplicas from '@/pages/Deployment/Replicas'
 import DeploymentLog from '@/pages/Deployment/Log'
 import DeploymentMonitor from '@/pages/Deployment/Monitor'
 import DeploymentEdit from '@/pages/Deployment/Edit'
+import DeploymentRevisionRollback from '@/pages/Deployment/RevisionRollback'
 import BentoRepositoryLayout from '@/components/BentoRepositoryLayout'
 import DeploymentLayout from '@/components/DeploymentLayout'
 import ModelRepositoryLayout from '@/components/ModelRepositoryLayout'
@@ -114,6 +115,18 @@ const Routes = () => {
                                 exact
                                 path='/clusters/:clusterName/deployments/:deploymentName/edit'
                                 component={DeploymentEdit}
+                            />
+                        </OrganizationLayout>
+                    </Route>
+                    <Route
+                        exact
+                        path='/clusters/:clusterName/deployments/:deploymentName/:path?/revisions/:path?/rollback'
+                    >
+                        <OrganizationLayout>
+                            <Route
+                                exact
+                                path='/clusters/:clusterName/deployments/:deploymentName/revisions/:revisionUid/rollback'
+                                component={DeploymentRevisionRollback}
                             />
                         </OrganizationLayout>
                     </Route>
