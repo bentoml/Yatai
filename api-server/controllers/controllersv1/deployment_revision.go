@@ -53,3 +53,30 @@ func (c *deploymentRevisionController) List(ctx *gin.Context, schema *ListDeploy
 		Items: deploymentRevisionSchemas,
 	}, err
 }
+
+type GetDeploymentRevisionSchema struct {
+	GetDeploymentSchema
+	RevisionUid string `path:"revisionUid"`
+}
+
+func (c *deploymentRevisionController) Get(ctx *gin.Context, schema *GetDeploymentRevisionSchema) (*schemasv1.DeploymentRevisionSchema, error) {
+	deployment, err := schema.GetDeployment(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = DeploymentController.canView(ctx, deployment); err != nil {
+		return nil, err
+	}
+
+	deploymentRevision, err := services.DeploymentRevisionService.GetByUid(ctx, schema.RevisionUid)
+	if err != nil {
+		return nil, errors.Wrap(err, "get deploymentRevision")
+	}
+
+	if deploymentRevision.DeploymentId != deployment.ID {
+		return nil, errors.New("deploymentRevision not found")
+	}
+
+	return transformersv1.ToDeploymentRevisionSchema(ctx, deploymentRevision)
+}

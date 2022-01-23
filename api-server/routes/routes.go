@@ -600,6 +600,13 @@ func deploymentRoutes(grp *fizz.RouterGroup) {
 func deploymentRevisionRoutes(grp *fizz.RouterGroup) {
 	grp = grp.Group("/revisions", "deployment revisions", "deployment revisions")
 
+	resourceGrp := grp.Group("/:revisionUid", "deployment revision resource", "deployment revision resource")
+
+	resourceGrp.GET("", []fizz.OperationOption{
+		fizz.ID("Get a deployment revision"),
+		fizz.Summary("Get a deployment revision"),
+	}, requireLogin, tonic.Handler(controllersv1.DeploymentRevisionController.Get, 200))
+
 	grp.GET("", []fizz.OperationOption{
 		fizz.ID("List deployment revisions"),
 		fizz.Summary("List deployment revisions"),
