@@ -309,7 +309,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		}
 	}
 
-	args = append(args, "./env/docker/entrypoint.sh", "bentoml", "serve", ".")
+	args = append(args, "./env/docker/entrypoint.sh", "bentoml", "serve", ".", "--production")
 
 	container := apiv1.Container{
 		Name:           kubeName,
