@@ -9,11 +9,18 @@ server:  # the server config section
 postgresql:  # the database config section
   host: localhost
   port: 5432
-  user: yetone
-  password: ''
+  user: postgres
+  password: password
   database: yatai
 
-oauth:
-  github:  # https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app
-    client_id: ''
-    client_secret: ''
+s3:
+  endpoint: s3.us-west-2.amazonaws.com
+  region: us-west-2
+  bucket_name: <YOUR BUCKET NAME>
+  secure: true
+
+docker_registry:
+  server: https://index.docker.io/v1
+  username: <YOUR DOCKERHUB USERNAME>
+  password: <YOUR DOCKERHUB PASSWORD>
+  secure: true
