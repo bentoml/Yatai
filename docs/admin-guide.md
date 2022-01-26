@@ -1,21 +1,23 @@
-# Overview
+# Yatai Administrator's Guide
 
-This guide helps system admin to install and configure Yatai on a Kubernetes Cluster for your machine learning team. Helm chart is the only official supported way of installing Yatai.
+This guide helps you to install and configure Yatai on a Kubernetes Cluster for your machine
+learning team, using the official [Yatai Helm chart](https://github.com/bentoml/yatai-chart). Note
+that Helm chart is the only official supported method of installing Yatai.
 
 By default, Yatai helm chart will install Yatai and its dependency services in the target Kubernetes cluster. Those dependency services include PostgreSQL, Minio, Docker registry, and Nginx Ingress Controller. Users can configure those services with existing infrastructure or cloud-based services via the Helm chart configuration yaml file.
 
 
-- System Overview
-- Local Minikube Installation
-- Production Installation
-    - Custom PostgreSQL database
-        - AWS RDS
-    - Cusotm Docker Registry
-        - Docker hub
-        - AWR ECR
-    - Custom Blob Storage
-        - AWS S3
-- Verifying Yatai installation
+- [System Overview](#system-overview)
+- [Local Minikube Installation](#local-minikube-installation)
+- [Production Installation](#production-installation)
+  - Custom PostgreSQL database
+    - [AWS RDS]()
+  - Cusotm Docker Registry
+    - [Docker hub]()
+    - [AWR ECR]()
+  - Custom Blob Storage
+    - [AWS S3]()
+- [Verifying Yatai installation]()
 
 
 ## System Overview
@@ -177,7 +179,7 @@ To install and operate Yatai in production, we generally recommend using a dedic
     ```
 
 
-### Custom **PostgreSQL** database
+### Custom PostgreSQL database
 
 **AWS RDS**
 
