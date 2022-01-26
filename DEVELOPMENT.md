@@ -6,7 +6,7 @@ Yatai uses Golang for its backend and react/typescript for the frontend web UI. 
 git clone https://github.com/bentoml/yatai.git
 ```
 
-## Install prerequisites
+## Prerequisites
 
 ### Yatai Web UI
 
@@ -106,9 +106,9 @@ go mod download
     make yatai-dev
     ```
 
-    Visit `[https://localhost:7777](https://localhost:7777)` to view the Yatai Web UI
+    Visit http://localhost:7777 to view the Yatai Web UI
 
-    Visit `[localhost:7777/swagger](http://localhost:7777/swagger)` to view Yatai server’s API definitions.
+    Visit http://localhost:7777/swagger to view Yatai server’s API definitions.
 
 
 To start Yatai UI separately, run make command:
