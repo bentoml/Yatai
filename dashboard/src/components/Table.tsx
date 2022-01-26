@@ -22,7 +22,19 @@ export default function Table({ isLoading, columns, data, overrides, paginationP
                 isLoading={isLoading}
                 columns={columns}
                 data={data}
-                overrides={overrides}
+                overrides={{
+                    TableBodyRow: {
+                        style: {
+                            cursor: 'pointer',
+                        },
+                        props: {
+                            onClick: (e: React.MouseEvent) => {
+                                e.currentTarget.querySelector('a')?.click()
+                            },
+                        },
+                    },
+                    ...overrides,
+                }}
                 loadingMessage={<Skeleton rows={3} height='100px' width='100%' animation />}
                 emptyMessage={
                     <div

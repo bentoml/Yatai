@@ -1,23 +1,21 @@
 import React, { useState } from 'react'
-import { useModel, useModelLoading } from '@/hooks/useModel'
+import { useBento, useBentoLoading } from '@/hooks/useBento'
 import { Skeleton } from 'baseui/skeleton'
 import { createUseStyles } from 'react-jss'
 import useTranslation from '@/hooks/useTranslation'
 import ImageBuildStatusTag from '@/components/ImageBuildStatusTag'
-import { listModelBentos, listModelDeployments, recreateModelImageBuilderJob, updateModel } from '@/services/model'
+import { listBentoModels, listBentoDeployments, recreateBentoImageBuilderJob, updateBento } from '@/services/bento'
 import LabelList from '@/components/LabelList'
 import Card from '@/components/Card'
 import Time from '@/components/Time'
 import User from '@/components/User'
-import classNames from 'classnames'
 import prettyBytes from 'pretty-bytes'
 import { useParams } from 'react-router-dom'
-import { useFetchModel } from '@/hooks/useFetchModel'
+import { useFetchBento } from '@/hooks/useFetchBento'
 import { resourceIconMapping } from '@/consts'
 import { useQuery } from 'react-query'
 import { IListQuerySchema } from '@/schemas/list'
 import qs from 'qs'
-import BentoList from '@/components/BentoList'
 import { AiOutlineCloudDownload, AiOutlineTags } from 'react-icons/ai'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { TiClipboard } from 'react-icons/ti'
@@ -30,6 +28,7 @@ import { IDeploymentSchema } from '@/schemas/deployment'
 import DeploymentStatusTag from '@/components/DeploymentStatusTag'
 import { useStyletron } from 'baseui'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
+import ModelList from '@/components/ModelList'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import Link from '@/components/Link'
 
@@ -98,38 +97,32 @@ const useStyles = createUseStyles({
     },
 })
 
-export default function ModelOverview() {
+export default function BentoOverview() {
     const themeType = useCurrentThemeType()
     const [, theme] = useStyletron()
     const styles = useStyles({ theme, themeType })
-    const { modelRepositoryName, modelVersion } = useParams<{ modelRepositoryName: string; modelVersion: string }>()
-    const modelInfo = useFetchModel(modelRepositoryName, modelVersion)
-    const { model } = useModel()
-    const { modelLoading } = useModelLoading()
+    const { bentoRepositoryName, bentoVersion } = useParams<{ bentoRepositoryName: string; bentoVersion: string }>()
+    const bentoInfo = useFetchBento(bentoRepositoryName, bentoVersion)
+    const { bento } = useBento()
+    const { bentoLoading } = useBentoLoading()
     const [t] = useTranslation()
-    const [showContext, setShowContext] = useState(false)
-    const [showMetaData, setShowMetaData] = useState(false)
-    const [bentosQuery, setBentosQuery] = useState<IListQuerySchema>({
-        start: 0,
-        count: 10,
-    })
-    const bentosQueryKey = `model:${modelRepositoryName}/${modelVersion}:bentos:${qs.stringify(bentosQuery)}`
-    const bentosInfo = useQuery(bentosQueryKey, () => listModelBentos(modelRepositoryName, modelVersion, bentosQuery))
+    const modelsQueryKey = `bento:${bentoRepositoryName}/${bentoVersion}:models`
+    const modelsInfo = useQuery(modelsQueryKey, () => listBentoModels(bentoRepositoryName, bentoVersion))
     const [deploymentsQuery, setDeploymentsQuery] = useState<IListQuerySchema>({
         start: 0,
         count: 10,
     })
-    const deploymentsQueryKey = `model:${modelRepositoryName}/${modelVersion}:deployments:${qs.stringify(
+    const deploymentsQueryKey = `bento:${bentoRepositoryName}/${bentoVersion}:deployments:${qs.stringify(
         deploymentsQuery
     )}`
     const deploymentsInfo = useQuery(deploymentsQueryKey, () =>
-        listModelDeployments(modelRepositoryName, modelVersion, deploymentsQuery)
+        listBentoDeployments(bentoRepositoryName, bentoVersion, deploymentsQuery)
     )
-    const downloadCommand = `bentoml models pull ${modelRepositoryName}:${modelVersion}`
+    const downloadCommand = `bentoml pull ${bentoRepositoryName}:${bentoVersion}`
     const [copyNotification, setCopyNotification] = useState<string>()
     const highlightTheme = themeType === 'dark' ? dark : docco
 
-    if (modelLoading || !model) {
+    if (bentoLoading || !bento) {
         return <Skeleton rows={3} animation />
     }
 
@@ -148,10 +141,10 @@ export default function ModelOverview() {
                             <div className={styles.key}>{t('status')}</div>
                             <div className={styles.value}>
                                 <ImageBuildStatusTag
-                                    status={model.image_build_status}
-                                    podsSelector={`yatai.io/model=${model.version},yatai.io/model-repository=${model.repository.name}`}
+                                    status={bento.image_build_status}
+                                    podsSelector={`yatai.io/bento=${bento.version},yatai.io/bento-repository=${bento.repository.name}`}
                                     onRerunClick={async () => {
-                                        await recreateModelImageBuilderJob(model.repository.name, model.version)
+                                        await recreateBentoImageBuilderJob(bento.repository.name, bento.version)
                                     }}
                                 />
                             </div>
@@ -159,81 +152,20 @@ export default function ModelOverview() {
                         <div className={styles.item}>
                             <div className={styles.key}>{t('created_at')}</div>
                             <div className={styles.value}>
-                                <Time time={model.created_at} />
+                                <Time time={bento.created_at} />
                             </div>
                         </div>
                         <div className={styles.item}>
                             <div className={styles.key}>{t('user')}</div>
-                            <div className={styles.value}>{model.creator ? <User user={model.creator} /> : '-'}</div>
-                        </div>
-                        <div className={styles.item}>
-                            <div className={styles.key}>{t('module')}</div>
-                            <div className={styles.value}>{model.manifest.module}</div>
+                            <div className={styles.value}>{bento.creator ? <User user={bento.creator} /> : '-'}</div>
                         </div>
                         <div className={styles.item}>
                             <div className={styles.key}>BentoML Version</div>
-                            <div className={styles.value}>{model.manifest.bentoml_version}</div>
-                        </div>
-                        <div
-                            className={classNames({
-                                [styles.item]: true,
-                                [styles.foldedItem]: true,
-                                [styles.closedItem]: !showContext,
-                                [styles.openedItem]: showContext,
-                            })}
-                        >
-                            <div
-                                className={styles.key}
-                                onClick={() => setShowContext((v) => !v)}
-                                role='button'
-                                tabIndex={0}
-                            >
-                                {t('context')}
-                            </div>
-                            <div className={styles.value}>
-                                {showContext ? (
-                                    <div>
-                                        {Object.entries(model.manifest.context).map(([key, value]) => (
-                                            <div key={key} className={styles.item}>
-                                                <div className={styles.key}>{key}</div>
-                                                <div className={styles.value}>{value}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    '...'
-                                )}
-                            </div>
+                            <div className={styles.value}>{bento.manifest.bentoml_version}</div>
                         </div>
                         <div className={styles.item}>
                             <div className={styles.key}>Size</div>
-                            <div className={styles.value}>{prettyBytes(model.manifest.size_bytes)}</div>
-                        </div>
-                        <div
-                            className={classNames({
-                                [styles.item]: true,
-                                [styles.foldedItem]: true,
-                                [styles.closedItem]: !showMetaData,
-                                [styles.openedItem]: showMetaData,
-                            })}
-                        >
-                            <div
-                                className={styles.key}
-                                role='button'
-                                tabIndex={0}
-                                onClick={() => setShowMetaData((v) => !v)}
-                            >
-                                Meta Data
-                            </div>
-                            <div className={styles.value}>
-                                {showMetaData ? (
-                                    <SyntaxHighlighter language='json' style={highlightTheme}>
-                                        {JSON.stringify(model.manifest.metadata, null, 2)}
-                                    </SyntaxHighlighter>
-                                ) : (
-                                    '...'
-                                )}
-                            </div>
+                            <div className={styles.value}>{prettyBytes(bento.manifest.size_bytes)}</div>
                         </div>
                     </div>
                 </Card>
@@ -301,32 +233,21 @@ export default function ModelOverview() {
                 </Card>
                 <Card title={t('labels')} titleIcon={AiOutlineTags}>
                     <LabelList
-                        value={model.labels}
+                        value={bento.labels}
                         onChange={async (labels) => {
-                            await updateModel(model.repository.name, model.version, {
-                                ...model,
+                            await updateBento(bento.repository.name, bento.version, {
+                                ...bento,
                                 labels,
                             })
-                            await modelInfo.refetch()
+                            await bentoInfo.refetch()
                         }}
                     />
                 </Card>
-                <Card title={t('bentos')} titleIcon={resourceIconMapping.bento}>
-                    <BentoList
-                        isLoading={bentosInfo.isLoading}
-                        bentos={bentosInfo.data?.items ?? []}
-                        queryKey={bentosQueryKey}
-                        paginationProps={{
-                            start: bentosQuery.start,
-                            count: bentosQuery.count,
-                            total: bentosInfo.data?.total ?? 0,
-                            onPageChange: (page) => {
-                                setBentosQuery({
-                                    ...bentosQuery,
-                                    start: (page - 1) * bentosQuery.count,
-                                })
-                            },
-                        }}
+                <Card title={t('models')} titleIcon={resourceIconMapping.bento}>
+                    <ModelList
+                        isLoading={modelsInfo.isLoading}
+                        models={modelsInfo.data ?? []}
+                        queryKey={modelsQueryKey}
                     />
                 </Card>
                 <Card title={t('deployments')} titleIcon={resourceIconMapping.deployment}>

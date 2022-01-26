@@ -1,13 +1,14 @@
 import { useBentoRepository, useBentoRepositoryLoading } from '@/hooks/useBentoRepository'
 import useTranslation from '@/hooks/useTranslation'
-import { RiSurveyLine } from 'react-icons/ri'
 import React, { useEffect, useMemo } from 'react'
 import { useQuery } from 'react-query'
-import { useParams } from 'react-router-dom'
+import { useHistory, useParams } from 'react-router-dom'
 import { INavItem } from '@/components/BaseSidebar'
-import { fetchBentoRepository } from '@/services/bento_repository'
+import { fetchBentoRepository, listBentoRepositoryDeployments } from '@/services/bento_repository'
 import { useOrganization } from '@/hooks/useOrganization'
 import { resourceIconMapping } from '@/consts'
+import { Button } from 'baseui/button'
+import qs from 'qs'
 import BaseSubLayout from './BaseSubLayout'
 
 export interface IBentoRepositoryLayoutProps {
@@ -62,29 +63,32 @@ export default function BentoRepositoryLayout({ children }: IBentoRepositoryLayo
         [bentoRepositoryName, t]
     )
 
-    const navItems: INavItem[] = useMemo(
-        () => [
-            {
-                title: t('overview'),
-                path: `/bento_repositories/${bentoRepositoryName}`,
-                icon: RiSurveyLine,
-            },
-            {
-                title: t('bentos'),
-                path: `/bento_repositories/${bentoRepositoryName}/bentos`,
-                icon: resourceIconMapping.bento,
-            },
-            {
-                title: t('deployments'),
-                path: `/bento_repositories/${bentoRepositoryName}/deployments`,
-                icon: resourceIconMapping.deployment,
-            },
-        ],
-        [bentoRepositoryName, t]
+    const deploymentsInfo = useQuery(`bentoRepository:${bentoRepositoryName}:deployments`, () =>
+        listBentoRepositoryDeployments(bentoRepositoryName, { count: 0, start: 0 })
     )
 
+    const history = useHistory()
+
     return (
-        <BaseSubLayout breadcrumbItems={breadcrumbItems} navItems={navItems}>
+        <BaseSubLayout
+            extra={
+                <Button
+                    isLoading={deploymentsInfo.isLoading}
+                    kind='tertiary'
+                    size='mini'
+                    onClick={() =>
+                        history.push(
+                            `/deployments?${qs.stringify({
+                                q: `bento_repository:${bentoRepositoryName}`,
+                            })}`
+                        )
+                    }
+                >
+                    {t('n deployments', [deploymentsInfo.data?.total ?? '-'])}
+                </Button>
+            }
+            breadcrumbItems={breadcrumbItems}
+        >
             {children}
         </BaseSubLayout>
     )

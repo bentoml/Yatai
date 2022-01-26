@@ -6,7 +6,6 @@ import { usePage } from '@/hooks/usePage'
 import { IBentoSchema, IBentoWithRepositorySchema } from '@/schemas/bento'
 import useTranslation from '@/hooks/useTranslation'
 import User from '@/components/User'
-import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
@@ -14,13 +13,14 @@ import qs from 'qs'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import { useQ } from '@/hooks/useQ'
 import prettyBytes from 'pretty-bytes'
-import { ListItem } from 'baseui/list'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
 import { ResourceLabels } from './ResourceLabels'
 import ImageBuildStatusIcon from './ImageBuildStatusIcon'
 import Time from './Time'
 import List from './List'
+import Link from './Link'
+import ListItem from './ListItem'
 
 export default function BentoFlatListCard() {
     const { q, updateQ } = useQ()
@@ -132,7 +132,7 @@ export default function BentoFlatListCard() {
                             gap: 10,
                         }}
                     >
-                        <Link to={`/bento_repositories/${bento.repository.name}/bentos/${bento.version}`}>
+                        <Link href={`/bento_repositories/${bento.repository.name}/bentos/${bento.version}`}>
                             {bento.repository.name}:{bento.version}
                         </Link>
                         <ResourceLabels resource={bento} />

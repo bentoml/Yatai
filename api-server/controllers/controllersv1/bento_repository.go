@@ -129,12 +129,12 @@ func (c *bentoRepositoryController) Get(ctx *gin.Context, schema *GetBentoReposi
 	return transformersv1.ToBentoRepositorySchema(ctx, bentoRepository)
 }
 
-type ListBentoDeploymentSchema struct {
+type ListBentoRepositoryDeploymentSchema struct {
 	schemasv1.ListQuerySchema
 	GetBentoRepositorySchema
 }
 
-func (c *bentoRepositoryController) ListDeployment(ctx *gin.Context, schema *ListBentoDeploymentSchema) (*schemasv1.DeploymentListSchema, error) {
+func (c *bentoRepositoryController) ListDeployment(ctx *gin.Context, schema *ListBentoRepositoryDeploymentSchema) (*schemasv1.DeploymentListSchema, error) {
 	bentoRepository, err := schema.GetBentoRepository(ctx)
 	if err != nil {
 		return nil, err

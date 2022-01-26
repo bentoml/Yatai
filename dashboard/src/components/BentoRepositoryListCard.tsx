@@ -9,14 +9,13 @@ import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
-import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import qs from 'qs'
 import { IDeploymentSchema } from '@/schemas/deployment'
 import { IBentoSchema } from '@/schemas/bento'
 import { useQ } from '@/hooks/useQ'
-import { Label2, Label4 } from 'baseui/typography'
+import { Label2, Label4, MonoParagraphXSmall } from 'baseui/typography'
 import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
@@ -31,13 +30,18 @@ import Grid from './Grid'
 import List from './List'
 import DeploymentStatusTag from './DeploymentStatusTag'
 import ImageBuildStatusIcon from './ImageBuildStatusIcon'
+import Link from './Link'
 
 const useStyles = createUseStyles({
     item: (props: IThemedStyleProps) => ({
-        display: 'flex',
-        alignItems: 'center',
-        padding: '2px 0',
-        borderBottom: `1px solid ${props.theme.borders.border100.borderColor}`,
+        'display': 'flex',
+        'alignItems': 'center',
+        'padding': '2px',
+        'borderBottom': `1px solid ${props.theme.borders.border100.borderColor}`,
+        'cursor': 'pointer',
+        '&:hover': {
+            backgroundColor: props.theme.colors.backgroundSecondary,
+        },
     }),
     itemsContainer: () => ({
         '& $item:last-child': {
@@ -191,7 +195,6 @@ export default function BentoRepositoryListCard() {
                     style={{
                         position: 'relative',
                         height: 'calc(100% - 40px)',
-                        paddingBottom: 40,
                     }}
                 >
                     <div
@@ -225,7 +228,7 @@ export default function BentoRepositoryListCard() {
                             <div>{bentoRepository.n_bentos}</div>
                         </div>
                         <Label2>
-                            <Link to={`/bento_repositories/${bentoRepository.name}`}>{bentoRepository.name}</Link>
+                            <Link href={`/bento_repositories/${bentoRepository.name}`}>{bentoRepository.name}</Link>
                         </Label2>
                     </div>
                     <div
@@ -251,6 +254,7 @@ export default function BentoRepositoryListCard() {
                                 <Label4>{t('latest deployments')}</Label4>
                             </div>
                             <List
+                                emptyText={t('no deployment found')}
                                 items={bentoRepository.latest_deployments}
                                 itemsContainerClassName={styles.itemsContainer}
                                 onRenderItem={(item: IDeploymentSchema) => {
@@ -263,6 +267,11 @@ export default function BentoRepositoryListCard() {
                                                 alignItems: 'center',
                                                 gap: 10,
                                             }}
+                                            onClick={(e: React.MouseEvent) => {
+                                                e.currentTarget.querySelector('a')?.click()
+                                            }}
+                                            role='button'
+                                            tabIndex={0}
                                         >
                                             <DeploymentStatusTag size='small' status={item.status} />
                                             <div
@@ -273,7 +282,7 @@ export default function BentoRepositoryListCard() {
                                                     flexGrow: 1,
                                                 }}
                                             >
-                                                <Link to={`/clusters/${item.cluster?.name}/deployments/${item.name}`}>
+                                                <Link href={`/clusters/${item.cluster?.name}/deployments/${item.name}`}>
                                                     {item.name}
                                                 </Link>
                                                 <Time time={item.created_at} />
@@ -304,12 +313,18 @@ export default function BentoRepositoryListCard() {
                                 onRenderItem={(item: IBentoSchema) => {
                                     return (
                                         <div
+                                            className={styles.item}
                                             key={item.uid}
                                             style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: 10,
                                             }}
+                                            onClick={(e: React.MouseEvent) => {
+                                                e.currentTarget.querySelector('a')?.click()
+                                            }}
+                                            role='button'
+                                            tabIndex={0}
                                         >
                                             <ImageBuildStatusIcon
                                                 size={14}
@@ -323,16 +338,26 @@ export default function BentoRepositoryListCard() {
                                                 }}
                                             />
                                             <div
-                                                className={styles.item}
                                                 style={{
+                                                    display: 'flex',
                                                     flexGrow: 1,
                                                     justifyContent: 'space-between',
                                                 }}
                                             >
                                                 <Link
-                                                    to={`/bento_repositories/${bentoRepository.name}/bentos/${item.version}`}
+                                                    href={`/bento_repositories/${bentoRepository.name}/bentos/${item.version}`}
                                                 >
-                                                    {item.version}
+                                                    <MonoParagraphXSmall
+                                                        overrides={{
+                                                            Block: {
+                                                                style: {
+                                                                    margin: 0,
+                                                                },
+                                                            },
+                                                        }}
+                                                    >
+                                                        {item.version}
+                                                    </MonoParagraphXSmall>
                                                 </Link>
                                                 <Time time={item.created_at} />
                                             </div>
@@ -340,20 +365,6 @@ export default function BentoRepositoryListCard() {
                                     )
                                 }}
                             />
-                        </div>
-                        <div
-                            style={{
-                                position: 'absolute',
-                                left: 0,
-                                bottom: 0,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 8,
-                            }}
-                        >
-                            {bentoRepository.creator && <User size='16px' user={bentoRepository.creator} />}
-                            {t('Created At')}
-                            <Time time={bentoRepository.created_at} />
                         </div>
                     </div>
                 </div>
@@ -470,7 +481,7 @@ export default function BentoRepositoryListCard() {
                 ]}
             />
             <Grid
-                isLoading={bentoRepositoriesInfo.isFetching}
+                isLoading={bentoRepositoriesInfo.isLoading}
                 items={bentoRepositoriesInfo.data?.items ?? []}
                 onRenderItem={handleRenderItem}
                 paginationProps={{

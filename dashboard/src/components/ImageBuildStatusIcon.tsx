@@ -77,48 +77,55 @@ export default function ImageBuildStatusIcon({
     }, [])
 
     return (
-        <StatefulPopover
-            placement='bottomLeft'
-            showArrow
-            returnFocus
-            autoFocus
-            content={() => {
-                return (
-                    podsSelector && (
-                        <Card
-                            style={{
-                                margin: 0,
-                            }}
-                            extra={
-                                onRerunClick && (
-                                    <Button
-                                        startEnhancer={<VscDebugRerun />}
-                                        size='compact'
-                                        onClick={handleRerunClick}
-                                        isLoading={rerunLoading}
-                                    >
-                                        {t('rerun')}
-                                    </Button>
-                                )
-                            }
-                        >
-                            <Pods selector={podsSelector} />
-                        </Card>
-                    )
-                )
+        <div
+            onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
             }}
         >
-            <div
-                style={{
-                    display: 'inline-flex',
-                    cursor: 'pointer',
+            <StatefulPopover
+                placement='bottomLeft'
+                showArrow
+                returnFocus
+                autoFocus
+                content={() => {
+                    return (
+                        podsSelector && (
+                            <Card
+                                style={{
+                                    margin: 0,
+                                }}
+                                extra={
+                                    onRerunClick && (
+                                        <Button
+                                            startEnhancer={<VscDebugRerun />}
+                                            size='compact'
+                                            onClick={handleRerunClick}
+                                            isLoading={rerunLoading}
+                                        >
+                                            {t('rerun')}
+                                        </Button>
+                                    )
+                                }
+                            >
+                                <Pods selector={podsSelector} />
+                            </Card>
+                        )
+                    )
                 }}
             >
-                {React.createElement(imageBuildStatusIconMapping[status], {
-                    size,
-                    className: status === 'building' ? styles.spinner : '',
-                })}
-            </div>
-        </StatefulPopover>
+                <div
+                    style={{
+                        display: 'inline-flex',
+                        cursor: 'pointer',
+                    }}
+                >
+                    {React.createElement(imageBuildStatusIconMapping[status], {
+                        size,
+                        className: status === 'building' ? styles.spinner : '',
+                    })}
+                </div>
+            </StatefulPopover>
+        </div>
     )
 }

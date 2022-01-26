@@ -17,8 +17,8 @@ import { useQuery } from 'react-query'
 import { fetchVersion } from '@/services/version'
 import { formatDateTime } from '@/utils/datetime'
 import { StatefulTooltip } from 'baseui/tooltip'
-import { StyledLink } from 'baseui/link'
 import { GrContact } from 'react-icons/gr'
+import Link from './Link'
 
 export interface IComposedSidebarProps {
     style?: React.CSSProperties
@@ -203,21 +203,21 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
             <div>
                 <div style={bottomItemStyle}>
                     <CgCommunity />
-                    <StyledLink href='' target='_blank'>
+                    <Link href='https://bentoml.com' target='_blank'>
                         {t('community')}
-                    </StyledLink>
+                    </Link>
                 </div>
                 <div style={bottomItemStyle}>
                     <CgFileDocument />
-                    <StyledLink href='' target='_blank'>
+                    <Link href='https://bentoml.com' target='_blank'>
                         {t('docs')}
-                    </StyledLink>
+                    </Link>
                 </div>
                 <div style={bottomItemStyle}>
                     <GrContact />
-                    <StyledLink href='' target='_blank'>
+                    <Link href='https://bentoml.com' target='_blank'>
                         {t('contact')}
-                    </StyledLink>
+                    </Link>
                 </div>
                 <div
                     style={{

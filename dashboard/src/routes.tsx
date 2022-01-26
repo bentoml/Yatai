@@ -41,10 +41,12 @@ import ModelRepositoryOverview from '@/pages/ModelRepository/Overview'
 import ModelRepositoryModels from '@/pages/ModelRepository/Models'
 import OrganizationModelRepositories from '@/pages/Organization/ModelRepositories'
 import { ChatWidget } from '@papercups-io/chat-widget'
-import ModelLayout from './components/ModelLayout'
-import ModelOverview from './pages/Model/Overview'
-import BentoRepositoryDeployments from './pages/BentoRepository/Deployments'
-import Home from './pages/Yatai/Home'
+import ModelLayout from '@/components/ModelLayout'
+import ModelOverview from '@/pages/Model/Overview'
+import BentoLayout from '@/components/BentoLayout'
+import BentoOverview from '@/pages/Bento/Overview'
+import BentoRepositoryDeployments from '@/pages/BentoRepository/Deployments'
+import Home from '@/pages/Yatai/Home'
 
 const useStyles = createUseStyles({
     'root': ({ theme }: IThemedStyleProps) => ({
@@ -88,6 +90,17 @@ const Routes = () => {
             >
                 <Header />
                 <Switch>
+                    <Route exact path='/bento_repositories/:bentoRepositoryName/bentos/:bentoVersion/:path?/:path?'>
+                        <BentoLayout>
+                            <Switch>
+                                <Route
+                                    exact
+                                    path='/bento_repositories/:bentoRepositoryName/bentos/:bentoVersion'
+                                    component={BentoOverview}
+                                />
+                            </Switch>
+                        </BentoLayout>
+                    </Route>
                     <Route exact path='/bento_repositories/:bentoRepositoryName/:path?/:path?'>
                         <BentoRepositoryLayout>
                             <Switch>

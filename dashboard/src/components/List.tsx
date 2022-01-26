@@ -3,9 +3,11 @@ import { Pagination } from 'baseui/pagination'
 import { usePage } from '@/hooks/usePage'
 import { Skeleton } from 'baseui/skeleton'
 import { IPaginationProps } from '@/interfaces/IPaginationProps'
+import { useStyletron } from 'baseui'
 
 export interface IListProps<T> {
     isLoading?: boolean
+    emptyText?: string
     items: T[]
     onRenderItem: (item: T) => JSX.Element
     itemsContainerClassName?: string
@@ -15,6 +17,7 @@ export interface IListProps<T> {
 
 export default function List<T>({
     isLoading = false,
+    emptyText,
     items,
     onRenderItem,
     itemsContainerClassName,
@@ -22,6 +25,7 @@ export default function List<T>({
     paginationProps,
 }: IListProps<T>) {
     const [page, setPage] = usePage()
+    const [, theme] = useStyletron()
 
     return (
         <div>
@@ -30,7 +34,18 @@ export default function List<T>({
                     <Skeleton rows={3} height='100px' width='100%' animation />
                 ) : (
                     <div className={itemsContainerClassName} style={itemsContainerStyle}>
-                        {items.map((item) => onRenderItem(item))}
+                        {items.length > 0 ? (
+                            items.map((item, idx) => <div key={idx}>{onRenderItem(item)}</div>)
+                        ) : (
+                            <span
+                                style={{
+                                    color: theme.colors.contentTertiary,
+                                    fontSize: '11px',
+                                }}
+                            >
+                                {emptyText}
+                            </span>
+                        )}
                     </div>
                 )}
             </div>

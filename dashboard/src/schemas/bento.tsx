@@ -1,5 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { IBentoRepositorySchema } from './bento_repository'
+import { ILabelItemSchema } from './label'
 import { IModelSchema } from './model'
 import { IResourceSchema } from './resource'
 import { IUserSchema } from './user'
@@ -10,7 +11,7 @@ export type ImageBuildStatus = 'pending' | 'building' | 'success' | 'failed'
 
 export interface IBentoManifestSchema {
     service: string
-    bento_version: string
+    bentoml_version: string
     models: string[]
     apis: {
         [key: string]: {
@@ -50,6 +51,12 @@ export interface ICreateBentoSchema {
     version: string
     build_at: string
     manifest: IBentoManifestSchema
+}
+
+export interface IUpdateBentoSchema {
+    description?: string
+    manifest: IBentoManifestSchema
+    labels: ILabelItemSchema[]
 }
 
 export interface IFinishUploadBentoSchema {

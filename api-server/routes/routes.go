@@ -486,8 +486,8 @@ func bentoRepositoryRoutes(grp *fizz.RouterGroup) {
 	}, requireLogin, tonic.Handler(controllersv1.BentoRepositoryController.Update, 200))
 
 	resourceGrp.GET("/deployments", []fizz.OperationOption{
-		fizz.ID("List bento deployments"),
-		fizz.Summary("List bento deployments"),
+		fizz.ID("List bento repository deployments"),
+		fizz.Summary("List bento repository deployments"),
 	}, requireLogin, tonic.Handler(controllersv1.BentoRepositoryController.ListDeployment, 200))
 
 	grp.GET("", []fizz.OperationOption{
@@ -512,6 +512,21 @@ func bentoRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Get a bento"),
 		fizz.Summary("Get a bento"),
 	}, requireLogin, tonic.Handler(controllersv1.BentoController.Get, 200))
+
+	resourceGrp.PATCH("", []fizz.OperationOption{
+		fizz.ID("Update a bento"),
+		fizz.Summary("Update a bento"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.Update, 200))
+
+	resourceGrp.GET("/models", []fizz.OperationOption{
+		fizz.ID("List bento models"),
+		fizz.Summary("List bento models"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.ListModel, 200))
+
+	resourceGrp.GET("/deployments", []fizz.OperationOption{
+		fizz.ID("List bento deployments"),
+		fizz.Summary("List bento deployments"),
+	}, requireLogin, tonic.Handler(controllersv1.BentoController.ListDeployment, 200))
 
 	resourceGrp.PATCH("/presign_upload_url", []fizz.OperationOption{
 		fizz.ID("Pre sign bento upload URL"),

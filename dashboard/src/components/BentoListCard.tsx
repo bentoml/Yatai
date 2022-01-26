@@ -40,7 +40,7 @@ export default function BentoListCard({ bentoRepositoryName }: IBentoListCardPro
 
     return (
         <Card
-            title={t('bentos')}
+            title={t('n bentos', [bentosInfo.data?.total || 0])}
             titleIcon={resourceIconMapping.bento}
             middle={
                 <div

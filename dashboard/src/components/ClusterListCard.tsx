@@ -10,9 +10,9 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
-import { Link } from 'react-router-dom'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
 import { resourceIconMapping } from '@/consts'
+import Link from './Link'
 
 export default function ClusterListCard() {
     const [page] = usePage()
@@ -43,7 +43,7 @@ export default function ClusterListCard() {
                 columns={[t('name'), t('description'), t('creator'), t('created_at')]}
                 data={
                     clustersInfo.data?.items.map((cluster) => [
-                        <Link key={cluster.uid} to={`/clusters/${cluster.name}`}>
+                        <Link key={cluster.uid} href={`/clusters/${cluster.name}`}>
                             {cluster.name}
                         </Link>,
                         cluster.description,

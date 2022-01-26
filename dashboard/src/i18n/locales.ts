@@ -1813,6 +1813,34 @@ const locales0 = {
         ko: '환경 변수',
         vi: 'Biến toàn cục',
     },
+    'no deployment found': {
+        en: 'No deployment found',
+        zh: '没有找到部署',
+        ja: 'デプロイが見つかりません',
+        ko: '배포를 찾을 수 없습니다',
+        vi: 'Không tìm thấy phân phối',
+    },
+    'edit': {
+        en: 'Edit',
+        zh: '编辑',
+        ja: '編集',
+        ko: '편집',
+        vi: 'Chỉnh sửa',
+    },
+    'n deployments': {
+        en: '{{0}} deployments',
+        zh: '{{0}} 个部署',
+        ja: '{{0}} 个のデプロイ',
+        ko: '{{0}} 개의 배포',
+        vi: '{{0}} phân phối',
+    },
+    'n bentos': {
+        en: '{{0}} Bentos',
+        zh: '{{0}} 个 Bento',
+        ja: '{{0}} 个 Bento',
+        ko: '{{0}} Bento',
+        vi: '{{0}} Bento',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

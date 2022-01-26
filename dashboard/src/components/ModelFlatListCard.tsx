@@ -6,7 +6,6 @@ import { usePage } from '@/hooks/usePage'
 import { IModelSchema, IModelWithRepositorySchema } from '@/schemas/model'
 import useTranslation from '@/hooks/useTranslation'
 import User from '@/components/User'
-import { Link } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
@@ -14,14 +13,17 @@ import qs from 'qs'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import { useFetchOrganizationModelModules } from '@/hooks/useFetchOrganizationModelModules'
 import { useQ } from '@/hooks/useQ'
-import { ListItem } from 'baseui/list'
 import prettyBytes from 'pretty-bytes'
+import { MonoParagraphXSmall } from 'baseui/typography'
+import { useHistory } from 'react-router-dom'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
 import { ResourceLabels } from './ResourceLabels'
 import List from './List'
 import ImageBuildStatusIcon from './ImageBuildStatusIcon'
 import Time from './Time'
+import Link from './Link'
+import ListItem from './ListItem'
 
 export default function ModelFlatListCard() {
     const { q, updateQ } = useQ()
@@ -81,10 +83,15 @@ export default function ModelFlatListCard() {
         }
     }, [subscribe, subscribeCb, uids, unsubscribe])
 
+    const history = useHistory()
+
     const handleRenderItem = useCallback(
         (model: IModelWithRepositorySchema) => {
             return (
                 <ListItem
+                    onClick={() => {
+                        history.push(`/model_repositories/${model.repository.name}/models/${model.version}`)
+                    }}
                     key={model.uid}
                     artwork={() => (
                         <ImageBuildStatusIcon
@@ -135,15 +142,25 @@ export default function ModelFlatListCard() {
                             gap: 10,
                         }}
                     >
-                        <Link to={`/model_repositories/${model.repository.name}/models/${model.version}`}>
-                            {model.repository.name}:{model.version}
+                        <Link href={`/model_repositories/${model.repository.name}/models/${model.version}`}>
+                            <MonoParagraphXSmall
+                                overrides={{
+                                    Block: {
+                                        style: {
+                                            margin: 0,
+                                        },
+                                    },
+                                }}
+                            >
+                                {model.repository.name}:{model.version}
+                            </MonoParagraphXSmall>
                         </Link>
                         <ResourceLabels resource={model} />
                     </div>
                 </ListItem>
             )
         },
-        [t]
+        [history, t]
     )
 
     return (
@@ -253,7 +270,7 @@ export default function ModelFlatListCard() {
                 ]}
             />
             <List
-                isLoading={modelsInfo.isFetching}
+                isLoading={modelsInfo.isLoading}
                 items={modelsInfo.data?.items ?? []}
                 onRenderItem={handleRenderItem}
                 paginationProps={{

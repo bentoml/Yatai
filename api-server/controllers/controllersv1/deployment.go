@@ -293,7 +293,7 @@ type ListClusterDeploymentSchema struct {
 	GetClusterSchema
 }
 
-func fillListDeploymentOption(ctx context.Context, listOpt *services.ListDeploymentOption, queryMap map[string]interface{}) error {
+func fillListDeploymentOption(ctx context.Context, org *models.Organization, listOpt *services.ListDeploymentOption, queryMap map[string]interface{}) error {
 	for k, v := range queryMap {
 		if k == schemasv1.KeyQIn {
 			fieldNames := make([]string, 0, len(v.([]string)))
@@ -310,6 +310,57 @@ func fillListDeploymentOption(ctx context.Context, listOpt *services.ListDeploym
 		}
 		if k == schemasv1.KeyQKeywords {
 			listOpt.Keywords = utils.StringSlicePtr(v.([]string))
+		}
+		if k == "bento_repository" {
+			bentoRepositoryNames := v.([]string)
+			bentos := make([]*models.Bento, 0, len(bentoRepositoryNames))
+			for _, bentoRepositoryName := range bentoRepositoryNames {
+				bentoRepository, err := services.BentoRepositoryService.GetByName(ctx, org.ID, bentoRepositoryName)
+				if err != nil {
+					return errors.Wrapf(err, "get bento repository: %s", bentoRepositoryName)
+				}
+				bentos_, _, err := services.BentoService.List(ctx, services.ListBentoOption{
+					BentoRepositoryId: &bentoRepository.ID,
+				})
+				if err != nil {
+					return errors.Wrapf(err, "list bentos: %s", bentoRepositoryName)
+				}
+				bentos = append(bentos, bentos_...)
+			}
+			bentoIds := make([]uint, 0, len(bentos))
+			for _, bento := range bentos {
+				bentoIds = append(bentoIds, bento.ID)
+			}
+			listOpt.BentoIds = &bentoIds
+		}
+		if k == "bento" {
+			bentoTags := v.([]string)
+			bentoVersionGroup := make(map[string][]string)
+			for _, bentoTag := range bentoTags {
+				bentoRepositoryName, _, version := xstrings.Partition(bentoTag, ":")
+				bentoVersionGroup[bentoRepositoryName] = append(bentoVersionGroup[bentoRepositoryName], version)
+			}
+			bentos := make([]*models.Bento, 0, len(bentoVersionGroup))
+			for bentoRepositoryName, bentoVersions := range bentoVersionGroup {
+				bentoRepository, err := services.BentoRepositoryService.GetByName(ctx, org.ID, bentoRepositoryName)
+				if err != nil {
+					return errors.Wrapf(err, "get bento repository: %s", bentoRepositoryName)
+				}
+				bentoVersions := bentoVersions
+				bentos_, _, err := services.BentoService.List(ctx, services.ListBentoOption{
+					BentoRepositoryId: &bentoRepository.ID,
+					Versions:          &bentoVersions,
+				})
+				if err != nil {
+					return errors.Wrapf(err, "list bentos: %s", bentoRepositoryName)
+				}
+				bentos = append(bentos, bentos_...)
+			}
+			bentoIds := make([]uint, 0, len(bentos))
+			for _, bento := range bentos {
+				bentoIds = append(bentoIds, bento.ID)
+			}
+			listOpt.BentoIds = &bentoIds
 		}
 		if k == "cluster" {
 			clusters, _, err := services.ClusterService.List(ctx, services.ListClusterOption{
@@ -390,6 +441,11 @@ func (c *deploymentController) ListClusterDeployments(ctx *gin.Context, schema *
 		return nil, err
 	}
 
+	org, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	if err = ClusterController.canView(ctx, cluster); err != nil {
 		return nil, err
 	}
@@ -403,7 +459,7 @@ func (c *deploymentController) ListClusterDeployments(ctx *gin.Context, schema *
 		ClusterId: utils.UintPtr(cluster.ID),
 	}
 
-	err = fillListDeploymentOption(ctx, &listOpt, schema.Q.ToMap())
+	err = fillListDeploymentOption(ctx, org, &listOpt, schema.Q.ToMap())
 	if err != nil {
 		return nil, err
 	}
@@ -448,7 +504,7 @@ func (c *deploymentController) ListOrganizationDeployments(ctx *gin.Context, sch
 		OrganizationId: utils.UintPtr(organization.ID),
 	}
 
-	err = fillListDeploymentOption(ctx, &listOpt, schema.Q.ToMap())
+	err = fillListDeploymentOption(ctx, organization, &listOpt, schema.Q.ToMap())
 	if err != nil {
 		return nil, err
 	}
