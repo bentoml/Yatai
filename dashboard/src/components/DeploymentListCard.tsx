@@ -10,7 +10,7 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
-import { Link, useHistory } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 import { resourceIconMapping } from '@/consts'
 import { IListSchema } from '@/schemas/list'
 import { useSubscription } from '@/hooks/useSubscription'
@@ -22,6 +22,7 @@ import FilterBar from '@/components/FilterBar'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
 import FilterInput from './FilterInput'
 import Time from './Time'
+import Link from './Link'
 
 export interface IDeploymentListCardProps {
     clusterName?: string
@@ -233,12 +234,12 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                         return [
                             <Link
                                 key={deployment.uid}
-                                to={`/clusters/${deployment.cluster?.name}/deployments/${deployment.name}`}
+                                href={`/clusters/${deployment.cluster?.name}/deployments/${deployment.name}`}
                             >
                                 {deployment.name}
                             </Link>,
                             clusterName ? undefined : (
-                                <Link key={deployment.cluster?.uid} to={`/clusters/${deployment.cluster?.name}`}>
+                                <Link key={deployment.cluster?.uid} href={`/clusters/${deployment.cluster?.name}`}>
                                     {deployment.cluster?.name}
                                 </Link>
                             ),

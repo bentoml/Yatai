@@ -341,10 +341,6 @@ func (s *bentoService) Update(ctx context.Context, bento *models.Bento, opt Upda
 		}()
 	}
 
-	if len(updaters) == 0 {
-		return bento, nil
-	}
-
 	// nolint: ineffassign,staticcheck
 	db, ctx, df, err := startTransaction(ctx)
 	if err != nil {
@@ -352,17 +348,19 @@ func (s *bentoService) Update(ctx context.Context, bento *models.Bento, opt Upda
 	}
 	defer func() { df(err) }()
 
-	err = db.Model(&models.Bento{}).Where("id = ?", bento.ID).Updates(updaters).Error
-	if err != nil {
-		return nil, err
-	}
-
-	if opt.Labels != nil {
-		bento, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+	if len(updaters) > 0 {
+		err = db.Model(&models.Bento{}).Where("id = ?", bento.ID).Updates(updaters).Error
 		if err != nil {
 			return nil, err
 		}
-		org, err := OrganizationService.GetAssociatedOrganization(ctx, bento)
+	}
+
+	if opt.Labels != nil {
+		bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+		if err != nil {
+			return nil, err
+		}
+		org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
 		if err != nil {
 			return nil, err
 		}

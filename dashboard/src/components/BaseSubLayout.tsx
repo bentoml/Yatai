@@ -7,14 +7,15 @@ import Card from './Card'
 
 export interface IBaseSubLayoutProps {
     header?: React.ReactNode
+    extra?: React.ReactNode
     breadcrumbItems?: INavItem[]
     navItems?: INavItem[]
     children: React.ReactNode
 }
 
-export default function BaseSubLayout({ header, breadcrumbItems, navItems, children }: IBaseSubLayoutProps) {
+export default function BaseSubLayout({ header, extra, breadcrumbItems, navItems, children }: IBaseSubLayoutProps) {
     return (
-        <BaseLayout breadcrumbItems={breadcrumbItems} sidebar={OrganizationSidebar}>
+        <BaseLayout extra={extra} breadcrumbItems={breadcrumbItems} sidebar={OrganizationSidebar}>
             {header}
             {navItems ? (
                 <Card bodyStyle={{ padding: 0 }}>

@@ -286,7 +286,7 @@ func (c *bentoController) ListImageBuilderPods(ctx *gin.Context, schema *GetBent
 	return transformersv1.ToKubePodSchemas(ctx, pods)
 }
 
-func (c *bentoController) Get(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
+func (c *bentoController) Get(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoFullSchema, error) {
 	bento, err := schema.GetBento(ctx)
 	if err != nil {
 		return nil, err
@@ -294,7 +294,65 @@ func (c *bentoController) Get(ctx *gin.Context, schema *GetBentoSchema) (*schema
 	if err = c.canView(ctx, bento); err != nil {
 		return nil, err
 	}
-	return transformersv1.ToBentoSchema(ctx, bento)
+	return transformersv1.ToBentoFullSchema(ctx, bento)
+}
+
+type ListBentoDeploymentSchema struct {
+	schemasv1.ListQuerySchema
+	GetBentoSchema
+}
+
+func (c *bentoController) ListDeployment(ctx *gin.Context, schema *ListBentoDeploymentSchema) (*schemasv1.DeploymentListSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, bento); err != nil {
+		return nil, err
+	}
+	deployments, total, err := services.DeploymentService.List(ctx, services.ListDeploymentOption{
+		BaseListOption: services.BaseListOption{
+			Start:  &schema.Start,
+			Count:  &schema.Count,
+			Search: schema.Search,
+		},
+		BentoIds: &[]uint{bento.ID},
+	})
+	if err != nil {
+		return nil, err
+	}
+	deploymentSchemas, err := transformersv1.ToDeploymentSchemas(ctx, deployments)
+	if err != nil {
+		return nil, err
+	}
+	return &schemasv1.DeploymentListSchema{
+		BaseListSchema: schemasv1.BaseListSchema{
+			Total: total,
+			Start: schema.Start,
+			Count: schema.Count,
+		},
+		Items: deploymentSchemas,
+	}, nil
+}
+
+type ListBentoModelSchema struct {
+	schemasv1.ListQuerySchema
+	GetBentoSchema
+}
+
+func (c *bentoController) ListModel(ctx *gin.Context, schema *ListBentoModelSchema) ([]*schemasv1.ModelWithRepositorySchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, bento); err != nil {
+		return nil, err
+	}
+	models, err := services.BentoService.ListModelsFromManifests(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	return transformersv1.ToModelWithRepositorySchemas(ctx, models)
 }
 
 type ListBentoSchema struct {

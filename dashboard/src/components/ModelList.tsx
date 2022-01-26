@@ -1,37 +1,37 @@
-import { useSubscription } from '@/hooks/useSubscription'
-import useTranslation from '@/hooks/useTranslation'
-import { IPaginationProps } from '@/interfaces/IPaginationProps'
-import { IBentoSchema, IBentoWithRepositorySchema } from '@/schemas/bento'
-import { IListSchema } from '@/schemas/list'
-import { recreateBentoImageBuilderJob } from '@/services/bento'
-import { MonoParagraphXSmall } from 'baseui/typography'
-import prettyBytes from 'pretty-bytes'
-import React, { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useQueryClient } from 'react-query'
+import { recreateModelImageBuilderJob } from '@/services/model'
+import { IModelSchema, IModelWithRepositorySchema } from '@/schemas/model'
+import useTranslation from '@/hooks/useTranslation'
+import User from '@/components/User'
+import { useSubscription } from '@/hooks/useSubscription'
+import { IListSchema } from '@/schemas/list'
+import prettyBytes from 'pretty-bytes'
+import { MonoParagraphXSmall } from 'baseui/typography'
 import { useHistory } from 'react-router-dom'
-import ImageBuildStatusIcon from './ImageBuildStatusIcon'
-import Link from './Link'
-import List from './List'
-import ListItem from './ListItem'
+import { IPaginationProps } from '@/interfaces/IPaginationProps'
 import { ResourceLabels } from './ResourceLabels'
+import List from './List'
+import ImageBuildStatusIcon from './ImageBuildStatusIcon'
 import Time from './Time'
-import User from './User'
+import Link from './Link'
+import ListItem from './ListItem'
 
-export interface IBentoListProps {
+export interface IModelListProps {
     queryKey: string
     isLoading: boolean
-    bentos: IBentoWithRepositorySchema[]
+    models: IModelWithRepositorySchema[]
     paginationProps?: IPaginationProps
 }
 
-export default function BentoList({ queryKey, isLoading, bentos, paginationProps }: IBentoListProps) {
+export default function ModelList({ queryKey, isLoading, models, paginationProps }: IModelListProps) {
     const [t] = useTranslation()
 
-    const uids = useMemo(() => bentos.map((bento) => bento.uid) ?? [], [bentos])
+    const uids = useMemo(() => models.map((modelVersion) => modelVersion.uid) ?? [], [models])
     const queryClient = useQueryClient()
     const subscribeCb = useCallback(
-        (bentoVersion: IBentoSchema) => {
-            queryClient.setQueryData(queryKey, (oldData?: IListSchema<IBentoSchema>): IListSchema<IBentoSchema> => {
+        (modelVersion: IModelSchema) => {
+            queryClient.setQueryData(queryKey, (oldData?: IListSchema<IModelSchema>): IListSchema<IModelSchema> => {
                 if (!oldData) {
                     return {
                         start: 0,
@@ -42,14 +42,14 @@ export default function BentoList({ queryKey, isLoading, bentos, paginationProps
                 }
                 return {
                     ...oldData,
-                    items: oldData.items.map((oldBentoVersion) => {
-                        if (oldBentoVersion.uid === bentoVersion.uid) {
+                    items: oldData.items.map((oldModelVersion) => {
+                        if (oldModelVersion.uid === modelVersion.uid) {
                             return {
-                                ...oldBentoVersion,
-                                ...bentoVersion,
+                                ...oldModelVersion,
+                                ...modelVersion,
                             }
                         }
-                        return oldBentoVersion
+                        return oldModelVersion
                     }),
                 }
             })
@@ -60,13 +60,13 @@ export default function BentoList({ queryKey, isLoading, bentos, paginationProps
 
     useEffect(() => {
         subscribe({
-            resourceType: 'bento',
+            resourceType: 'model',
             resourceUids: uids,
             cb: subscribeCb,
         })
         return () => {
             unsubscribe({
-                resourceType: 'bento',
+                resourceType: 'model',
                 resourceUids: uids,
                 cb: subscribeCb,
             })
@@ -76,20 +76,20 @@ export default function BentoList({ queryKey, isLoading, bentos, paginationProps
     const history = useHistory()
 
     const handleRenderItem = useCallback(
-        (bento: IBentoWithRepositorySchema) => {
+        (model: IModelWithRepositorySchema) => {
             return (
                 <ListItem
                     onClick={() => {
-                        history.push(`/bento_repositories/${bento.repository.name}/bentos/${bento.version}`)
+                        history.push(`/model_repositories/${model.repository.name}/models/${model.version}`)
                     }}
-                    key={bento.uid}
+                    key={model.uid}
                     artwork={() => (
                         <ImageBuildStatusIcon
-                            key={bento.uid}
-                            status={bento.image_build_status}
-                            podsSelector={`yatai.io/bento=${bento.version},yatai.io/bento-repository=${bento.repository.name}`}
+                            key={model.uid}
+                            status={model.image_build_status}
+                            podsSelector={`yatai.io/model=${model.version},yatai.io/model-repository=${model.repository.name}`}
                             onRerunClick={async () => {
-                                await recreateBentoImageBuilderJob(bento.repository.name, bento.version)
+                                await recreateModelImageBuilderJob(model.repository.name, model.version)
                             }}
                         />
                     )}
@@ -105,11 +105,11 @@ export default function BentoList({ queryKey, isLoading, bentos, paginationProps
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 8,
-                                    justifyContent: 'flex-end',
+                                    gap: 20,
                                 }}
                             >
-                                <div>{prettyBytes(bento.manifest.size_bytes)}</div>
+                                <div>{prettyBytes(model.manifest.size_bytes)}</div>
+                                <div>{model.manifest.module}</div>
                             </div>
                             <div
                                 style={{
@@ -118,9 +118,9 @@ export default function BentoList({ queryKey, isLoading, bentos, paginationProps
                                     gap: 8,
                                 }}
                             >
-                                {bento.creator && <User size='16px' user={bento.creator} />}
+                                {model.creator && <User size='16px' user={model.creator} />}
                                 {t('Created At')}
-                                <Time time={bento.created_at} />
+                                <Time time={model.created_at} />
                             </div>
                         </div>
                     )}
@@ -132,7 +132,7 @@ export default function BentoList({ queryKey, isLoading, bentos, paginationProps
                             gap: 10,
                         }}
                     >
-                        <Link href={`/bento_repositories/${bento.repository.name}/bentos/${bento.version}`}>
+                        <Link href={`/model_repositories/${model.repository.name}/models/${model.version}`}>
                             <MonoParagraphXSmall
                                 overrides={{
                                     Block: {
@@ -142,10 +142,10 @@ export default function BentoList({ queryKey, isLoading, bentos, paginationProps
                                     },
                                 }}
                             >
-                                {bento.repository.name}:{bento.version}
+                                {model.repository.name}:{model.version}
                             </MonoParagraphXSmall>
                         </Link>
-                        <ResourceLabels resource={bento} />
+                        <ResourceLabels resource={model} />
                     </div>
                 </ListItem>
             )
@@ -154,6 +154,6 @@ export default function BentoList({ queryKey, isLoading, bentos, paginationProps
     )
 
     return (
-        <List isLoading={isLoading} items={bentos} onRenderItem={handleRenderItem} paginationProps={paginationProps} />
+        <List isLoading={isLoading} items={models} onRenderItem={handleRenderItem} paginationProps={paginationProps} />
     )
 }
