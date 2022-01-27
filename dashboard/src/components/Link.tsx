@@ -37,8 +37,13 @@ export default function Link({ target = '_self', href, children, style }: ILinkP
     const [, theme] = useStyletron()
     const themeType = useCurrentThemeType()
 
+    const hrefLowercase = href.toLowerCase()
     const styles = useStyles({ theme, themeType })
-    const outsideLink = _.startsWith(href, 'http://') || _.startsWith(href, 'https://')
+    const outsideLink =
+        _.startsWith(hrefLowercase, 'http://') ||
+        _.startsWith(hrefLowercase, 'https://') ||
+        _.startsWith(hrefLowercase, '//') ||
+        _.startsWith(hrefLowercase, 'mailto:')
 
     return outsideLink ? (
         <BaseLink className={styles.wrapper} href={href} target={target}>
