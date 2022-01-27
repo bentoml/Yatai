@@ -1925,6 +1925,13 @@ const locales0 = {
         ko: ' 명령어로 새 모델을 Yatai에 밀어 넣습니다.',
         vi: '.',
     },
+    'kube namespace': {
+        en: 'Kubernetes Namespace',
+        zh: 'Kubernetes 命名空间',
+        ja: 'Kubernetes の名前空間',
+        ko: 'Kubernetes 네임스페이스',
+        vi: 'Kubernetes Namespace',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
