@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
 import { listAllModels, recreateModelImageBuilderJob } from '@/services/model'
@@ -16,6 +16,11 @@ import { useQ } from '@/hooks/useQ'
 import prettyBytes from 'pretty-bytes'
 import { MonoParagraphXSmall } from 'baseui/typography'
 import { useHistory } from 'react-router-dom'
+import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
+import { dark, docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
+import { Button } from 'baseui/button'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
 import { ResourceLabels } from './ResourceLabels'
@@ -32,7 +37,10 @@ export default function ModelFlatListCard() {
     const modelsInfo = useQuery(queryKey, () => listAllModels(page))
     const membersInfo = useFetchOrganizationMembers()
     const modelModulesInfo = useFetchOrganizationModelModules()
+    const [isCreateModelOpen, setIsCreateModelOpen] = useState(false)
     const [t] = useTranslation()
+    const themeType = useCurrentThemeType()
+    const highlightTheme = themeType === 'dark' ? dark : docco
 
     const uids = useMemo(
         () => modelsInfo.data?.items.map((modelVersion) => modelVersion.uid) ?? [],
@@ -199,6 +207,11 @@ export default function ModelFlatListCard() {
                     </div>
                 </div>
             }
+            extra={
+                <Button size='compact' onClick={() => setIsCreateModelOpen(true)}>
+                    {t('create')}
+                </Button>
+            }
         >
             <FilterBar
                 filters={[
@@ -282,6 +295,45 @@ export default function ModelFlatListCard() {
                     },
                 }}
             />
+            <Modal isOpen={isCreateModelOpen} onClose={() => setIsCreateModelOpen(false)} closeable animate autoFocus>
+                <ModalHeader>{t('create sth', [t('model')])}</ModalHeader>
+                <ModalBody>
+                    <div>
+                        <p>
+                            1. {t('Follow to [BentoML quickstart guide] to create your first Model. prefix')}
+                            <Link
+                                href='https://docs.bentoml.org/en/latest/quickstart.html#getting-started-page'
+                                target='_blank'
+                            >
+                                {t('BentoML quickstart guide')}
+                            </Link>
+                            {t('Follow to [BentoML quickstart guide] to create your first Model. suffix')}
+                        </p>
+                        <p>
+                            2. {t('Create an [API-token] and login your BentoML CLI. prefix')}
+                            <Link href='/api_tokens' target='_blank'>
+                                {t('api token')}
+                            </Link>
+                            {t('Create an [API-token] and login your BentoML CLI. suffix')}
+                        </p>
+                        <p>
+                            3. {t('Push new Model to Yatai with the `bentoml models push` CLI command. prefix')}
+                            <SyntaxHighlighter
+                                language='bash'
+                                style={highlightTheme}
+                                customStyle={{
+                                    margin: 0,
+                                    display: 'inline',
+                                    padding: 2,
+                                }}
+                            >
+                                bentoml models push
+                            </SyntaxHighlighter>
+                            {t('Push new Model to Yatai with the `bentoml models push` CLI command. suffix')}
+                        </p>
+                    </div>
+                </ModalBody>
+            </Modal>
         </Card>
     )
 }
