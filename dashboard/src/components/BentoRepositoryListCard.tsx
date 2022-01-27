@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
-import { createBentoRepository, listBentoRepositories } from '@/services/bento_repository'
+import { listBentoRepositories } from '@/services/bento_repository'
 import { usePage } from '@/hooks/usePage'
-import { IBentoRepositoryWithLatestDeploymentsSchema, ICreateBentoRepositorySchema } from '@/schemas/bento_repository'
-import BentoRepositoryForm from '@/components/BentoRepositoryForm'
+import { IBentoRepositoryWithLatestDeploymentsSchema } from '@/schemas/bento_repository'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
@@ -23,6 +22,8 @@ import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import { recreateBentoImageBuilderJob } from '@/services/bento'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import { dark, docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import FilterBar from './FilterBar'
 import FilterInput from './FilterInput'
 import Time from './Time'
@@ -60,15 +61,8 @@ export default function BentoRepositoryListCard() {
     const queryKey = `fetchBentoRepositories:${qs.stringify(page)}`
     const bentoRepositoriesInfo = useQuery(queryKey, () => listBentoRepositories(page))
     const [isCreateBentoOpen, setIsCreateBentoOpen] = useState(false)
-    const handleCreateBento = useCallback(
-        async (data: ICreateBentoRepositorySchema) => {
-            await createBentoRepository(data)
-            await bentoRepositoriesInfo.refetch()
-            setIsCreateBentoOpen(false)
-        },
-        [bentoRepositoriesInfo]
-    )
     const [t] = useTranslation()
+    const highlightTheme = themeType === 'dark' ? dark : docco
 
     const queryClient = useQueryClient()
     const bentoUids = useMemo(
@@ -494,9 +488,42 @@ export default function BentoRepositoryListCard() {
                 }}
             />
             <Modal isOpen={isCreateBentoOpen} onClose={() => setIsCreateBentoOpen(false)} closeable animate autoFocus>
-                <ModalHeader>{t('create sth', [t('bento repository')])}</ModalHeader>
+                <ModalHeader>{t('create sth', [t('bento')])}</ModalHeader>
                 <ModalBody>
-                    <BentoRepositoryForm onSubmit={handleCreateBento} />
+                    <div>
+                        <p>
+                            1. {t('Follow to [BentoML quickstart guide] to create your first Bento. prefix')}
+                            <Link
+                                href='https://docs.bentoml.org/en/latest/quickstart.html#getting-started-page'
+                                target='_blank'
+                            >
+                                {t('BentoML quickstart guide')}
+                            </Link>
+                            {t('Follow to [BentoML quickstart guide] to create your first Bento. suffix')}
+                        </p>
+                        <p>
+                            2. {t('Create an [API-token] and login your BentoML CLI. prefix')}
+                            <Link href='/api_tokens' target='_blank'>
+                                {t('api token')}
+                            </Link>
+                            {t('Create an [API-token] and login your BentoML CLI. suffix')}
+                        </p>
+                        <p>
+                            3. {t('Push new Bento to Yatai with the `bentoml push` CLI command. prefix')}
+                            <SyntaxHighlighter
+                                language='bash'
+                                style={highlightTheme}
+                                customStyle={{
+                                    margin: 0,
+                                    display: 'inline',
+                                    padding: 2,
+                                }}
+                            >
+                                bentoml push
+                            </SyntaxHighlighter>
+                            {t('Push new Bento to Yatai with the `bentoml push` CLI command. suffix')}
+                        </p>
+                    </div>
                 </ModalBody>
             </Modal>
         </Card>
