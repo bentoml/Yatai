@@ -15,7 +15,7 @@ export interface IClusterConfigSchema {
 export interface IClusterFullSchema extends IClusterSchema {
     organization?: IOrganizationSchema
     kube_config: string
-    config: IClusterConfigSchema
+    config?: IClusterConfigSchema
     grafana_root_path: string
 }
 
@@ -29,5 +29,5 @@ export interface ICreateClusterSchema {
     name: string
     description: string
     kube_config: string
-    config: IClusterConfigSchema
+    config?: IClusterConfigSchema
 }
