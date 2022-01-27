@@ -6,12 +6,13 @@ import i18n from '@/i18n'
 
 export interface ITimeProps {
     time: string
+    style?: React.CSSProperties
 }
 
-export default function Time({ time }: ITimeProps) {
+export default function Time({ time, style }: ITimeProps) {
     return (
         <StatefulTooltip placement='bottom' content={() => formatDateTime(time)}>
-            <ReactTimeAgo date={new Date(time)} timeStyle='round' locales={i18n.languages as string[]} />
+            <ReactTimeAgo style={style} date={new Date(time)} timeStyle='round' locales={i18n.languages as string[]} />
         </StatefulTooltip>
     )
 }

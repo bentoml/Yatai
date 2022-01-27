@@ -1,9 +1,12 @@
 import { listBentos } from '@/services/bento'
+import { useStyletron } from 'baseui'
 import { Select } from 'baseui/select'
+import { MonoParagraphXSmall } from 'baseui/typography'
 import _ from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
-import ImageBuildStatusTag from './ImageBuildStatusTag'
+import ImageBuildStatusIcon from './ImageBuildStatusIcon'
+import Time from './Time'
 
 export interface IBentoSelectorProps {
     bentoRepositoryName: string
@@ -17,6 +20,7 @@ export default function BentoSelector({ bentoRepositoryName, value, onChange }: 
     const bentosInfo = useQuery(`listBento:${bentoRepositoryName}:${keyword}`, () =>
         listBentos(bentoRepositoryName, { start: 0, count: 100, search: keyword })
     )
+    const [, theme] = useStyletron()
 
     const handleBentoInputChange = _.debounce((term: string) => {
         if (!term) {
@@ -31,17 +35,44 @@ export default function BentoSelector({ bentoRepositoryName, value, onChange }: 
             setOptions(
                 bentosInfo.data?.items.map((item) => ({
                     id: item.version,
+                    disabled: item.image_build_status !== 'success',
                     label: (
                         <div
                             style={{
                                 display: 'flex',
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                gap: 10,
+                                justifyContent: 'space-between',
+                                gap: 42,
                             }}
                         >
-                            {item.version}
-                            <ImageBuildStatusTag key={item.uid} status={item.image_build_status} />
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                }}
+                            >
+                                <ImageBuildStatusIcon key={item.uid} size={12} status={item.image_build_status} />
+                                <MonoParagraphXSmall
+                                    overrides={{
+                                        Block: {
+                                            style: {
+                                                margin: 0,
+                                            },
+                                        },
+                                    }}
+                                >
+                                    {item.version}
+                                </MonoParagraphXSmall>
+                            </div>
+                            <Time
+                                time={item.created_at}
+                                style={{
+                                    color: theme.colors.contentSecondary,
+                                    fontSize: '11px',
+                                }}
+                            />
                         </div>
                     ),
                 })) ?? []
@@ -49,7 +80,7 @@ export default function BentoSelector({ bentoRepositoryName, value, onChange }: 
         } else {
             setOptions([])
         }
-    }, [bentosInfo.data?.items, bentosInfo.isSuccess])
+    }, [bentosInfo.data?.items, bentosInfo.isSuccess, theme.colors.contentSecondary])
 
     return (
         <Select

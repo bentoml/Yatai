@@ -78,6 +78,9 @@ export default function ImageBuildStatusIcon({
 
     return (
         <div
+            style={{
+                display: 'inline-flex',
+            }}
             onClick={(e) => {
                 e.stopPropagation()
                 e.preventDefault()
