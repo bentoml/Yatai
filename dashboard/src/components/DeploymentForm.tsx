@@ -188,7 +188,7 @@ export default function DeploymentForm({
             }
             return {
                 ...vs,
-                kube_namespace: clusterInfo.data.config.default_deployment_kube_namespace,
+                kube_namespace: clusterInfo.data.config?.default_deployment_kube_namespace ?? 'yatai',
             }
         })
     }, [clusterInfo.data])
@@ -268,7 +268,7 @@ export default function DeploymentForm({
                             label={t('kube namespace')}
                             style={{ marginBottom: 0 }}
                         >
-                            <Input />
+                            <Input disabled={!!deployment} />
                         </FormItem>
                     )}
                 </div>
