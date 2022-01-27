@@ -8,10 +8,10 @@ import { formatDateTime } from '@/utils/datetime'
 import User from '@/components/User'
 import { AiOutlineHistory } from 'react-icons/ai'
 import { useParams } from 'react-router-dom'
-import { StyledLink } from 'baseui/link'
 import { Button } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import DeploymentTerminalRecordList from '@/components/DeploymentTerminalRecordList'
+import Link from '@/components/Link'
 
 export default function DeploymentOverview() {
     const { clusterName } = useParams<{ clusterName: string; deploymentName: string }>()
@@ -52,9 +52,9 @@ export default function DeploymentOverview() {
                             deployment?.name,
                             <div key={deployment?.uid}>
                                 {deployment?.urls.map((url) => (
-                                    <StyledLink key={url} href={url} target='_blank'>
+                                    <Link key={url} href={url} target='_blank'>
                                         {url}
-                                    </StyledLink>
+                                    </Link>
                                 ))}
                             </div>,
                             deployment?.description,

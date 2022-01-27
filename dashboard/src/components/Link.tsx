@@ -46,7 +46,7 @@ export default function Link({ target = '_self', href, children, style }: ILinkP
         _.startsWith(hrefLowercase, 'mailto:')
 
     return outsideLink ? (
-        <BaseLink className={styles.wrapper} href={href} target={target}>
+        <BaseLink onClick={(e) => e.stopPropagation()} className={styles.wrapper} href={href} target={target}>
             {children}
         </BaseLink>
     ) : (
