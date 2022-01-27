@@ -248,9 +248,9 @@ const Routes = () => {
                 </Switch>
                 <ChatWidget
                     token='2877f01c-c1be-4748-8e9f-9d3bb7f6e403'
-                    title='Welcome to BentoML'
+                    title='Welcome to Yatai'
                     subtitle='Ask us anything in the chat window below 😊'
-                    primaryColor='#1890ff'
+                    primaryColor='#47AFD1'
                     newMessagePlaceholder='Start typing...'
                     showAgentAvailability={false}
                     agentAvailableText='We are online right now!'

@@ -203,19 +203,22 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
             <div>
                 <div style={bottomItemStyle}>
                     <CgCommunity />
-                    <Link href='https://bentoml.com' target='_blank'>
+                    <Link
+                        href='https://join.slack.com/t/bentoml/shared_invite/enQtNjcyMTY3MjE4NTgzLTU3ZDc1MWM5MzQxMWQxMzJiNTc1MTJmMzYzMTYwMjQ0OGEwNDFmZDkzYWQxNzgxYWNhNjAxZjk4MzI4OGY1Yjg'
+                        target='_blank'
+                    >
                         {t('community')}
                     </Link>
                 </div>
                 <div style={bottomItemStyle}>
                     <CgFileDocument />
-                    <Link href='https://bentoml.com' target='_blank'>
+                    <Link href='https://docs.bentoml.org' target='_blank'>
                         {t('docs')}
                     </Link>
                 </div>
                 <div style={bottomItemStyle}>
                     <GrContact />
-                    <Link href='https://bentoml.com' target='_blank'>
+                    <Link href='mailto:contact@bentoml.ai' target='_blank'>
                         {t('contact')}
                     </Link>
                 </div>
