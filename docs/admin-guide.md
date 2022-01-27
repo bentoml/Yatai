@@ -222,7 +222,7 @@ Prerequisites:
 
 ### Custom Docker registry
 
-#### Dockerhub
+#### Docker hub
 
 ```bash
 helm install yatai yatai/yatai \
