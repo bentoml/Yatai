@@ -36,4 +36,5 @@ export interface ICreateDeploymentSchema extends IUpdateDeploymentSchema {
     cluster_name?: string
     name: string
     description: string
+    kube_namespace?: string
 }

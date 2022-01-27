@@ -46,7 +46,7 @@ export default function DeploymentOverview() {
             >
                 <Table
                     isLoading={deploymentLoading}
-                    columns={[t('name'), 'URL', t('description'), t('creator'), t('created_at')]}
+                    columns={[t('name'), 'URL', t('kube namespace'), t('description'), t('creator'), t('created_at')]}
                     data={[
                         [
                             deployment?.name,
@@ -57,6 +57,10 @@ export default function DeploymentOverview() {
                                     </Link>
                                 ))}
                             </div>,
+                            // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+                            <span key={deployment?.uid} onClick={(e) => e.stopPropagation()} style={{ cursor: 'text' }}>
+                                {deployment?.kube_namespace}
+                            </span>,
                             deployment?.description,
                             deployment?.creator && <User user={deployment?.creator} />,
                             deployment && formatDateTime(deployment.created_at),

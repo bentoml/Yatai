@@ -22,6 +22,8 @@ import { useHistory } from 'react-router-dom'
 import { VscServerProcess, VscSymbolVariable } from 'react-icons/vsc'
 import { GrResources } from 'react-icons/gr'
 import { FiMaximize2, FiMinimize2 } from 'react-icons/fi'
+import { fetchCluster } from '@/services/cluster'
+import { useQuery } from 'react-query'
 import DeploymentTargetTypeSelector from './DeploymentTargetTypeSelector'
 import BentoRepositorySelector from './BentoRepositorySelector'
 import BentoSelector from './BentoSelector'
@@ -120,6 +122,10 @@ export default function DeploymentForm({
         targets: [defaultTarget],
     })
 
+    const clusterInfo = useQuery(`cluster:${values.cluster_name}`, () =>
+        values.cluster_name ? fetchCluster(values.cluster_name) : Promise.resolve(undefined)
+    )
+
     const previousDeploymentRevisionUid = useRef<string>()
 
     useEffect(() => {
@@ -138,6 +144,7 @@ export default function DeploymentForm({
             name: deployment.name,
             description: deployment.description,
             cluster_name: clusterName || deployment.cluster?.name,
+            kube_namespace: deployment.kube_namespace,
             targets: deploymentRevision.targets.map((target) => {
                 return {
                     type: target.type,
@@ -170,9 +177,21 @@ export default function DeploymentForm({
         }
     }, [history, onSubmit, values])
 
-    const handleChange = useCallback((changes, values_) => {
+    const handleChange = useCallback((_changes, values_) => {
         setValues(values_)
     }, [])
+
+    useEffect(() => {
+        setValues((vs) => {
+            if (!clusterInfo.data) {
+                return vs
+            }
+            return {
+                ...vs,
+                kube_namespace: clusterInfo.data.config.default_deployment_kube_namespace,
+            }
+        })
+    }, [clusterInfo.data])
 
     const [t] = useTranslation()
 
@@ -218,23 +237,41 @@ export default function DeploymentForm({
             </div>
 
             <div className={styles.body}>
-                <FormItem
-                    required
-                    name='cluster_name'
-                    label={t('cluster')}
-                    style={{ display: clusterName ? 'none' : 'block' }}
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 20,
+                    }}
                 >
-                    <ClusterSelector
-                        disabled={!!deployment}
-                        overrides={{
-                            Root: {
-                                style: {
-                                    width: '392px',
+                    <FormItem
+                        required
+                        name='cluster_name'
+                        label={t('cluster')}
+                        style={{ display: clusterName ? 'none' : 'block', marginBottom: 0 }}
+                    >
+                        <ClusterSelector
+                            disabled={!!deployment}
+                            overrides={{
+                                Root: {
+                                    style: {
+                                        width: '392px',
+                                    },
                                 },
-                            },
-                        }}
-                    />
-                </FormItem>
+                            }}
+                        />
+                    </FormItem>
+                    {values.cluster_name && (
+                        <FormItem
+                            required
+                            name='kube_namespace'
+                            label={t('kube namespace')}
+                            style={{ marginBottom: 0 }}
+                        >
+                            <Input />
+                        </FormItem>
+                    )}
+                </div>
                 <FormItem required name='name' label={t('deployment name')}>
                     <Input
                         disabled={!!deployment}
