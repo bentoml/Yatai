@@ -11,146 +11,139 @@ By default, Yatai helm chart will install Yatai and its dependency services in t
 - [Local Minikube Installation](#local-minikube-installation)
 - [Production Installation](#production-installation)
   - Custom PostgreSQL database
-    - [AWS RDS]()
+    - [AWS RDS](#aws-rds)
   - Cusotm Docker Registry
-    - [Docker hub]()
-    - [AWR ECR]()
+    - [Docker hub](#docker-hub)
+    - [AWR ECR](#aws-ecr)
   - Custom Blob Storage
-    - [AWS S3]()
-- [Verifying Yatai installation]()
-
+    - [AWS S3](#aws-s3)
+  - [Verify Yatai installation](#verify-yatai-installation)
 
 ## System Overview
 
-
 ### Namespaces:
 
+When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-operators`, `yatai-builder`, and `yatai` in the Kuberenetes cluster.
 
-When deploying Yatai with Helm,  `yatai-system`,
+* **Yatai-system:**
 
-`yatai-components`,  `yatai-operators`, `yatai-builder`, and `yatai` in the Kuberenetes cluster.
+    All the services that run the yatai platform are group under `yatai-system` namespace.  These services include Yatai application and the default PostgreSQL database.
+
+* **Yatai-components:**
+
+    Yatai groups dependency services into components for easy management. These dependency services are deployed in the `yatai-components` namespace. Yatai installs the default deployment component after the service start.
+
+    *Components and their managed services:*
+
+    * *Deployment*: Nginx Ingress Controller, Minio, Docker Registry
+
+    * *Logging*: Loki, Grafana
+
+    * *Monitoring*: Prometheus, Grafana
 
 
-**Yatai-system:**
+* **Yatai-operators:**
 
-All of the services that run the yatai platform are group under `yatai-system` namespace.  These services include Yatai application and the default PostgreSQL database.
+    Yatai uses controllers to manage the lifecycle of Yatai component services. The controllers deployed in the `yatai-operators` namespace.
 
-**Yatai-components:**
+* **Yatai-builders:**
 
-Yatai groups dependency services into components for easy management. These dependency services are deployed in the `yatai-components` namespace.
+    All the automated jobs such as build docker images for models and bentos are executed in the `yatai-builder` namespace.
 
-*Components and their managed services:*
+* **Yatai:**
 
-Deployment: Nginx Ingress Controller, Minio, Docker Registry
-
-Logging: Loki, Grafana
-
-Monitoring: Prometheus, Grafana
-
-Yatai install the default deployment component after service start
-
-**Yatai-operators:**
-
-Yatai uses controllers to manage the lifecycle of Yatai component services. The controllers deployed in the `yatai-operators` namespace.
-
-**Yatai-builders:**
-
-All of the automated jobs such as build docker images for models and bentos are executed in the `yatai-builder` namespace.
-
-**Yatai:**
-
-By default Yatai server will create a `yatai` namespace on the Kuberentes cluster for managing all of the user created bento deployments. User can configure this namespace value in the Yatai web UI.
+    By default Yatai server will create a `yatai` namespace on the Kuberentes cluster for managing all the user created bento deployments. User can configure this namespace value in the Yatai web UI.
 
 
 ### Default dependency services installed:
 
-PostgreSQL:
+* *PostgreSQL*:
 
-Yatai uses Postgres database to store model and bento’s metadata , deployment configuration, user activities and other information. Users can use their existing database or cloud provider’s services such as AWS RDS.  By default, Yatai will create a Postgres service in the Kubernetes cluster. For production usage, we recommend users to setup external Postgres database from cloud provider such as AWS RDS. This setup provides reliability, high performance and reliability, while persist the data, in case the Kuberentes cluster goes down.
+    Yatai uses Postgres database to store model and bento’s metadata , deployment configuration, user activities and other information. Users can use their existing database or cloud provider’s services such as AWS RDS.  By default, Yatai will create a Postgres service in the Kubernetes cluster. For production usage, we recommend users to setup external Postgres database from cloud provider such as AWS RDS. This setup provides reliability, high performance and reliability, while persist the data, in case the Kuberentes cluster goes down.
 
-Minio datastore:
+* *Minio datastore*:
 
-Yatai uses the datastore as persistence layer for storing bentos. By default Yatai will start a Minio service. Users can configure to use cloud-based object store such as AWS S3. Cloud based object stores provide scalability, high performance and reliability at a desirable cost.  They are recommended for production usage.
+    Yatai uses the datastore as persistence layer for storing bentos. By default Yatai will start a Minio service. Users can configure to use cloud-based object store such as AWS S3. Cloud based object stores provide scalability, high performance and reliability at a desirable cost.  They are recommended for production usage.
 
-Docker registry:
+* *Docker registry*:
 
-Yatai uses an internal docker registry to provide docker images access for deployments. For users who want to access the built images for other system, they can configure to use DockerHub or other cloud based docker registry services.
+    Yatai uses an internal docker registry to provide docker images access for deployments. For users who want to access the built images for other system, they can configure to use DockerHub or other cloud based docker registry services.
 
-Nginx Ingress controller:
+* *Nginx Ingress controller*:
 
-Yatai uses Nginx ingress controller to facilitate access to deployments and canary deployments.
+    Yatai uses Nginx ingress controller to facilitates access to deployments and canary deployments.
+
 
 ## Local Minikube Installation
 
 Minikube is recommended for development and testing purpose only.
 
 **prerequisites**
-
-- Minikube version 1.20 or newer
-- kubectl version 1.20 or newer
-
-**Recommend:**
-
-- System with more than 4 CPUs and more than 4GB in memory
-
-1. Start a new minikube cluster.
-
-    If you have an existing minikube cluster, make sure to delete it first: `minikube delete`
-
-    ```bash
-    # Start a new minikube cluster
-    minikube start --cpus 4 --memory 4096
-    ```
-
-2. Add and update Yatai helm chart
-
-    ```bash
-    helm repo add yatai https://bentoml.github.io/yatai-chart
-    helm repo update
-    ```
-
-3. Install Yatai chart
-
-    This will create a new namespace `yatai-system` in the Minikube cluster, install Yatai and all its dependency services.
-
-    ```bash
-    helm install yatai yatai/yatai -n yatai-system --create-namespace
-    ```
+- Minikube version 1.20 or newer. Please follow the [official installation guide](https://minikube.sigs.k8s.io/docs/start/) to install Minikube.
+- Recommend system with 4 CPUs and 4GB of RAM or more
 
 
-1. Verify the installation
+**Step 1. Start a new minikube cluster**
 
-    Check installation status:
+If you have an existing minikube cluster, make sure to delete it first: `minikube delete`
 
-    ```bash
-    helm status yatai -n yatai-system
-    ```
+```bash
+# Start a new minikube cluster
+minikube start --cpus 4 --memory 4096
+```
 
-    Check all Yatai containers status:
+**Step 2. Add and update Yatai helm chart**
 
-    Run `kubectl get pod` command to list out all of the pods started by Yatai
+```bash
+helm repo add yatai https://bentoml.github.io/yatai-chart
+helm repo update
+```
 
-    ```bash
-    kubectl get pod --all-namespaces
+**Step 3. Install Yatai chart**
 
-    # With default Yatai installation, the following pods should be running.
-    yatai-components   minio-operator-99f8cf4f4-6kzcz                                    1/1     Running             0               45s
-    yatai-components   yatai-ingress-controller-ingress-nginx-controller-7cf9494f59z5k   1/1     Running             0               112s
-    yatai-components   yatai-minio-console-84568cc987-twqtp                              0/1     ContainerCreating   0               45s
-    yatai-operators    deployment-yatai-deployment-comp-operator-58fd6b7667-x65cb        1/1     Running             0               2m16s
-    yatai-operators    yatai-csi-driver-image-populator-mkcz2                            2/2     Running             0               2m5s
-    yatai-system       yatai-6658d565d8-drk9f                                            1/1     Running             3 (2m41s ago)   4m25s
-    yatai-system       yatai-postgresql-0                                                1/1     Running             0               4m24s
-    ```
+This will create a new namespace `yatai-system` in the Minikube cluster, install Yatai and all its dependency services.
 
-    Run `minikube tunnel` command to allow access to the Yatai Web UI:
+```bash
+helm install yatai yatai/yatai -n yatai-system --create-namespace
+```
 
-    ```bash
-    # this requires enter your system password
-    minikube tunnel
-    ```
 
-    Once the minikube tunnel established, open a browser at [http://yatai.127.0.0.1.sslip.io](http://yatai.127.0.0.1.sslip.io), login with the default username `admin` and password `admin`.
+### Verify installation
+
+Check installation status:
+
+```bash
+helm status yatai -n yatai-system
+```
+
+Check Yatai containers status in the Minikube cluster:
+
+```bash
+# If kubectl is installed, run the following command:
+kubectl get pod --all-namespaces
+
+# If kubectl is not installed, run the following command:
+minikube kubectl -- get pod --all-namespaces
+
+# With default Yatai installation, the following pods should be running.
+yatai-components   minio-operator-99f8cf4f4-6kzcz                                    1/1     Running             0               45s
+yatai-components   yatai-ingress-controller-ingress-nginx-controller-7cf9494f59z5k   1/1     Running             0               112s
+yatai-components   yatai-minio-console-84568cc987-twqtp                              0/1     ContainerCreating   0               45s
+yatai-operators    deployment-yatai-deployment-comp-operator-58fd6b7667-x65cb        1/1     Running             0               2m16s
+yatai-operators    yatai-csi-driver-image-populator-mkcz2                            2/2     Running             0               2m5s
+yatai-system       yatai-6658d565d8-drk9f                                            1/1     Running             3 (2m41s ago)   4m25s
+yatai-system       yatai-postgresql-0                                                1/1     Running             0               4m24s
+```
+
+Run `minikube tunnel` command to allow access to the Yatai Web UI:
+
+```bash
+# this requires enter your system password
+minikube tunnel
+```
+
+Once the minikube tunnel established, open a browser at [http://yatai.127.0.0.1.sslip.io](http://yatai.127.0.0.1.sslip.io), login with the default username `admin` and password `admin`.
+
 
 
 ## Production Installation
@@ -181,12 +174,12 @@ To install and operate Yatai in production, we generally recommend using a dedic
 
 ### Custom PostgreSQL database
 
-**AWS RDS**
+#### AWS RDS
 
 Prerequisites:
 
-- `jq`  command line tool
-- AWS CLI with RDS permission
+- `jq`  command line tool. Follow the [official installation guide](https://stedolan.github.io/jq/download/) to install `jq`
+- AWS CLI with RDS permission. Follow the [official installation guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) to install AWS CLI
 
 1. Create an RDS db instance
 
@@ -229,7 +222,7 @@ Prerequisites:
 
 ### Custom Docker registry
 
-**Dockerhub**
+#### Dockerhub
 
 ```bash
 helm install yatai yatai/yatai \
@@ -240,7 +233,13 @@ helm install yatai yatai/yatai \
 	-n yatai-system --create-namespace
 ```
 
-**AWS ECR**
+#### AWS ECR
+
+Prerequisites:
+
+- `jq`  command line tool. Follow the [official installation guide](https://stedolan.github.io/jq/download/) to install `jq`
+- AWS CLI with AWS ECR permission. Follow the [official installation guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) to install AWS CLI
+
 
 1. Create AWS ECR repositories:
     1. Create repositories using default registry ID:
@@ -293,7 +292,12 @@ helm install yatai yatai/yatai \
 
 ### Custom blob storage
 
-**AWS S3**
+#### AWS S3
+
+Prerequisites:
+
+- AWS CLI with AWS S3 permission. Follow the [official installation guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) to install AWS CLI
+
 
 1. Configure AWS S3 bucket for Yatai
 
@@ -320,7 +324,8 @@ helm install yatai yatai/yatai \
     ```
 
 
-**Verify Yatai installation**
+#### Verify Yatai installation
+
 
 Check installation status with Helm
 
