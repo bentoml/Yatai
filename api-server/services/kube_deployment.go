@@ -102,6 +102,11 @@ func (s *kubeDeploymentService) DeploymentTargetToKubeDeployment(ctx context.Con
 		},
 	}
 
+	replicas := pointer.Int32Ptr(2)
+	if deploymentTarget.Config != nil && deploymentTarget.Config.HPAConf != nil && deploymentTarget.Config.HPAConf.MinReplicas != nil {
+		replicas = deploymentTarget.Config.HPAConf.MinReplicas
+	}
+
 	kubeDeployment = &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            kubeName,
@@ -111,7 +116,7 @@ func (s *kubeDeploymentService) DeploymentTargetToKubeDeployment(ctx context.Con
 			OwnerReferences: deployOption.OwnerReferences,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: pointer.Int32Ptr(2),
+			Replicas: replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					consts.KubeLabelYataiSelector: kubeName,
