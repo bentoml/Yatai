@@ -234,11 +234,11 @@ func (s *bentoService) getS3ObjectName(ctx context.Context, bento *models.Bento)
 func (s *bentoService) GetImageName(ctx context.Context, bento *models.Bento, inCluster bool) (string, error) {
 	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
 	if err != nil {
@@ -256,11 +256,11 @@ func (s *bentoService) GetImageName(ctx context.Context, bento *models.Bento, in
 func (s *bentoService) GetS3BucketName(ctx context.Context, bento *models.Bento) (string, error) {
 	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	s3Config, err := OrganizationService.GetS3Config(ctx, org)

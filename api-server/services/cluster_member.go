@@ -50,7 +50,6 @@ func (s *clusterMemberService) Create(ctx context.Context, operatorId uint, opt 
 	if err == nil {
 		return s.Update(ctx, oldMember, operatorId, UpdateClusterMemberOption{opt.Role})
 	}
-	err = nil
 
 	// nolint: ineffassign,staticcheck
 	db, ctx, df, err := startTransaction(ctx)

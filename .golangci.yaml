@@ -52,7 +52,7 @@ linters:
     - deadcode
     - varcheck
     - ineffassign
-    - scopelint
+    - exportloopref
     - sqlclosecheck
     - structcheck
     - typecheck

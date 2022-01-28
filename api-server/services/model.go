@@ -214,11 +214,11 @@ func (s *modelService) getS3ObjectName(ctx context.Context, model *models.Model)
 func (s *modelService) GetImageName(ctx context.Context, model *models.Model, inCluster bool) (string, error) {
 	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
 	if err != nil {
@@ -236,11 +236,11 @@ func (s *modelService) GetImageName(ctx context.Context, model *models.Model, in
 func (s *modelService) GetS3BucketName(ctx context.Context, model *models.Model) (string, error) {
 	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	s3Config, err := OrganizationService.GetS3Config(ctx, org)

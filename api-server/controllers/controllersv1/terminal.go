@@ -243,7 +243,7 @@ func (t *WebTerminal) Safe(fn func() error) error {
 
 func (t *WebTerminal) HandleDebug(ctx context.Context, cliset *kubernetes.Clientset, restConfig *rest.Config, fork bool) error {
 	o := NewDebugOptions(t, cliset, restConfig, false, fork, consts.YataiDebugImg)
-	return o.Run()
+	return o.Run(ctx)
 }
 
 func (t *WebTerminal) Handle(ctx context.Context, cliset *kubernetes.Clientset, restConfig *rest.Config, cmd []string) error {
