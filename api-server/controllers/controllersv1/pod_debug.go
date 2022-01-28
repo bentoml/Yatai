@@ -190,8 +190,7 @@ func (o *DebugOptions) Validate() error {
 
 // TODO: refactor Run() spaghetti code
 // Run run
-func (o *DebugOptions) Run() error {
-	ctx := context.Background()
+func (o *DebugOptions) Run(ctx context.Context) error {
 	pod, err := o.CoreClient.Pods(o.Namespace).Get(ctx, o.PodName, v1.GetOptions{})
 	if err != nil {
 		return err
@@ -205,7 +204,7 @@ func (o *DebugOptions) Run() error {
 		}
 		containerName = pod.Spec.Containers[0].Name
 	}
-	err = o.auth(pod)
+	err = o.auth(ctx, pod)
 	if err != nil {
 		return err
 	}
@@ -215,7 +214,7 @@ func (o *DebugOptions) Run() error {
 		o.AgentPodNode = pod.Spec.NodeName
 		o.AgentPodName = fmt.Sprintf("%s-%s", o.AgentPodName, uuid.NewUUID())
 		agentPod = o.getAgentPod()
-		agentPod, err = o.launchPod(agentPod)
+		agentPod, err = o.launchPod(ctx, agentPod)
 		if err != nil {
 			fmt.Fprintf(o.Out, "the agentPod is not running, you should check the reason and delete the failed agentPod and retry.\n")
 			return err
@@ -239,22 +238,22 @@ func (o *DebugOptions) Run() error {
 			"is_mcd_msg": true,
 			"pod":        podView,
 		})
-		pod, err = o.launchPod(pod)
+		pod, err = o.launchPod(ctx, pod)
 		if err != nil {
 			fmt.Fprintf(o.Out, "the ForkedPod is not running, you should check the reason and delete the failed ForkedPod and retry\n")
-			o.deleteAgent(agentPod)
+			o.deleteAgent(ctx, agentPod)
 			return err
 		}
 	}
 
 	if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
-		o.deleteAgent(agentPod)
+		o.deleteAgent(ctx, agentPod)
 		return fmt.Errorf("cannot debug in a completed pod; current phase is %s", pod.Status.Phase)
 	}
 
 	containerID, err := o.getContainerIDByName(pod, containerName)
 	if err != nil {
-		o.deleteAgent(agentPod)
+		o.deleteAgent(ctx, agentPod)
 		return err
 	}
 
@@ -291,7 +290,7 @@ func (o *DebugOptions) Run() error {
 		}
 		err = o.runPortForward(agent)
 		if err != nil {
-			o.deleteAgent(agentPod)
+			o.deleteAgent(ctx, agentPod)
 			return err
 		}
 		// client can't access the node ip in the k8s cluster sometimes,
@@ -380,7 +379,7 @@ func (o *DebugOptions) Run() error {
 			// delete agent pod
 			if o.AgentLess && agentPod != nil {
 				fmt.Fprintf(o.Out, "Start deleting agent pod %s \n\r", pod.Name)
-				o.deleteAgent(agentPod)
+				o.deleteAgent(ctx, agentPod)
 			}
 		}).Run(fn)
 	}
@@ -494,8 +493,7 @@ func copyAndStripPod(pod *corev1.Pod, targetContainer string, podLabels map[stri
 }
 
 // launchPod launch given pod until it's running
-func (o *DebugOptions) launchPod(pod *corev1.Pod) (*corev1.Pod, error) {
-	ctx := context.Background()
+func (o *DebugOptions) launchPod(ctx context.Context, pod *corev1.Pod) (*corev1.Pod, error) {
 	pod, err := o.CoreClient.Pods(pod.Namespace).Create(ctx, pod, v1.CreateOptions{})
 	if err != nil {
 		return pod, err
@@ -700,7 +698,7 @@ func (f *defaultPortForwarder) ForwardPorts(method string, url *url.URL, opts *D
 }
 
 // auth checks if current user has permission to create pods/exec subresource.
-func (o *DebugOptions) auth(pod *corev1.Pod) error {
+func (o *DebugOptions) auth(ctx context.Context, pod *corev1.Pod) error {
 	sarClient := o.KubeCli.AuthorizationV1()
 	sar := &authorizationv1.SelfSubjectAccessReview{
 		Spec: authorizationv1.SelfSubjectAccessReviewSpec{
@@ -714,7 +712,7 @@ func (o *DebugOptions) auth(pod *corev1.Pod) error {
 			},
 		},
 	}
-	response, err := sarClient.SelfSubjectAccessReviews().Create(context.Background(), sar, v1.CreateOptions{})
+	response, err := sarClient.SelfSubjectAccessReviews().Create(ctx, sar, v1.CreateOptions{})
 	if err != nil {
 		fmt.Fprintf(o.ErrOut, "Failed to create SelfSubjectAccessReview: %v \n", err)
 		return err
@@ -733,12 +731,12 @@ func (o *DebugOptions) auth(pod *corev1.Pod) error {
 }
 
 // delete the agent pod
-func (o *DebugOptions) deleteAgent(agentPod *corev1.Pod) {
+func (o *DebugOptions) deleteAgent(ctx context.Context, agentPod *corev1.Pod) {
 	// only with agentless flag we can delete the agent pod
 	if !o.AgentLess {
 		return
 	}
-	err := o.CoreClient.Pods(agentPod.Namespace).Delete(context.Background(), agentPod.Name, *v1.NewDeleteOptions(0))
+	err := o.CoreClient.Pods(agentPod.Namespace).Delete(ctx, agentPod.Name, *v1.NewDeleteOptions(0))
 	if err != nil {
 		fmt.Fprintf(o.ErrOut, "failed to delete agent pod[Name:%s, Namespace: %s], consider manual deletion.\nerror msg: %v", agentPod.Name, agentPod.Namespace, err)
 	}

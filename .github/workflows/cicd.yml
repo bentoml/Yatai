@@ -80,7 +80,7 @@ jobs:
     needs:
       - diff
 
-    # if: ${{ (github.event_name == 'pull_request' && needs.diff.outputs.golang == 'true') || github.event_name == 'push' }}
+    if: ${{ (github.event_name == 'pull_request' && needs.diff.outputs.golang == 'true') || github.event_name == 'push' }}
 
     steps:
       - uses: actions/checkout@v2

@@ -30,9 +30,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func addCron() {
+func addCron(ctx context.Context) {
 	c := cron.New()
-	ctx := context.Background()
 	logger := logrus.New().WithField("cron", "sync env")
 
 	err := c.AddFunc("@every 1m", func() {
@@ -311,7 +310,7 @@ func (opt *ServeOption) Run(ctx context.Context, args []string) error {
 		}
 	}
 
-	addCron()
+	addCron(ctx)
 
 	router, err := routes.NewRouter()
 	if err != nil {

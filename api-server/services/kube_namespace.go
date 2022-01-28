@@ -31,7 +31,7 @@ func (s *kubeNamespaceService) MakeSureNamespace(ctx context.Context, cluster *m
 		if err_ != nil {
 			kubeNs, err = nsCli.Get(ctx, namespace, metav1.GetOptions{})
 			if err == nil {
-				return
+				return // nolint: nilerr
 			}
 			err = err_
 			return

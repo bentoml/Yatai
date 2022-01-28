@@ -22,7 +22,7 @@ func TestSizeStrToMiBInt(t *testing.T) {
 	r, _ := SizeStrToMiBInt("123")
 	isEqual(t, 0, r)
 	r, _ = SizeStrToMiBInt("123KiB")
-	isEqual(t, 123/1024, r)
+	isEqual(t, 0, r)
 	r, _ = SizeStrToMiBInt("123MiB")
 	isEqual(t, 123, r)
 	r, _ = SizeStrToMiBInt("123GiB")

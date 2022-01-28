@@ -188,7 +188,10 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 							Items: res,
 						},
 					}
-					msgStr, _ := json.Marshal(&msg)
+					msgStr, err := json.Marshal(&msg)
+					if err != nil {
+						return errors.Wrap(err, "error in marshal log message")
+					}
 					_ = t.Write(msgStr)
 					if req.Follow {
 						go func() {
@@ -231,7 +234,11 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 										},
 									},
 								}
-								msgStr, _ := json.Marshal(&msg)
+								msgStr, err := json.Marshal(&msg)
+								if err != nil {
+									_, _ = fmt.Fprintln(os.Stderr, err)
+									return
+								}
 								_ = t.Write(msgStr)
 							}
 						}()
