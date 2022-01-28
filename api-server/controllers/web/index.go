@@ -6,12 +6,11 @@ import (
 	"path"
 	"sync"
 
-	"github.com/bentoml/yatai/common/scookie"
-
-	"github.com/bentoml/yatai/api-server/config"
-
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+
+	"github.com/bentoml/yatai/api-server/config"
+	"github.com/bentoml/yatai/common/scookie"
 )
 
 var (

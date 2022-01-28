@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type BaseListOption struct {

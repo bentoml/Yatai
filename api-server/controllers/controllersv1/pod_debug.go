@@ -14,10 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
-	"github.com/bentoml/yatai/common/consts"
-
 	authorizationv1 "k8s.io/api/authorization/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -36,6 +32,10 @@ import (
 	"k8s.io/client-go/transport/spdy"
 	"k8s.io/kubernetes/pkg/client/conditions"
 	"k8s.io/kubernetes/pkg/util/interrupt"
+
+	"github.com/bentoml/yatai/api-server/services"
+	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
+	"github.com/bentoml/yatai/common/consts"
 )
 
 const (

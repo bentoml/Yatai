@@ -4,10 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/bentoml/yatai/common/utils"
-
-	"github.com/bentoml/yatai/common/sync/errsgroup"
-
 	"github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sirupsen/logrus"
@@ -18,10 +14,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/sync/errsgroup"
+	"github.com/bentoml/yatai/common/utils"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type deploymentRevisionService struct{}

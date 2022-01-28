@@ -1,9 +1,9 @@
 package main
 
 import (
-	grafanav1alpha1 "github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	grafanav1alpha1 "github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
 	"github.com/bentoml/yatai/api-server/cmd"
 )
 

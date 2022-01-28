@@ -25,7 +25,7 @@ output:
 
 linters-settings:
   goimports:
-    local-prefixes: github.com/bentoml/yatai
+    local-prefixes: github.com/bentoml
   govet:
     settings:
       printf:

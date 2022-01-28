@@ -6,10 +6,9 @@ import (
 	"time"
 
 	"github.com/panjf2000/ants/v2"
+	"github.com/pkg/errors"
 
 	"github.com/bentoml/yatai/common/consts"
-
-	"github.com/pkg/errors"
 )
 
 type Group struct {

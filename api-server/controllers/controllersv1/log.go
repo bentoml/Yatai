@@ -12,11 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bentoml/yatai/schemas/schemasv1"
-
-	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/common/consts"
-
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
@@ -24,6 +19,10 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/bentoml/yatai/api-server/services"
+	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 type logMessageType string

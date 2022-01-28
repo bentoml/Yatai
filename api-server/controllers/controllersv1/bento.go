@@ -7,19 +7,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
-	"github.com/huandu/xstrings"
-
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
 	"github.com/gin-gonic/gin"
+	"github.com/huandu/xstrings"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
 	"github.com/bentoml/yatai/common/utils"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 

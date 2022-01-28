@@ -6,9 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/huandu/xstrings"
-
 	"github.com/gin-gonic/gin"
+	"github.com/huandu/xstrings"
 	"github.com/pkg/errors"
 
 	"github.com/bentoml/yatai/api-server/models"

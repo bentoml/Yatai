@@ -8,26 +8,23 @@ import (
 	"sync"
 	"time"
 
-	"github.com/huandu/xstrings"
-
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/huandu/xstrings"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	v1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 
-	"github.com/bentoml/yatai/common/consts"
-	"github.com/bentoml/yatai/common/sync/errsgroup"
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
-	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
-
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
+	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/sync/errsgroup"
 	"github.com/bentoml/yatai/common/utils"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 

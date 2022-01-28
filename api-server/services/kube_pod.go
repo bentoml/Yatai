@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bentoml/yatai/common/utils"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	apiv1 "k8s.io/api/core/v1"
@@ -18,10 +16,10 @@ import (
 	v1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/utils/pointer"
 
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type kubePodService struct{}

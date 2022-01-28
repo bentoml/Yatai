@@ -7,20 +7,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/xid"
-
 	"github.com/huandu/xstrings"
-
-	"github.com/bentoml/yatai/common/utils"
-
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
+	"github.com/rs/xid"
 	"gorm.io/gorm"
-
-	"github.com/bentoml/yatai/schemas/modelschemas"
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type bentoService struct{}
