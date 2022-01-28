@@ -80,20 +80,14 @@ jobs:
     needs:
       - diff
 
-    if: ${{ (github.event_name == 'pull_request' && needs.diff.outputs.golang == 'true') || github.event_name == 'push' }}
+    # if: ${{ (github.event_name == 'pull_request' && needs.diff.outputs.golang == 'true') || github.event_name == 'push' }}
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Login to Quay.io
-        uses: docker/login-action@v1
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
         with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
-
-      - name: golint
-        run: make docker-golint
+          version: v1.44
 
   build-dashboard:
     runs-on: ubuntu-latest
