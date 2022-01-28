@@ -289,7 +289,7 @@ CREATE TABLE IF NOT EXISTS "deployment_target" (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TYPE "resource_type" AS ENUM ('user', 'organization', 'cluster', 'bento_repository', 'bento', 'deployment', 'deployment_revision', 'model_repository', 'model', 'api_token');
+CREATE TYPE "resource_type" AS ENUM ('user', 'organization', 'cluster', 'bento_repository', 'bento', 'deployment', 'deployment_revision', 'model_repository', 'model', 'api_token', 'terminal_record');
 
 CREATE TYPE "event_status" AS ENUM ('pending', 'success', 'failed');
 
