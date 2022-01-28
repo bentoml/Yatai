@@ -58,6 +58,10 @@ docker-build-api-server: pull-builder-image ## Build api-server binary
 	mkdir -p ./bin
 	$(BUILDER_CNTR_CMD) go build -ldflags "$(VERSION_BUILDFLAGS)" -o ./bin/api-server ./api-server/main.go
 
+build-api-server:
+	mkdir -p ./bin
+	go build -ldflags "$(VERSION_BUILDFLAGS)" -o ./bin/api-server ./api-server/main.go
+
 build-builder-image: ## Build builder image
 	docker build -f Dockerfile-builder -t $(BUILDER_IMG) . || exit 1
 	docker push $(BUILDER_IMG)
