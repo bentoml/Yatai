@@ -86,7 +86,7 @@ jobs:
         run: cd dashboard; yarn
 
       - name: Build dashboard
-        run: cd dashboard; yarn build
+        run: cd dashboard; NODE_OPTIONS="--max_old_space_size=4096" yarn build
 
       - name: Set git sha_short outputs
         id: vars
