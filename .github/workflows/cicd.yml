@@ -115,26 +115,33 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Login to Quay.io
-        uses: docker/login-action@v1
+      - uses: actions/setup-go@v2
         with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+          go-version: '^1.17.3' # The Go version to download (if necessary) and use.
 
-      - uses: actions/cache@v2
+      - run: go version
+
+      - id: go-cache-paths
+        run: |
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+
+      # Cache go build cache, used to speedup go test
+      - name: Go Build Cache
+        uses: actions/cache@v2
         with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+          path: ${{ steps.go-cache-paths.outputs.go-build }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+
+      # Cache go mod cache, used to speedup builds
+      - name: Go Mod Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.go-cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
 
       - name: Build api-server
-        run: make docker-build-api-server
-        env:
-          GOMOD_CACHE: ~/go/pkg/mod
+        run: make build-api-server
 
       - name: Set git sha_short outputs
         id: vars
