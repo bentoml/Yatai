@@ -10,24 +10,21 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bentoml/yatai/common/command"
-
-	"github.com/bentoml/yatai/api-server/config"
-	"github.com/bentoml/yatai/common/utils"
-
-	"github.com/uber/jaeger-client-go"
-	gormlogger "gorm.io/gorm/logger"
-	"gorm.io/gorm/schema"
-
-	"github.com/bentoml/yatai/common/tracing"
-
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/uber/jaeger-client-go"
 	postgres "go.elastic.co/apm/module/apmgormv2/driver/postgres"
 	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
+
+	"github.com/bentoml/yatai/api-server/config"
+	"github.com/bentoml/yatai/common/command"
+	"github.com/bentoml/yatai/common/tracing"
+	"github.com/bentoml/yatai/common/utils"
 )
 
 var (

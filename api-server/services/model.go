@@ -7,10 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/xid"
-
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
+	"github.com/rs/xid"
 	"gorm.io/gorm"
 
 	"github.com/bentoml/yatai/api-server/models"

@@ -8,33 +8,29 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bentoml/yatai/schemas/schemasv1"
-
-	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/common/consts"
-	"github.com/bentoml/yatai/common/utils"
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
-	rbacv1 "k8s.io/api/rbac/v1"
-	errors2 "k8s.io/apimachinery/pkg/api/errors"
-
-	"k8s.io/client-go/tools/watch"
-	"k8s.io/kubernetes/pkg/client/conditions"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/docker/docker/pkg/term"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	errors2 "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
+	"k8s.io/client-go/tools/watch"
+	"k8s.io/kubernetes/pkg/client/conditions"
 	"k8s.io/kubernetes/pkg/util/interrupt"
+
+	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/api-server/services"
+	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
+	"github.com/bentoml/yatai/schemas/modelschemas"
+	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 type terminalController struct {

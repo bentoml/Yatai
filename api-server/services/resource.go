@@ -3,11 +3,10 @@ package services
 import (
 	"context"
 
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
 	"github.com/pkg/errors"
 
 	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type resourceService struct{}

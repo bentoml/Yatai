@@ -5,13 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bentoml/yatai/api-server/models"
-
-	"github.com/viney-shih/go-lock"
-
-	"github.com/bentoml/yatai/common/utils"
-
 	"github.com/pkg/errors"
+	"github.com/viney-shih/go-lock"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	informerAppsV1 "k8s.io/client-go/informers/apps/v1"
@@ -21,6 +16,9 @@ import (
 	listerCoreV1 "k8s.io/client-go/listers/core/v1"
 	listerNetworkingV1 "k8s.io/client-go/listers/networking/v1"
 	"k8s.io/client-go/tools/cache"
+
+	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/common/utils"
 )
 
 type CacheKey string

@@ -6,30 +6,25 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+	"github.com/rs/xid"
+	"gorm.io/gorm"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/bentoml/yatai/common/utils"
-
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
-	"github.com/rs/xid"
-
-	"k8s.io/client-go/kubernetes/typed/autoscaling/v2beta2"
-	"k8s.io/client-go/rest"
-
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/client-go/kubernetes"
 	appstypev1 "k8s.io/client-go/kubernetes/typed/apps/v1"
+	"k8s.io/client-go/kubernetes/typed/autoscaling/v2beta2"
 	batchtypev1 "k8s.io/client-go/kubernetes/typed/batch/v1"
 	batchtypev1beta "k8s.io/client-go/kubernetes/typed/batch/v1beta1"
 	apitypev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	networkingtypev1 "k8s.io/client-go/kubernetes/typed/networking/v1"
+	"k8s.io/client-go/rest"
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type deploymentService struct{}

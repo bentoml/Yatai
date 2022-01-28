@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bentoml/yatai/common/command"
-
 	"github.com/spf13/cobra"
+
+	"github.com/bentoml/yatai/common/command"
 )
 
 var rootCmd = &cobra.Command{

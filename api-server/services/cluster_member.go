@@ -3,13 +3,12 @@ package services
 import (
 	"context"
 
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/utils"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type clusterMemberService struct{}

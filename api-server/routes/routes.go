@@ -8,20 +8,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bentoml/yatai/api-server/controllers/web"
-
-	"github.com/bentoml/yatai/api-server/config"
-
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
-
 	"github.com/gin-gonic/gin"
 	"github.com/loopfz/gadgeto/tonic"
 	"github.com/pkg/errors"
 	"github.com/wI2L/fizz"
 	"github.com/wI2L/fizz/openapi"
 
+	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/controllers/controllersv1"
+	"github.com/bentoml/yatai/api-server/controllers/web"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/consts"

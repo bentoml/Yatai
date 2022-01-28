@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/bentoml/yatai/common/utils"
-
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 
@@ -13,6 +11,7 @@ import (
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
 	"github.com/bentoml/yatai/common/scookie"
+	"github.com/bentoml/yatai/common/utils"
 	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 

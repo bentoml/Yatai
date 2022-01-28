@@ -9,17 +9,14 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/bentoml/yatai/api-server/config"
-	"github.com/bentoml/yatai/common/consts"
-
-	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
-
-	"github.com/bentoml/yatai/api-server/models"
-
 	"github.com/gin-gonic/gin"
 	"github.com/huandu/xstrings"
 
+	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
+	"github.com/bentoml/yatai/api-server/config"
+	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
+	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/reqcli"
 )
 

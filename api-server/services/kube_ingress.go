@@ -5,19 +5,16 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/bentoml/yatai/common/utils"
-
-	v1 "k8s.io/api/networking/v1"
-
-	"github.com/bentoml/yatai/common/consts"
-	"github.com/bentoml/yatai/schemas/modelschemas"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	v1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
+	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type kubeIngressService struct{}

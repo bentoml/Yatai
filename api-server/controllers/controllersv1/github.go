@@ -8,21 +8,18 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/bentoml/yatai/api-server/models"
-
-	"github.com/bentoml/yatai/api-server/config"
-
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/rs/xid"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/github"
 
+	"github.com/bentoml/yatai/api-server/config"
+	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/scookie"
 	"github.com/bentoml/yatai/common/utils"
-
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/github"
 )
 
 const sessionKeyState = "state"
