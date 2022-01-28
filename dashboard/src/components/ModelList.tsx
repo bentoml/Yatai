@@ -106,6 +106,7 @@ export default function ModelList({ queryKey, isLoading, models, paginationProps
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: 20,
+                                    justifyContent: 'flex-end',
                                 }}
                             >
                                 <div>{prettyBytes(model.manifest.size_bytes)}</div>

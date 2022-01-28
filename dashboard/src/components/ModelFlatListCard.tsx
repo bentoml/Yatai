@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
-import { listAllModels, recreateModelImageBuilderJob } from '@/services/model'
+import { listAllModels } from '@/services/model'
 import { usePage } from '@/hooks/usePage'
-import { IModelSchema, IModelWithRepositorySchema } from '@/schemas/model'
+import { IModelSchema } from '@/schemas/model'
 import useTranslation from '@/hooks/useTranslation'
 import User from '@/components/User'
 import { resourceIconMapping } from '@/consts'
@@ -13,9 +13,6 @@ import qs from 'qs'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import { useFetchOrganizationModelModules } from '@/hooks/useFetchOrganizationModelModules'
 import { useQ } from '@/hooks/useQ'
-import prettyBytes from 'pretty-bytes'
-import { MonoParagraphXSmall } from 'baseui/typography'
-import { useHistory } from 'react-router-dom'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
@@ -23,12 +20,8 @@ import { dark, docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { Button } from 'baseui/button'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
-import { ResourceLabels } from './ResourceLabels'
-import List from './List'
-import ImageBuildStatusIcon from './ImageBuildStatusIcon'
-import Time from './Time'
 import Link from './Link'
-import ListItem from './ListItem'
+import ModelList from './ModelList'
 
 export default function ModelFlatListCard() {
     const { q, updateQ } = useQ()
@@ -90,86 +83,6 @@ export default function ModelFlatListCard() {
             })
         }
     }, [subscribe, subscribeCb, uids, unsubscribe])
-
-    const history = useHistory()
-
-    const handleRenderItem = useCallback(
-        (model: IModelWithRepositorySchema) => {
-            return (
-                <ListItem
-                    onClick={() => {
-                        history.push(`/model_repositories/${model.repository.name}/models/${model.version}`)
-                    }}
-                    key={model.uid}
-                    artwork={() => (
-                        <ImageBuildStatusIcon
-                            key={model.uid}
-                            status={model.image_build_status}
-                            podsSelector={`yatai.io/model=${model.version},yatai.io/model-repository=${model.repository.name}`}
-                            onRerunClick={async () => {
-                                await recreateModelImageBuilderJob(model.repository.name, model.version)
-                            }}
-                        />
-                    )}
-                    endEnhancer={() => (
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 8,
-                            }}
-                        >
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 20,
-                                }}
-                            >
-                                <div>{prettyBytes(model.manifest.size_bytes)}</div>
-                                <div>{model.manifest.module}</div>
-                            </div>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 8,
-                                }}
-                            >
-                                {model.creator && <User size='16px' user={model.creator} />}
-                                {t('Created At')}
-                                <Time time={model.created_at} />
-                            </div>
-                        </div>
-                    )}
-                >
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 10,
-                        }}
-                    >
-                        <Link href={`/model_repositories/${model.repository.name}/models/${model.version}`}>
-                            <MonoParagraphXSmall
-                                overrides={{
-                                    Block: {
-                                        style: {
-                                            margin: 0,
-                                        },
-                                    },
-                                }}
-                            >
-                                {model.repository.name}:{model.version}
-                            </MonoParagraphXSmall>
-                        </Link>
-                        <ResourceLabels resource={model} />
-                    </div>
-                </ListItem>
-            )
-        },
-        [history, t]
-    )
 
     return (
         <Card
@@ -282,10 +195,10 @@ export default function ModelFlatListCard() {
                     },
                 ]}
             />
-            <List
+            <ModelList
                 isLoading={modelsInfo.isLoading}
-                items={modelsInfo.data?.items ?? []}
-                onRenderItem={handleRenderItem}
+                queryKey={queryKey}
+                models={modelsInfo.data?.items ?? []}
                 paginationProps={{
                     start: modelsInfo.data?.start,
                     count: modelsInfo.data?.count,
