@@ -30,6 +30,7 @@ func (opt BaseListOption) BindQueryWithLimit(query *gorm.DB) *gorm.DB {
 }
 
 func (opt BaseListOption) BindQueryWithKeywords(query *gorm.DB, tableName string) *gorm.DB {
+	tableName = query.Statement.Quote(tableName)
 	keywordFieldNames := []string{"name"}
 	if opt.KeywordFieldNames != nil {
 		keywordFieldNames = *opt.KeywordFieldNames
@@ -38,6 +39,7 @@ func (opt BaseListOption) BindQueryWithKeywords(query *gorm.DB, tableName string
 		sqlPieces := make([]string, 0, len(keywordFieldNames))
 		args := make([]interface{}, 0, len(keywordFieldNames))
 		for _, keywordFieldName := range keywordFieldNames {
+			keywordFieldName = query.Statement.Quote(keywordFieldName)
 			sqlPieces = append(sqlPieces, fmt.Sprintf("%s.%s LIKE ?", tableName, keywordFieldName))
 			args = append(args, fmt.Sprintf("%%%s%%", *opt.Search))
 		}
@@ -47,6 +49,7 @@ func (opt BaseListOption) BindQueryWithKeywords(query *gorm.DB, tableName string
 		sqlPieces := make([]string, 0, len(keywordFieldNames))
 		args := make([]interface{}, 0, len(keywordFieldNames))
 		for _, keywordFieldName := range keywordFieldNames {
+			keywordFieldName = query.Statement.Quote(keywordFieldName)
 			sqlPieces_ := make([]string, 0, len(*opt.Keywords))
 			for _, keyword := range *opt.Keywords {
 				sqlPieces_ = append(sqlPieces_, fmt.Sprintf("%s.%s LIKE ?", tableName, keywordFieldName))
@@ -68,10 +71,12 @@ func (opt BaseListByLabelsOption) BindQueryWithLabels(query *gorm.DB, resourceTy
 	if opt.LabelsList == nil && opt.LackLabelsList == nil {
 		return query
 	}
+	quotedResourceType := query.Statement.Quote(string(resourceType))
 	idx := 0
 	if opt.LabelsList != nil {
 		for _, labels := range *opt.LabelsList {
 			alias := fmt.Sprintf("label_%d", idx)
+			alias = query.Statement.Quote(alias)
 			idx++
 			orSqlPieces := make([]string, 0, len(labels))
 			orSqlArgs := make([]interface{}, 0, len(labels))
@@ -84,7 +89,7 @@ func (opt BaseListByLabelsOption) BindQueryWithLabels(query *gorm.DB, resourceTy
 					orSqlArgs = append(orSqlArgs, label.Key)
 				}
 			}
-			query = query.Joins(fmt.Sprintf("JOIN label %s ON %s.resource_type = ? AND %s.resource_id = %s.id AND (%s)", alias, alias, alias, resourceType, strings.Join(orSqlPieces, " OR ")), append([]interface{}{resourceType}, orSqlArgs...)...)
+			query = query.Joins(fmt.Sprintf("JOIN label %s ON %s.resource_type = ? AND %s.resource_id = %s.id AND (%s)", alias, alias, alias, quotedResourceType, strings.Join(orSqlPieces, " OR ")), append([]interface{}{resourceType}, orSqlArgs...)...)
 		}
 	}
 	return query
