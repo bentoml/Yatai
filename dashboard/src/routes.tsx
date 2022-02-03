@@ -247,8 +247,8 @@ const Routes = () => {
                     </Route>
                 </Switch>
                 <ChatWidget
-                    token="25ad5fd9-293b-4e0f-9601-5b0cd7846b48"
-                    inbox="ac3ebd50-fc10-4299-9a1c-496841b49a6f"
+                    token='25ad5fd9-293b-4e0f-9601-5b0cd7846b48'
+                    inbox='ac3ebd50-fc10-4299-9a1c-496841b49a6f'
                     title='Welcome to Yatai👋 👋 👋'
                     subtitle='Ask us questions or give us feedback - we will reply ASAP!😊'
                     primaryColor='#47AFD1'
@@ -258,7 +258,7 @@ const Routes = () => {
                     agentUnavailableText='We are away at the moment.'
                     requireEmailUpfront={false}
                     iconVariant='outlined'
-                    baseUrl="https://yatai-community-papercups.herokuapp.com"
+                    baseUrl='https://yatai-community-papercups.herokuapp.com'
                     // Optionally include data about your customer here to identify them
                     // customer={{
                     //   name: __CUSTOMER__.name,
