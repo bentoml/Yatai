@@ -12,7 +12,7 @@ By default, Yatai helm chart will install Yatai and its dependency services in t
 - [Production Installation](#production-installation)
   - Custom PostgreSQL database
     - [AWS RDS](#aws-rds)
-  - Cusotm Docker Registry
+  - Custom Docker Registry
     - [Docker hub](#docker-hub)
     - [AWR ECR](#aws-ecr)
   - Custom Blob Storage
@@ -23,7 +23,7 @@ By default, Yatai helm chart will install Yatai and its dependency services in t
 
 ### Namespaces:
 
-When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-operators`, `yatai-builder`, and `yatai` in the Kuberenetes cluster.
+When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-operators`, `yatai-builder`, and `yatai` in the Kubernetes cluster.
 
 * **Yatai-system:**
 
@@ -189,7 +189,7 @@ Prerequisites:
     INSTANCE_IDENTIFIER=yatai-postgres
 
     aws rds create-db-instance \
-    		--db-instance-identifier $INSTANCE_IDENTIFIER \
+        --db-instance-identifier $INSTANCE_IDENTIFIER \
         --db-instance-class db.t3.micro \
         --engine postgres \
         --master-username $USER_NAME \
@@ -255,20 +255,19 @@ Prerequisites:
         read ENDPOINT < <(echo $(aws ecr get-authorization-token | jq '.authorizationData[0].proxyEndpoint'))
         ```
 
+    2. Create repositories using a specific registry ID for Yatai:
 
-    b. Create repositories using a specific registry ID for Yatai:
-
-    ```bash
-    BENTO_REPO=yatai-bentos
-    MODEL_REPO=yatai-models
-    REGISTRY_ID=yatai
-
-    aws ecr create-repository --registry-id $REGISTRY_ID --repository-name $BENTO_REPO
-    aws ecr create-repository --registry-id $REGISTRY_ID --repository-name $MODEL_REPO
-
-    # If the repostiroies are created use a different registry id from the default
-    read ENDPOINT < <(echo $(aws ecr get-authorization-token --regsitry-ids $REGISTRY_ID | jq '.authorizationData[0].proxyEndpoint'))
-    ```
+        ```bash
+        BENTO_REPO=yatai-bentos
+        MODEL_REPO=yatai-models
+        REGISTRY_ID=yatai
+    
+        aws ecr create-repository --registry-id $REGISTRY_ID --repository-name $BENTO_REPO
+        aws ecr create-repository --registry-id $REGISTRY_ID --repository-name $MODEL_REPO
+    
+        # If the repositories are created use a different registry id from the default
+        read ENDPOINT < <(echo $(aws ecr get-authorization-token --regsitry-ids $REGISTRY_ID | jq '.authorizationData[0].proxyEndpoint'))
+        ```
 
 2. Get ECR registry password info
 
