@@ -1,15 +1,14 @@
-# 🦄️ Yatai: Model serving at scale on Kubernetes
+# 🦄️ Yatai: Model Deployment at scale on Kubernetes
 
 [![actions_status](https://github.com/bentoml/yatai/workflows/CICD/badge.svg)](https://github.com/bentoml/yatai/actions)
 [![join_slack](https://badgen.net/badge/Join/BentoML%20Slack/cyan?icon=slack)](https://join.slack.bentoml.org)
 
-Yatai makes it easy to deploy and operate machine learning serving workload at scale on Kubernetes.
-Yatai is built upon [BentoML](https://github.com/bentoml), the unified model serving framework.
+Yatai helps ML teams to deploy large scale model serving workloads on Kubernetes. It standarlizes [BentoML](https://github.com/bentoml) deployment on Kubernetes, provides UI for managing all your ML models and deployments in one place, and enables advanced GitOps and CI/CD workflow.
 
 Core features:
 
-* **Bento Registry** - manage all your team's Bentos and Models, backed by cloud blob storage(S3, MinIO)
 * **Deployment Automation** - deploy Bentos as auto-scaling API endpoints on Kubernetes and easily rollout new versions
+* **Bento Registry** - manage all your team's Bentos and Models, backed by cloud blob storage(S3, MinIO)
 * **Observability** - monitoring dashboard helping users to identify model performance issues
 * **CI/CD** - flexible APIs for integrating with your training and CI pipelines
 
