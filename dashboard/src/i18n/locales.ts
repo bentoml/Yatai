@@ -1932,6 +1932,55 @@ const locales0 = {
         ko: 'Kubernetes 네임스페이스',
         vi: 'Kubernetes Namespace',
     },
+    'first_name': {
+        en: 'First Name',
+        zh: '名',
+        ja: '名',
+        ko: '이름',
+        vi: 'Tên',
+    },
+    'last_name': {
+        en: 'Last Name',
+        zh: '姓',
+        ja: '姓',
+        ko: '성',
+        vi: 'Họ',
+    },
+    'email': {
+        en: 'email',
+        zh: '邮箱',
+        ja: 'メールアドレス',
+        ko: '이메일',
+        vi: 'email',
+    },
+    'assign user to role': {
+        en: 'Assign user to role',
+        zh: '分配用户到角色',
+        ja: 'ユーザーをロールに割り当てる',
+        ko: '사용자를 역할에 할당하십시오',
+        vi: 'Gán người dùng vào vai trò',
+    },
+    'register new user': {
+        en: 'Register new user',
+        zh: '注册新用户',
+        ja: '新規ユーザーを登録',
+        ko: '새 사용자 등록',
+        vi: 'Đăng ký người dùng mới',
+    },
+    'assign user': {
+        en: 'Assign user',
+        zh: '分配用户',
+        ja: 'ユーザーを割り当てる',
+        ko: '사용자 할당',
+        vi: 'Gán người dùng',
+    },
+    'edit user role': {
+        en: 'Edit user role',
+        zh: '编辑用户角色',
+        ja: 'ユーザーのロールを編集',
+        ko: '사용자 역할 편집',
+        vi: 'Chỉnh sửa vai trò người dùng',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
