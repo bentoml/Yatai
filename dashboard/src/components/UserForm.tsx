@@ -12,11 +12,9 @@ export interface ICreateUserSchemaProps {
     onSubmit: (data: ICreateUserSchema) => Promise<void>
 }
 
-export default function RegisterUserForm({ onSubmit }: ICreateUserSchemaProps) {
+export default function UserForm({ onSubmit }: ICreateUserSchemaProps) {
     const [initialValue, setInitialValue] = useState<ICreateUserSchema>({  // eslint-disable-line
         name: '',
-        first_name: '',
-        last_name: '',
         email: '',
         password: '',
         role: 'guest',
@@ -40,12 +38,6 @@ export default function RegisterUserForm({ onSubmit }: ICreateUserSchemaProps) {
     return (
         <Form initialValues={initialValue} onFinish={handleFinish}>
             <FormItem required name='name' label={t('name')}>
-                <Input />
-            </FormItem>
-            <FormItem name='first_name' label={t('first_name')}>
-                <Input />
-            </FormItem>
-            <FormItem name='last_name' label={t('last_name')}>
                 <Input />
             </FormItem>
             <FormItem name='role' label={t('role')}>

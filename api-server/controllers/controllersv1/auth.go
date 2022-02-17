@@ -73,3 +73,17 @@ func (*authController) GetCurrentUser(ctx *gin.Context) (*schemasv1.UserSchema, 
 	}
 	return transformersv1.ToUserSchema(ctx, user)
 }
+
+func (*authController) ResetPassword(ctx *gin.Context, schema *schemasv1.ResetPasswordSchema) (*schemasv1.UserSchema, error) {
+	currentUser, err := services.GetCurrentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := services.UserService.UpdatePassword(ctx, currentUser, schema.CurrentPassword, schema.NewPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	return transformersv1.ToUserSchema(ctx, user)
+}

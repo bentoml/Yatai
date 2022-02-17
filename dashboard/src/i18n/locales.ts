@@ -1960,14 +1960,14 @@ const locales0 = {
         ko: '사용자를 역할에 할당하십시오',
         vi: 'Gán người dùng vào vai trò',
     },
-    'register new user': {
+    'create new user': {
         en: 'Register new user',
         zh: '注册新用户',
         ja: '新規ユーザーを登録',
         ko: '새 사용자 등록',
         vi: 'Đăng ký người dùng mới',
     },
-    'assign user': {
+    'assign user roles': {
         en: 'Assign user',
         zh: '分配用户',
         ja: 'ユーザーを割り当てる',

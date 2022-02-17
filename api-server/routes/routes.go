@@ -272,6 +272,11 @@ func authRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Get current user"),
 		fizz.Summary("Get current user"),
 	}, requireLogin, tonic.Handler(controllersv1.AuthController.GetCurrentUser, 200))
+
+	grp.POST("/reset_password", []fizz.OperationOption{
+		fizz.ID("Reset password"),
+		fizz.Summary("Reset password"),
+	}, requireLogin, tonic.Handler(controllersv1.AuthController.ResetPassword, 200))
 }
 
 func userRoutes(grp *fizz.RouterGroup) {
@@ -288,6 +293,11 @@ func userRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("List users"),
 		fizz.Summary("List users"),
 	}, requireLogin, tonic.Handler(controllersv1.UserController.List, 200))
+
+	grp.POST("", []fizz.OperationOption{
+		fizz.ID("Create an user"),
+		fizz.Summary("Create an user"),
+	}, requireLogin, tonic.Handler(controllersv1.UserController.Create, 200))
 }
 
 func organizationRoutes(grp *fizz.RouterGroup) {

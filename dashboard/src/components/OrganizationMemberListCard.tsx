@@ -1,7 +1,6 @@
 import useTranslation from '@/hooks/useTranslation'
-import _ from 'lodash'
 import { createOrganizationMembers } from '@/services/organization_member'
-import { registerUser } from '@/services/user' // eslint-disable-line
+import { createUser } from '@/services/user'
 import { useCallback, useState } from 'react'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
@@ -14,39 +13,30 @@ import User from '@/components/User'
 import Table from '@/components/Table'
 import { resourceIconMapping } from '@/consts'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
-import RegisterUserForm from './RegisterUserForm'
+import UserForm from './UserForm'
 
 export default function OrganizationMemberListCard() {
     const membersInfo = useFetchOrganizationMembers()
     const [t] = useTranslation()
     const [, theme] = useStyletron()
     const [isCreateMembersOpen, setIsCreateMembersOpen] = useState(false)
-    const [isRegisterMemberOpen, setIsRegisterMemberOpen] = useState(false)
-    const [isSuccessfulRegisterOpen, setIsSuccessfulRegisterOpen] = useState(false)
+    const [isCreateUserOpen, setIsCreateUserOpen] = useState(false)
+    const [isSuccessfulCreateUserOpen, setIsSuccessfulCreateUserOpen] = useState(false)
 
     const handleCreateMember = useCallback(
         async (data: ICreateMembersSchema) => {
             await createOrganizationMembers(data)
-            // await membersInfo.refetch()
+            await membersInfo.refetch()
             setIsCreateMembersOpen(false)
         },
         [membersInfo]
     )
-    const handleRegisterUser = useCallback(
+    const handleCreateUser = useCallback(
         async (data: ICreateUserSchema) => {
-            /* Currently, it is a two step process:
-             * 1. Register a new user
-             * 2. Add the user to the organization
-             */
-            const registerData = _.omit(data, ['role'])
-            const membershipData = { role: data.role, usernames: [data.name] }
-            await registerUser(registerData)
-            debugger // eslint-disable-line
-            console.log('created user') // eslint-disable-line
-            await createOrganizationMembers(membershipData)
-            setIsRegisterMemberOpen(false)
-            setIsSuccessfulRegisterOpen(true)
+            await createUser(data)
             await membersInfo.refetch()
+            setIsCreateUserOpen(false)
+            setIsSuccessfulCreateUserOpen(true)
         },
         [membersInfo]
     )
@@ -57,11 +47,11 @@ export default function OrganizationMemberListCard() {
             titleIcon={resourceIconMapping.user_group}
             extra={
                 <div style={{ display: 'flex', gap: 8, flexDirection: 'row' }}>
-                    <Button size={ButtonSize.compact} onClick={() => setIsRegisterMemberOpen(true)}>
-                        {t('register new user')}
+                    <Button size={ButtonSize.compact} onClick={() => setIsCreateUserOpen(true)}>
+                        {t('create new user')}
                     </Button>
                     <Button size={ButtonSize.compact} onClick={() => setIsCreateMembersOpen(true)}>
-                        {t('assign user')}
+                        {t('assign user roles')}
                     </Button>
                 </div>
             }
@@ -113,21 +103,15 @@ export default function OrganizationMemberListCard() {
                     <MemberForm onSubmit={handleCreateMember} />
                 </ModalBody>
             </Modal>
-            <Modal
-                isOpen={isRegisterMemberOpen}
-                onClose={() => setIsRegisterMemberOpen(false)}
-                closeable
-                animate
-                autoFocus
-            >
-                <ModalHeader>{t('register new user')}</ModalHeader>
+            <Modal isOpen={isCreateUserOpen} onClose={() => setIsCreateUserOpen(false)} closeable animate autoFocus>
+                <ModalHeader>{t('create new user')}</ModalHeader>
                 <ModalBody>
-                    <RegisterUserForm onSubmit={handleRegisterUser} />
+                    <UserForm onSubmit={handleCreateUser} />
                 </ModalBody>
             </Modal>
             <Modal
-                isOpen={isSuccessfulRegisterOpen}
-                onClose={() => setIsSuccessfulRegisterOpen(false)}
+                isOpen={isSuccessfulCreateUserOpen}
+                onClose={() => setIsSuccessfulCreateUserOpen(false)}
                 closeable
                 autoFocus
                 animate

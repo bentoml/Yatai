@@ -28,6 +28,9 @@ export interface IUpdateUserSchema {
 }
 
 
-export interface ICreateUserSchema extends IRegisterUserSchema {
+export interface ICreateUserSchema {
+    name: string
+    email: string
+    password: string
     role: MemberRole
 }

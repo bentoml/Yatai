@@ -23,6 +23,11 @@ type GetUserSchema struct {
 	UserName string `path:"userName"`
 }
 
+type CreateOrganizationUserSchema struct {
+	schemasv1.CreateUserSchema
+	GetOrganizationSchema
+}
+
 func (s *GetUserSchema) GetUser(ctx context.Context) (*models.User, error) {
 	user, err := services.UserService.GetByName(ctx, s.UserName)
 	if err != nil {
@@ -57,4 +62,36 @@ func (c *userController) List(ctx *gin.Context, schema *schemasv1.ListQuerySchem
 		},
 		Items: userSchemas,
 	}, err
+}
+
+func (c *userController) Create(ctx *gin.Context, schema *CreateOrganizationUserSchema) (*schemasv1.UserSchema, error) {
+	user, err := services.UserService.Create(ctx, services.CreateUserOption{
+		Name:     schema.Name,
+		Email:    utils.StringPtrWithoutEmpty(schema.Email),
+		Password: schema.Password,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "create user")
+	}
+	// setup roles
+	currentUser, err := services.GetCurrentUser(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "get current user")
+	}
+	org, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "get organization")
+	}
+	organizationMember, err := services.OrganizationMemberService.Create(ctx, currentUser.ID, services.CreateOrganizationMemberOption{
+		CreatorId:      currentUser.ID,
+		UserId:         user.ID,
+		OrganizationId: org.ID,
+		Role:           schema.Role,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "create organization member")
+	}
+	_ = organizationMember
+
+	return transformersv1.ToUserSchema(ctx, user)
 }
