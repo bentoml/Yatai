@@ -231,7 +231,7 @@ export default function Header() {
     const { currentUser, setCurrentUser } = useCurrentUser()
     const userInfo = useQuery('currentUser', fetchCurrentUser)
     useEffect(() => {
-        if (userInfo.isSuccess) {
+        if (!currentUser && userInfo.isSuccess) {
             setCurrentUser(userInfo.data)
         }
     }, [userInfo.data, userInfo.isSuccess, setCurrentUser])

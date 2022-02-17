@@ -1981,6 +1981,27 @@ const locales0 = {
         ko: '사용자 역할 편집',
         vi: 'Chỉnh sửa vai trò người dùng',
     },
+    'deactivate': {
+        en: 'Deactivate',
+        zh: '停用',
+        ja: '停止',
+        ko: '중지',
+        vi: 'Tắt',
+    },
+    'active': {
+        en: 'Active',
+        zh: '激活',
+        ja: '有効',
+        ko: '활성',
+        vi: 'Hoạt động',
+    },
+    'deactivated': {
+        en: 'Deactivated',
+        zh: '已停用',
+        ja: '停止',
+        ko: '중지됨',
+        vi: 'Đã tắt',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

@@ -16,11 +16,13 @@ export async function fetchUser(userName: string): Promise<IUserSchema> {
 
 export async function fetchCurrentUser(): Promise<IUserSchema> {
     const resp = await axios.get<IUserSchema>('/api/v1/auth/current')
+    console.log('we are fetching the current user') // eslint-disable-line no-console
     return resp.data
 }
 
 export async function registerUser(data: IRegisterUserSchema): Promise<IUserSchema> {
     const resp = await axios.post<IUserSchema>('/api/v1/auth/register', data)
+    console.log(resp.data) // eslint-disable-line
     return resp.data
 }
 

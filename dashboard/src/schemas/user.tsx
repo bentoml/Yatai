@@ -1,3 +1,4 @@
+import { MemberRole } from './member';
 import { IResourceSchema } from './resource'
 
 export interface IUserSchema extends IResourceSchema {
@@ -24,4 +25,9 @@ export interface ILoginUserSchema {
 export interface IUpdateUserSchema {
     first_name: string
     last_name: string
+}
+
+
+export interface ICreateUserSchema extends IRegisterUserSchema {
+    role: MemberRole
 }

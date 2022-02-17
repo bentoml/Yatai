@@ -1,23 +1,25 @@
-import { IRegisterUserSchema } from '@/schemas/user'
+import { ICreateUserSchema } from '@/schemas/user'
 import React, { useCallback, useEffect, useState } from 'react' // eslint-disable-line
 import { createForm } from '@/components/Form'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { Input } from 'baseui/input'
+import MemberRoleSelector from './MemberRoleSelector'
 
-const { Form, FormItem } = createForm<IRegisterUserSchema>()
+const { Form, FormItem } = createForm<ICreateUserSchema>()
 
-export interface IRegisterUserFormProps {
-    onSubmit: (data: IRegisterUserSchema) => Promise<void>
+export interface ICreateUserSchemaProps {
+    onSubmit: (data: ICreateUserSchema) => Promise<void>
 }
 
-export default function RegisterUserForm({ onSubmit }: IRegisterUserFormProps) {
-    const [initialValue, setInitialValue] = useState<IRegisterUserSchema>({  // eslint-disable-line
+export default function RegisterUserForm({ onSubmit }: ICreateUserSchemaProps) {
+    const [initialValue, setInitialValue] = useState<ICreateUserSchema>({  // eslint-disable-line
         name: '',
         first_name: '',
         last_name: '',
         email: '',
         password: '',
+        role: 'guest',
     })
 
     const [loading, setLoading] = useState(false)
@@ -37,7 +39,7 @@ export default function RegisterUserForm({ onSubmit }: IRegisterUserFormProps) {
 
     return (
         <Form initialValues={initialValue} onFinish={handleFinish}>
-            <FormItem name='name' label={t('name')}>
+            <FormItem required name='name' label={t('name')}>
                 <Input />
             </FormItem>
             <FormItem name='first_name' label={t('first_name')}>
@@ -46,7 +48,10 @@ export default function RegisterUserForm({ onSubmit }: IRegisterUserFormProps) {
             <FormItem name='last_name' label={t('last_name')}>
                 <Input />
             </FormItem>
-            <FormItem name='email' label={t('email')}>
+            <FormItem name='role' label={t('role')}>
+                <MemberRoleSelector />
+            </FormItem>
+            <FormItem required name='email' label={t('email')}>
                 <Input />
             </FormItem>
             <FormItem name='password' label={t('password')}>

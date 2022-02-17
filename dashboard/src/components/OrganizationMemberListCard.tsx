@@ -1,4 +1,5 @@
 import useTranslation from '@/hooks/useTranslation'
+import _ from 'lodash'
 import { createOrganizationMembers } from '@/services/organization_member'
 import { registerUser } from '@/services/user' // eslint-disable-line
 import { useCallback, useState } from 'react'
@@ -8,7 +9,7 @@ import { useStyletron } from 'baseui'
 import Card from '@/components/Card'
 import MemberForm from '@/components/MemberForm'
 import { ICreateMembersSchema } from '@/schemas/member'
-import { IRegisterUserSchema } from '@/schemas/user'
+import { ICreateUserSchema } from '@/schemas/user'
 import User from '@/components/User'
 import Table from '@/components/Table'
 import { resourceIconMapping } from '@/consts'
@@ -21,20 +22,31 @@ export default function OrganizationMemberListCard() {
     const [, theme] = useStyletron()
     const [isCreateMembersOpen, setIsCreateMembersOpen] = useState(false)
     const [isRegisterMemberOpen, setIsRegisterMemberOpen] = useState(false)
+    const [isSuccessfulRegisterOpen, setIsSuccessfulRegisterOpen] = useState(false)
+
     const handleCreateMember = useCallback(
         async (data: ICreateMembersSchema) => {
             await createOrganizationMembers(data)
-            await membersInfo.refetch()
+            // await membersInfo.refetch()
             setIsCreateMembersOpen(false)
         },
         [membersInfo]
     )
     const handleRegisterUser = useCallback(
-        async (data: IRegisterUserSchema) => {
-            console.log('inside actual call') // eslint-disable-line
-            console.log(data)  // eslint-disable-line
-            // await registerUser(data)
+        async (data: ICreateUserSchema) => {
+            /* Currently, it is a two step process:
+             * 1. Register a new user
+             * 2. Add the user to the organization
+             */
+            const registerData = _.omit(data, ['role'])
+            const membershipData = { role: data.role, usernames: [data.name] }
+            await registerUser(registerData)
+            debugger // eslint-disable-line
+            console.log('created user') // eslint-disable-line
+            await createOrganizationMembers(membershipData)
             setIsRegisterMemberOpen(false)
+            setIsSuccessfulRegisterOpen(true)
+            await membersInfo.refetch()
         },
         [membersInfo]
     )
@@ -56,11 +68,12 @@ export default function OrganizationMemberListCard() {
         >
             <Table
                 isLoading={membersInfo.isLoading}
-                columns={[t('user'), t('role'), t('operation')]}
+                columns={[t('user'), t('role'), t('status'), t('operation')]}
                 data={
                     membersInfo.data?.map((member) => [
                         <User key={member.uid} user={member.user} />,
                         t(member.role),
+                        t('active'),
                         <div
                             key={member.uid}
                             style={{
@@ -111,6 +124,16 @@ export default function OrganizationMemberListCard() {
                 <ModalBody>
                     <RegisterUserForm onSubmit={handleRegisterUser} />
                 </ModalBody>
+            </Modal>
+            <Modal
+                isOpen={isSuccessfulRegisterOpen}
+                onClose={() => setIsSuccessfulRegisterOpen(false)}
+                closeable
+                autoFocus
+                animate
+            >
+                <ModalHeader>Successsss</ModalHeader>
+                <ModalBody>we got it</ModalBody>
             </Modal>
         </Card>
     )
