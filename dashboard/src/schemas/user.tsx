@@ -1,4 +1,4 @@
-import { MemberRole } from './member';
+import { MemberRole } from './member_role'
 import { IResourceSchema } from './resource'
 
 export interface IUserSchema extends IResourceSchema {
@@ -26,7 +26,6 @@ export interface IUpdateUserSchema {
     first_name: string
     last_name: string
 }
-
 
 export interface ICreateUserSchema {
     name: string

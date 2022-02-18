@@ -1,6 +1,5 @@
 import { IUserSchema } from './user'
-
-export type MemberRole = 'guest' | 'developer' | 'admin'
+import { MemberRole } from './member_role'
 
 export interface IMemberSchema {
     user: IUserSchema

@@ -22,6 +22,8 @@ export default function OrganizationMemberListCard() {
     const [isCreateMembersOpen, setIsCreateMembersOpen] = useState(false)
     const [isCreateUserOpen, setIsCreateUserOpen] = useState(false)
     const [isSuccessfulCreateUserOpen, setIsSuccessfulCreateUserOpen] = useState(false)
+    const [isEditUserRoleOpen, setIsEditUserRoleOpen] = useState(false)
+    const [isDeactivateUserOpen, setIsDeactivateUserOpen] = useState(false)
 
     const handleCreateMember = useCallback(
         async (data: ICreateMembersSchema) => {
@@ -118,6 +120,20 @@ export default function OrganizationMemberListCard() {
             >
                 <ModalHeader>Successsss</ModalHeader>
                 <ModalBody>we got it</ModalBody>
+            </Modal>
+            <Modal isOpen={isEditUserRoleOpen} onClose={() => setIsEditUserRoleOpen(false)} closeable animate autoFocus>
+                <ModalHeader>edit user role</ModalHeader>
+                <ModalBody>edit user role</ModalBody>
+            </Modal>
+            <Modal
+                isOpen={isDeactivateUserOpen}
+                onClose={() => setIsDeactivateUserOpen(false)}
+                closeable
+                animate
+                autoFocus
+            >
+                <ModalHeader>Deactivate user</ModalHeader>
+                <ModalBody>Deactivate user</ModalBody>
             </Modal>
         </Card>
     )
