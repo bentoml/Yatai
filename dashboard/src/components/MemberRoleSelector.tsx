@@ -1,6 +1,6 @@
 import React from 'react'
 import useTranslation from '@/hooks/useTranslation'
-import { MemberRole } from '@/schemas/member'
+import { MemberRole } from '@/schemas/member_role'
 import { Select } from 'baseui/select'
 
 export interface IMemberRoleSelectorProps {

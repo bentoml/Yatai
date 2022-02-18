@@ -1,6 +1,6 @@
 import { IBaseSchema } from './base'
 import { IClusterSchema } from './cluster'
-import { MemberRole } from './member'
+import { MemberRole } from './member_role'
 import { IUserSchema } from './user'
 
 export interface IClusterMemberSchema extends IBaseSchema {

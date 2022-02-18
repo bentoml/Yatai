@@ -36,6 +36,7 @@ import ReactCountryFlag from 'react-country-flag'
 import i18n from '@/i18n'
 import { simulationJump } from '@/utils'
 import { FiLogOut } from 'react-icons/fi'
+import { MdPassword } from 'react-icons/md'
 
 const useStyles = createUseStyles({
     userWrapper: {
@@ -465,6 +466,17 @@ export default function Header() {
                             {React.createElement(resourceIconMapping.api_token, { size: 12 })}
                             <span>{t('api tokens')}</span>
                         </Link>
+                        <div
+                            role='button'
+                            tabIndex={0}
+                            className={styles.userMenuItem}
+                            onClick={() => {
+                                console.log('something') // eslint-disable-line no-console
+                            }}
+                        >
+                            <MdPassword size={12} />
+                            <span>Password</span>
+                        </div>
                         <div
                             role='button'
                             tabIndex={0}

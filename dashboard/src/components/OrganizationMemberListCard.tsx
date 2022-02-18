@@ -14,6 +14,7 @@ import Table from '@/components/Table'
 import { resourceIconMapping } from '@/consts'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import UserForm from './UserForm'
+import DoubleCheckForm from './DoubleCheckForm' // eslint-disable-line
 
 export default function OrganizationMemberListCard() {
     const membersInfo = useFetchOrganizationMembers()
@@ -86,6 +87,7 @@ export default function OrganizationMemberListCard() {
                                         },
                                     },
                                 }}
+                                onClick={() => setIsDeactivateUserOpen(true)}
                             >
                                 {t('deactivate')}
                             </Button>
@@ -132,8 +134,26 @@ export default function OrganizationMemberListCard() {
                 animate
                 autoFocus
             >
-                <ModalHeader>Deactivate user</ModalHeader>
-                <ModalBody>Deactivate user</ModalBody>
+                <ModalHeader>
+                    <div
+                        style={{
+                            color: theme.colors.negative,
+                        }}
+                    >
+                        deactivate user
+                    </div>
+                </ModalHeader>
+                <ModalBody>
+                    <DoubleCheckForm
+                        tips='some tips'
+                        expected='deactivate expected'
+                        buttonLabel='deactivate'
+                        onSubmit={async () => {
+                            console.log('deactivate user') // eslint-disable-line
+                            setIsDeactivateUserOpen(false)
+                        }}
+                    />
+                </ModalBody>
             </Modal>
         </Card>
     )
