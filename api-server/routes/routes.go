@@ -273,7 +273,7 @@ func authRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Get current user"),
 	}, requireLogin, tonic.Handler(controllersv1.AuthController.GetCurrentUser, 200))
 
-	grp.POST("/reset_password", []fizz.OperationOption{
+	grp.PATCH("/reset_password", []fizz.OperationOption{
 		fizz.ID("Reset password"),
 		fizz.Summary("Reset password"),
 	}, requireLogin, tonic.Handler(controllersv1.AuthController.ResetPassword, 200))

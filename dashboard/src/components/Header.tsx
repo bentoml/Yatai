@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { fetchCurrentUser } from '@/services/user'
+import { changePassword, fetchCurrentUser } from '@/services/user'
 import { useQuery } from 'react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import axios from 'axios'
@@ -29,6 +29,7 @@ import classNames from 'classnames'
 import User from '@/components/User'
 import Text from '@/components/Text'
 import { ICreateClusterSchema } from '@/schemas/cluster'
+import { IChangePasswordSchema } from '@/schemas/user'
 import { createCluster } from '@/services/cluster'
 import { useCluster } from '@/hooks/useCluster'
 import ClusterForm from '@/components/ClusterForm'
@@ -37,6 +38,7 @@ import i18n from '@/i18n'
 import { simulationJump } from '@/utils'
 import { FiLogOut } from 'react-icons/fi'
 import { MdPassword } from 'react-icons/md'
+import PasswordForm from './PasswordForm'
 
 const useStyles = createUseStyles({
     userWrapper: {
@@ -273,6 +275,14 @@ export default function Header() {
         setIsCreateClusterModalOpen(false)
     }, [])
 
+    const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
+
+    const handleChangePassword = useCallback(async (data: IChangePasswordSchema) => {
+        console.log(data) // eslint-disable-line no-console
+        await changePassword(data)
+        setIsChangePasswordOpen(false)
+    }, [])
+
     const currentThemeType = useCurrentThemeType()
 
     return (
@@ -471,7 +481,7 @@ export default function Header() {
                             tabIndex={0}
                             className={styles.userMenuItem}
                             onClick={() => {
-                                console.log('something') // eslint-disable-line no-console
+                                setIsChangePasswordOpen(true)
                             }}
                         >
                             <MdPassword size={12} />
@@ -513,6 +523,18 @@ export default function Header() {
                 <ModalHeader>{t('create sth', [t('cluster')])}</ModalHeader>
                 <ModalBody>
                     <ClusterForm onSubmit={handleCreateCluster} />
+                </ModalBody>
+            </Modal>
+            <Modal
+                isOpen={isChangePasswordOpen}
+                onClose={() => setIsChangePasswordOpen(false)}
+                closeable
+                animate
+                autoFocus
+            >
+                <ModalHeader>change password</ModalHeader>
+                <ModalBody>
+                    <PasswordForm onSubmit={handleChangePassword} />
                 </ModalBody>
             </Modal>
         </header>
