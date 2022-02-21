@@ -297,14 +297,27 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 	}
 
 	var envs []apiv1.EnvVar
+	envsSeen := make(map[string]struct{})
+
 	if deploymentTarget.Config != nil && deploymentTarget.Config.Envs != nil {
 		envs = make([]apiv1.EnvVar, 0, len(*deploymentTarget.Config.Envs))
 		for _, v := range *deploymentTarget.Config.Envs {
+			if _, ok := envsSeen[v.Key]; ok {
+				continue
+			}
+			envsSeen[v.Key] = struct{}{}
 			envs = append(envs, apiv1.EnvVar{
 				Name:  v.Key,
 				Value: v.Value,
 			})
 		}
+	}
+
+	if _, ok := envsSeen[consts.BentoServicePortEnvKey]; !ok {
+		envs = append(envs, apiv1.EnvVar{
+			Name:  consts.BentoServicePortEnvKey,
+			Value: fmt.Sprintf("%d", consts.BentoServicePort),
+		})
 	}
 
 	args = append(args, "./env/docker/entrypoint.sh", "bentoml", "serve", ".", "--production")
