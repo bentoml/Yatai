@@ -7,14 +7,15 @@ import { useFetchDeployment } from '@/hooks/useFetchDeployment'
 import { Skeleton } from 'baseui/skeleton'
 
 export default function DeploymentEdit() {
-    const { clusterName, deploymentName } = useParams<{ clusterName: string; deploymentName: string }>()
-    const { deploymentInfo } = useFetchDeployment(clusterName, deploymentName)
+    const { clusterName, kubeNamespace, deploymentName } =
+        useParams<{ clusterName: string; kubeNamespace: string; deploymentName: string }>()
+    const { deploymentInfo } = useFetchDeployment(clusterName, kubeNamespace, deploymentName)
     const handleCreateDeploymentRevision = useCallback(
         async (data: IUpdateDeploymentSchema) => {
-            await updateDeployment(clusterName, deploymentName, data)
+            await updateDeployment(clusterName, kubeNamespace, deploymentName, data)
             deploymentInfo.refetch()
         },
-        [clusterName, deploymentInfo, deploymentName]
+        [clusterName, deploymentInfo, deploymentName, kubeNamespace]
     )
 
     if (deploymentInfo.isLoading) {

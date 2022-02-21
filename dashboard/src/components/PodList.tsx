@@ -29,7 +29,7 @@ export interface IPodListProps {
     pods: IKubePodSchema[]
 }
 
-export default ({ loading = false, clusterName: clusterName_, pods }: IPodListProps) => {
+export default function PodList({ loading = false, clusterName: clusterName_, pods }: IPodListProps) {
     const [t] = useTranslation()
     const { organization } = useOrganization()
     const { cluster } = useCluster()
@@ -39,9 +39,9 @@ export default ({ loading = false, clusterName: clusterName_, pods }: IPodListPr
     const [desiredShowMonitorPod, setDesiredShowMonitorPod] = useState<IKubePodSchema>()
     const [desiredShowTerminalPod, setDesiredShowTerminalPod] = useState<IKubePodSchema>()
     const [advancedLog, setAdvancedLog] = useState(false)
-    let clusterName = clusterName_
-    if (cluster) {
-        clusterName = cluster.name
+    let clusterName = cluster?.name
+    if (clusterName_) {
+        clusterName = clusterName_
     }
     const { yataiComponentsInfo } = useFetchYataiComponents(clusterName)
 

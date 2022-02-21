@@ -234,7 +234,7 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                         return [
                             <Link
                                 key={deployment.uid}
-                                href={`/clusters/${deployment.cluster?.name}/deployments/${deployment.name}`}
+                                href={`/clusters/${deployment.cluster?.name}/namespaces/${deployment.kube_namespace}/deployments/${deployment.name}`}
                             >
                                 {deployment.name}
                             </Link>,

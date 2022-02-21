@@ -37,6 +37,7 @@ var DeploymentController = deploymentController{}
 type GetDeploymentSchema struct {
 	GetClusterSchema
 	DeploymentName string `path:"deploymentName"`
+	KubeNamespace  string `path:"kubeNamespace"`
 }
 
 func (s *GetDeploymentSchema) GetDeployment(ctx context.Context) (*models.Deployment, error) {
@@ -44,7 +45,7 @@ func (s *GetDeploymentSchema) GetDeployment(ctx context.Context) (*models.Deploy
 	if err != nil {
 		return nil, errors.Wrap(err, "get cluster")
 	}
-	deployment, err := services.DeploymentService.GetByName(ctx, cluster.ID, s.DeploymentName)
+	deployment, err := services.DeploymentService.GetByName(ctx, cluster.ID, s.KubeNamespace, s.DeploymentName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get deployment %s", s.DeploymentName)
 	}

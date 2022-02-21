@@ -5,12 +5,14 @@ import { toaster } from 'baseui/toast'
 
 export function useFetchDeploymentPods({
     clusterName,
+    kubeNamespace,
     deploymentName,
     setPods,
     setPodsLoading,
     getErr,
 }: {
     clusterName: string
+    kubeNamespace: string
     deploymentName: string
     setPods: (pods: IKubePodSchema[]) => void
     setPodsLoading: (v: boolean) => void
@@ -18,7 +20,7 @@ export function useFetchDeploymentPods({
 }) {
     const wsUrl = `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
         window.location.host
-    }/ws/v1/clusters/${clusterName}/deployments/${deploymentName}/pods`
+    }/ws/v1/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/pods`
 
     const wsRef = useRef(undefined as undefined | WebSocket)
     const wsHeartbeatTimerRef = useRef(undefined as undefined | number)

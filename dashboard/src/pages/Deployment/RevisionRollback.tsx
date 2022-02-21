@@ -9,19 +9,19 @@ import { fetchDeploymentRevision } from '@/services/deployment_revision'
 import { useQuery } from 'react-query'
 
 export default function DeploymentRevisionRollback() {
-    const { clusterName, deploymentName, revisionUid } =
-        useParams<{ clusterName: string; deploymentName: string; revisionUid: string }>()
-    const { deploymentInfo } = useFetchDeployment(clusterName, deploymentName)
+    const { clusterName, kubeNamespace, deploymentName, revisionUid } =
+        useParams<{ clusterName: string; kubeNamespace: string; deploymentName: string; revisionUid: string }>()
+    const { deploymentInfo } = useFetchDeployment(clusterName, kubeNamespace, deploymentName)
     const deploymentRevisionInfo = useQuery(
-        `fetchDeploymentRevision:${clusterName}:${deploymentName}:${revisionUid}`,
-        () => fetchDeploymentRevision(clusterName, deploymentName, revisionUid)
+        `fetchDeploymentRevision:${clusterName}:${kubeNamespace}:${deploymentName}:${revisionUid}`,
+        () => fetchDeploymentRevision(clusterName, kubeNamespace, deploymentName, revisionUid)
     )
     const handleCreateDeploymentRevision = useCallback(
         async (data: IUpdateDeploymentSchema) => {
-            await updateDeployment(clusterName, deploymentName, data)
+            await updateDeployment(clusterName, kubeNamespace, deploymentName, data)
             deploymentInfo.refetch()
         },
-        [clusterName, deploymentInfo, deploymentName]
+        [clusterName, deploymentInfo, deploymentName, kubeNamespace]
     )
 
     if (deploymentInfo.isLoading || deploymentRevisionInfo.isLoading) {

@@ -79,7 +79,11 @@ export default function DeploymentOverview() {
                 <ModalHeader>{t('view terminal history')}</ModalHeader>
                 <ModalBody style={{ flex: '1 1 0' }}>
                     {deployment && (
-                        <DeploymentTerminalRecordList clusterName={clusterName} deploymentName={deployment.name} />
+                        <DeploymentTerminalRecordList
+                            clusterName={clusterName}
+                            kubeNamespace={deployment.kube_namespace}
+                            deploymentName={deployment.name}
+                        />
                     )}
                 </ModalBody>
             </Modal>

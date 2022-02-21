@@ -4,11 +4,12 @@ import { IListQuerySchema, IListSchema } from '@/schemas/list'
 
 export async function listDeploymentRevisions(
     clusterName: string,
+    kubeNamespace: string,
     deploymentName: string,
     query: IListQuerySchema
 ): Promise<IListSchema<IDeploymentRevisionSchema>> {
     const resp = await axios.get<IListSchema<IDeploymentRevisionSchema>>(
-        `/api/v1/clusters/${clusterName}/deployments/${deploymentName}/revisions`,
+        `/api/v1/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/revisions`,
         {
             params: query,
         }
@@ -18,11 +19,12 @@ export async function listDeploymentRevisions(
 
 export async function fetchDeploymentRevision(
     clusterName: string,
+    kubeNamespace: string,
     deploymentName: string,
     revisionUid: string
 ): Promise<IDeploymentRevisionSchema> {
     const resp = await axios.get<IDeploymentRevisionSchema>(
-        `/api/v1/clusters/${clusterName}/deployments/${deploymentName}/revisions/${revisionUid}`
+        `/api/v1/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/revisions/${revisionUid}`
     )
     return resp.data
 }

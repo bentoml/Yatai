@@ -8,13 +8,15 @@ import { useState } from 'react'
 import useTranslation from '@/hooks/useTranslation'
 
 export default function DeploymentReplicas() {
-    const { clusterName, deploymentName } = useParams<{ clusterName: string; deploymentName: string }>()
+    const { clusterName, kubeNamespace, deploymentName } =
+        useParams<{ clusterName: string; kubeNamespace: string; deploymentName: string }>()
     const [pods, setPods] = useState<IKubePodSchema[]>()
     const [podsLoading, setPodsLoading] = useState(false)
     const [t] = useTranslation()
 
     useFetchDeploymentPods({
         clusterName,
+        kubeNamespace,
         deploymentName,
         setPods,
         setPodsLoading,

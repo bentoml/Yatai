@@ -20,14 +20,22 @@ interface ITailRequest {
 interface ILogProps {
     clusterName: string
     deploymentName?: string
-    namespace?: string
+    namespace: string
     podName: string
     open?: boolean
     width?: number | 'auto'
     height?: number | string
 }
 
-export default ({ clusterName, deploymentName, namespace, podName, open, width = 300, height = 300 }: ILogProps) => {
+export default function Log({
+    clusterName,
+    deploymentName,
+    namespace,
+    podName,
+    open,
+    width = 300,
+    height = 300,
+}: ILogProps) {
     const [scroll, setScroll] = useState(true)
 
     const [t] = useTranslation()
@@ -35,7 +43,7 @@ export default ({ clusterName, deploymentName, namespace, podName, open, width =
     const wsUrl = deploymentName
         ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
               window.location.host
-          }/ws/v1/clusters/${clusterName}/deployments/${deploymentName}/tail?${qs.stringify({
+          }/ws/v1/clusters/${clusterName}/namespaces/${namespace}/deployments/${deploymentName}/tail?${qs.stringify({
               pod_name: podName,
           })}`
         : `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${

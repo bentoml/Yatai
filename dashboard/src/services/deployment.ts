@@ -27,11 +27,12 @@ export async function listOrganizationDeployments(query: IListQuerySchema): Prom
 
 export async function listDeploymentTerminalRecords(
     clusterName: string,
+    kubeNamespace: string,
     deploymentName: string,
     query: IListQuerySchema
 ): Promise<IListSchema<ITerminalRecordSchema>> {
     const resp = await axios.get<IListSchema<ITerminalRecordSchema>>(
-        `/api/v1/clusters/${clusterName}/deployments/${deploymentName}/terminal_records`,
+        `/api/v1/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/terminal_records`,
         {
             params: query,
         }
@@ -39,8 +40,14 @@ export async function listDeploymentTerminalRecords(
     return resp.data
 }
 
-export async function fetchDeployment(clusterName: string, deploymentName: string): Promise<IDeploymentFullSchema> {
-    const resp = await axios.get<IDeploymentFullSchema>(`/api/v1/clusters/${clusterName}/deployments/${deploymentName}`)
+export async function fetchDeployment(
+    clusterName: string,
+    kubeNamespace: string,
+    deploymentName: string
+): Promise<IDeploymentFullSchema> {
+    const resp = await axios.get<IDeploymentFullSchema>(
+        `/api/v1/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}`
+    )
     return resp.data
 }
 
@@ -54,24 +61,35 @@ export async function createDeployment(
 
 export async function updateDeployment(
     clusterName: string,
+    kubeNamespace: string,
     deploymentName: string,
     data: IUpdateDeploymentSchema
 ): Promise<IDeploymentFullSchema> {
     const resp = await axios.patch<IDeploymentFullSchema>(
-        `/api/v1/clusters/${clusterName}/deployments/${deploymentName}`,
+        `/api/v1/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}`,
         data
     )
     return resp.data
 }
 
-export async function terminateDeployment(clusterName: string, deploymentName: string): Promise<IDeploymentFullSchema> {
+export async function terminateDeployment(
+    clusterName: string,
+    kubeNamespace: string,
+    deploymentName: string
+): Promise<IDeploymentFullSchema> {
     const resp = await axios.post<IDeploymentFullSchema>(
-        `/api/v1/clusters/${clusterName}/deployments/${deploymentName}/terminate`
+        `/api/v1/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/terminate`
     )
     return resp.data
 }
 
-export async function deleteDeployment(clusterName: string, deploymentName: string): Promise<IDeploymentFullSchema> {
-    const resp = await axios.delete(`/api/v1/clusters/${clusterName}/deployments/${deploymentName}`)
+export async function deleteDeployment(
+    clusterName: string,
+    kubeNamespace: string,
+    deploymentName: string
+): Promise<IDeploymentFullSchema> {
+    const resp = await axios.delete(
+        `/api/v1/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}`
+    )
     return resp.data
 }

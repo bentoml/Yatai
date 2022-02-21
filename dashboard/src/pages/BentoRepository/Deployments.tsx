@@ -37,7 +37,7 @@ export default function BentoRepositoryDeployments() {
                         return [
                             <Link
                                 key={deployment.uid}
-                                to={`/clusters/${deployment.cluster?.name}/deployments/${deployment.name}`}
+                                to={`/clusters/${deployment.cluster?.name}/namespaces/${deployment.kube_namespace}/deployments/${deployment.name}`}
                             >
                                 {deployment.name}
                             </Link>,

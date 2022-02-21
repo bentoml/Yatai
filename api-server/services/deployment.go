@@ -80,6 +80,11 @@ func (*deploymentService) Create(ctx context.Context, opt CreateDeploymentOption
 		return nil, errors.New(strings.Join(errs, ";"))
 	}
 
+	errs = validation.IsDNS1035Label(opt.KubeNamespace)
+	if len(errs) > 0 {
+		return nil, errors.New(strings.Join(errs, ";"))
+	}
+
 	guid := xid.New()
 
 	deployment := models.Deployment{
@@ -179,9 +184,9 @@ func (s *deploymentService) GetByUid(ctx context.Context, uid string) (*models.D
 	return &deployment, nil
 }
 
-func (s *deploymentService) GetByName(ctx context.Context, clusterId uint, name string) (*models.Deployment, error) {
+func (s *deploymentService) GetByName(ctx context.Context, clusterId uint, kubeNamespace, name string) (*models.Deployment, error) {
 	var deployment models.Deployment
-	err := getBaseQuery(ctx, s).Where("cluster_id = ?", clusterId).Where("name = ?", name).First(&deployment).Error
+	err := getBaseQuery(ctx, s).Where("cluster_id = ?", clusterId).Where("kube_namespace = ?", kubeNamespace).Where("name = ?", name).First(&deployment).Error
 	if err != nil {
 		return nil, errors.Wrapf(err, "get deployment %s", name)
 	}

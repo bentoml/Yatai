@@ -13,17 +13,19 @@ import qs from 'qs'
 
 export interface IDeploymentTerminalRecordListProps {
     clusterName: string
+    kubeNamespace: string
     deploymentName: string
 }
 
 export default function DeploymentTerminalRecordList({
     clusterName,
+    kubeNamespace,
     deploymentName,
 }: IDeploymentTerminalRecordListProps) {
     const [page] = usePage()
     const queryKey = `fetchDeploymentTerminalRecords:${clusterName}:${deploymentName}:${qs.stringify(page)}`
     const deploymentTerminalRecordsInfo = useQuery(queryKey, () =>
-        listDeploymentTerminalRecords(clusterName, deploymentName, page)
+        listDeploymentTerminalRecords(clusterName, kubeNamespace, deploymentName, page)
     )
 
     const [t] = useTranslation()
@@ -45,7 +47,7 @@ export default function DeploymentTerminalRecordList({
                                 size='mini'
                                 onClick={() => {
                                     window.open(
-                                        `/clusters/${clusterName}/deployments/${deploymentName}/terminal_records/${terminalRecord.uid}`
+                                        `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/terminal_records/${terminalRecord.uid}`
                                     )
                                 }}
                             >
