@@ -119,6 +119,13 @@ export default function OrganizationMemberListCard() {
                                     // instead of creating a new one.
                                     console.log("Currently deactivate is disabled") // eslint-disable-line
                                     // handelDeactivateUser({ username: member.user.name })
+                                    setNewUserInfo({
+                                        name: 'abc',
+                                        email: 'avc',
+                                        password: 'abbb',
+                                        role: 'guest',
+                                    })
+                                    setIsSuccessfulCreateUserOpen(true)
                                 }}
                             >
                                 {t('deactivate')}
@@ -155,11 +162,13 @@ export default function OrganizationMemberListCard() {
                 <ModalHeader>{t('success')}</ModalHeader>
                 <ModalBody>
                     <div>
-                        You succcessfully created the user, username
-                        You can view and copy the login information below:
+                        <p>You can view and copy the login information below:</p>
                         Sign-in URL: https://atalaya-io.signin.aws.amazon.com/console
-                        Email: test-remove
-                        Password: test-remove
+                        <br />
+                        Email: {newUserInfo?.email}
+                        <br />
+                        Password: {newUserInfo?.password}
+                        use copy to clipboard
                     </div>
                 </ModalBody>
             </Modal>
