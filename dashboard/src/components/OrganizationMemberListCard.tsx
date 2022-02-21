@@ -5,6 +5,9 @@ import { useCallback, useState } from 'react'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { useStyletron } from 'baseui'
+import { generate } from 'generate-password'
+import CopyToClipboard from 'react-copy-to-clipboard'
+import { TiClipboard } from 'react-icons/ti'
 import Card from '@/components/Card'
 import MemberForm from '@/components/MemberForm'
 import { ICreateMembersSchema, IDeleteMemberSchema } from '@/schemas/member'
@@ -14,7 +17,6 @@ import Table from '@/components/Table'
 import { resourceIconMapping } from '@/consts'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import { IOrganizationMemberSchema } from '@/schemas/organization_member'
-import { generate } from 'generate-password'
 import UserForm from './UserForm'
 
 const isDeactivated = (deleted_at: string | undefined): boolean => {
@@ -31,6 +33,8 @@ export default function OrganizationMemberListCard() {
     const [isEditUserRoleOpen, setIsEditUserRoleOpen] = useState(false)
     const [selectedMember, setSelectedMember] = useState<IOrganizationMemberSchema | undefined>(undefined)
     const [newUserInfo, setNewUserInfo] = useState<ICreateUserSchema | undefined>(undefined)
+    const [copiedText, setCopiedText] = useState('')
+    const [displaySuccessCopiedMessage, setDisplaySuccessCopiedMessage] = useState(false)
 
     const handleCreateMember = useCallback(
         async (data: ICreateMembersSchema) => {
@@ -48,6 +52,9 @@ export default function OrganizationMemberListCard() {
             setIsCreateUserOpen(false)
             setIsSuccessfulCreateUserOpen(true)
             setNewUserInfo(newData)
+            setCopiedText(
+                `Sign-in URL: ${window.location.origin}/login  Email: ${newData.email}  Password ${newData.password}`
+            )
         },
         [membersInfo]
     )
@@ -119,13 +126,6 @@ export default function OrganizationMemberListCard() {
                                     // instead of creating a new one.
                                     console.log("Currently deactivate is disabled") // eslint-disable-line
                                     // handelDeactivateUser({ username: member.user.name })
-                                    setNewUserInfo({
-                                        name: 'abc',
-                                        email: 'avc',
-                                        password: 'abbb',
-                                        role: 'guest',
-                                    })
-                                    setIsSuccessfulCreateUserOpen(true)
                                 }}
                             >
                                 {t('deactivate')}
@@ -154,7 +154,12 @@ export default function OrganizationMemberListCard() {
             </Modal>
             <Modal
                 isOpen={isSuccessfulCreateUserOpen}
-                onClose={() => setIsSuccessfulCreateUserOpen(false)}
+                onClose={() => {
+                    setIsSuccessfulCreateUserOpen(false)
+                    setNewUserInfo(undefined)
+                    setCopiedText('')
+                    setDisplaySuccessCopiedMessage(false)
+                }}
                 closeable
                 autoFocus
                 animate
@@ -163,13 +168,23 @@ export default function OrganizationMemberListCard() {
                 <ModalBody>
                     <div>
                         <p>You can view and copy the login information below:</p>
-                        Sign-in URL: https://atalaya-io.signin.aws.amazon.com/console
+                        Sign-in URL: {window.location.origin}/login
                         <br />
                         Email: {newUserInfo?.email}
                         <br />
                         Password: {newUserInfo?.password}
-                        use copy to clipboard
                     </div>
+                    <CopyToClipboard
+                        text={copiedText}
+                        onCopy={() => {
+                            setDisplaySuccessCopiedMessage(true)
+                        }}
+                    >
+                        <Button startEnhancer={<TiClipboard size={14} />} kind='secondary'>
+                            {t('copy')}
+                        </Button>
+                    </CopyToClipboard>
+                    {displaySuccessCopiedMessage && <div style={{ marginTop: 8 }}>{t('copied to clipboard')}</div>}
                 </ModalBody>
             </Modal>
             <Modal isOpen={isEditUserRoleOpen} onClose={() => setIsEditUserRoleOpen(false)} closeable animate autoFocus>
