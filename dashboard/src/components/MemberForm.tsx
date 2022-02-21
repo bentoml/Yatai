@@ -15,7 +15,7 @@ export interface IMemberFormProps {
 
 export default function MemberForm({ member, onSubmit }: IMemberFormProps) {
     const [initialValue, setInitialValue] = useState<ICreateMembersSchema>({
-        usernames: [],
+        usernames: member ? [member.user.name] : [],
         role: 'guest',
     })
 

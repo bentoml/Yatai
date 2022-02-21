@@ -1,5 +1,5 @@
 import useTranslation from '@/hooks/useTranslation'
-import { createOrganizationMembers } from '@/services/organization_member'
+import { createOrganizationMembers, deleteOrganizationMember } from '@/services/organization_member'
 import { createUser } from '@/services/user'
 import { useCallback, useState } from 'react'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
@@ -7,14 +7,18 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { useStyletron } from 'baseui'
 import Card from '@/components/Card'
 import MemberForm from '@/components/MemberForm'
-import { ICreateMembersSchema } from '@/schemas/member'
+import { ICreateMembersSchema, IDeleteMemberSchema } from '@/schemas/member'
 import { ICreateUserSchema } from '@/schemas/user'
 import User from '@/components/User'
 import Table from '@/components/Table'
 import { resourceIconMapping } from '@/consts'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
+import { IOrganizationMemberSchema } from '@/schemas/organization_member'
 import UserForm from './UserForm'
-import DoubleCheckForm from './DoubleCheckForm' // eslint-disable-line
+
+const isDeactivated = (deleted_at: string | undefined): boolean => {
+    return !!(deleted_at && new Date(deleted_at).getTime() > 0)
+}
 
 export default function OrganizationMemberListCard() {
     const membersInfo = useFetchOrganizationMembers()
@@ -24,7 +28,7 @@ export default function OrganizationMemberListCard() {
     const [isCreateUserOpen, setIsCreateUserOpen] = useState(false)
     const [isSuccessfulCreateUserOpen, setIsSuccessfulCreateUserOpen] = useState(false)
     const [isEditUserRoleOpen, setIsEditUserRoleOpen] = useState(false)
-    const [isDeactivateUserOpen, setIsDeactivateUserOpen] = useState(false)
+    const [selectedMember, setSelectedMember] = useState<undefined | IOrganizationMemberSchema>(undefined)
 
     const handleCreateMember = useCallback(
         async (data: ICreateMembersSchema) => {
@@ -40,6 +44,14 @@ export default function OrganizationMemberListCard() {
             await membersInfo.refetch()
             setIsCreateUserOpen(false)
             setIsSuccessfulCreateUserOpen(true)
+        },
+        [membersInfo]
+    )
+
+    const handelDeactivateUser = useCallback( // eslint-disable-line
+        async (data: IDeleteMemberSchema) => {
+            await deleteOrganizationMember(data)
+            await membersInfo.refetch()
         },
         [membersInfo]
     )
@@ -66,7 +78,7 @@ export default function OrganizationMemberListCard() {
                     membersInfo.data?.map((member) => [
                         <User key={member.uid} user={member.user} />,
                         t(member.role),
-                        t('active'),
+                        isDeactivated(member.deleted_at) ? t('deactivated') : t('active'),
                         <div
                             key={member.uid}
                             style={{
@@ -75,7 +87,15 @@ export default function OrganizationMemberListCard() {
                                 gap: 8,
                             }}
                         >
-                            <Button size='mini'>{t('edit user role')}</Button>
+                            <Button
+                                size='mini'
+                                onClick={() => {
+                                    setIsEditUserRoleOpen(true)
+                                    setSelectedMember(member)
+                                }}
+                            >
+                                {t('edit user role')}
+                            </Button>
                             <Button
                                 size='mini'
                                 overrides={{
@@ -87,7 +107,15 @@ export default function OrganizationMemberListCard() {
                                         },
                                     },
                                 }}
-                                onClick={() => setIsDeactivateUserOpen(true)}
+                                onClick={() => {
+                                    // TODO We need to fix the organization member logic.
+                                    // Currently, we can assign multiple roles to the same user and
+                                    // a list of the same user and role will list out in the table.
+                                    // We will need to update the role in the organization_member table
+                                    // instead of creating a new one.
+                                    console.log("Currently deactivate is disabled") // eslint-disable-line
+                                    // handelDeactivateUser({ username: member.user.name })
+                                }}
                             >
                                 {t('deactivate')}
                             </Button>
@@ -124,35 +152,9 @@ export default function OrganizationMemberListCard() {
                 <ModalBody>we got it</ModalBody>
             </Modal>
             <Modal isOpen={isEditUserRoleOpen} onClose={() => setIsEditUserRoleOpen(false)} closeable animate autoFocus>
-                <ModalHeader>edit user role</ModalHeader>
-                <ModalBody>edit user role</ModalBody>
-            </Modal>
-            <Modal
-                isOpen={isDeactivateUserOpen}
-                onClose={() => setIsDeactivateUserOpen(false)}
-                closeable
-                animate
-                autoFocus
-            >
-                <ModalHeader>
-                    <div
-                        style={{
-                            color: theme.colors.negative,
-                        }}
-                    >
-                        deactivate user
-                    </div>
-                </ModalHeader>
+                <ModalHeader>{t('edit user role')}</ModalHeader>
                 <ModalBody>
-                    <DoubleCheckForm
-                        tips='some tips'
-                        expected='deactivate expected'
-                        buttonLabel='deactivate'
-                        onSubmit={async () => {
-                            console.log('deactivate user') // eslint-disable-line
-                            setIsDeactivateUserOpen(false)
-                        }}
-                    />
+                    <MemberForm member={selectedMember} onSubmit={handleCreateMember} />
                 </ModalBody>
             </Modal>
         </Card>

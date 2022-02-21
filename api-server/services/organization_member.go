@@ -94,7 +94,8 @@ func (s *organizationMemberService) List(ctx context.Context, opt ListOrganizati
 	if opt.Roles != nil {
 		query = query.Where("role in (?)", *opt.Roles)
 	}
-	err := query.Order("id DESC").Find(&members).Error
+	// use Unscoped() to get all members include the soft deleted ones
+	err := query.Order("id DESC").Unscoped().Find(&members).Error
 	return members, err
 }
 
@@ -135,6 +136,8 @@ func (s *organizationMemberService) Update(ctx context.Context, m *models.Organi
 }
 
 func (s *organizationMemberService) Delete(ctx context.Context, m *models.OrganizationMember, operatorId uint) (*models.OrganizationMember, error) {
-	err := mustGetSession(ctx).Unscoped().Delete(m).Error
+	err := mustGetSession(ctx).Delete(m).Error
+	// Unscoped().Delete(m): permanently
+	// err := mustGetSession(ctx).Unscoped().Delete(m).Error
 	return m, err
 }
