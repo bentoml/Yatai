@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -24,6 +25,20 @@ func (s *kubeServiceService) DeploymentTargetToKubeService(ctx context.Context, 
 		return
 	}
 
+	targetPort := consts.BentoServicePort
+	if deploymentTarget.Config != nil && deploymentTarget.Config.Envs != nil {
+		for _, env := range *deploymentTarget.Config.Envs {
+			if env.Key == consts.BentoServicePortEnvKey {
+				port_, err := strconv.Atoi(env.Value)
+				if err != nil {
+					return nil, errors.Wrapf(err, "convert port %s to int", env.Value)
+				}
+				targetPort = port_
+				break
+			}
+		}
+	}
+
 	spec := apiv1.ServiceSpec{
 		Selector: map[string]string{
 			consts.KubeLabelYataiSelector: kubeName,
@@ -32,7 +47,7 @@ func (s *kubeServiceService) DeploymentTargetToKubeService(ctx context.Context, 
 			{
 				Name:       "http-default",
 				Port:       consts.BentoServicePort,
-				TargetPort: intstr.FromInt(consts.BentoServicePort),
+				TargetPort: intstr.FromInt(targetPort),
 				Protocol:   apiv1.ProtocolTCP,
 			},
 		},
