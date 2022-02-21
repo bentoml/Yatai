@@ -14,6 +14,7 @@ import Table from '@/components/Table'
 import { resourceIconMapping } from '@/consts'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import { IOrganizationMemberSchema } from '@/schemas/organization_member'
+import { generate } from 'generate-password'
 import UserForm from './UserForm'
 
 const isDeactivated = (deleted_at: string | undefined): boolean => {
@@ -28,7 +29,8 @@ export default function OrganizationMemberListCard() {
     const [isCreateUserOpen, setIsCreateUserOpen] = useState(false)
     const [isSuccessfulCreateUserOpen, setIsSuccessfulCreateUserOpen] = useState(false)
     const [isEditUserRoleOpen, setIsEditUserRoleOpen] = useState(false)
-    const [selectedMember, setSelectedMember] = useState<undefined | IOrganizationMemberSchema>(undefined)
+    const [selectedMember, setSelectedMember] = useState<IOrganizationMemberSchema | undefined>(undefined)
+    const [newUserInfo, setNewUserInfo] = useState<ICreateUserSchema | undefined>(undefined)
 
     const handleCreateMember = useCallback(
         async (data: ICreateMembersSchema) => {
@@ -40,10 +42,12 @@ export default function OrganizationMemberListCard() {
     )
     const handleCreateUser = useCallback(
         async (data: ICreateUserSchema) => {
-            await createUser(data)
+            const newData = { ...data, password: generate({ length: 10, numbers: true }) }
+            await createUser(newData)
             await membersInfo.refetch()
             setIsCreateUserOpen(false)
             setIsSuccessfulCreateUserOpen(true)
+            setNewUserInfo(newData)
         },
         [membersInfo]
     )
@@ -148,8 +152,16 @@ export default function OrganizationMemberListCard() {
                 autoFocus
                 animate
             >
-                <ModalHeader>Successsss</ModalHeader>
-                <ModalBody>we got it</ModalBody>
+                <ModalHeader>{t('success')}</ModalHeader>
+                <ModalBody>
+                    <div>
+                        You succcessfully created the user, username
+                        You can view and copy the login information below:
+                        Sign-in URL: https://atalaya-io.signin.aws.amazon.com/console
+                        Email: test-remove
+                        Password: test-remove
+                    </div>
+                </ModalBody>
             </Modal>
             <Modal isOpen={isEditUserRoleOpen} onClose={() => setIsEditUserRoleOpen(false)} closeable animate autoFocus>
                 <ModalHeader>{t('edit user role')}</ModalHeader>

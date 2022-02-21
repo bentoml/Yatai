@@ -36,6 +36,7 @@
     "baseui": "^10.0.0",
     "classnames": "^2.3.1",
     "color": "^3.1.3",
+    "generate-password": "^1.7.0",
     "i18next": "^20.3.5",
     "i18next-browser-languagedetector": "^6.1.2",
     "javascript-time-ago": "^2.3.10",

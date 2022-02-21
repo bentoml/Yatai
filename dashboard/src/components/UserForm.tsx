@@ -16,8 +16,8 @@ export default function UserForm({ onSubmit }: ICreateUserSchemaProps) {
     const [initialValue, setInitialValue] = useState<ICreateUserSchema>({  // eslint-disable-line
         name: '',
         email: '',
-        password: '',
         role: 'guest',
+        password: '',
     })
 
     const [loading, setLoading] = useState(false)
@@ -44,9 +44,6 @@ export default function UserForm({ onSubmit }: ICreateUserSchemaProps) {
                 <MemberRoleSelector />
             </FormItem>
             <FormItem required name='email' label={t('email')}>
-                <Input />
-            </FormItem>
-            <FormItem name='password' label={t('password')}>
                 <Input />
             </FormItem>
             <FormItem>
