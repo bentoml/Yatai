@@ -125,7 +125,7 @@ export default function OrganizationMemberListCard() {
                                     // We will need to update the role in the organization_member table
                                     // instead of creating a new one.
                                     console.log("Currently deactivate is disabled") // eslint-disable-line
-                                    // handelDeactivateUser({ username: member.user.name })
+                                    handelDeactivateUser({ username: member.user.name })
                                 }}
                             >
                                 {t('deactivate')}
