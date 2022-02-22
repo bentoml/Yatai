@@ -4,6 +4,7 @@ import { createUser } from '@/services/user'
 import { useCallback, useState } from 'react'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
+import { toaster } from 'baseui/toast'
 import { useStyletron } from 'baseui'
 import { generate } from 'generate-password'
 import CopyToClipboard from 'react-copy-to-clipboard'
@@ -41,6 +42,8 @@ export default function OrganizationMemberListCard() {
             await createOrganizationMembers(data)
             await membersInfo.refetch()
             setIsCreateMembersOpen(false)
+            setIsEditUserRoleOpen(false)
+            toaster.positive(t('assigned new role'), { autoHideDuration: 2000 })
         },
         [membersInfo]
     )
@@ -55,6 +58,7 @@ export default function OrganizationMemberListCard() {
             setCopiedText(
                 `Sign-in URL: ${window.location.origin}/login  Email: ${newData.email}  Password ${newData.password}`
             )
+            toaster.positive(`${t('created new user')} ${data.name}`, { autoHideDuration: 2000 })
         },
         [membersInfo]
     )
@@ -63,6 +67,7 @@ export default function OrganizationMemberListCard() {
         async (data: IDeleteMemberSchema) => {
             await deleteOrganizationMember(data)
             await membersInfo.refetch()
+            toaster.positive('deactivated user', { autoHideDuration: 2000 })
         },
         [membersInfo]
     )
@@ -125,7 +130,7 @@ export default function OrganizationMemberListCard() {
                                     // We will need to update the role in the organization_member table
                                     // instead of creating a new one.
                                     console.log("Currently deactivate is disabled") // eslint-disable-line
-                                    handelDeactivateUser({ username: member.user.name })
+                                    // handelDeactivateUser({ username: member.user.name })
                                 }}
                             >
                                 {t('deactivate')}

@@ -2002,6 +2002,27 @@ const locales0 = {
         ko: '중지됨',
         vi: 'Đã tắt',
     },
+    'assigned new role': {
+        en: 'Assigned new role',
+        zh: '分配新角色',
+        ja: '新しいロールを割り当てる',
+        ko: '새 역할 할당',
+        vi: 'Gán vai trò mới',
+    },
+    'created new user': {
+        en: 'Created new user',
+        zh: '创建新用户',
+        ja: '新しいユーザーを作成',
+        ko: '새 사용자 만들기',
+        vi: 'Tạo người dùng mới',
+    },
+    'password changed': {
+        en: 'Password changed',
+        zh: '密码已更改',
+        ja: 'パスワードが変更されました',
+        ko: '비밀번호 변경',
+        vi: 'Mật khẩu đã được thay đổi',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

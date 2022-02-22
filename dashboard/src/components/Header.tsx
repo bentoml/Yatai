@@ -281,6 +281,7 @@ export default function Header() {
         console.log(data) // eslint-disable-line no-console
         await changePassword(data)
         setIsChangePasswordOpen(false)
+        toaster.positive(t('password changed'), { autoHideDuration: 2000 })
     }, [])
 
     const currentThemeType = useCurrentThemeType()
