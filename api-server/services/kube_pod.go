@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -217,6 +218,37 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		return
 	}
 
+	containerPort := consts.BentoServicePort
+	var envs []apiv1.EnvVar
+	envsSeen := make(map[string]struct{})
+
+	if deploymentTarget.Config != nil && deploymentTarget.Config.Envs != nil {
+		envs = make([]apiv1.EnvVar, 0, len(*deploymentTarget.Config.Envs))
+		for _, v := range *deploymentTarget.Config.Envs {
+			if _, ok := envsSeen[v.Key]; ok {
+				continue
+			}
+			if v.Key == consts.BentoServicePortEnvKey {
+				containerPort, err = strconv.Atoi(v.Value)
+				if err != nil {
+					return nil, errors.Wrapf(err, "invalid port value %s", v.Value)
+				}
+			}
+			envsSeen[v.Key] = struct{}{}
+			envs = append(envs, apiv1.EnvVar{
+				Name:  v.Key,
+				Value: v.Value,
+			})
+		}
+	}
+
+	if _, ok := envsSeen[consts.BentoServicePortEnvKey]; !ok {
+		envs = append(envs, apiv1.EnvVar{
+			Name:  consts.BentoServicePortEnvKey,
+			Value: fmt.Sprintf("%d", containerPort),
+		})
+	}
+
 	livenessProbe := &apiv1.Probe{
 		InitialDelaySeconds: 5,
 		TimeoutSeconds:      5,
@@ -224,7 +256,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		Handler: apiv1.Handler{
 			HTTPGet: &apiv1.HTTPGetAction{
 				Path: "/livez",
-				Port: intstr.FromInt(consts.BentoServicePort),
+				Port: intstr.FromInt(containerPort),
 			},
 		},
 	}
@@ -236,7 +268,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		Handler: apiv1.Handler{
 			HTTPGet: &apiv1.HTTPGetAction{
 				Path: "/readyz",
-				Port: intstr.FromInt(consts.BentoServicePort),
+				Port: intstr.FromInt(containerPort),
 			},
 		},
 	}
@@ -294,30 +326,6 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 			MountPath: sourcePath,
 		}
 		vms = append(vms, vm)
-	}
-
-	var envs []apiv1.EnvVar
-	envsSeen := make(map[string]struct{})
-
-	if deploymentTarget.Config != nil && deploymentTarget.Config.Envs != nil {
-		envs = make([]apiv1.EnvVar, 0, len(*deploymentTarget.Config.Envs))
-		for _, v := range *deploymentTarget.Config.Envs {
-			if _, ok := envsSeen[v.Key]; ok {
-				continue
-			}
-			envsSeen[v.Key] = struct{}{}
-			envs = append(envs, apiv1.EnvVar{
-				Name:  v.Key,
-				Value: v.Value,
-			})
-		}
-	}
-
-	if _, ok := envsSeen[consts.BentoServicePortEnvKey]; !ok {
-		envs = append(envs, apiv1.EnvVar{
-			Name:  consts.BentoServicePortEnvKey,
-			Value: fmt.Sprintf("%d", consts.BentoServicePort),
-		})
 	}
 
 	args = append(args, "./env/docker/entrypoint.sh", "bentoml", "serve", ".", "--production")
