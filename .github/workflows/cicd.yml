@@ -3,6 +3,7 @@ name: CICD
 on:
   push:
     branches: [ main ]
+    tags: [ v* ] #trigger on tags start with v, eg v1.0.0
   pull_request:
     branches: [ main ]
 
@@ -160,7 +161,7 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
 
-    if: github.ref == 'refs/heads/main'
+    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
 
     needs:
       - build-dashboard
@@ -202,6 +203,10 @@ jobs:
 
       - name: Build yatai image
         run: make build-image
+
+      - name: Tag Yatai image as release
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: make tag-release
 
   deploy:
     runs-on: ubuntu-latest
