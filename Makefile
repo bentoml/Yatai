@@ -10,8 +10,7 @@ DOCKER_REGISTRY := quay.io/bentoml
 
 BUILDER_IMG := $(DOCKER_REGISTRY)/yatai-builder:1.0
 UI_BUILDER_IMG := $(DOCKER_REGISTRY)/yatai-ui-builder:1.0
-YATAI_IMAGE_TAG ?= $(GIT_COMMIT)
-YATAI_IMG := $(DOCKER_REGISTRY)/yatai:$(YATAI_IMAGE_TAG)
+YATAI_IMG := $(DOCKER_REGISTRY)/yatai:$(GIT_COMMIT)
 
 GOMOD_CACHE ?= "$(GOPATH)/pkg/mod"
 
@@ -74,6 +73,10 @@ build-ui-builder-image: pull-ui-builder-image ## Build UI builder image
 build-image: ## Build Yatai image
 	docker build -t $(YATAI_IMG) .
 	docker push $(YATAI_IMG)
+
+tag-release: ## Tag Yatai image as release
+	docker tag $(YATAI_IMG) $(DOCKER_REGISTRY)/yatai:$(VERSION)
+	docker push $(DOCKER_REGISTRY)/yatai:$(VERSION)
 
 build: docker-build-ui docker-build-api-server build-image ## Build pipeline
 
