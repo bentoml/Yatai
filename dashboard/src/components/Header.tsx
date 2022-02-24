@@ -488,7 +488,7 @@ export default function Header() {
                             }}
                         >
                             <MdPassword size={12} />
-                            <span>Password</span>
+                            <span>{t('password')}</span>
                         </div>
                         <div
                             role='button'
