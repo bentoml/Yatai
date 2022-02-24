@@ -82,7 +82,7 @@ func (c *userController) Create(ctx *gin.Context, schema *CreateOrganizationUser
 	if err != nil {
 		return nil, errors.Wrap(err, "get organization")
 	}
-	organizationMember, err := services.OrganizationMemberService.Create(ctx, currentUser.ID, services.CreateOrganizationMemberOption{
+	_, err = services.OrganizationMemberService.Create(ctx, currentUser.ID, services.CreateOrganizationMemberOption{
 		CreatorId:      currentUser.ID,
 		UserId:         user.ID,
 		OrganizationId: org.ID,
