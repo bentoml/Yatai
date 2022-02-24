@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { changePassword, fetchCurrentUser } from '@/services/user'
+import { omit } from 'lodash'
 import { useQuery } from 'react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import axios from 'axios'
@@ -29,7 +30,7 @@ import classNames from 'classnames'
 import User from '@/components/User'
 import Text from '@/components/Text'
 import { ICreateClusterSchema } from '@/schemas/cluster'
-import { IChangePasswordSchema } from '@/schemas/user'
+import { IChangePasswordUISchema } from '@/schemas/user'
 import { createCluster } from '@/services/cluster'
 import { useCluster } from '@/hooks/useCluster'
 import ClusterForm from '@/components/ClusterForm'
@@ -277,10 +278,14 @@ export default function Header() {
 
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
 
-    const handleChangePassword = useCallback(async (data: IChangePasswordSchema) => {
-        await changePassword(data)
-        setIsChangePasswordOpen(false)
-        toaster.positive(t('password changed'), { autoHideDuration: 2000 })
+    const handleChangePassword = useCallback(async (data: IChangePasswordUISchema) => {
+        if (data.confirm_new_password !== data.new_password) {
+            toaster.negative(t('password not match'), { autoHideDuration: 3000 })
+        } else {
+            await changePassword(omit(data, 'confirm_new_password'))
+            setIsChangePasswordOpen(false)
+            toaster.positive(t('password changed'), { autoHideDuration: 2000 })
+        }
     }, [])
 
     const currentThemeType = useCurrentThemeType()

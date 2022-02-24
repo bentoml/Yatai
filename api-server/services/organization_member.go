@@ -136,8 +136,6 @@ func (s *organizationMemberService) Update(ctx context.Context, m *models.Organi
 }
 
 func (s *organizationMemberService) Delete(ctx context.Context, m *models.OrganizationMember, operatorId uint) (*models.OrganizationMember, error) {
-	err := mustGetSession(ctx).Delete(m).Error
-	// Unscoped().Delete(m): permanently
-	// err := mustGetSession(ctx).Unscoped().Delete(m).Error
+	err := mustGetSession(ctx).Unscoped().Delete(m).Error
 	return m, err
 }

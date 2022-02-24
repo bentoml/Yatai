@@ -1,17 +1,16 @@
 import useTranslation from '@/hooks/useTranslation'
-import { createOrganizationMembers, deleteOrganizationMember } from '@/services/organization_member'
+import { createOrganizationMembers } from '@/services/organization_member'
 import { createUser } from '@/services/user'
 import { useCallback, useState } from 'react'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { toaster } from 'baseui/toast'
-import { useStyletron } from 'baseui'
 import { generate } from 'generate-password'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import { TiClipboard } from 'react-icons/ti'
 import Card from '@/components/Card'
 import MemberForm from '@/components/MemberForm'
-import { ICreateMembersSchema, IDeleteMemberSchema } from '@/schemas/member'
+import { ICreateMembersSchema } from '@/schemas/member'
 import { ICreateUserSchema } from '@/schemas/user'
 import User from '@/components/User'
 import Table from '@/components/Table'
@@ -27,7 +26,6 @@ const isDeactivated = (deleted_at: string | undefined): boolean => {
 export default function OrganizationMemberListCard() {
     const membersInfo = useFetchOrganizationMembers()
     const [t] = useTranslation()
-    const [, theme] = useStyletron()
     const [isCreateMembersOpen, setIsCreateMembersOpen] = useState(false)
     const [isCreateUserOpen, setIsCreateUserOpen] = useState(false)
     const [isSuccessfulCreateUserOpen, setIsSuccessfulCreateUserOpen] = useState(false)
@@ -59,15 +57,6 @@ export default function OrganizationMemberListCard() {
                 `Sign-in URL: ${window.location.origin}/login  Email: ${newData.email}  Password: ${newData.password}`
             )
             toaster.positive(`${t('created new user')} ${data.name}`, { autoHideDuration: 2000 })
-        },
-        [membersInfo]
-    )
-
-    const handelDeactivateUser = useCallback(
-        async (data: IDeleteMemberSchema) => {
-            await deleteOrganizationMember(data)
-            await membersInfo.refetch()
-            toaster.positive('deactivated user', { autoHideDuration: 2000 })
         },
         [membersInfo]
     )
@@ -111,29 +100,6 @@ export default function OrganizationMemberListCard() {
                                 }}
                             >
                                 {t('edit user role')}
-                            </Button>
-                            <Button
-                                size='mini'
-                                overrides={{
-                                    BaseButton: {
-                                        style: {
-                                            ':hover': {
-                                                backgroundColor: theme.colors.negative,
-                                            },
-                                        },
-                                    },
-                                }}
-                                onClick={() => {
-                                    // TODO We need to fix the organization member logic.
-                                    // Currently, we can assign multiple roles to the same user and
-                                    // a list of the same user and role will list out in the table.
-                                    // We will need to update the role in the organization_member table
-                                    // instead of creating a new one.
-                                    console.log("Currently deactivate is disabled") // eslint-disable-line
-                                    // handelDeactivateUser({ username: member.user.name })
-                                }}
-                            >
-                                {t('deactivate')}
                             </Button>
                         </div>,
                     ]) ?? []

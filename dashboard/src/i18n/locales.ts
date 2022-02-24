@@ -2023,6 +2023,20 @@ const locales0 = {
         ko: '비밀번호 변경',
         vi: 'Mật khẩu đã được thay đổi',
     },
+    'password not match': {
+        en: 'Password not match',
+        zh: '密码不匹配',
+        ja: 'パスワードが一致しません',
+        ko: '비밀번호가 일치하지 않습니다',
+        vi: 'Mật khẩu không khớp',
+    },
+    'change password': {
+        en: 'Change password',
+        zh: '更改密码',
+        ja: 'パスワードを変更',
+        ko: '비밀번호 변경',
+        vi: 'Thay đổi mật khẩu',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

@@ -33,8 +33,13 @@ export interface ICreateUserSchema {
     password: string
     role: MemberRole
 }
-
 export interface IChangePasswordSchema {
     current_password: string
     new_password: string
+}
+
+export interface IChangePasswordUISchema {
+    current_password: string
+    new_password: string
+    confirm_new_password: string
 }
