@@ -70,7 +70,7 @@ jobs:
   build-dashboard:
     runs-on: ubuntu-latest
 
-    if: github.ref == 'refs/heads/main'
+    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
 
     needs:
       - eslint
@@ -106,7 +106,7 @@ jobs:
   build-api-server:
     runs-on: ubuntu-latest
 
-    if: github.ref == 'refs/heads/main'
+    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
 
     needs:
       - golint
