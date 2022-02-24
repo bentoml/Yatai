@@ -532,7 +532,7 @@ export default function Header() {
                 animate
                 autoFocus
             >
-                <ModalHeader>change password</ModalHeader>
+                <ModalHeader>{t('change password')}</ModalHeader>
                 <ModalBody>
                     <PasswordForm onSubmit={handleChangePassword} />
                 </ModalBody>
