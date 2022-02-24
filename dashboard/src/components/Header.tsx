@@ -278,7 +278,6 @@ export default function Header() {
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
 
     const handleChangePassword = useCallback(async (data: IChangePasswordSchema) => {
-        console.log(data) // eslint-disable-line no-console
         await changePassword(data)
         setIsChangePasswordOpen(false)
         toaster.positive(t('password changed'), { autoHideDuration: 2000 })
