@@ -82,6 +82,10 @@ func (c *userController) Create(ctx *gin.Context, schema *CreateOrganizationUser
 	if err != nil {
 		return nil, errors.Wrap(err, "get organization")
 	}
+	if err = OrganizationController.canOperate(ctx, org); err != nil {
+		return nil, err
+	}
+
 	_, err = services.OrganizationMemberService.Create(ctx, currentUser.ID, services.CreateOrganizationMemberOption{
 		CreatorId:      currentUser.ID,
 		UserId:         user.ID,
