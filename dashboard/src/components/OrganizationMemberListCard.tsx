@@ -56,7 +56,7 @@ export default function OrganizationMemberListCard() {
             setIsSuccessfulCreateUserOpen(true)
             setNewUserInfo(newData)
             setCopiedText(
-                `Sign-in URL: ${window.location.origin}/login  Email: ${newData.email}  Password ${newData.password}`
+                `Sign-in URL: ${window.location.origin}/login  Email: ${newData.email}  Password: ${newData.password}`
             )
             toaster.positive(`${t('created new user')} ${data.name}`, { autoHideDuration: 2000 })
         },
