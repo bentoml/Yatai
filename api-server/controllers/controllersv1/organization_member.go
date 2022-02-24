@@ -101,7 +101,7 @@ func (c *organizationMemberController) Delete(ctx *gin.Context, schema *DeleteOr
 	}
 	organizationMember, err := services.OrganizationMemberService.Delete(ctx, member, currentUser.ID)
 	if err != nil {
-		return nil, errors.Wrap(err, "create organizationMember")
+		return nil, errors.Wrap(err, "delete organizationMember")
 	}
 	return transformersv1.ToOrganizationMemberSchema(ctx, organizationMember)
 }

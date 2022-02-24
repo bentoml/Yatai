@@ -102,7 +102,7 @@ export default function Login() {
                             </Text>
                         </div>
                         <Form onFinish={handleFinish}>
-                            <FormItem name='name_or_email' label={t('name or email')}>
+                            <FormItem name='name_or_email' label={t('email')}>
                                 <Input />
                             </FormItem>
                             <FormItem name='password' label={t('password')}>

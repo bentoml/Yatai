@@ -1,57 +1,50 @@
-import { ICreateMembersSchema, IMemberSchema } from '@/schemas/member'
-import React, { useCallback, useEffect, useState } from 'react'
+import { ICreateUserSchema } from '@/schemas/user'
+import React, { useCallback, useEffect, useState } from 'react' // eslint-disable-line
 import { createForm } from '@/components/Form'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
-import UserSelector from './UserSelector'
+import { Input } from 'baseui/input'
 import MemberRoleSelector from './MemberRoleSelector'
 
-const { Form, FormItem } = createForm<ICreateMembersSchema>()
+const { Form, FormItem } = createForm<ICreateUserSchema>()
 
-export interface IMemberFormProps {
-    member?: IMemberSchema
-    onSubmit: (data: ICreateMembersSchema) => Promise<void>
+export interface ICreateUserSchemaProps {
+    onSubmit: (data: ICreateUserSchema) => Promise<void>
 }
 
-export default function MemberForm({ member, onSubmit }: IMemberFormProps) {
-    const [initialValue, setInitialValue] = useState<ICreateMembersSchema>({
-        usernames: member ? [member.user.name] : [],
-        role: member ? member.role : 'guest',
+export default function UserForm({ onSubmit }: ICreateUserSchemaProps) {
+    const [initialValue, setInitialValue] = useState<ICreateUserSchema>({  // eslint-disable-line
+        name: '',
+        email: '',
+        role: 'guest',
+        password: '',
     })
-
-    useEffect(() => {
-        if (!member) {
-            return
-        }
-        setInitialValue({
-            usernames: [member.user.name],
-            role: member.role,
-        })
-    }, [member])
 
     const [loading, setLoading] = useState(false)
 
     const handleFinish = useCallback(
-        async (values) => {
+        async (value) => {
             setLoading(true)
             try {
-                await onSubmit(values)
+                await onSubmit(value)
             } finally {
                 setLoading(false)
             }
         },
         [onSubmit]
     )
-
     const [t] = useTranslation()
 
     return (
         <Form initialValues={initialValue} onFinish={handleFinish}>
-            <FormItem name='usernames' label={t('users')}>
-                <UserSelector />
+            <FormItem required name='name' label={t('name')}>
+                <Input />
             </FormItem>
             <FormItem name='role' label={t('role')}>
                 <MemberRoleSelector />
+            </FormItem>
+            <FormItem required name='email' label={t('email')}>
+                <Input />
             </FormItem>
             <FormItem>
                 <div style={{ display: 'flex' }}>

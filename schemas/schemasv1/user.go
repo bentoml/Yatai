@@ -1,5 +1,7 @@
 package schemasv1
 
+import "github.com/bentoml/yatai/schemas/modelschemas"
+
 type UserSchema struct {
 	ResourceSchema
 	FirstName string `json:"first_name"`
@@ -29,4 +31,16 @@ type LoginUserSchema struct {
 type UpdateUserSchema struct {
 	FirstName string `json:"first_name" validate:"required"`
 	LastName  string `json:"last_name" validate:"required"`
+}
+
+type ResetPasswordSchema struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
+}
+
+type CreateUserSchema struct {
+	Name     string                  `json:"name" validate:"required"`
+	Email    string                  `json:"email" validate:"required"`
+	Password string                  `json:"password" validate:"required"`
+	Role     modelschemas.MemberRole `json:"role" enum:"guest,developer,admin"`
 }

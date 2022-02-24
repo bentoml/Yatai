@@ -1,5 +1,5 @@
 import { IBaseSchema } from './base'
-import { MemberRole } from './member'
+import { MemberRole } from './member_role'
 import { IOrganizationSchema } from './organization'
 import { IUserSchema } from './user'
 
