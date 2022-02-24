@@ -2037,6 +2037,27 @@ const locales0 = {
         ko: '비밀번호 변경',
         vi: 'Thay đổi mật khẩu',
     },
+    'new password': {
+        en: 'New password',
+        zh: '新密码',
+        ja: '新しいパスワード',
+        ko: '새 비밀번호',
+        vi: 'Mật khẩu mới',
+    },
+    'confirm password': {
+        en: 'Confirm password',
+        zh: '确认密码',
+        ja: 'パスワードを確認',
+        ko: '비밀번호 확인',
+        vi: 'Xác nhận mật khẩu',
+    },
+    'current password': {
+        en: 'Current password',
+        zh: '当前密码',
+        ja: '現在のパスワード',
+        ko: '현재 비밀번호',
+        vi: 'Mật khẩu hiện tại',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
