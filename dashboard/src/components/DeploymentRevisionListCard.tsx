@@ -21,24 +21,29 @@ import DeploymentTargetInfo from './DeploymentTargetInfo'
 
 export interface IDeploymentRevisionListCardProps {
     clusterName: string
+    kubeNamespace: string
     deploymentName: string
 }
 
-export default function DeploymentRevisionListCard({ clusterName, deploymentName }: IDeploymentRevisionListCardProps) {
+export default function DeploymentRevisionListCard({
+    clusterName,
+    kubeNamespace,
+    deploymentName,
+}: IDeploymentRevisionListCardProps) {
     const [page] = usePage()
     const { deployment } = useDeployment()
-    const { deploymentRevisionsInfo } = useFetchDeploymentRevisions(clusterName, deploymentName, page)
+    const { deploymentRevisionsInfo } = useFetchDeploymentRevisions(clusterName, kubeNamespace, deploymentName, page)
     const [wishToDeployRevision, setWishToDeployRevision] = useState<IDeploymentRevisionSchema>()
     const [isCreateDeploymentRevisionOpen, setIsCreateDeploymentRevisionOpen] = useState(false)
     const history = useHistory()
     const handleCreateDeploymentRevision = useCallback(
         async (data: IUpdateDeploymentSchema) => {
-            await updateDeployment(clusterName, deploymentName, data)
+            await updateDeployment(clusterName, kubeNamespace, deploymentName, data)
             await deploymentRevisionsInfo.refetch()
             setIsCreateDeploymentRevisionOpen(false)
             setWishToDeployRevision(undefined)
         },
-        [deploymentRevisionsInfo, clusterName, deploymentName]
+        [clusterName, kubeNamespace, deploymentName, deploymentRevisionsInfo]
     )
 
     const [t] = useTranslation()
@@ -64,7 +69,7 @@ export default function DeploymentRevisionListCard({ clusterName, deploymentName
                                     size='mini'
                                     onClick={() =>
                                         history.push(
-                                            `/clusters/${clusterName}/deployments/${deploymentName}/revisions/${deploymentRevision.uid}/rollback`
+                                            `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/revisions/${deploymentRevision.uid}/rollback`
                                         )
                                     }
                                 >

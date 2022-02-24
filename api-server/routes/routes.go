@@ -74,7 +74,7 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("Subscribe resource"),
 	}, requireLogin, tonic.Handler(controllersv1.SubscriptionController.SubscribeResource, 200))
 
-	wsRootGroup.GET("/clusters/:clusterName/deployments/:deploymentName/tail", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/tail", []fizz.OperationOption{
 		fizz.ID("Tail deployment pod log"),
 		fizz.Summary("Tail deployment pod log"),
 	}, requireLogin, tonic.Handler(controllersv1.LogController.TailDeploymentPodLog, 200))
@@ -84,7 +84,7 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("Tail cluster pod log"),
 	}, requireLogin, tonic.Handler(controllersv1.LogController.TailClusterPodLog, 200))
 
-	wsRootGroup.GET("/clusters/:clusterName/deployments/:deploymentName/terminal", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/terminal", []fizz.OperationOption{
 		fizz.ID("Deployment pod terminal"),
 		fizz.Summary("Deployment pod terminal"),
 	}, requireLogin, tonic.Handler(controllersv1.TerminalController.GetDeploymentPodTerminal, 200))
@@ -94,7 +94,7 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("Cluster pod terminal"),
 	}, requireLogin, tonic.Handler(controllersv1.TerminalController.GetClusterPodTerminal, 200))
 
-	wsRootGroup.GET("/clusters/:clusterName/deployments/:deploymentName/kube_events", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/kube_events", []fizz.OperationOption{
 		fizz.ID("Deployment kube events"),
 		fizz.Summary("Deployment kube events"),
 	}, requireLogin, tonic.Handler(controllersv1.KubeController.GetDeploymentKubeEvents, 200))
@@ -104,7 +104,7 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("Cluster kube events"),
 	}, requireLogin, tonic.Handler(controllersv1.KubeController.GetPodKubeEvents, 200))
 
-	wsRootGroup.GET("/clusters/:clusterName/deployments/:deploymentName/pods", []fizz.OperationOption{
+	wsRootGroup.GET("/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/pods", []fizz.OperationOption{
 		fizz.ID("Ws deployment pods"),
 		fizz.Summary("Ws deployment pods"),
 	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.WsPods, 200))
@@ -567,9 +567,10 @@ func bentoRoutes(grp *fizz.RouterGroup) {
 }
 
 func deploymentRoutes(grp *fizz.RouterGroup) {
-	grp = grp.Group("/deployments", "deployments", "deployments")
+	namespacedGrp := grp.Group("/namespaces/:kubeNamespace/deployments", "deployments", "deployments")
+	grp = grp.Group("/deployments", "cluster deployments", "cluster deployments")
 
-	resourceGrp := grp.Group("/:deploymentName", "deployment resource", "deployment resource")
+	resourceGrp := namespacedGrp.Group("/:deploymentName", "deployment resource", "deployment resource")
 
 	resourceGrp.GET("", []fizz.OperationOption{
 		fizz.ID("Get a deployment"),
@@ -597,8 +598,8 @@ func deploymentRoutes(grp *fizz.RouterGroup) {
 	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.ListTerminalRecords, 200))
 
 	grp.GET("", []fizz.OperationOption{
-		fizz.ID("List deployments"),
-		fizz.Summary("List deployments"),
+		fizz.ID("List cluster deployments"),
+		fizz.Summary("List cluster deployments"),
 	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.ListClusterDeployments, 200))
 
 	grp.POST("", []fizz.OperationOption{

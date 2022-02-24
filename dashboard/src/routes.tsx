@@ -122,58 +122,64 @@ const Routes = () => {
                             </Switch>
                         </BentoRepositoryLayout>
                     </Route>
-                    <Route exact path='/clusters/:clusterName/deployments/:deploymentName/:path?/edit'>
+                    <Route
+                        exact
+                        path='/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/:path?/edit'
+                    >
                         <OrganizationLayout>
                             <Route
                                 exact
-                                path='/clusters/:clusterName/deployments/:deploymentName/edit'
+                                path='/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/edit'
                                 component={DeploymentEdit}
                             />
                         </OrganizationLayout>
                     </Route>
                     <Route
                         exact
-                        path='/clusters/:clusterName/deployments/:deploymentName/:path?/revisions/:path?/rollback'
+                        path='/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/:path?/revisions/:path?/rollback'
                     >
                         <OrganizationLayout>
                             <Route
                                 exact
-                                path='/clusters/:clusterName/deployments/:deploymentName/revisions/:revisionUid/rollback'
+                                path='/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/revisions/:revisionUid/rollback'
                                 component={DeploymentRevisionRollback}
                             />
                         </OrganizationLayout>
                     </Route>
-                    <Route exact path='/clusters/:clusterName/deployments/:deploymentName/:path?/:path?'>
+                    <Route
+                        exact
+                        path='/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/:path?/:path?'
+                    >
                         <DeploymentLayout>
                             <Switch>
                                 <Route
                                     exact
-                                    path='/clusters/:clusterName/deployments/:deploymentName'
+                                    path='/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName'
                                     component={DeploymentOverview}
                                 />
                                 <Route
                                     exact
-                                    path='/clusters/:clusterName/deployments/:deploymentName/revisions'
+                                    path='/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/revisions'
                                     component={DeploymentRevisions}
                                 />
                                 <Route
                                     exact
-                                    path='/clusters/:clusterName/deployments/:deploymentName/replicas'
+                                    path='/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/replicas'
                                     component={DeploymentReplicas}
                                 />
                                 <Route
                                     exact
-                                    path='/clusters/:clusterName/deployments/:deploymentName/log'
+                                    path='/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/log'
                                     component={DeploymentLog}
                                 />
                                 <Route
                                     exact
-                                    path='/clusters/:clusterName/deployments/:deploymentName/monitor'
+                                    path='/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/monitor'
                                     component={DeploymentMonitor}
                                 />
                                 <Route
                                     exact
-                                    path='/clusters/:clusterName/deployments/:deploymentName/terminal_records/:uid'
+                                    path='/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName/terminal_records/:uid'
                                     component={DeploymentTerminalRecordPlayer}
                                 />
                             </Switch>

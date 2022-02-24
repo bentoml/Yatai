@@ -45,7 +45,8 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
                 title: t('deployments'),
                 path: '/deployments',
                 icon: resourceIconMapping.deployment,
-                activePathPattern: /^\/(deployments|new_deployment|clusters\/[^/]+\/deployments\/[^/]+)\/?/,
+                activePathPattern:
+                    /^\/(deployments|new_deployment|clusters\/[^/]+\/namespaces\/[^/]+\/deployments\/[^/]+)\/?/,
             },
             {
                 title: t('clusters'),

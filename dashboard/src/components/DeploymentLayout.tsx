@@ -14,7 +14,6 @@ import { useStyletron } from 'baseui'
 import { Button } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import color from 'color'
-import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { AiOutlineDashboard } from 'react-icons/ai'
 import { FaJournalWhills } from 'react-icons/fa'
@@ -34,8 +33,9 @@ export interface IDeploymentLayoutProps {
 }
 
 export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
-    const { clusterName, deploymentName } = useParams<{ clusterName: string; deploymentName: string }>()
-    const { queryKey, deploymentInfo } = useFetchDeployment(clusterName, deploymentName)
+    const { clusterName, kubeNamespace, deploymentName } =
+        useParams<{ clusterName: string; kubeNamespace: string; deploymentName: string }>()
+    const { queryKey, deploymentInfo } = useFetchDeployment(clusterName, kubeNamespace, deploymentName)
     const { deployment, setDeployment } = useDeployment()
     const { organization, setOrganization } = useOrganization()
     const { cluster, setCluster } = useCluster()
@@ -43,9 +43,7 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
     useEffect(() => {
         setDeploymentLoading(deploymentInfo.isLoading)
         if (deploymentInfo.isSuccess) {
-            if (!_.isEqual(deployment, deploymentInfo.data)) {
-                setDeployment(deploymentInfo.data)
-            }
+            setDeployment(deploymentInfo.data)
             if (deploymentInfo.data.cluster?.uid !== cluster?.uid) {
                 setCluster(deploymentInfo.data.cluster)
             }
@@ -55,10 +53,11 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
         } else if (deploymentInfo.isLoading) {
             setDeployment(undefined)
         }
+        return () => {
+            setDeployment(undefined)
+        }
     }, [
         cluster?.uid,
-        deployment,
-        deployment?.uid,
         deploymentInfo.data,
         deploymentInfo.isLoading,
         deploymentInfo.isSuccess,
@@ -106,16 +105,16 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
     const hasMonitoring = yataiComponentsInfo.data?.find((x) => x.type === 'monitoring') !== undefined
 
     const [page] = usePage()
-    const { deploymentRevisionsInfo } = useFetchDeploymentRevisions(clusterName, deploymentName, page)
+    const { deploymentRevisionsInfo } = useFetchDeploymentRevisions(clusterName, kubeNamespace, deploymentName, page)
     const [isCreateDeploymentRevisionOpen, setIsCreateDeploymentRevisionOpen] = useState(false)
     const handleCreateDeploymentRevision = useCallback(
         async (data: IUpdateDeploymentSchema) => {
-            await updateDeployment(clusterName, deploymentName, data)
+            await updateDeployment(clusterName, kubeNamespace, deploymentName, data)
             await deploymentInfo.refetch()
             await deploymentRevisionsInfo.refetch()
             setIsCreateDeploymentRevisionOpen(false)
         },
-        [clusterName, deploymentName, deploymentInfo, deploymentRevisionsInfo]
+        [clusterName, kubeNamespace, deploymentName, deploymentInfo, deploymentRevisionsInfo]
     )
 
     const breadcrumbItems: INavItem[] = useMemo(
@@ -127,10 +126,10 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
             },
             {
                 title: deploymentName,
-                path: `/clusters/${clusterName}/deployments/${deploymentName}`,
+                path: `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}`,
             },
         ],
-        [clusterName, deploymentName, t]
+        [clusterName, deploymentName, kubeNamespace, t]
     )
 
     const navItems: INavItem[] = useMemo(
@@ -138,24 +137,24 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
             [
                 {
                     title: t('overview'),
-                    path: `/clusters/${clusterName}/deployments/${deploymentName}`,
+                    path: `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}`,
                     icon: RiSurveyLine,
                 },
                 {
                     title: t('replicas'),
-                    path: `/clusters/${clusterName}/deployments/${deploymentName}/replicas`,
+                    path: `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/replicas`,
                     icon: VscServerProcess,
                 },
                 {
                     title: t('view log'),
-                    path: `/clusters/${clusterName}/deployments/${deploymentName}/log`,
+                    path: `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/log`,
                     icon: FaJournalWhills,
                     disabled: !hasLogging,
                     helpMessage: !hasLogging ? t('please install yatai component first', [t('logging')]) : undefined,
                 },
                 {
                     title: t('monitor'),
-                    path: `/clusters/${clusterName}/deployments/${deploymentName}/monitor`,
+                    path: `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/monitor`,
                     icon: AiOutlineDashboard,
                     disabled: !hasMonitoring,
                     helpMessage: !hasMonitoring
@@ -164,11 +163,11 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                 },
                 {
                     title: t('revisions'),
-                    path: `/clusters/${clusterName}/deployments/${deploymentName}/revisions`,
+                    path: `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/revisions`,
                     icon: resourceIconMapping.deployment_revision,
                 },
             ] as INavItem[],
-        [clusterName, deploymentName, hasLogging, hasMonitoring, t]
+        [clusterName, deploymentName, hasLogging, hasMonitoring, kubeNamespace, t]
     )
 
     const [, theme] = useStyletron()
@@ -252,7 +251,9 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                             )}
                             <Button
                                 onClick={() =>
-                                    history.push(`/clusters/${clusterName}/deployments/${deploymentName}/edit`)
+                                    history.push(
+                                        `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/edit`
+                                    )
                                 }
                                 size='compact'
                             >
@@ -322,7 +323,7 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                                 expected={deploymentName}
                                 buttonLabel={t('terminate')}
                                 onSubmit={async () => {
-                                    await terminateDeployment(clusterName, deploymentName)
+                                    await terminateDeployment(clusterName, kubeNamespace, deploymentName)
                                     setIsTerminateDeploymentModalOpen(false)
                                     deploymentInfo.refetch()
                                 }}
@@ -378,7 +379,7 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                                 expected={deploymentName}
                                 buttonLabel={t('delete')}
                                 onSubmit={async () => {
-                                    await deleteDeployment(clusterName, deploymentName)
+                                    await deleteDeployment(clusterName, kubeNamespace, deploymentName)
                                     setIsDeleteDeploymentModalOpen(false)
                                     history.push('/deployments')
                                 }}

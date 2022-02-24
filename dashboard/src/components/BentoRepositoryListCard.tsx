@@ -276,7 +276,9 @@ export default function BentoRepositoryListCard() {
                                                     flexGrow: 1,
                                                 }}
                                             >
-                                                <Link href={`/clusters/${item.cluster?.name}/deployments/${item.name}`}>
+                                                <Link
+                                                    href={`/clusters/${item.cluster?.name}/namespaces/${item.kube_namespace}/deployments/${item.name}`}
+                                                >
                                                     {item.name}
                                                 </Link>
                                                 <Time time={item.created_at} />

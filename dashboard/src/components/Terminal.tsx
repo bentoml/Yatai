@@ -78,12 +78,14 @@ export default function Terminal({
         const wsUrl = deploymentName
             ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
                   window.location.host
-              }/ws/v1/clusters/${clusterName}/deployments/${deploymentName}/terminal?${qs.stringify({
-                  pod_name: podName,
-                  container_name: containerName,
-                  debug: debug ? 1 : 0,
-                  fork: fork ? 1 : 0,
-              })}`
+              }/ws/v1/clusters/${clusterName}/namespaces/${namespace}/deployments/${deploymentName}/terminal?${qs.stringify(
+                  {
+                      pod_name: podName,
+                      container_name: containerName,
+                      debug: debug ? 1 : 0,
+                      fork: fork ? 1 : 0,
+                  }
+              )}`
             : `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
                   window.location.host
               }/ws/v1/clusters/${clusterName}/terminal?${qs.stringify({

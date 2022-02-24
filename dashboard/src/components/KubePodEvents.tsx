@@ -11,7 +11,7 @@ import LazyLog from './LazyLog'
 interface IKubePodEventsProps {
     clusterName: string
     deploymentName?: string
-    namespace?: string
+    namespace: string
     podName?: string
     open?: boolean
     width?: number | 'auto'
@@ -30,7 +30,7 @@ export default function KubePodEvents({
     const wsUrl = deploymentName
         ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
               window.location.host
-          }/ws/v1/clusters/${clusterName}/deployments/${deploymentName}/kube_events${qs.stringify(
+          }/ws/v1/clusters/${clusterName}/namespaces/${namespace}/deployments/${deploymentName}/kube_events${qs.stringify(
               {
                   pod_name: podName,
               },
