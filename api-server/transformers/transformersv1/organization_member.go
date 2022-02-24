@@ -52,9 +52,6 @@ func ToOrganizationMemberSchemas(ctx context.Context, members []*models.Organiza
 		}
 
 		res = append(res, &schemasv1.OrganizationMemberSchema{
-			BaseSchema: ToBaseSchema(member),
-				DeletedAt: &member.DeletedAt.Time,
-			},
 			Creator:      creatorSchema,
 			User:         *userSchema,
 			Organization: *orgSchema,
