@@ -12,7 +12,7 @@ export interface IChangePasswordFormProps {
 }
 
 export default function PasswordForm({ onSubmit }: IChangePasswordFormProps) {
-    const [values, setValues] = useState<IChangePasswordSchema | undefined>(undefined) // eslint-disable-line
+    const [values, setValues] = useState<IChangePasswordSchema | undefined>(undefined)
     const handleFinish = useCallback(
         async (values_) => {
             try {
