@@ -194,6 +194,22 @@ export default function Header() {
         lastLocationPathRef.current = location.pathname
     }, [location.pathname])
 
+    // useEffect(() => {
+    //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //     if ((axios.interceptors.response as any).handlers.length > 0) {
+    //         return
+    //     }
+    //     const isInitialSetupInterceptors = axios.interceptors.response.use(
+    //         (response) => {
+    //             return response
+    //         },
+    //         (error) => {
+
+    //         },
+    //     )
+    //     // fetchIsInitialSetup()
+    //     axios.interceptors.response.eject(isInitialSetupInterceptors)
+    // })
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((axios.interceptors.response as any).handlers.length > 0) {

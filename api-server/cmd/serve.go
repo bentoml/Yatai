@@ -193,9 +193,18 @@ func initSelfHost(ctx context.Context) error {
 		return errors.Wrap(err, "list users")
 	}
 	if total == 0 {
+		adminName := "admin"
+		if config.YataiConfig.AdminUser.Name != "" {
+			adminName = config.YataiConfig.AdminUser.Name
+		}
+		adminPassword := "admin"
+		if config.YataiConfig.AdminUser.Password != "" {
+			adminPassword = config.YataiConfig.AdminUser.Password
+		}
 		adminUser, err = services.UserService.Create(ctx, services.CreateUserOption{
-			Name:     "admin",
-			Password: "admin",
+			Name:     adminName,
+			Password: adminPassword,
+			//Email: adminEmail,
 		})
 		if err != nil {
 			return errors.Wrap(err, "create admin user")

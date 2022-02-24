@@ -277,6 +277,11 @@ func authRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Reset password"),
 		fizz.Summary("Reset password"),
 	}, requireLogin, tonic.Handler(controllersv1.AuthController.ResetPassword, 200))
+
+	grp.POST("/setup", []fizz.OperationOption{
+		fizz.ID("Setup admin user"),
+		fizz.Summary("Setup admin user"),
+	}, tonic.Handler(controllersv1.AuthController.RegisterAdminUser, 200))
 }
 
 func userRoutes(grp *fizz.RouterGroup) {
