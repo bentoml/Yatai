@@ -18,7 +18,6 @@ export default function PasswordForm({ onSubmit }: IChangePasswordFormProps) {
             try {
                 await onSubmit(values_)
             } finally {
-                console.log('something') // eslint-disable-line
             }
         },
         [onSubmit]
