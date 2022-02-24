@@ -28,15 +28,15 @@ export default function PasswordForm({ onSubmit }: IChangePasswordFormProps) {
                 setLoading(true)
                 try {
                     await onSubmit({
-                        'new_password': values.new_password,
-                        'current_password': values.current_password
+                        new_password: values.new_password,
+                        current_password: values.current_password,
                     })
                 } finally {
                     setLoading(false)
                 }
             }
         },
-        [onSubmit]
+        [t, onSubmit]
     )
     return (
         <Form initialValues={initialValue} onFinish={handleFinish}>

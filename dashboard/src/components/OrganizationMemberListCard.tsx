@@ -43,7 +43,7 @@ export default function OrganizationMemberListCard() {
             setIsEditUserRoleOpen(false)
             toaster.positive(t('assigned new role'), { autoHideDuration: 2000 })
         },
-        [membersInfo]
+        [t, membersInfo]
     )
     const handleCreateUser = useCallback(
         async (data: ICreateUserSchema) => {
@@ -58,7 +58,7 @@ export default function OrganizationMemberListCard() {
             )
             toaster.positive(`${t('created new user')} ${data.name}`, { autoHideDuration: 2000 })
         },
-        [membersInfo]
+        [t, membersInfo]
     )
 
     return (

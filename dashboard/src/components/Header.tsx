@@ -277,11 +277,14 @@ export default function Header() {
 
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
 
-    const handleChangePassword = useCallback(async (data: IChangePasswordSchema) => {
-        await changePassword(data)
-        setIsChangePasswordOpen(false)
-        toaster.positive(t('password changed'), { autoHideDuration: 2000 })
-    }, [])
+    const handleChangePassword = useCallback(
+        async (data: IChangePasswordSchema) => {
+            await changePassword(data)
+            setIsChangePasswordOpen(false)
+            toaster.positive(t('password changed'), { autoHideDuration: 2000 })
+        },
+        [t]
+    )
 
     const currentThemeType = useCurrentThemeType()
 
