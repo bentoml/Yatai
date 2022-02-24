@@ -91,7 +91,6 @@ func (c *userController) Create(ctx *gin.Context, schema *CreateOrganizationUser
 	if err != nil {
 		return nil, errors.Wrap(err, "create organization member")
 	}
-	_ = organizationMember
 
 	return transformersv1.ToUserSchema(ctx, user)
 }
