@@ -63,7 +63,7 @@ export default function OrganizationMemberListCard() {
         [membersInfo]
     )
 
-    const handelDeactivateUser = useCallback( // eslint-disable-line
+    const handelDeactivateUser = useCallback(
         async (data: IDeleteMemberSchema) => {
             await deleteOrganizationMember(data)
             await membersInfo.refetch()
