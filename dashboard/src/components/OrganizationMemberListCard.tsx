@@ -21,7 +21,7 @@ import { IOrganizationMemberSchema } from '@/schemas/organization_member'
 import UserForm from './UserForm'
 
 const isDeactivated = (deleted_at: string | undefined): boolean => {
-    return !!(deleted_at && new Date(deleted_at).getTime() > 0)
+    return !!deleted_at
 }
 
 export default function OrganizationMemberListCard() {
