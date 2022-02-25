@@ -193,21 +193,15 @@ func initSelfHost(ctx context.Context) error {
 		return errors.Wrap(err, "list users")
 	}
 	if total == 0 {
-		adminName := "admin"
-		if config.YataiConfig.AdminUser.Name != "" {
-			adminName = config.YataiConfig.AdminUser.Name
-		}
-		adminPassword := "admin"
-		if config.YataiConfig.AdminUser.Password != "" {
-			adminPassword = config.YataiConfig.AdminUser.Password
-		}
-		adminUser, err = services.UserService.Create(ctx, services.CreateUserOption{
-			Name:     adminName,
-			Password: adminPassword,
-			//Email: adminEmail,
-		})
-		if err != nil {
-			return errors.Wrap(err, "create admin user")
+		if config.YataiConfig.AdminUser.Email != "" || config.YataiConfig.AdminUser.Name != "" || config.YataiConfig.AdminUser.Password != "" {
+			adminUser, err = services.UserService.Create(ctx, services.CreateUserOption{
+				Password: config.YataiConfig.AdminUser.Password,
+				Name:     config.YataiConfig.AdminUser.Name,
+				Email:    utils.StringPtrWithoutEmpty(config.YataiConfig.AdminUser.Email),
+			})
+			if err != nil {
+				return errors.Wrap(err, "create admin user")
+			}
 		}
 	} else {
 		adminUser = users[0]
