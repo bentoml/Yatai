@@ -222,7 +222,8 @@ export default function YataiComponentListCard({ clusterName }: IYataiComponentL
                                 ) && (
                                     <Button
                                         size='compact'
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                            e.stopPropagation()
                                             setWishToUpgradeType(yataiComponent.type)
                                             setWishToUpgradeTargetVersion(chart?.metadata.version)
                                         }}
@@ -242,7 +243,8 @@ export default function YataiComponentListCard({ clusterName }: IYataiComponentL
                                         },
                                     }}
                                     size='compact'
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        e.stopPropagation()
                                         setWishToDeleteType(yataiComponent.type)
                                     }}
                                 >
