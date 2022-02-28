@@ -166,6 +166,11 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("List all models"),
 	}, requireLogin, tonic.Handler(controllersv1.ModelController.ListAll, 200))
 
+	apiRootGroup.POST("/setup", []fizz.OperationOption{
+		fizz.ID("Setup admin user, org, cluster for selfhosted mode"),
+		fizz.Summary("Setup admin user, org, cluster for selfhosted mode"),
+	}, tonic.Handler(controllersv1.SelfHostedController.Setup, 200))
+
 	if len(fizzApp.Errors()) != 0 {
 		return nil, fmt.Errorf("fizz errors: %v", fizzApp.Errors())
 	}
@@ -277,11 +282,6 @@ func authRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Reset password"),
 		fizz.Summary("Reset password"),
 	}, requireLogin, tonic.Handler(controllersv1.AuthController.ResetPassword, 200))
-
-	grp.POST("/setup", []fizz.OperationOption{
-		fizz.ID("Setup admin user"),
-		fizz.Summary("Setup admin user"),
-	}, tonic.Handler(controllersv1.AuthController.RegisterAdminUser, 200))
 }
 
 func userRoutes(grp *fizz.RouterGroup) {

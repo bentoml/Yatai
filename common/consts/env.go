@@ -14,7 +14,4 @@ const (
 	EnvGithubClientSecret = "GITHUB_CLIENT_SECRET"
 
 	EnvInitializationToken = "YATAI_INITIALIZATION_TOKEN"
-	EnvAdminUserName       = "YATAI_ADMIN_USER_NAME"
-	EnvAdminUserEmail      = "YATAI_ADMIN_USER_EMAIL"
-	EnvAdminUserPassword   = "YATAI_ADMIN_USER_PASSWORD"
 )

@@ -51,12 +51,6 @@ type YataiOAuthConfigYaml struct {
 	Github YataiOAuthGithubConfigYaml `yaml:"github"`
 }
 
-type YataiAdminUserYaml struct {
-	Name     string `yaml:"name"`
-	Email    string `yaml:"email"`
-	Password string `yaml:"password"`
-}
-
 type YataiConfigYaml struct {
 	IsSass              bool                           `yaml:"is_sass"`
 	InCluster           bool                           `yaml:"in_cluster"`
@@ -66,7 +60,6 @@ type YataiConfigYaml struct {
 	DockerRegistry      *YataiDockerRegistryConfigYaml `yaml:"docker_registry,omitempty"`
 	OAuth               *YataiOAuthConfigYaml          `yaml:"oauth,omitempty"`
 	NewsURL             string                         `yaml:"news_url"`
-	AdminUser           *YataiAdminUserYaml            `yaml:"admin_user,omitempty"`
 	InitializationToken string                         `yaml:"initialization_token"`
 }
 
@@ -119,18 +112,6 @@ func PopulateYataiConfig() error {
 	initialization_token, ok := os.LookupEnv(consts.EnvInitializationToken)
 	if ok {
 		YataiConfig.InitializationToken = initialization_token
-	}
-	AdminUserName, ok := os.LookupEnv(consts.EnvAdminUserName)
-	if ok {
-		YataiConfig.AdminUser.Name = AdminUserName
-	}
-	AdminUserEmail, ok := os.LookupEnv(consts.EnvAdminUserEmail)
-	if ok {
-		YataiConfig.AdminUser.Email = AdminUserEmail
-	}
-	AdminUserPassword, ok := os.LookupEnv(consts.EnvAdminUserPassword)
-	if ok {
-		YataiConfig.AdminUser.Password = AdminUserPassword
 	}
 	return nil
 }
