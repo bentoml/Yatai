@@ -128,17 +128,25 @@ func (*selfHostedController) Setup(ctx *gin.Context, schema *SetupSchema) (*sche
 		OrganizationId: defaultOrg.ID,
 		Name:           "default",
 	})
-	if err != nil {
+	/*
+	* Checking defaultCluster exists or not, because CreateCluster might returns
+	* error if the YataiComponent creation failed. That shouldn't prevent the setup process.
+	 */
+	if defaultCluster != nil {
+		if err != nil {
+			println("create default cluster %s", err)
+		}
+		_, err = services.ClusterMemberService.Create(ctx, adminUser.ID, services.CreateClusterMemberOption{
+			CreatorId: adminUser.ID,
+			UserId:    adminUser.ID,
+			ClusterId: defaultCluster.ID,
+			Role:      modelschemas.MemberRoleAdmin,
+		})
+		if err != nil {
+			return nil, errors.Wrapf(err, "create default cluster member")
+		}
+	} else {
 		return nil, errors.Wrapf(err, "create default cluster")
-	}
-	_, err = services.ClusterMemberService.Create(ctx, adminUser.ID, services.CreateClusterMemberOption{
-		CreatorId: adminUser.ID,
-		UserId:    adminUser.ID,
-		ClusterId: defaultCluster.ID,
-		Role:      modelschemas.MemberRoleAdmin,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "create default cluster member")
 	}
 
 	err = scookie.SetUsernameToCookie(ctx, adminUser.Name)

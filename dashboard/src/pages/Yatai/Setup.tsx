@@ -37,6 +37,7 @@ export default function Setup() {
                 } else {
                     toaster.negative('missing token in the url', { autoHideDuration: 3000 })
                 }
+                toaster.positive('setup success', { autoHideDuration: 3000 })
                 history.push('/')
             } finally {
                 setIsLoading(false)
