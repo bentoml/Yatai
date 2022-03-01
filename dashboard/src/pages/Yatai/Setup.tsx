@@ -1,19 +1,22 @@
 import React, { useCallback, useState } from 'react'
+import qs from 'qs'
 import { useStyletron } from 'baseui'
 import YataiLayout from '@/components/YataiLayout'
 import useTranslation from '@/hooks/useTranslation'
-import { IRegisterUserSchema } from '@/schemas/user'
 import { createForm } from '@/components/Form'
 import Card from '@/components/Card'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import logo from '@/assets/logo.svg'
 import Text from '@/components/Text'
 import logoDark from '@/assets/logo-dark.svg'
-import { useHistory } from 'react-router-dom'
+import { useHistory, useLocation } from 'react-router-dom'
 import { Input } from 'baseui/input'
 import { Button } from 'baseui/button'
+import { setupSelfHost } from '@/services/setup'
+import { toaster } from 'baseui/toast'
+import { ISetupSelfHostSchema } from '@/schemas/setup'
 
-const { Form, FormItem } = createForm<IRegisterUserSchema>()
+const { Form, FormItem } = createForm<ISetupSelfHostSchema>()
 
 export default function Setup() {
     const currentThemeType = useCurrentThemeType()
@@ -21,11 +24,19 @@ export default function Setup() {
     const [t] = useTranslation()
     const [isLoading, setIsLoading] = useState(false)
     const history = useHistory()
+    const location = useLocation()
+    const [values, setValues] = useState<ISetupSelfHostSchema | undefined>(undefined)
     const handleFinish = useCallback(
-        async (data: IRegisterUserSchema) => {
+        async (data: ISetupSelfHostSchema) => {
             setIsLoading(true)
             try {
-                console.log(data) // eslint-disable-line
+                const search = qs.parse(location.search, { ignoreQueryPrefix: true })
+                const { token } = search
+                if (token && typeof token === 'string') {
+                    await setupSelfHost({ ...data, token })
+                } else {
+                    toaster.negative('missing token in the url', { autoHideDuration: 3000 })
+                }
                 history.push('/')
             } finally {
                 setIsLoading(false)
@@ -33,6 +44,9 @@ export default function Setup() {
         },
         [history]
     )
+    const handleValuesChange = useCallback((_changes, newValues) => {
+        setValues(newValues)
+    }, [])
 
     return (
         <YataiLayout
@@ -64,6 +78,7 @@ export default function Setup() {
                                 paddingBottom: 20,
                                 alignItems: 'center',
                                 gap: 10,
+                                minWidth: 400,
                             }}
                         >
                             <img
@@ -94,9 +109,9 @@ export default function Setup() {
                                 gap: 10,
                             }}
                         >
-                            Setup inital admin account
+                            {t('setup initial admin account')}
                         </div>
-                        <Form onFinish={handleFinish}>
+                        <Form initialValues={values} onValuesChange={handleValuesChange} onFinish={handleFinish}>
                             <FormItem name='name' label={t('name')}>
                                 <Input />
                             </FormItem>

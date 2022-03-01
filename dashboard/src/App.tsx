@@ -20,7 +20,7 @@ export default function Hello() {
         <QueryClientProvider client={queryClient}>
             <StyletronProvider value={engine}>
                 <BaseProvider theme={themeType === 'dark' ? DarkTheme : LightTheme}>
-                    <ToasterContainer autoHideDuration={5000}>
+                    <ToasterContainer autoHideDuration={10000}>
                         <SidebarContext.Provider value={sidebarData}>
                             <Routes />
                         </SidebarContext.Provider>
