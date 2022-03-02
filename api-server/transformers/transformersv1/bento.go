@@ -40,12 +40,22 @@ func ToBentoSchemas(ctx context.Context, bentos []*models.Bento) ([]*schemasv1.B
 		if !ok {
 			return nil, errors.Errorf("resourceSchema not found for bento %s", bento.GetUid())
 		}
+		imageName, err := services.BentoService.GetImageName(ctx, bento, false)
+		if err != nil {
+			return nil, errors.Wrap(err, "GetImageName")
+		}
+		inClusterImageName, err := services.BentoService.GetImageName(ctx, bento, true)
+		if err != nil {
+			return nil, errors.Wrap(err, "GetInClusterImageName")
+		}
 		res = append(res, &schemasv1.BentoSchema{
 			ResourceSchema:       resourceSchema,
 			BentoRepositoryUid:   bentoRepository.Uid,
 			Version:              bento.Version,
 			Creator:              creatorSchema,
 			Description:          bento.Description,
+			ImageName:            imageName,
+			InClusterImageName:   inClusterImageName,
 			ImageBuildStatus:     bento.ImageBuildStatus,
 			UploadStatus:         bento.UploadStatus,
 			UploadStartedAt:      bento.UploadStartedAt,
