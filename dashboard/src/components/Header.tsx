@@ -208,24 +208,22 @@ export default function Header() {
                 if (error.response?.status === 403 && error.config.method === 'get') {
                     const search = qs.parse(location.search, { ignoreQueryPrefix: true })
                     let { redirect } = search
-                    const { token } = search
                     if (redirect && typeof redirect === 'string') {
                         redirect = decodeURI(redirect)
-                    } else if (['/login', '/logout'].indexOf(location.pathname) < 0) {
-                        if (['/setup'].indexOf(location.pathname) >= 0) {
-                            redirect = '/'
-                        } else {
-                            redirect = `${location.pathname}${location.search}`
-                        }
+                    } else if (['/login', '/logout', '/setup'].indexOf(location.pathname) < 0) {
+                        redirect = `${location.pathname}${location.search}`
                     } else {
                         redirect = '/'
                     }
-                    if (location.pathname !== '/login' && location.pathname !== '/login/') {
-                        if (location.pathname !== '/setup' || typeof token !== 'string' || token === '') {
-                            window.location.href = `${window.location.protocol}//${
-                                window.location.host
-                            }/login?redirect=${encodeURIComponent(redirect)}`
-                        }
+                    if (
+                        location.pathname !== '/login' &&
+                        location.pathname !== '/login/' &&
+                        location.pathname !== '/setup' &&
+                        location.pathname !== '/setup/'
+                    ) {
+                        window.location.href = `${window.location.protocol}//${
+                            window.location.host
+                        }/login?redirect=${encodeURIComponent(redirect)}`
                     }
                 } else if (Date.now() - (lastErrMsgRef.current[errMsg] || 0) > errMsgExpireTimeSeconds * 1000) {
                     toaster.negative(errMsg, { autoHideDuration: (errMsgExpireTimeSeconds + 1) * 1000 })
