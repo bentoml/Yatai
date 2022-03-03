@@ -5,6 +5,9 @@
 
 Yatai helps ML teams to deploy large scale model serving workloads on Kubernetes. It standarlizes [BentoML](https://github.com/bentoml) deployment on Kubernetes, provides UI for managing all your ML models and deployments in one place, and enables advanced GitOps and CI/CD workflow.
 
+👉 [Pop into our Slack community!](https://l.linklyhq.com/l/ktPW) We're happy to help with any issue you face or even just to meet you and hear what you're working on :)
+
+
 Core features:
 
 * **Deployment Automation** - deploy Bentos as auto-scaling API endpoints on Kubernetes and easily rollout new versions
