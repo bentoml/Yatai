@@ -15,9 +15,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/cache"
 
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/consts"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 type kubeController struct {

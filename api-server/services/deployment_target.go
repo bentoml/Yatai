@@ -10,10 +10,10 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/sync/errsgroup"
-	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type deploymentTargetService struct{}

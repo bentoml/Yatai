@@ -26,11 +26,12 @@ import (
 	clientcmdapiv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 
 	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
+
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/helmchart"
-	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 const (

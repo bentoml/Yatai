@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/bentoml/yatai/schemas/modelschemas"
+	"github.com/bentoml/yatai-schemas/modelschemas"
 )
 
 type BaseListOption struct {

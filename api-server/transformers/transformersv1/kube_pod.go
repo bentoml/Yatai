@@ -8,12 +8,12 @@ import (
 
 	apiv1 "k8s.io/api/core/v1"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/utils"
-	"github.com/bentoml/yatai/schemas/modelschemas"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 func ToKubePodSchema(ctx context.Context, pod *models.KubePodWithStatus) (v *schemasv1.KubePodSchema, err error) {

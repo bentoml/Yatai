@@ -14,6 +14,7 @@ import (
 	"github.com/tianweidut/cron"
 	"gopkg.in/yaml.v3"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/routes"
@@ -21,7 +22,6 @@ import (
 	"github.com/bentoml/yatai/common/command"
 	"github.com/bentoml/yatai/common/sync/errsgroup"
 	"github.com/bentoml/yatai/common/utils"
-	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 func addCron(ctx context.Context) {

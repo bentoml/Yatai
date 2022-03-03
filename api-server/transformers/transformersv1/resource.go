@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/schemas/modelschemas"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 func ToResourceSchemasMap(ctx context.Context, resourcesItf interface{}) (map[string]schemasv1.ResourceSchema, error) {

@@ -3,10 +3,10 @@ package transformersv1
 import (
 	"context"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/schemas/modelschemas"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.EventSchema, error) {

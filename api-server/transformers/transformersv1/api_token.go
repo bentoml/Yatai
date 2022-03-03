@@ -5,8 +5,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 func ToApiTokenSchema(ctx context.Context, apiToken *models.ApiToken) (*schemasv1.ApiTokenSchema, error) {
