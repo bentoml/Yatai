@@ -539,7 +539,7 @@ func (o *DebugOptions) getAgentPod() *corev1.Pod {
 					Image:           o.AgentImage,
 					ImagePullPolicy: corev1.PullAlways,
 					LivenessProbe: &corev1.Probe{
-						Handler: corev1.Handler{
+						ProbeHandler: corev1.ProbeHandler{
 							HTTPGet: &corev1.HTTPGetAction{
 								Path: "/healthz",
 								Port: intstr.FromInt(10027),

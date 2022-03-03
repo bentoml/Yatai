@@ -253,7 +253,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		InitialDelaySeconds: 5,
 		TimeoutSeconds:      5,
 		FailureThreshold:    6,
-		Handler: apiv1.Handler{
+		ProbeHandler: apiv1.ProbeHandler{
 			HTTPGet: &apiv1.HTTPGetAction{
 				Path: "/livez",
 				Port: intstr.FromInt(containerPort),
@@ -265,7 +265,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		InitialDelaySeconds: 5,
 		TimeoutSeconds:      5,
 		FailureThreshold:    6,
-		Handler: apiv1.Handler{
+		ProbeHandler: apiv1.ProbeHandler{
 			HTTPGet: &apiv1.HTTPGetAction{
 				Path: "/readyz",
 				Port: intstr.FromInt(containerPort),

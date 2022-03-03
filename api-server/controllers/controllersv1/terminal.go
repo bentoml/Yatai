@@ -555,7 +555,7 @@ func launchKubectlPod(ctx context.Context, cli *kubernetes.Clientset, userName s
 					ImagePullPolicy: corev1.PullAlways,
 					Command:         []string{"sleep", "infinity"},
 					LivenessProbe: &corev1.Probe{
-						Handler: corev1.Handler{
+						ProbeHandler: corev1.ProbeHandler{
 							Exec: &corev1.ExecAction{
 								Command: []string{"echo", "ok"},
 							},
