@@ -12,6 +12,8 @@ type ModelSchema struct {
 	Creator              *UserSchema                       `json:"creator"`
 	Version              string                            `json:"version"`
 	Description          string                            `json:"description"`
+	ImageName            string                            `json:"image_name"`
+	InClusterImageName   string                            `json:"in_cluster_image_name"`
 	ImageBuildStatus     modelschemas.ImageBuildStatus     `json:"image_build_status"`
 	UploadStatus         modelschemas.ModelUploadStatus    `json:"upload_status"`
 	UploadStartedAt      *time.Time                        `json:"upload_started_at"`

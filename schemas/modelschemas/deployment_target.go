@@ -38,9 +38,10 @@ type DeploymentTargetHPAConf struct {
 }
 
 type DeploymentTargetConfig struct {
-	Resources *DeploymentTargetResources `json:"resources"`
-	HPAConf   *DeploymentTargetHPAConf   `json:"hpa_conf,omitempty"`
-	Envs      *[]*LabelItemSchema        `json:"envs,omitempty"`
+	KubeResourceUid string                     `json:"kubeResourceUid"`
+	Resources       *DeploymentTargetResources `json:"resources"`
+	HPAConf         *DeploymentTargetHPAConf   `json:"hpa_conf,omitempty"`
+	Envs            *[]*LabelItemSchema        `json:"envs,omitempty"`
 }
 
 func (c *DeploymentTargetConfig) Scan(value interface{}) error {

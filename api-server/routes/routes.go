@@ -313,6 +313,11 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Get an organization major cluster"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.GetMajorCluster, 200))
 
+	resourceGrp.GET("/docker_registry", []fizz.OperationOption{
+		fizz.ID("Get an organization docker registry"),
+		fizz.Summary("Get an organization docker registry"),
+	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.GetDockerRegistry, 200))
+
 	resourceGrp.GET("/model_modules", []fizz.OperationOption{
 		fizz.ID("Get an organization model modules"),
 		fizz.Summary("Get an organization model modules"),
