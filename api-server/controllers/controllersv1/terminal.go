@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/docker/docker/pkg/term"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
