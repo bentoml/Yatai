@@ -8,6 +8,7 @@ import (
 type ClusterConfigAWSSchema struct {
 	Region string `json:"region"`
 }
+
 type ClusterConfigSchema struct {
 	DefaultDeploymentKubeNamespace string                  `json:"default_deployment_kube_namespace"`
 	IngressIp                      string                  `json:"ingress_ip"`

@@ -427,18 +427,7 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 	return
 }
 
-type DockerRegistry struct {
-	BentosRepositoryURI          string
-	ModelsRepositoryURI          string
-	BentosRepositoryURIInCluster string
-	ModelsRepositoryURIInCluster string
-	Server                       string
-	Username                     string
-	Password                     string
-	Secure                       bool
-}
-
-func (s *organizationService) GetDockerRegistry(ctx context.Context, org *models.Organization) (repo *DockerRegistry, err error) {
+func (s *organizationService) GetDockerRegistry(ctx context.Context, org *models.Organization) (registry *modelschemas.DockerRegistrySchema, err error) {
 	if config.YataiConfig.DockerRegistry != nil {
 		bentoRepositoryName := "yatai-bentos"
 		modelRepositoryName := "yatai-models"
@@ -454,7 +443,7 @@ func (s *organizationService) GetDockerRegistry(ctx context.Context, org *models
 			bentoRepositoryURI = fmt.Sprintf("docker.io/%s", bentoRepositoryName)
 			modelRepositoryURI = fmt.Sprintf("docker.io/%s", modelRepositoryName)
 		}
-		repo = &DockerRegistry{
+		registry = &modelschemas.DockerRegistrySchema{
 			BentosRepositoryURI:          bentoRepositoryURI,
 			ModelsRepositoryURI:          modelRepositoryURI,
 			BentosRepositoryURIInCluster: bentoRepositoryURI,
@@ -468,7 +457,7 @@ func (s *organizationService) GetDockerRegistry(ctx context.Context, org *models
 	}
 	if org.Config != nil && org.Config.DockerRegistry != nil && org.Config.DockerRegistry.Server != "" {
 		dockerRegistryConf := org.Config.DockerRegistry
-		repo = &DockerRegistry{
+		registry = &modelschemas.DockerRegistrySchema{
 			BentosRepositoryURI:          dockerRegistryConf.BentosRepositoryURI,
 			ModelsRepositoryURI:          dockerRegistryConf.ModelsRepositoryURI,
 			BentosRepositoryURIInCluster: dockerRegistryConf.BentosRepositoryURI,
@@ -483,7 +472,7 @@ func (s *organizationService) GetDockerRegistry(ctx context.Context, org *models
 	if org.Config != nil && org.Config.AWS != nil && org.Config.AWS.ECR != nil && org.Config.AWS.ECR.AccountId != "" {
 		bentosURI := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com/%s", org.Config.AWS.ECR.AccountId, org.Config.AWS.ECR.Region, org.Config.AWS.ECR.BentosRepositoryName)
 		modelsURI := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com/%s", org.Config.AWS.ECR.AccountId, org.Config.AWS.ECR.Region, org.Config.AWS.ECR.ModelsRepositoryName)
-		repo = &DockerRegistry{
+		registry = &modelschemas.DockerRegistrySchema{
 			BentosRepositoryURI:          bentosURI,
 			ModelsRepositoryURI:          modelsURI,
 			BentosRepositoryURIInCluster: bentosURI,
@@ -537,7 +526,7 @@ func (s *organizationService) GetDockerRegistry(ctx context.Context, org *models
 		svcIp := svc.Spec.ClusterIP
 		domainInCluster = fmt.Sprintf("%s:5000", svcIp)
 	}
-	repo = &DockerRegistry{
+	registry = &modelschemas.DockerRegistrySchema{
 		BentosRepositoryURI:          fmt.Sprintf("%s/bentos", domain),
 		ModelsRepositoryURI:          fmt.Sprintf("%s/models", domain),
 		BentosRepositoryURIInCluster: fmt.Sprintf("%s/bentos", domainInCluster),

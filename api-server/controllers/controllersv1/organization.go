@@ -133,6 +133,17 @@ func (c *organizationController) GetMajorCluster(ctx *gin.Context, schema *GetOr
 	return transformersv1.ToClusterFullSchema(ctx, cluster)
 }
 
+func (c *organizationController) GetDockerRegistry(ctx *gin.Context, schema *GetOrganizationSchema) (*modelschemas.DockerRegistrySchema, error) {
+	organization, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canOperate(ctx, organization); err != nil {
+		return nil, err
+	}
+	return services.OrganizationService.GetDockerRegistry(ctx, organization)
+}
+
 type ListEventOperationNames struct {
 	GetOrganizationSchema
 	ResourceType modelschemas.ResourceType `query:"resource_type"`
