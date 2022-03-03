@@ -17,10 +17,10 @@ import (
 	v1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/utils/pointer"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/utils"
-	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type kubePodService struct{}
@@ -253,7 +253,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		InitialDelaySeconds: 5,
 		TimeoutSeconds:      5,
 		FailureThreshold:    6,
-		Handler: apiv1.Handler{
+		ProbeHandler: apiv1.ProbeHandler{
 			HTTPGet: &apiv1.HTTPGetAction{
 				Path: "/livez",
 				Port: intstr.FromInt(containerPort),
@@ -265,7 +265,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		InitialDelaySeconds: 5,
 		TimeoutSeconds:      5,
 		FailureThreshold:    6,
-		Handler: apiv1.Handler{
+		ProbeHandler: apiv1.ProbeHandler{
 			HTTPGet: &apiv1.HTTPGetAction{
 				Path: "/readyz",
 				Port: intstr.FromInt(containerPort),

@@ -3,8 +3,8 @@ package transformersv1
 import (
 	"context"
 
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 func ToYataiComponentSchema(ctx context.Context, comp *models.YataiComponent) (s *schemasv1.YataiComponentSchema, err error) {

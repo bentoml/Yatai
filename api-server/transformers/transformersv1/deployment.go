@@ -5,11 +5,11 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/utils"
-	"github.com/bentoml/yatai/schemas/modelschemas"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 func ToDeploymentSchema(ctx context.Context, deployment *models.Deployment) (*schemasv1.DeploymentSchema, error) {

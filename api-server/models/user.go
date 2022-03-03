@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 
-	"github.com/bentoml/yatai/schemas/modelschemas"
+	"github.com/bentoml/yatai-schemas/modelschemas"
 )
 
 type User struct {

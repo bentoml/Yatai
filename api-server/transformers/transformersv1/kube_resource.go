@@ -3,8 +3,8 @@ package transformersv1
 import (
 	"context"
 
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 func ToKubeResourceSchemas(ctx context.Context, resources []*models.KubeResource) (ss []*schemasv1.KubeResourceSchema, err error) {

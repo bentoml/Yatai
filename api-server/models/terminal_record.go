@@ -5,7 +5,7 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/bentoml/yatai/schemas/modelschemas"
+	"github.com/bentoml/yatai-schemas/modelschemas"
 )
 
 type TerminalRecord struct {

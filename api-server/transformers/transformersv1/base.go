@@ -3,8 +3,8 @@ package transformersv1
 import (
 	"time"
 
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 func ToBaseSchema(base models.IBaseModel) schemasv1.BaseSchema {

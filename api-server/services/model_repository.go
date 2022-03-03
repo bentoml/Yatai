@@ -6,9 +6,9 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
-	"github.com/bentoml/yatai/schemas/modelschemas"
 )
 
 type modelRepositoryService struct{}
