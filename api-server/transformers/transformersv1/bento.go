@@ -96,7 +96,7 @@ func ToBentoFullSchemas(ctx context.Context, bentos []*models.Bento) ([]*schemas
 		if err != nil {
 			return nil, errors.Wrap(err, "list models")
 		}
-		modelSchemas, err := ToModelSchemas(ctx, models_)
+		modelSchemas, err := ToModelWithRepositorySchemas(ctx, models_)
 		if err != nil {
 			return nil, errors.Wrap(err, "ToModelSchemas")
 		}
