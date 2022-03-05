@@ -226,10 +226,10 @@ Prerequisites:
 
 ```bash
 helm install yatai yatai/yatai \
-	--set docker_registry.server='https://index.docker.io/v1' \
-	--set docker_registry.username='MY_DOCKER_USER' \
-	--set docker_registry.password='MY_DOCKER_USER_PASSWORD' \
-	--set docker_registry.secure=true \
+	--set config.docker_registry.server='https://index.docker.io/v1' \
+	--set config.docker_registry.username='MY_DOCKER_USER' \
+	--set config.docker_registry.password='MY_DOCKER_USER_PASSWORD' \
+	--set config.docker_registry.secure=true \
 	-n yatai-system --create-namespace
 ```
 
@@ -279,12 +279,12 @@ Prerequisites:
 
     ```bash
     helm install yatai yatai/yatai \
-    	--set docker_registry.server=$ENDPOINT \
-    	--set docker_registry.username=AWS \
-    	--set docker_registry.password=$PASSWORD \
-    	--set docker_registry.bentos_repository_name=$BENTO_REPO \
-    	--set docker_registry.models_repository_name=$MODEL_REPO \
-    	--set docker_registry.secure=true \
+    	--set config.docker_registry.server=$ENDPOINT \
+    	--set config.docker_registry.username=AWS \
+    	--set config.docker_registry.password=$PASSWORD \
+    	--set config.docker_registry.bentos_repository_name=$BENTO_REPO \
+    	--set config.docker_registry.models_repository_name=$MODEL_REPO \
+    	--set config.docker_registry.secure=true \
     	-n yatai-system --create-namespace
     ```
 
