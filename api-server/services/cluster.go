@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -11,7 +12,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	apiv1 "k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -321,6 +321,64 @@ func (s *clusterService) GetKubeCliSet(ctx context.Context, c *models.Cluster) (
 	return clientSet, restConfig, nil
 }
 
+func (s *clusterService) GetDockerRegistryRef(ctx context.Context, cluster *models.Cluster) (ref *modelschemas.DockerRegistryRefSchema, err error) {
+	namespace := consts.KubeNamespaceYataiOperators
+	name := "yatai-docker-registry-config"
+	key := "config"
+	ref = &modelschemas.DockerRegistryRefSchema{
+		Namespace: namespace,
+		Name:      name,
+		Key:       key,
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
+	if err != nil {
+		return ref, errors.Wrap(err, "get associated organization")
+	}
+	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
+	if err != nil {
+		return ref, errors.Wrap(err, "get docker registry")
+	}
+	content, err := json.Marshal(dockerRegistry)
+	if err != nil {
+		return ref, errors.Wrap(err, "marshal docker registry")
+	}
+	secret := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Data: map[string][]byte{
+			key: content,
+		},
+	}
+	clientSet, _, err := s.GetKubeCliSet(ctx, cluster)
+	if err != nil {
+		return ref, errors.Wrap(err, "get kube cli set")
+	}
+	secretCli := clientSet.CoreV1().Secrets(namespace)
+	oldSecret, err := secretCli.Get(ctx, name, metav1.GetOptions{})
+	isNotFound := apierrors.IsNotFound(err)
+	if err != nil && !isNotFound {
+		return ref, errors.Wrap(err, "get secret")
+	}
+	if !isNotFound {
+		if bytes.Equal(content, oldSecret.Data[key]) {
+			return ref, nil
+		}
+		oldSecret.Data[key] = content
+		_, err = secretCli.Update(ctx, oldSecret, metav1.UpdateOptions{})
+		if err != nil {
+			return ref, errors.Wrap(err, "update secret")
+		}
+	} else {
+		_, err = secretCli.Create(ctx, &secret, metav1.CreateOptions{})
+		if err != nil {
+			return ref, errors.Wrap(err, "create secret")
+		}
+	}
+	return ref, nil
+}
+
 func (s *clusterService) GetIngressIp(ctx context.Context, cluster *models.Cluster) (string, error) {
 	var ip string
 	if cluster.Config != nil {
@@ -465,7 +523,7 @@ func (s *clusterService) MakeSureDockerConfigCM(ctx context.Context, cluster *mo
 	}
 	err = nil
 	if dockerConfigIsNotFound {
-		dockerConfigCM = &apiv1.ConfigMap{
+		dockerConfigCM = &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{Name: dockerConfigCMKubeName},
 			Data: map[string]string{
 				"config.json": string(dockerConfigContent),

@@ -134,6 +134,25 @@ type UpdateDeploymentSchema struct {
 	GetDeploymentSchema
 }
 
+func (c *deploymentController) SyncStatus(ctx *gin.Context, schema *UpdateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
+	deployment, err := schema.GetDeployment(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canOperate(ctx, deployment); err != nil {
+		return nil, err
+	}
+
+	status, err := services.DeploymentService.SyncStatus(ctx, deployment)
+	if err != nil {
+		return nil, errors.Wrap(err, "sync deployment status")
+	}
+
+	deployment.Status = status
+
+	return transformersv1.ToDeploymentSchema(ctx, deployment)
+}
+
 func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
 	deployment, err := schema.GetDeployment(ctx)
 	if err != nil {
@@ -142,17 +161,13 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	if err = c.canUpdate(ctx, deployment); err != nil {
 		return nil, err
 	}
-	cluster, err := schema.GetCluster(ctx)
-	if err != nil {
-		return nil, err
-	}
 	org, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
 	}
 	deployment, err = services.DeploymentService.Update(ctx, deployment, services.UpdateDeploymentOption{
-		ClusterId: cluster.ID,
-		Labels:    schema.Labels,
+		Description: schema.Description,
+		Labels:      schema.Labels,
 	})
 	if err != nil {
 		return nil, err

@@ -46,8 +46,8 @@ type CreateDeploymentOption struct {
 
 type UpdateDeploymentOption struct {
 	Description *string
-	ClusterId   uint
 	Labels      *modelschemas.LabelItemsSchema
+	Status      *modelschemas.DeploymentStatus
 }
 
 type UpdateDeploymentStatusOption struct {
@@ -130,6 +130,15 @@ func (s *deploymentService) Update(ctx context.Context, b *models.Deployment, op
 		}()
 	}
 
+	if opt.Status != nil {
+		updaters["status"] = *opt.Status
+		defer func() {
+			if err == nil {
+				b.Status = *opt.Status
+			}
+		}()
+	}
+
 	if len(updaters) == 0 {
 		return b, nil
 	}
@@ -139,7 +148,7 @@ func (s *deploymentService) Update(ctx context.Context, b *models.Deployment, op
 		return nil, err
 	}
 	if opt.Labels != nil {
-		cluster, err := ClusterService.Get(ctx, opt.ClusterId)
+		cluster, err := ClusterService.GetAssociatedCluster(ctx, b)
 		if err != nil {
 			return nil, err
 		}

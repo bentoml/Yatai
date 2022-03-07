@@ -344,20 +344,6 @@ func (s *deploymentRevisionService) Deploy(ctx context.Context, deploymentRevisi
 		}
 	}
 
-	defer func() {
-		if err != nil {
-			return
-		}
-		status := modelschemas.DeploymentStatusDeploying
-		_, _ = DeploymentService.UpdateStatus(ctx, deployment, UpdateDeploymentStatusOption{
-			Status: &status,
-		})
-		deployment.Status = status
-		go func() {
-			_, _ = DeploymentService.SyncStatus(ctx, deployment)
-		}()
-	}()
-
 	var eg errsgroup.Group
 
 	for _, deploymentTarget := range deploymentTargets {
