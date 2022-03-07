@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	apiv1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -367,85 +366,4 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 	}
 
 	return
-}
-
-// nolint:unused,deadcode
-func getResourcesConfig(containerName string, resources *modelschemas.DeploymentTargetResources, resourceMap map[string]*modelschemas.DeploymentTargetResources, gpuNvidiaResourceRequest bool) (apiv1.ResourceRequirements, error) {
-	currentResources := apiv1.ResourceRequirements{
-		Requests: apiv1.ResourceList{
-			apiv1.ResourceCPU:    resource.MustParse("300m"),
-			apiv1.ResourceMemory: resource.MustParse("500Mi"),
-		},
-		Limits: apiv1.ResourceList{
-			apiv1.ResourceCPU:    resource.MustParse("500m"),
-			apiv1.ResourceMemory: resource.MustParse("1Gi"),
-		},
-	}
-	if gpuNvidiaResourceRequest {
-		currentResources.Limits[consts.KubeResourceGPUNvidia] = resource.MustParse("1")
-	}
-
-	resourceConf := resources
-	if resourceMap != nil {
-		if _, ok := resourceMap[containerName]; ok {
-			resourceConf = resourceMap[containerName]
-		}
-	}
-	if resourceConf != nil {
-		if resourceConf.Limits != nil {
-			if resourceConf.Limits.CPU != "" {
-				q, err := resource.ParseQuantity(resourceConf.Limits.CPU)
-				if err != nil {
-					return currentResources, errors.Wrapf(err, "parse limits cpu quantity")
-				}
-				if currentResources.Limits == nil {
-					currentResources.Limits = make(apiv1.ResourceList)
-				}
-				currentResources.Limits[apiv1.ResourceCPU] = q
-			}
-			if resourceConf.Limits.Memory != "" {
-				q, err := resource.ParseQuantity(resourceConf.Limits.Memory)
-				if err != nil {
-					return currentResources, errors.Wrapf(err, "parse limits memory quantity")
-				}
-				if currentResources.Limits == nil {
-					currentResources.Limits = make(apiv1.ResourceList)
-				}
-				currentResources.Limits[apiv1.ResourceMemory] = q
-			}
-			if resourceConf.Limits.GPU != "" {
-				q, err := resource.ParseQuantity(resourceConf.Limits.GPU)
-				if err != nil {
-					return currentResources, errors.Wrapf(err, "parse limits gpu quantity")
-				}
-				if currentResources.Limits == nil {
-					currentResources.Limits = make(apiv1.ResourceList)
-				}
-				currentResources.Limits[consts.KubeResourceGPUNvidia] = q
-			}
-		}
-		if resourceConf.Requests != nil {
-			if resourceConf.Requests.CPU != "" {
-				q, err := resource.ParseQuantity(resourceConf.Requests.CPU)
-				if err != nil {
-					return currentResources, errors.Wrapf(err, "parse requests cpu quantity")
-				}
-				if currentResources.Requests == nil {
-					currentResources.Requests = make(apiv1.ResourceList)
-				}
-				currentResources.Requests[apiv1.ResourceCPU] = q
-			}
-			if resourceConf.Requests.Memory != "" {
-				q, err := resource.ParseQuantity(resourceConf.Requests.Memory)
-				if err != nil {
-					return currentResources, errors.Wrapf(err, "parse requests memory quantity")
-				}
-				if currentResources.Requests == nil {
-					currentResources.Requests = make(apiv1.ResourceList)
-				}
-				currentResources.Requests[apiv1.ResourceMemory] = q
-			}
-		}
-	}
-	return currentResources, nil
 }

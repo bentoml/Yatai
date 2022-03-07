@@ -233,19 +233,22 @@ func (s *deploymentRevisionService) DeleteKubeOwnerReferences(ctx context.Contex
 }
 
 func (s *deploymentRevisionService) GetDeployOption(ctx context.Context, deploymentRevision *models.DeploymentRevision, force bool) (*models.DeployOption, error) {
-	ownerReferences, err := s.MakeSureKubeOwnerReferences(ctx, deploymentRevision)
-	if err != nil {
-		return nil, err
-	}
 	deployOption := &models.DeployOption{
-		Force:           force,
-		OwnerReferences: ownerReferences,
+		Force: force,
 	}
 	return deployOption, nil
 }
 
 func (s *deploymentRevisionService) Terminate(ctx context.Context, deploymentRevision *models.DeploymentRevision) (err error) {
-	return s.DeleteKubeOwnerReferences(ctx, deploymentRevision)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentRevision)
+	if err != nil {
+		return err
+	}
+	cli, err := DeploymentService.GetKubeBentoDeploymentCli(ctx, deployment)
+	if err != nil {
+		return err
+	}
+	return cli.Delete(ctx, deployment.Name, metav1.DeleteOptions{})
 }
 
 func (s *deploymentRevisionService) Deploy(ctx context.Context, deploymentRevision *models.DeploymentRevision, deploymentTargets []*models.DeploymentTarget, force bool) (err error) {
@@ -349,7 +352,8 @@ func (s *deploymentRevisionService) Deploy(ctx context.Context, deploymentRevisi
 	for _, deploymentTarget := range deploymentTargets {
 		deploymentTarget := deploymentTarget
 		eg.Go(func() error {
-			return DeploymentTargetService.Deploy(ctx, deploymentTarget, deployOption)
+			_, err := DeploymentTargetService.Deploy(ctx, deploymentTarget, deployOption)
+			return err
 		})
 	}
 

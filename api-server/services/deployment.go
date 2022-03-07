@@ -25,6 +25,8 @@ import (
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/utils"
+
+	servingv1alpha1 "github.com/bentoml/yatai-deployment-operator/generated/serving/clientset/versioned/typed/serving/v1alpha1"
 )
 
 type deploymentService struct{}
@@ -430,6 +432,19 @@ func (s *deploymentService) GetKubeJobsCli(ctx context.Context, d *models.Deploy
 	return jobsCli, nil
 }
 
+func (s *deploymentService) GetKubeBentoDeploymentCli(ctx context.Context, d *models.Deployment) (servingv1alpha1.BentoDeploymentInterface, error) {
+	_, restConf, err := s.GetKubeCliSet(ctx, d)
+	if err != nil {
+		return nil, errors.Wrap(err, "get k8s cliset")
+	}
+	ns := s.GetKubeNamespace(d)
+	cli, err := servingv1alpha1.NewForConfig(restConf)
+	if err != nil {
+		return nil, errors.Wrap(err, "get bento deployment cliset")
+	}
+	return cli.BentoDeployments(ns), nil
+}
+
 func (s *deploymentService) SyncStatus(ctx context.Context, d *models.Deployment) (modelschemas.DeploymentStatus, error) {
 	now := time.Now()
 	nowPtr := &now
@@ -595,7 +610,6 @@ func (s *deploymentService) GenerateDefaultHostname(ctx context.Context, deploym
 }
 
 func (s *deploymentService) GetURLs(ctx context.Context, deployment *models.Deployment) ([]string, error) {
-	type_ := modelschemas.DeploymentTargetTypeStable
 	status := modelschemas.DeploymentRevisionStatusActive
 	deploymentRevisions, _, err := DeploymentRevisionService.List(ctx, ListDeploymentRevisionOption{
 		BaseListOption: BaseListOption{
@@ -612,35 +626,21 @@ func (s *deploymentService) GetURLs(ctx context.Context, deployment *models.Depl
 		return []string{}, nil
 	}
 	urls := make([]string, 0)
-	for _, deploymentRevision := range deploymentRevisions {
-		deploymentTargets, _, err := DeploymentTargetService.List(ctx, ListDeploymentTargetOption{
-			DeploymentRevisionId: utils.UintPtr(deploymentRevision.ID),
-			Type:                 &type_,
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, deploymentTarget := range deploymentTargets {
-			kubeName, err := DeploymentTargetService.GetKubeName(ctx, deploymentTarget)
-			if err != nil {
-				return nil, err
-			}
-			ingCli, err := s.GetKubeIngressesCli(ctx, deployment)
-			if err != nil {
-				return nil, err
-			}
-			ing, err := ingCli.Get(ctx, kubeName, metav1.GetOptions{})
-			ingIsNotFound := k8serrors.IsNotFound(err)
-			if err != nil && !ingIsNotFound {
-				return nil, err
-			}
-			if ingIsNotFound {
-				return []string{}, nil
-			}
-			for _, rule := range ing.Spec.Rules {
-				urls = append(urls, fmt.Sprintf("http://%s", rule.Host))
-			}
-		}
+	kubeName := deployment.Name
+	ingCli, err := s.GetKubeIngressesCli(ctx, deployment)
+	if err != nil {
+		return nil, err
+	}
+	ing, err := ingCli.Get(ctx, kubeName, metav1.GetOptions{})
+	ingIsNotFound := k8serrors.IsNotFound(err)
+	if err != nil && !ingIsNotFound {
+		return nil, err
+	}
+	if ingIsNotFound {
+		return []string{}, nil
+	}
+	for _, rule := range ing.Spec.Rules {
+		urls = append(urls, fmt.Sprintf("http://%s", rule.Host))
 	}
 	return urls, nil
 }
