@@ -42,7 +42,7 @@ export default function ModelList({ queryKey, isLoading, models, paginationProps
                 }
                 return {
                     ...oldData,
-                    items: oldData.items.map((oldModelVersion) => {
+                    items: oldData.items?.map((oldModelVersion) => {
                         if (oldModelVersion.uid === modelVersion.uid) {
                             return {
                                 ...oldModelVersion,

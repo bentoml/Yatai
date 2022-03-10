@@ -10,12 +10,12 @@ import (
 	"github.com/huandu/xstrings"
 	"github.com/pkg/errors"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
 	"github.com/bentoml/yatai/common/utils"
-	"github.com/bentoml/yatai/schemas/modelschemas"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 type organizationController struct {
@@ -131,6 +131,17 @@ func (c *organizationController) GetMajorCluster(ctx *gin.Context, schema *GetOr
 		return nil, errors.Wrap(err, "get major cluster")
 	}
 	return transformersv1.ToClusterFullSchema(ctx, cluster)
+}
+
+func (c *organizationController) GetDockerRegistry(ctx *gin.Context, schema *GetOrganizationSchema) (*modelschemas.DockerRegistrySchema, error) {
+	organization, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canOperate(ctx, organization); err != nil {
+		return nil, err
+	}
+	return services.OrganizationService.GetDockerRegistry(ctx, organization)
 }
 
 type ListEventOperationNames struct {

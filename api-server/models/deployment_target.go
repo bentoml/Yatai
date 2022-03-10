@@ -1,6 +1,6 @@
 package models
 
-import "github.com/bentoml/yatai/schemas/modelschemas"
+import "github.com/bentoml/yatai-schemas/modelschemas"
 
 type DeploymentTarget struct {
 	BaseModel

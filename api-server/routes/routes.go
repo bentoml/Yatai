@@ -16,6 +16,7 @@ import (
 	"github.com/wI2L/fizz"
 	"github.com/wI2L/fizz/openapi"
 
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/controllers/controllersv1"
 	"github.com/bentoml/yatai/api-server/controllers/web"
@@ -24,7 +25,6 @@ import (
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/scookie"
 	"github.com/bentoml/yatai/common/yataicontext"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 var pwd, _ = os.Getwd()
@@ -317,6 +317,11 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Get an organization major cluster"),
 		fizz.Summary("Get an organization major cluster"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.GetMajorCluster, 200))
+
+	resourceGrp.GET("/docker_registry", []fizz.OperationOption{
+		fizz.ID("Get an organization docker registry"),
+		fizz.Summary("Get an organization docker registry"),
+	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.GetDockerRegistry, 200))
 
 	resourceGrp.GET("/model_modules", []fizz.OperationOption{
 		fizz.ID("Get an organization model modules"),

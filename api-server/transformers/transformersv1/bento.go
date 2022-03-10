@@ -5,9 +5,9 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/schemas/schemasv1"
 )
 
 func ToBentoSchema(ctx context.Context, bento *models.Bento) (*schemasv1.BentoSchema, error) {
@@ -40,12 +40,22 @@ func ToBentoSchemas(ctx context.Context, bentos []*models.Bento) ([]*schemasv1.B
 		if !ok {
 			return nil, errors.Errorf("resourceSchema not found for bento %s", bento.GetUid())
 		}
+		imageName, err := services.BentoService.GetImageName(ctx, bento, false)
+		if err != nil {
+			return nil, errors.Wrap(err, "GetImageName")
+		}
+		inClusterImageName, err := services.BentoService.GetImageName(ctx, bento, true)
+		if err != nil {
+			return nil, errors.Wrap(err, "GetInClusterImageName")
+		}
 		res = append(res, &schemasv1.BentoSchema{
 			ResourceSchema:       resourceSchema,
 			BentoRepositoryUid:   bentoRepository.Uid,
 			Version:              bento.Version,
 			Creator:              creatorSchema,
 			Description:          bento.Description,
+			ImageName:            imageName,
+			InClusterImageName:   inClusterImageName,
 			ImageBuildStatus:     bento.ImageBuildStatus,
 			UploadStatus:         bento.UploadStatus,
 			UploadStartedAt:      bento.UploadStartedAt,
@@ -86,7 +96,7 @@ func ToBentoFullSchemas(ctx context.Context, bentos []*models.Bento) ([]*schemas
 		if err != nil {
 			return nil, errors.Wrap(err, "list models")
 		}
-		modelSchemas, err := ToModelSchemas(ctx, models_)
+		modelSchemas, err := ToModelWithRepositorySchemas(ctx, models_)
 		if err != nil {
 			return nil, errors.Wrap(err, "ToModelSchemas")
 		}

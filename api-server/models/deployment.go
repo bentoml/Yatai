@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/bentoml/yatai/schemas/modelschemas"
+	"github.com/bentoml/yatai-schemas/modelschemas"
 )
 
 type Deployment struct {
