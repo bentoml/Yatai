@@ -14,7 +14,6 @@ import (
 	"github.com/tianweidut/cron"
 	"gopkg.in/yaml.v3"
 
-	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/routes"
 	"github.com/bentoml/yatai/api-server/services"
