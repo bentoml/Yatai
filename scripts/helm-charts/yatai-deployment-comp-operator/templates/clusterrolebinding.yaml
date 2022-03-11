@@ -1,9 +1,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRoleBinding","metadata":{"annotations":{},"name":"yatai-deployment-comp-operator-manager-rolebinding"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"yatai-deployment-comp-operator-manager-role"},"subjects":[{"kind":"ServiceAccount","name":"yatai-deployment-comp-operator-controller-manager","namespace":"yatai-deployment-comp-operator-system"}]}
   name: yatai-deployment-comp-operator-manager-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
