@@ -14,14 +14,11 @@ import (
 	"github.com/tianweidut/cron"
 	"gopkg.in/yaml.v3"
 
-	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/config"
-	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/routes"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/command"
 	"github.com/bentoml/yatai/common/sync/errsgroup"
-	"github.com/bentoml/yatai/common/utils"
 )
 
 func addCron(ctx context.Context) {
@@ -179,99 +176,6 @@ func (opt *ServeOption) Complete(ctx context.Context, args []string, argsLenAtDa
 	return nil
 }
 
-func initSelfHost(ctx context.Context) error {
-	var adminUser *models.User
-	users, total, err := services.UserService.List(ctx, services.ListUserOption{
-		BaseListOption: services.BaseListOption{
-			Start: utils.UintPtr(0),
-			Count: utils.UintPtr(1),
-		},
-		Perm:  modelschemas.UserPermPtr(modelschemas.UserPermAdmin),
-		Order: utils.StringPtr("id ASC"),
-	})
-	if err != nil {
-		return errors.Wrap(err, "list users")
-	}
-	if total == 0 {
-		adminUser, err = services.UserService.Create(ctx, services.CreateUserOption{
-			Name:     "admin",
-			Password: "admin",
-		})
-		if err != nil {
-			return errors.Wrap(err, "create admin user")
-		}
-	} else {
-		adminUser = users[0]
-	}
-
-	var defaultOrg *models.Organization
-	orgs, total, err := services.OrganizationService.List(ctx, services.ListOrganizationOption{
-		BaseListOption: services.BaseListOption{
-			Start: utils.UintPtr(0),
-			Count: utils.UintPtr(1),
-		},
-		Order: utils.StringPtr("id ASC"),
-	})
-	if err != nil {
-		return errors.Wrapf(err, "list organizations")
-	}
-
-	if total == 0 {
-		defaultOrg, err = services.OrganizationService.Create(ctx, services.CreateOrganizationOption{
-			CreatorId: adminUser.ID,
-			Name:      "default",
-		})
-		if err != nil {
-			return errors.Wrapf(err, "create default organization")
-		}
-		_, err = services.OrganizationMemberService.Create(ctx, adminUser.ID, services.CreateOrganizationMemberOption{
-			CreatorId:      adminUser.ID,
-			UserId:         adminUser.ID,
-			OrganizationId: defaultOrg.ID,
-			Role:           modelschemas.MemberRoleAdmin,
-		})
-		if err != nil {
-			return errors.Wrapf(err, "create default organization member")
-		}
-	} else {
-		defaultOrg = orgs[0]
-	}
-
-	var defaultCluster *models.Cluster
-	_, total, err = services.ClusterService.List(ctx, services.ListClusterOption{
-		BaseListOption: services.BaseListOption{
-			Start: utils.UintPtr(0),
-			Count: utils.UintPtr(1),
-		},
-		Order: utils.StringPtr("id ASC"),
-	})
-	if err != nil {
-		return errors.Wrapf(err, "list clusters")
-	}
-
-	if total == 0 {
-		defaultCluster, err = services.ClusterService.Create(ctx, services.CreateClusterOption{
-			CreatorId:      adminUser.ID,
-			OrganizationId: defaultOrg.ID,
-			Name:           "default",
-		})
-		if err != nil {
-			return errors.Wrapf(err, "create default cluster")
-		}
-		_, err = services.ClusterMemberService.Create(ctx, adminUser.ID, services.CreateClusterMemberOption{
-			CreatorId: adminUser.ID,
-			UserId:    adminUser.ID,
-			ClusterId: defaultCluster.ID,
-			Role:      modelschemas.MemberRoleAdmin,
-		})
-		if err != nil {
-			return errors.Wrapf(err, "create default cluster member")
-		}
-	}
-
-	return nil
-}
-
 func (opt *ServeOption) Run(ctx context.Context, args []string) error {
 	if !command.GlobalCommandOption.Debug {
 		gin.SetMode(gin.ReleaseMode)
@@ -298,9 +202,8 @@ func (opt *ServeOption) Run(ctx context.Context, args []string) error {
 	}
 
 	if !config.YataiConfig.IsSass {
-		err = initSelfHost(ctx)
-		if err != nil {
-			return errors.Wrap(err, "init self host")
+		if config.YataiConfig.InitializationToken == "" {
+			return errors.New("initialization token is required")
 		}
 	}
 

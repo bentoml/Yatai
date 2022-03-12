@@ -2058,6 +2058,13 @@ const locales0 = {
         ko: '현재 비밀번호',
         vi: 'Mật khẩu hiện tại',
     },
+    'setup initial admin account': {
+        en: 'Setup initial admin account',
+        zh: '设置初始管理员账户',
+        ja: '初期管理者アカウントを設定する',
+        ko: '초기 관리자 계정 설정',
+        vi: 'Thiết lập tài khoản quản trị đầu tiên',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

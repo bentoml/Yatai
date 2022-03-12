@@ -210,12 +210,17 @@ export default function Header() {
                     let { redirect } = search
                     if (redirect && typeof redirect === 'string') {
                         redirect = decodeURI(redirect)
-                    } else if (['/login', '/logout'].indexOf(location.pathname) < 0) {
+                    } else if (['/login', '/logout', '/setup'].indexOf(location.pathname) < 0) {
                         redirect = `${location.pathname}${location.search}`
                     } else {
                         redirect = '/'
                     }
-                    if (location.pathname !== '/login' && location.pathname !== '/login/') {
+                    if (
+                        location.pathname !== '/login' &&
+                        location.pathname !== '/login/' &&
+                        location.pathname !== '/setup' &&
+                        location.pathname !== '/setup/'
+                    ) {
                         window.location.href = `${window.location.protocol}//${
                             window.location.host
                         }/login?redirect=${encodeURIComponent(redirect)}`

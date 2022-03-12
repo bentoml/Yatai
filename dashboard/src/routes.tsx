@@ -47,6 +47,7 @@ import BentoLayout from '@/components/BentoLayout'
 import BentoOverview from '@/pages/Bento/Overview'
 import BentoRepositoryDeployments from '@/pages/BentoRepository/Deployments'
 import Home from '@/pages/Yatai/Home'
+import Setup from '@/pages/Yatai/Setup'
 
 const useStyles = createUseStyles({
     'root': ({ theme }: IThemedStyleProps) => ({
@@ -233,6 +234,7 @@ const Routes = () => {
                         </ModelRepositoryLayout>
                     </Route>
                     <Route exact path='/login' component={Login} />
+                    <Route exact path='/setup' component={Setup} />
                     <Route>
                         <OrganizationLayout>
                             <Switch>

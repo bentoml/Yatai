@@ -52,14 +52,15 @@ type YataiOAuthConfigYaml struct {
 }
 
 type YataiConfigYaml struct {
-	IsSass         bool                           `yaml:"is_sass"`
-	InCluster      bool                           `yaml:"in_cluster"`
-	Server         YataiServerConfigYaml          `yaml:"server"`
-	Postgresql     YataiPostgresqlConfigYaml      `yaml:"postgresql"`
-	S3             *YataiS3ConfigYaml             `yaml:"s3,omitempty"`
-	DockerRegistry *YataiDockerRegistryConfigYaml `yaml:"docker_registry,omitempty"`
-	OAuth          *YataiOAuthConfigYaml          `yaml:"oauth,omitempty"`
-	NewsURL        string                         `yaml:"news_url"`
+	IsSass              bool                           `yaml:"is_sass"`
+	InCluster           bool                           `yaml:"in_cluster"`
+	Server              YataiServerConfigYaml          `yaml:"server"`
+	Postgresql          YataiPostgresqlConfigYaml      `yaml:"postgresql"`
+	S3                  *YataiS3ConfigYaml             `yaml:"s3,omitempty"`
+	DockerRegistry      *YataiDockerRegistryConfigYaml `yaml:"docker_registry,omitempty"`
+	OAuth               *YataiOAuthConfigYaml          `yaml:"oauth,omitempty"`
+	NewsURL             string                         `yaml:"news_url"`
+	InitializationToken string                         `yaml:"initialization_token"`
 }
 
 var YataiConfig = &YataiConfigYaml{}
@@ -107,6 +108,10 @@ func PopulateYataiConfig() error {
 	githubClientSecret, ok := os.LookupEnv(consts.EnvGithubClientSecret)
 	if ok {
 		YataiConfig.OAuth.Github.ClientSecret = githubClientSecret
+	}
+	initialization_token, ok := os.LookupEnv(consts.EnvInitializationToken)
+	if ok {
+		YataiConfig.InitializationToken = initialization_token
 	}
 	return nil
 }

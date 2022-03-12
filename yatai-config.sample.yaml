@@ -26,3 +26,5 @@ docker_registry:
   username: <YOUR DOCKERHUB USERNAME>
   password: <YOUR DOCKERHUB PASSWORD>
   secure: true
+
+initialization_token: 12345

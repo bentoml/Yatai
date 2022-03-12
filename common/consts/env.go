@@ -12,4 +12,6 @@ const (
 	EnvGithubClientId   = "GITHUB_CLIENT_ID"
 	// nolint:gosec
 	EnvGithubClientSecret = "GITHUB_CLIENT_SECRET"
+
+	EnvInitializationToken = "YATAI_INITIALIZATION_TOKEN"
 )
