@@ -43,7 +43,7 @@ export default function Setup() {
                 setIsLoading(false)
             }
         },
-        [history]
+        [history, location.search]
     )
     const handleValuesChange = useCallback((_changes, newValues) => {
         setValues(newValues)
