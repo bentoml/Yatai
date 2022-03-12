@@ -109,11 +109,16 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		kubeNamespace = services.ClusterService.GetDeploymentKubeNamespace(cluster)
 	}
 
+	description := ""
+	if schema.Description != nil {
+		description = *schema.Description
+	}
+
 	deployment, err := services.DeploymentService.Create(ctx, services.CreateDeploymentOption{
 		CreatorId:     user.ID,
 		ClusterId:     cluster.ID,
 		Name:          schema.Name,
-		Description:   schema.Description,
+		Description:   description,
 		Labels:        labels,
 		KubeNamespace: kubeNamespace,
 	})
