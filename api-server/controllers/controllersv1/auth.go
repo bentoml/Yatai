@@ -51,6 +51,9 @@ func (*authController) Login(ctx *gin.Context, schema *schemasv1.LoginUserSchema
 	if err != nil {
 		return nil, errors.New("invalid username or password")
 	}
+	if user.Email == nil || *user.Email == "" {
+		return nil, errors.Errorf("user %s email is empty, it looks like yatai did not complete the setup process", user.Name)
+	}
 	if err = services.UserService.CheckPassword(ctx, user, schema.Password); err != nil {
 		return nil, err
 	}
