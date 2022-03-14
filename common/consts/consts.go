@@ -25,4 +25,7 @@ const (
 	NoneStr = "None"
 
 	AmazonS3Endpoint = "s3.amazonaws.com"
+
+	// nolint: gosec
+	YataiK8sBotApiTokenName = "yatai-k8s-bot"
 )

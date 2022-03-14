@@ -36,6 +36,7 @@ export default function Setup() {
                     await setupSelfHost({ ...data, token })
                 } else {
                     toaster.negative('missing token in the url', { autoHideDuration: 3000 })
+                    return
                 }
                 toaster.positive('setup success', { autoHideDuration: 3000 })
                 history.push('/')
@@ -71,7 +72,15 @@ export default function Setup() {
                         justifyContent: 'center',
                     }}
                 >
-                    <Card style={{ flexShrink: 0 }}>
+                    <Card
+                        style={{
+                            flexShrink: 0,
+                        }}
+                        bodyStyle={{
+                            padding: 40,
+                            width: 500,
+                        }}
+                    >
                         <div
                             style={{
                                 flexShrink: 0,

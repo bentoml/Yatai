@@ -22,7 +22,8 @@ import (
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/release"
-	v1 "k8s.io/api/apps/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,8 +39,10 @@ import (
 	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
+	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
 )
 
 type yataiComponentService struct{}
@@ -90,9 +93,109 @@ func (s *yataiComponentService) ListOperatorHelmCharts(ctx context.Context) (cha
 	return
 }
 
+func getYataiHelmRelease(ctx context.Context, cluster *models.Cluster) (release_ *release.Release, err error) {
+	clientGetter, err := ClusterService.GetRESTClientGetter(ctx, cluster, consts.KubeNamespaceYataiOperators)
+	if err != nil {
+		return
+	}
+	actionConfig := new(action.Configuration)
+	err = actionConfig.Init(clientGetter, "", "", func(format string, v ...interface{}) {
+		logrus.Infof(format, v...)
+	})
+	if err != nil {
+		err = errors.Wrapf(err, "new action config")
+		return
+	}
+
+	list := action.NewList(actionConfig)
+	list.All = true
+	list.AllNamespaces = true
+	releases, err := list.Run()
+	if err != nil {
+		err = errors.Wrapf(err, "list releases")
+		return
+	}
+	for _, release0 := range releases {
+		if release0.Chart != nil && release0.Chart.Metadata != nil && release0.Chart.Metadata.Name == "yatai" {
+			release_ = release0
+			return
+		}
+	}
+	return
+}
+
+func getYataiEndpoint(ctx context.Context, cluster *models.Cluster, inCluster bool) (endpoint string, err error) {
+	release_, err := getYataiHelmRelease(ctx, cluster)
+	if err != nil {
+		err = errors.Wrapf(err, "get yatai helm release")
+		return
+	}
+	if release_ == nil {
+		endpoint = fmt.Sprintf("http://localhost:%d", config.YataiConfig.Server.Port)
+		return
+	}
+	var svcName string
+	if strings.Contains(release_.Name, "yatai") {
+		svcName = release_.Name
+	} else {
+		svcName = fmt.Sprintf("%s-yatai", release_.Name)
+	}
+
+	cliset, _, err := ClusterService.GetKubeCliSet(ctx, cluster)
+	if err != nil {
+		err = errors.Wrapf(err, "get kube cli set")
+		return
+	}
+
+	if !inCluster {
+		ingName := svcName
+		ingCli := cliset.NetworkingV1().Ingresses(consts.KubeNamespaceYataiOperators)
+		var ing *networkingv1.Ingress
+		ing, err = ingCli.Get(ctx, ingName, metav1.GetOptions{})
+		if err != nil {
+			err = errors.Wrapf(err, "get ingress %s", ingName)
+			return
+		}
+		for _, rule := range ing.Spec.Rules {
+			if rule.Host != "" {
+				endpoint = fmt.Sprintf("http://%s", rule.Host)
+				return
+			}
+		}
+	}
+
+	svcCli := cliset.CoreV1().Services(release_.Namespace)
+	svc, err := svcCli.Get(ctx, svcName, metav1.GetOptions{})
+	if err != nil {
+		err = errors.Wrapf(err, "get service %s", svcName)
+		return
+	}
+	for _, port := range svc.Spec.Ports {
+		if port.Name == "http" {
+			endpoint = fmt.Sprintf("http://%s.%s:%d", svc.Name, svc.Namespace, port.Port)
+			return
+		}
+	}
+	err = errors.Errorf("no http port found in service %s", svcName)
+	return
+}
+
 func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiComponentReleaseOption) (comp *models.YataiComponent, err error) {
 	cluster, err := ClusterService.Get(ctx, opt.ClusterId)
 	if err != nil {
+		err = errors.Wrapf(err, "get cluster %d", opt.ClusterId)
+		return
+	}
+
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
+	if err != nil {
+		err = errors.Wrapf(err, "get associated organization")
+		return
+	}
+
+	majorCluster, err := OrganizationService.GetMajorCluster(ctx, org)
+	if err != nil {
+		err = errors.Wrapf(err, "get major cluster")
 		return
 	}
 
@@ -140,10 +243,71 @@ func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiCompo
 	var values map[string]interface{}
 
 	if opt.Type == modelschemas.YataiComponentTypeDeployment {
+		var yataiEndpoint string
+		yataiEndpoint, err = getYataiEndpoint(ctx, cluster, cluster.Uid == majorCluster.Uid)
+		if err != nil {
+			err = errors.Wrapf(err, "get yatai endpoint")
+			return
+		}
+		var members []*models.OrganizationMember
+		members, err = OrganizationMemberService.List(ctx, ListOrganizationMemberOption{
+			OrganizationId: utils.UintPtr(org.ID),
+			Roles:          &[]modelschemas.MemberRole{modelschemas.MemberRoleAdmin},
+			Order:          utils.StringPtr("id ASC"),
+		})
+		if err != nil {
+			err = errors.Wrapf(err, "list organization member")
+			return
+		}
+		var user *models.User
+		for _, member := range members {
+			if member.DeletedAt.Valid {
+				continue
+			}
+			user, err = UserService.GetAssociatedUser(ctx, member)
+			if err != nil {
+				err = errors.Wrapf(err, "get associated user")
+				return
+			}
+			break
+		}
+		if user == nil {
+			err = errors.Errorf("no admin user found")
+			return
+		}
+		var apiToken *models.ApiToken
+		apiToken, err = ApiTokenService.GetByName(ctx, org.ID, user.ID, consts.YataiK8sBotApiTokenName)
+		apiTokenIsNotFound := utils.IsNotFound(err)
+		if err != nil && !apiTokenIsNotFound {
+			err = errors.Wrapf(err, "get api token")
+			return
+		}
+		err = nil
+		if apiTokenIsNotFound {
+			scopes := modelschemas.ApiTokenScopes{
+				modelschemas.ApiTokenScopeApi,
+			}
+			apiToken, err = ApiTokenService.Create(ctx, CreateApiTokenOption{
+				Name:           consts.YataiK8sBotApiTokenName,
+				OrganizationId: org.ID,
+				UserId:         user.ID,
+				Description:    "yatai k8s bot api token",
+				Scopes:         &scopes,
+			})
+			if err != nil {
+				err = errors.Wrapf(err, "create api token")
+				return
+			}
+		}
 		values = map[string]interface{}{
 			string(opt.Type): map[string]interface{}{
 				"minio":          map[string]interface{}{},
 				"dockerRegistry": map[string]interface{}{},
+			},
+			"yatai": map[string]interface{}{
+				"endpoint":    yataiEndpoint,
+				"apiToken":    apiToken.Token,
+				"clusterName": cluster.Name,
 			},
 		}
 	} else {
@@ -312,7 +476,7 @@ func (s *yataiComponentService) ListHelmChartReleaseResources(ctx context.Contex
 					if err != nil {
 						return nil, errors.Wrap(err, "get statefulSet informer")
 					}
-					var sts *v1.StatefulSet
+					var sts *appsv1.StatefulSet
 					sts, err = stsLister.Get(resource.Name)
 					if err != nil {
 						return nil, errors.Wrapf(err, "get release %s statefulSet %s", release_.Name, resource.Name)
@@ -325,7 +489,7 @@ func (s *yataiComponentService) ListHelmChartReleaseResources(ctx context.Contex
 					if err != nil {
 						return nil, errors.Wrap(err, "get deployment informer")
 					}
-					var deployment *v1.Deployment
+					var deployment *appsv1.Deployment
 					deployment, err = deploymentNamespaceLister.Get(resource.Name)
 					if err != nil {
 						return nil, errors.Wrapf(err, "get release %s deployment %s", release_.Name, resource.Name)
@@ -338,7 +502,7 @@ func (s *yataiComponentService) ListHelmChartReleaseResources(ctx context.Contex
 					if err != nil {
 						return nil, errors.Wrap(err, "get daemonSet informer")
 					}
-					var daemonSet *v1.DaemonSet
+					var daemonSet *appsv1.DaemonSet
 					daemonSet, err = daemonSetNamespaceLister.Get(resource.Name)
 					if err != nil {
 						return nil, errors.Wrapf(err, "get release %s damonseSet %s", release_.Name, resource.Name)

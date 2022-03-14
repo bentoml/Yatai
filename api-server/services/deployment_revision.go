@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	version2 "github.com/hashicorp/go-version"
 	"github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sirupsen/logrus"
@@ -49,6 +50,32 @@ type ListDeploymentRevisionOption struct {
 }
 
 func (*deploymentRevisionService) Create(ctx context.Context, opt CreateDeploymentRevisionOption) (*models.DeploymentRevision, error) {
+	deployment, err := DeploymentService.Get(ctx, opt.DeploymentId)
+	if err != nil {
+		return nil, err
+	}
+	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
+	if err != nil {
+		return nil, err
+	}
+	yataiComponents, err := YataiComponentService.List(ctx, cluster.ID)
+	if err != nil {
+		return nil, err
+	}
+	deploymentComponentMinVersion := version2.Must(version2.NewVersion("0.2.0"))
+	for _, comp := range yataiComponents {
+		if comp.Type == modelschemas.YataiComponentTypeDeployment {
+			var ver *version2.Version
+			ver, err = version2.NewVersion(comp.Release.Chart.Metadata.Version)
+			if err != nil {
+				return nil, err
+			}
+			if ver.LessThan(deploymentComponentMinVersion) {
+				err = errors.Errorf("Yatai deployment component version %s is less than %s, please upgrade it!", ver, deploymentComponentMinVersion)
+				return nil, err
+			}
+		}
+	}
 	deploymentRevision := models.DeploymentRevision{
 		CreatorAssociate: models.CreatorAssociate{
 			CreatorId: opt.CreatorId,
@@ -58,7 +85,7 @@ func (*deploymentRevisionService) Create(ctx context.Context, opt CreateDeployme
 		},
 		Status: opt.Status,
 	}
-	err := mustGetSession(ctx).Create(&deploymentRevision).Error
+	err = mustGetSession(ctx).Create(&deploymentRevision).Error
 	if err != nil {
 		return nil, err
 	}
