@@ -252,7 +252,7 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 	if _, ok := envsSeen[consts.BentoServiceYataiVersionEnvKey]; !ok {
 		envs = append(envs, apiv1.EnvVar{
 			Name:  consts.BentoServiceYataiVersionEnvKey,
-			Value: version.Version,
+			Value: fmt.Sprintf("%s-%s", version.Version, version.GitCommit),
 		})
 	}
 
