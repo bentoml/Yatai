@@ -154,24 +154,20 @@ type KubeEventFilter func(event *apiv1.Event) bool
 
 func (s *kubeEventService) MakeDeploymentKubeEventFilter(ctx context.Context, deployment *models.Deployment, deploymentTarget **models.DeploymentTarget) (KubeEventFilter, error) {
 	var err error
-	var kubeName string
 
-	if deploymentTarget != nil {
-		kubeName, err = DeploymentTargetService.GetKubeName(ctx, *deploymentTarget)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		kubeName = DeploymentService.GetKubeName(deployment)
-	}
-
-	kubeNamePattern, err := regexp.Compile(fmt.Sprintf("^%s-", kubeName))
+	kubeNamePattern, err := regexp.Compile(fmt.Sprintf("^%s-", deployment.Name))
 	if err != nil {
 		return nil, errors.Wrap(err, "compile regexp pattern")
 	}
 
 	return func(event *apiv1.Event) bool {
-		return kubeNamePattern.Match([]byte(event.InvolvedObject.Name))
+		if event.InvolvedObject.Kind == "Pod" && kubeNamePattern.Match([]byte(event.InvolvedObject.Name)) {
+			return true
+		}
+		if event.InvolvedObject.Kind == "BentoDeployment" && event.InvolvedObject.Name == deployment.Name {
+			return true
+		}
+		return false
 	}, nil
 }
 

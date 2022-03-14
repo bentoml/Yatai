@@ -318,11 +318,6 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Get an organization major cluster"),
 	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.GetMajorCluster, 200))
 
-	resourceGrp.GET("/docker_registry", []fizz.OperationOption{
-		fizz.ID("Get an organization docker registry"),
-		fizz.Summary("Get an organization docker registry"),
-	}, requireLogin, tonic.Handler(controllersv1.OrganizationController.GetDockerRegistry, 200))
-
 	resourceGrp.GET("/model_modules", []fizz.OperationOption{
 		fizz.ID("Get an organization model modules"),
 		fizz.Summary("Get an organization model modules"),
@@ -431,6 +426,11 @@ func clusterRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Update a cluster"),
 		fizz.Summary("Update a cluster"),
 	}, requireLogin, tonic.Handler(controllersv1.ClusterController.Update, 200))
+
+	resourceGrp.GET("/docker_registry_ref", []fizz.OperationOption{
+		fizz.ID("Get a cluster docker registry ref"),
+		fizz.Summary("Get a cluster docker registry ref"),
+	}, requireLogin, tonic.Handler(controllersv1.ClusterController.GetDockerRegistryRef, 200))
 
 	resourceGrp.GET("/members", []fizz.OperationOption{
 		fizz.ID("List cluster members"),
@@ -601,6 +601,11 @@ func deploymentRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Update a deployment"),
 		fizz.Summary("Update a deployment"),
 	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.Update, 200))
+
+	resourceGrp.POST("/sync_status", []fizz.OperationOption{
+		fizz.ID("Sync a deployment status"),
+		fizz.Summary("Sync a deployment status"),
+	}, requireLogin, tonic.Handler(controllersv1.DeploymentController.SyncStatus, 200))
 
 	resourceGrp.POST("/terminate", []fizz.OperationOption{
 		fizz.ID("Terminate a deployment"),

@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/cache"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
@@ -173,6 +174,17 @@ func (c *clusterController) List(ctx *gin.Context, schema *ListClusterSchema) (*
 		},
 		Items: clusterSchemas,
 	}, err
+}
+
+func (c *clusterController) GetDockerRegistryRef(ctx *gin.Context, schema *GetClusterSchema) (*modelschemas.DockerRegistryRefSchema, error) {
+	cluster, err := schema.GetCluster(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canView(ctx, cluster); err != nil {
+		return nil, err
+	}
+	return services.ClusterService.GetDockerRegistryRef(ctx, cluster)
 }
 
 func (c *clusterController) WsPods(ctx *gin.Context, schema *GetClusterSchema) (err error) {

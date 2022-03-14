@@ -13,7 +13,6 @@ import (
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
-	"github.com/bentoml/yatai/common/sync/errsgroup"
 )
 
 type deploymentTargetService struct{}
@@ -32,6 +31,10 @@ type CreateDeploymentTargetOption struct {
 	Type                 modelschemas.DeploymentTargetType
 	CanaryRules          *modelschemas.DeploymentTargetCanaryRules
 	Config               *modelschemas.DeploymentTargetConfig
+}
+
+type UpdateDeploymentTargetOption struct {
+	Config **modelschemas.DeploymentTargetConfig
 }
 
 type ListDeploymentTargetOption struct {
@@ -193,24 +196,60 @@ func (s *deploymentTargetService) GetKubeAnnotations(ctx context.Context, deploy
 	}, nil
 }
 
-func (s *deploymentTargetService) Deploy(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (err error) {
-	var eg errsgroup.Group
+func (s *deploymentTargetService) Update(ctx context.Context, b *models.DeploymentTarget, opt UpdateDeploymentTargetOption) (*models.DeploymentTarget, error) {
+	var err error
+	updaters := make(map[string]interface{})
 
-	eg.Go(func() error {
-		return errors.Wrap(KubeDeploymentService.DeployDeploymentTargetAsKubeDeployment(ctx, deploymentTarget, deployOption), "deploy deployment target as kube deployment")
-	})
+	if opt.Config != nil {
+		updaters["config"] = *opt.Config
+		defer func() {
+			if err == nil {
+				b.Config = *opt.Config
+			}
+		}()
+	}
 
-	eg.Go(func() error {
-		return errors.Wrap(KubeServiceService.DeployDeploymentTargetAsKubeService(ctx, deploymentTarget, deployOption), "deploy deployment target as kube service")
-	})
+	if len(updaters) == 0 {
+		return b, nil
+	}
 
-	eg.Go(func() error {
-		return errors.Wrap(KubeIngressService.DeployDeploymentTargetAsKubeIngresses(ctx, deploymentTarget, deployOption), "deploy deployment target as kube ingress")
-	})
+	err = s.getBaseDB(ctx).Where("id = ?", b.ID).Updates(updaters).Error
 
-	err = eg.Wait()
+	return b, err
+}
 
-	return err
+func (s *deploymentTargetService) Deploy(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (deploymentTarget_ *models.DeploymentTarget, err error) {
+	deploymentTarget_ = deploymentTarget
+
+	kubeBentoDeployment, err := KubeBentoDeploymentService.Deploy(ctx, deploymentTarget, deployOption)
+	if err != nil {
+		err = errors.Wrap(err, "failed to deploy kube bento deployment")
+		return
+	}
+
+	configUpdated := false
+	config := deploymentTarget.Config
+	if config == nil {
+		configUpdated = true
+		config = &modelschemas.DeploymentTargetConfig{
+			KubeResourceUid: string(kubeBentoDeployment.UID),
+		}
+	} else if config.KubeResourceUid == "" {
+		configUpdated = true
+		config.KubeResourceUid = string(kubeBentoDeployment.UID)
+	}
+
+	if configUpdated {
+		deploymentTarget_, err = s.Update(ctx, deploymentTarget, UpdateDeploymentTargetOption{
+			Config: &config,
+		})
+		if err != nil {
+			err = errors.Wrap(err, "failed to update deployment target config")
+			return
+		}
+	}
+
+	return
 }
 
 func (s *deploymentTargetService) GetKubeCliSet(ctx context.Context, deploymentTarget *models.DeploymentTarget) (kubeCli *kubernetes.Clientset, restConfig *rest.Config, err error) {

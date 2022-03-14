@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
 	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
+	github.com/bentoml/yatai-deployment-operator v0.0.0-20220307212108-1741d5ad8bb4
 	github.com/bentoml/yatai-schemas v0.0.0-20220310025411-491802a225b7
 	github.com/elastic/go-sysinfo v1.7.0 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
@@ -13,7 +14,6 @@ require (
 	github.com/gin-gonic/gin v1.7.3
 	github.com/go-playground/validator/v10 v10.9.0 // indirect
 	github.com/golang-migrate/migrate/v4 v4.14.1
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -31,9 +31,8 @@ require (
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/moby/term v0.0.0-20210610120745-9d4ed1856297
 	github.com/opentracing/opentracing-go v1.2.0
-	github.com/panjf2000/ants/v2 v2.4.6
+	github.com/panjf2000/ants/v2 v2.4.8
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/procfs v0.7.2 // indirect
 	github.com/rs/xid v1.3.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.3.0
@@ -57,7 +56,7 @@ require (
 	k8s.io/api v0.23.4
 	k8s.io/apimachinery v0.23.4
 	k8s.io/cli-runtime v0.23.1
-	k8s.io/client-go v0.23.1
+	k8s.io/client-go v0.23.4
 	k8s.io/kubernetes v1.13.4
 	k8s.io/utils v0.0.0-20211116205334-6203023598ed
 )

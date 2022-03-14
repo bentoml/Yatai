@@ -12,9 +12,12 @@ import { Button } from 'baseui/button'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import DeploymentTerminalRecordList from '@/components/DeploymentTerminalRecordList'
 import Link from '@/components/Link'
+import { MdEventNote } from 'react-icons/md'
+import KubePodEvents from '@/components/KubePodEvents'
 
 export default function DeploymentOverview() {
-    const { clusterName } = useParams<{ clusterName: string; deploymentName: string }>()
+    const { clusterName, kubeNamespace, deploymentName } =
+        useParams<{ clusterName: string; kubeNamespace: string; deploymentName: string }>()
     const { deployment } = useDeployment()
     const { deploymentLoading } = useDeploymentLoading()
 
@@ -66,6 +69,16 @@ export default function DeploymentOverview() {
                             deployment && formatDateTime(deployment.created_at),
                         ],
                     ]}
+                />
+            </Card>
+            <Card title={t('events')} titleIcon={MdEventNote}>
+                <KubePodEvents
+                    open
+                    width='auto'
+                    height={200}
+                    clusterName={clusterName}
+                    namespace={kubeNamespace}
+                    deploymentName={deploymentName}
                 />
             </Card>
             <Modal

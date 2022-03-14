@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	version2 "github.com/hashicorp/go-version"
 	"github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sirupsen/logrus"
@@ -49,6 +50,32 @@ type ListDeploymentRevisionOption struct {
 }
 
 func (*deploymentRevisionService) Create(ctx context.Context, opt CreateDeploymentRevisionOption) (*models.DeploymentRevision, error) {
+	deployment, err := DeploymentService.Get(ctx, opt.DeploymentId)
+	if err != nil {
+		return nil, err
+	}
+	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
+	if err != nil {
+		return nil, err
+	}
+	yataiComponents, err := YataiComponentService.List(ctx, cluster.ID)
+	if err != nil {
+		return nil, err
+	}
+	deploymentComponentMinVersion := version2.Must(version2.NewVersion("0.2.0"))
+	for _, comp := range yataiComponents {
+		if comp.Type == modelschemas.YataiComponentTypeDeployment {
+			var ver *version2.Version
+			ver, err = version2.NewVersion(comp.Release.Chart.Metadata.Version)
+			if err != nil {
+				return nil, err
+			}
+			if ver.LessThan(deploymentComponentMinVersion) {
+				err = errors.Errorf("Yatai deployment component version %s is less than %s, please upgrade it!", ver, deploymentComponentMinVersion)
+				return nil, err
+			}
+		}
+	}
 	deploymentRevision := models.DeploymentRevision{
 		CreatorAssociate: models.CreatorAssociate{
 			CreatorId: opt.CreatorId,
@@ -58,7 +85,7 @@ func (*deploymentRevisionService) Create(ctx context.Context, opt CreateDeployme
 		},
 		Status: opt.Status,
 	}
-	err := mustGetSession(ctx).Create(&deploymentRevision).Error
+	err = mustGetSession(ctx).Create(&deploymentRevision).Error
 	if err != nil {
 		return nil, err
 	}
@@ -233,19 +260,22 @@ func (s *deploymentRevisionService) DeleteKubeOwnerReferences(ctx context.Contex
 }
 
 func (s *deploymentRevisionService) GetDeployOption(ctx context.Context, deploymentRevision *models.DeploymentRevision, force bool) (*models.DeployOption, error) {
-	ownerReferences, err := s.MakeSureKubeOwnerReferences(ctx, deploymentRevision)
-	if err != nil {
-		return nil, err
-	}
 	deployOption := &models.DeployOption{
-		Force:           force,
-		OwnerReferences: ownerReferences,
+		Force: force,
 	}
 	return deployOption, nil
 }
 
 func (s *deploymentRevisionService) Terminate(ctx context.Context, deploymentRevision *models.DeploymentRevision) (err error) {
-	return s.DeleteKubeOwnerReferences(ctx, deploymentRevision)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentRevision)
+	if err != nil {
+		return err
+	}
+	cli, err := DeploymentService.GetKubeBentoDeploymentCli(ctx, deployment)
+	if err != nil {
+		return err
+	}
+	return cli.Delete(ctx, deployment.Name, metav1.DeleteOptions{})
 }
 
 func (s *deploymentRevisionService) Deploy(ctx context.Context, deploymentRevision *models.DeploymentRevision, deploymentTargets []*models.DeploymentTarget, force bool) (err error) {
@@ -344,26 +374,13 @@ func (s *deploymentRevisionService) Deploy(ctx context.Context, deploymentRevisi
 		}
 	}
 
-	defer func() {
-		if err != nil {
-			return
-		}
-		status := modelschemas.DeploymentStatusDeploying
-		_, _ = DeploymentService.UpdateStatus(ctx, deployment, UpdateDeploymentStatusOption{
-			Status: &status,
-		})
-		deployment.Status = status
-		go func() {
-			_, _ = DeploymentService.SyncStatus(ctx, deployment)
-		}()
-	}()
-
 	var eg errsgroup.Group
 
 	for _, deploymentTarget := range deploymentTargets {
 		deploymentTarget := deploymentTarget
 		eg.Go(func() error {
-			return DeploymentTargetService.Deploy(ctx, deploymentTarget, deployOption)
+			_, err := DeploymentTargetService.Deploy(ctx, deploymentTarget, deployOption)
+			return err
 		})
 	}
 

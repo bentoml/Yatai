@@ -137,6 +137,10 @@ func getDB() (*gorm.DB, error) {
 	return db, nil
 }
 
+func StartTransaction(ctx context.Context) (*gorm.DB, context.Context, func(error), error) {
+	return startTransaction(ctx)
+}
+
 // nolint: unparam
 func startTransaction(ctx context.Context) (*gorm.DB, context.Context, func(error), error) {
 	// FIXME: pq: unexpected Parse response 'D'

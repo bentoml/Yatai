@@ -114,7 +114,14 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		description = *schema.Description
 	}
 
-	deployment, err := services.DeploymentService.Create(ctx, services.CreateDeploymentOption{
+	// nolint: ineffassign, staticcheck
+	_, ctx_, df, err := services.StartTransaction(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { df(err) }()
+
+	deployment, err := services.DeploymentService.Create(ctx_, services.CreateDeploymentOption{
 		CreatorId:     user.ID,
 		ClusterId:     cluster.ID,
 		Name:          schema.Name,
@@ -126,12 +133,32 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		return nil, errors.Wrap(err, "create deployment")
 	}
 
-	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
+	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
+	return deploymentSchema, err
 }
 
 type UpdateDeploymentSchema struct {
 	schemasv1.UpdateDeploymentSchema
 	GetDeploymentSchema
+}
+
+func (c *deploymentController) SyncStatus(ctx *gin.Context, schema *UpdateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
+	deployment, err := schema.GetDeployment(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canOperate(ctx, deployment); err != nil {
+		return nil, err
+	}
+
+	status, err := services.DeploymentService.SyncStatus(ctx, deployment)
+	if err != nil {
+		return nil, errors.Wrap(err, "sync deployment status")
+	}
+
+	deployment.Status = status
+
+	return transformersv1.ToDeploymentSchema(ctx, deployment)
 }
 
 func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
@@ -142,26 +169,31 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	if err = c.canUpdate(ctx, deployment); err != nil {
 		return nil, err
 	}
-	cluster, err := schema.GetCluster(ctx)
-	if err != nil {
-		return nil, err
-	}
 	org, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err
 	}
-	deployment, err = services.DeploymentService.Update(ctx, deployment, services.UpdateDeploymentOption{
-		ClusterId: cluster.ID,
-		Labels:    schema.Labels,
+
+	// nolint: ineffassign, staticcheck
+	_, ctx_, df, err := services.StartTransaction(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { df(err) }()
+
+	deployment, err = services.DeploymentService.Update(ctx_, deployment, services.UpdateDeploymentOption{
+		Description: schema.Description,
+		Labels:      schema.Labels,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return c.doUpdate(ctx, schema.UpdateDeploymentSchema, org, deployment)
+	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
+	return deploymentSchema, err
 }
 
-func (c *deploymentController) doUpdate(ctx *gin.Context, schema schemasv1.UpdateDeploymentSchema, org *models.Organization, deployment *models.Deployment) (*schemasv1.DeploymentSchema, error) {
+func (c *deploymentController) doUpdate(ctx context.Context, schema schemasv1.UpdateDeploymentSchema, org *models.Organization, deployment *models.Deployment) (*schemasv1.DeploymentSchema, error) {
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err

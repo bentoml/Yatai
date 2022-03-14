@@ -47,6 +47,7 @@ linters:
     - unused
   disable:
     - unused
+    - scopelint
   enable:
     - bodyclose
     - deadcode

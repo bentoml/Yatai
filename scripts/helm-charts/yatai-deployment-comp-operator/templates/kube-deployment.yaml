@@ -36,6 +36,9 @@ spec:
             - --leader-elect
           command:
             - /manager
+          envFrom:
+            - secretRef:
+                name: {{ include "yatai-deployment-comp-operator.fullname" . }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"

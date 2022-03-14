@@ -16,6 +16,7 @@ import (
 
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
 )
 
 type kubeHPAService struct{}
@@ -89,6 +90,19 @@ func (s *kubeHPAService) DeploymentTargetToKubeHPA(ctx context.Context, deployme
 				Target: v2beta2.MetricTarget{
 					Type:         v2beta2.UtilizationMetricType,
 					AverageValue: &quantity,
+				},
+			},
+		})
+	}
+
+	if len(metrics) == 0 {
+		metrics = append(metrics, v2beta2.MetricSpec{
+			Type: v2beta2.ResourceMetricSourceType,
+			Resource: &v2beta2.ResourceMetricSource{
+				Name: corev1.ResourceCPU,
+				Target: v2beta2.MetricTarget{
+					Type:               v2beta2.UtilizationMetricType,
+					AverageUtilization: utils.Int32Ptr(80),
 				},
 			},
 		})

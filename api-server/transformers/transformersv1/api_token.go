@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 )
@@ -39,12 +40,17 @@ func ToApiTokenSchemas(ctx context.Context, apiTokens []*models.ApiToken) ([]*sc
 		if !ok {
 			return nil, errors.Errorf("resourceSchema not found for apiToken %s", apiToken.GetUid())
 		}
+		scopes := apiToken.Scopes
+		if scopes == nil {
+			scopes_ := make(modelschemas.ApiTokenScopes, 0)
+			scopes = &scopes_
+		}
 		res = append(res, &schemasv1.ApiTokenSchema{
 			ResourceSchema: resourceSchema,
 			Description:    apiToken.Description,
 			User:           userSchema,
 			Organization:   organizationSchema,
-			Scopes:         apiToken.Scopes,
+			Scopes:         scopes,
 			ExpiredAt:      apiToken.ExpiredAt,
 			LastUsedAt:     apiToken.LastUsedAt,
 			IsExpired:      apiToken.IsExpired(),

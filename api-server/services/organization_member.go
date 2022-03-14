@@ -33,6 +33,7 @@ type ListOrganizationMemberOption struct {
 	UserId         *uint
 	OrganizationId *uint
 	Roles          *[]modelschemas.MemberRole
+	Order          *string
 }
 
 func (s *organizationMemberService) Create(ctx context.Context, operatorId uint, opt CreateOrganizationMemberOption) (*models.OrganizationMember, error) {
@@ -94,8 +95,13 @@ func (s *organizationMemberService) List(ctx context.Context, opt ListOrganizati
 	if opt.Roles != nil {
 		query = query.Where("role in (?)", *opt.Roles)
 	}
+	if opt.Order != nil {
+		query = query.Order(*opt.Order)
+	} else {
+		query = query.Order("id DESC")
+	}
 	// use Unscoped() to get all members include the soft deleted ones
-	err := query.Order("id DESC").Unscoped().Find(&members).Error
+	err := query.Unscoped().Find(&members).Error
 	return members, err
 }
 

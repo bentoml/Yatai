@@ -167,6 +167,18 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 	return &apiToken, nil
 }
 
+func (s *apiTokenService) GetByName(ctx context.Context, organizationId, userId uint, name string) (*models.ApiToken, error) {
+	var apiToken models.ApiToken
+	err := getBaseQuery(ctx, s).Where("organization_id = ?", organizationId).Where("user_id = ?", userId).Where("name = ?", name).First(&apiToken).Error
+	if err != nil {
+		return nil, err
+	}
+	if apiToken.ID == 0 {
+		return nil, consts.ErrNotFound
+	}
+	return &apiToken, nil
+}
+
 func (s *apiTokenService) List(ctx context.Context, opt ListApiTokenOption) ([]*models.ApiToken, uint, error) {
 	apiTokens := make([]*models.ApiToken, 0)
 	query := getBaseQuery(ctx, s)
