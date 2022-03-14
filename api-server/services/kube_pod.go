@@ -18,6 +18,7 @@ import (
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/api-server/version"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/utils"
 )
@@ -245,6 +246,13 @@ func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, 
 		envs = append(envs, apiv1.EnvVar{
 			Name:  consts.BentoServicePortEnvKey,
 			Value: fmt.Sprintf("%d", containerPort),
+		})
+	}
+
+	if _, ok := envsSeen[consts.BentoServiceYataiVersionEnvKey]; !ok {
+		envs = append(envs, apiv1.EnvVar{
+			Name:  consts.BentoServiceYataiVersionEnvKey,
+			Value: version.Version,
 		})
 	}
 
