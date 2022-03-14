@@ -1,6 +1,8 @@
 import React, { useCallback, useState } from 'react'
 import qs from 'qs'
 import { useStyletron } from 'baseui'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import { docco, dark } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import YataiLayout from '@/components/YataiLayout'
 import useTranslation from '@/hooks/useTranslation'
 import { createForm } from '@/components/Form'
@@ -26,6 +28,7 @@ export default function Setup() {
     const history = useHistory()
     const location = useLocation()
     const [values, setValues] = useState<ISetupSelfHostSchema | undefined>(undefined)
+    const highlightTheme = currentThemeType === 'dark' ? dark : docco
     const handleFinish = useCallback(
         async (data: ISetupSelfHostSchema) => {
             setIsLoading(true)
@@ -49,6 +52,9 @@ export default function Setup() {
     const handleValuesChange = useCallback((_changes, newValues) => {
         setValues(newValues)
     }, [])
+    const getTokenCommand =
+        'kubectl get pods --selector=app.kubernetes.io/name=yatai -n yatai-system ' +
+        '-o jsonpath=\'{.items[0].spec.containers[0].env[?(@.name=="YATAI_INITIALIZATION_TOKEN")].value}\''
 
     return (
         <YataiLayout
@@ -141,6 +147,37 @@ export default function Setup() {
                                 </div>
                             </FormItem>
                         </Form>
+                        <div
+                            style={{
+                                flexShrink: 0,
+                                display: 'flex',
+                                paddingTop: 30,
+                                paddingBottom: 10,
+                                alignItems: 'center',
+                                gap: 10,
+                            }}
+                        >
+                            {t('get the initialization token from command')}:
+                        </div>
+                        <div
+                            style={{
+                                flexShrink: 0,
+                                display: 'flex',
+                                paddingBottom: 10,
+                                alignItems: 'center',
+                                gap: 10,
+                            }}
+                        >
+                            <SyntaxHighlighter
+                                language='bash'
+                                style={highlightTheme}
+                                customStyle={{
+                                    margin: 0,
+                                }}
+                            >
+                                {getTokenCommand}
+                            </SyntaxHighlighter>
+                        </div>
                     </Card>
                 </div>
             </div>

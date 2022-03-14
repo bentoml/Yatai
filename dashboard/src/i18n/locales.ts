@@ -2065,6 +2065,13 @@ const locales0 = {
         ko: '초기 관리자 계정 설정',
         vi: 'Thiết lập tài khoản quản trị đầu tiên',
     },
+    'get the initialization token from command': {
+        en: 'Get the initialization token from command',
+        zh: '从命令中获取初始化令牌',
+        ja: 'コマンドから初期化トークンを取得する',
+        ko: '명령어에서 초기화 토큰 가져오기',
+        vi: 'Lấy mã token khởi tạo từ lệnh',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
