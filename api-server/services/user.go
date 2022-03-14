@@ -39,6 +39,10 @@ type CreateUserOption struct {
 type UpdateUserOption struct {
 	Config         **models.UserConfig
 	GithubUsername **string
+	Email          **string
+	Name           *string
+	FirstName      *string
+	LastName       *string
 }
 
 type ListUserOption struct {
@@ -103,6 +107,38 @@ func (s *userService) Update(ctx context.Context, u *models.User, opt UpdateUser
 			}
 		}()
 	}
+	if opt.Email != nil {
+		updaters["email"] = *opt.Email
+		defer func() {
+			if err == nil {
+				u.Email = *opt.Email
+			}
+		}()
+	}
+	if opt.FirstName != nil {
+		updaters["first_name"] = *opt.FirstName
+		defer func() {
+			if err == nil {
+				u.FirstName = *opt.FirstName
+			}
+		}()
+	}
+	if opt.LastName != nil {
+		updaters["last_name"] = *opt.LastName
+		defer func() {
+			if err == nil {
+				u.LastName = *opt.LastName
+			}
+		}()
+	}
+	if opt.Name != nil {
+		updaters["name"] = *opt.Name
+		defer func() {
+			if err == nil {
+				u.Name = *opt.Name
+			}
+		}()
+	}
 	if len(updaters) == 0 {
 		return u, nil
 	}
@@ -115,6 +151,10 @@ func (s *userService) UpdatePassword(ctx context.Context, u *models.User, curren
 	if err != nil {
 		return nil, err
 	}
+	return s.ForceUpdatePassword(ctx, u, newPassword)
+}
+
+func (s *userService) ForceUpdatePassword(ctx context.Context, u *models.User, newPassword string) (*models.User, error) {
 	hashedPassword, err := generateHashedPassword(newPassword)
 	if err != nil {
 		return nil, err
