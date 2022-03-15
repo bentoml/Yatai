@@ -6,7 +6,11 @@ Yatai uses Golang for its backend and react/typescript for the frontend web UI. 
 git clone https://github.com/bentoml/yatai.git
 ```
 
-## Prerequisites
+# Prerequisites
+
+You can do this the [hard way](#conventional-way) or the [easy way](#nix)
+
+## Conventional way
 
 ### Yatai Web UI
 
@@ -62,9 +66,9 @@ git clone https://github.com/bentoml/yatai.git
     ```
 
 
-## Install dependencies
+### Install dependencies
 
-### Yatai WebUI
+#### Yatai WebUI
 
 Yatai uses yarn to manage its front-end dependencies.  Run the make command:
 
@@ -79,7 +83,7 @@ cd dasboard
 yarn
 ```
 
-### Yatai server
+#### Yatai server
 
 Yatai uses go command to download the dependency packages.  Run the make command:
 
@@ -92,6 +96,20 @@ Alternatively to run the download command directly:
 ```bash
 go mod download
 ```
+
+## Nix
+
+Install [nix](https://nixos.org/download.html):
+```shell
+sh <(curl -L https://nixos.org/nix/install) --daemon
+```
+
+If you are on MacOS, then do:
+```bash
+sh <(curl -L https://nixos.org/nix/install) --darwin-use-unencrypted-nix-store-volume --daemon
+```
+
+After reboot, just run `nix-shell` and start developing :)
 
 ## Run development server
 
