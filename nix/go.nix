@@ -1,6 +1,6 @@
 { pkgs, stdenv, fetchurl }:
 
-let
+with pkgs; let
   toGoKernel = platform:
     if platform.isDarwin then "darwin"
     else platform.parsed.kernel.name;
@@ -27,7 +27,7 @@ let
     "powerpc64le" = "ppc64le";
   }.${platform.parsed.cpu.name} or (throw "Unsupported CPU ${platform.parsed.cpu.name}");
 
-  version = "1.17.3";
+  versions = "1.17.3";
 
   toGoPlatform = platform: "${toGoKernel platform}-${toGoCPU platform}";
 
@@ -35,9 +35,9 @@ let
 in
 stdenv.mkDerivation {
   pname = "go";
-  version = version;
+  version = versions;
   src = fetchurl {
-    url = "https://golang.org/dl/go${version}.${platform}.tar.gz";
+    url = "https://golang.org/dl/go${versions}.${platform}.tar.gz";
     sha256 = hashes.${platform} or (throw "Missing Go bootstrap hash for platform ${platform}");
   };
   builder = ./go-install.sh;

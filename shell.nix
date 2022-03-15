@@ -1,31 +1,33 @@
-with (import <nixpkgs> {});
+{ pkgs ? import <nixpkgs> {} }:
+
+with pkgs;
 let
+  lib = import <nixpkgs/lib>;
+  inherit (lib) optional optionals;
   postgresql = pkgs.postgresql_14;
-  nodejs = pkgs.nodejs_14;
-  go = pkgs.callPackage ./scripts/nix/go.nix { };
+  make = pkgs.gnumake;
+  go = pkgs.callPackage ./nix/go.nix { pkgs=pkgs; };
 
   basePackages = [
     postgresql
-    nodejs
     go
+    pkgs.nodejs-14_x
     pkgs.yarn
     pkgs.jq
-    pkgs.make
+    make
   ];
 
-  inputs = basePackages
+  requiredPackages = basePackages
     ++ lib.optional stdenv.isLinux inotify-tools
     ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [
         CoreFoundation
         CoreServices
       ]);
 
-in mkShell {
+in pkgs.mkShell {
     name = "dev";
 
-    buildInputs = [
-        postgresql
-    ];
+    buildInputs = requiredPackages;
 
     shellHook = ''
         # setup postgres
@@ -56,5 +58,8 @@ EOF
 
         # setup for dashboard
         alias scripts='jq ".scripts" dashboard/package.json'
+
+        make fe-deps be-deps
+
     '';
 }
