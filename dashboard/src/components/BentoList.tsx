@@ -87,7 +87,7 @@ export default function BentoList({ queryKey, isLoading, bentos, paginationProps
                         <ImageBuildStatusIcon
                             key={bento.uid}
                             status={bento.image_build_status}
-                            podsSelector={`yatai.io/bento=${bento.version},yatai.io/bento-repository=${bento.repository.name}`}
+                            podsSelector={`yatai.ai/bento=${bento.version},yatai.ai/bento-repository=${bento.repository.name}`}
                             onRerunClick={async () => {
                                 await recreateBentoImageBuilderJob(bento.repository.name, bento.version)
                             }}

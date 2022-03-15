@@ -118,7 +118,7 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
     let labels: string[] = []
     let defaultFilters: ILokiFilter[] = []
     if (deployment) {
-        labels = [`yatai_io_deployment="${deployment.name}"`]
+        labels = [`yatai_ai_deployment="${deployment.name}"`]
         defaultFilters = [
             {
                 type: 'not contains',
