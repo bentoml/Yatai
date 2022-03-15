@@ -10,11 +10,11 @@ const (
 	// nolint: gosec
 	KubeSecretNameRegcred         = "yatai-regcred"
 	KubeIngressClassName          = "yatai-ingress"
-	KubeLabelYataiSelector        = "yatai.io/selector"
-	KubeLabelYataiBentoRepository = "yatai.io/bento-repository"
-	KubeLabelYataiBento           = "yatai.io/bento"
-	KubeLabelYataiModelRepository = "yatai.io/model-repository"
-	KubeLabelYataiModel           = "yatai.io/model"
+	KubeLabelYataiSelector        = "yatai.ai/selector"
+	KubeLabelYataiBentoRepository = "yatai.ai/bento-repository"
+	KubeLabelYataiBento           = "yatai.ai/bento"
+	KubeLabelYataiModelRepository = "yatai.ai/model-repository"
+	KubeLabelYataiModel           = "yatai.ai/model"
 
 	KubeHPAQPSMetric = "http_request"
 	KubeHPAGPUMetric = "container_accelerator_duty_cycle"
@@ -29,17 +29,17 @@ const (
 	KubeLabelMcdKubectl                = "mcd-kubectl"
 	KubeLabelMcdUser                   = "mcd-user"
 	KubeLabelMcdAppPool                = "mcd-app-pool"
-	KubeLabelYataiDeployment           = "yatai.io/deployment"
-	KubeLabelYataiDeploymentId         = "yatai.io/deployment-id"
-	KubeLabelYataiDeploymentTargetType = "yatai.io/deployment-target-type"
+	KubeLabelYataiDeployment           = "yatai.ai/deployment"
+	KubeLabelYataiDeploymentId         = "yatai.ai/deployment-id"
+	KubeLabelYataiDeploymentTargetType = "yatai.ai/deployment-target-type"
 	KubeLabelCreator                   = "creator"
 	// nolint: gosec
-	KubeLabelYataiDeployToken = "yatai.io/deploy-token"
+	KubeLabelYataiDeployToken = "yatai.ai/deploy-token"
 
 	KubeLabelMcdAppCompType = "mcd-app-comp-type"
 	KubeLabelMcdAppCompName = "mcd-app-comp-name"
 
-	KubeLabelYataiOwnerReference = "yatai.io/owner-reference"
+	KubeLabelYataiOwnerReference = "yatai.ai/owner-reference"
 
 	KubeLabelGPUAccelerator = "gpu-accelerator"
 
@@ -56,8 +56,8 @@ const (
 	KubeLabelHelmHeritage = "heritage"
 	KubeLabelHelmRelease  = "release"
 
-	KubeAnnotationBento             = "yatai.io/bento"
-	KubeAnnotationYataiDeploymentId = "yatai.io/deployment-id"
+	KubeAnnotationBento             = "yatai.ai/bento"
+	KubeAnnotationYataiDeploymentId = "yatai.ai/deployment-id"
 	KubeAnnotationHelmReleaseName   = "meta.helm.sh/release-name"
 
 	KubeAnnotationPrometheusScrape = "prometheus.io/scrape"

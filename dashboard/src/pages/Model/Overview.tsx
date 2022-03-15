@@ -149,7 +149,7 @@ export default function ModelOverview() {
                             <div className={styles.value}>
                                 <ImageBuildStatusTag
                                     status={model.image_build_status}
-                                    podsSelector={`yatai.io/model=${model.version},yatai.io/model-repository=${model.repository.name}`}
+                                    podsSelector={`yatai.ai/model=${model.version},yatai.ai/model-repository=${model.repository.name}`}
                                     onRerunClick={async () => {
                                         await recreateModelImageBuilderJob(model.repository.name, model.version)
                                     }}
