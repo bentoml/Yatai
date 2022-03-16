@@ -36,16 +36,18 @@ in pkgs.mkShell {
         export SOCKET_DIRECTORIES="$PWD/.sockets"
         mkdir -p $PGDATA
 
+        initdb -D $PGDATA
+        createuser postgres -h localhost
+        createdb yatai
+
         if [[ ! $(grep listen_address $PGDATA/postgresql.conf) ]]; then
-            initdb -D $PGDATA
-            createuser postgres -h localhost
-            createdb yatai
             cat >> "$PGDATA/postgresql.conf" <<-EOF
 listen_addresses = 'localhost'
 port = 5432
 unix_socket_directories = '$PGHOST'
 EOF
         fi
+
         pg_ctl -l $PGDATA/logfile start
 
         function end {
@@ -60,6 +62,5 @@ EOF
         alias scripts='jq ".scripts" dashboard/package.json'
 
         make fe-deps be-deps
-
     '';
 }

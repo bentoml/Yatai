@@ -5,7 +5,7 @@ with pkgs; let
     if platform.isDarwin then "darwin"
     else platform.parsed.kernel.name;
     hashes = {
-      # Use `print-hashes.sh ${version}` to generate the list below
+      # Use `./shells/print-hashes.sh ${version}` to generate the list below
       # https://raw.githubusercontent.com/NixOS/nixpkgs/master/pkgs/development/compilers/go/print-hashes.sh
       darwin-amd64 = "765c021e372a87ce0bc58d3670ab143008dae9305a79e9fa83440425529bb636";
       darwin-arm64 = "ffe45ef267271b9681ca96ca9b0eb9b8598dd82f7bb95b27af3eef2461dc3d2c";
@@ -40,6 +40,6 @@ stdenv.mkDerivation {
     url = "https://golang.org/dl/go${versions}.${platform}.tar.gz";
     sha256 = hashes.${platform} or (throw "Missing Go bootstrap hash for platform ${platform}");
   };
-  builder = ./go-install.sh;
+  builder = ./shells/go-install.sh;
   system = builtins.currentSystem;
 }
