@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/opencontainers/runc/libcontainer/user"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/atomic"
@@ -130,12 +131,34 @@ func (c *clusterController) Update(ctx *gin.Context, schema *UpdateClusterSchema
 	if err = c.canUpdate(ctx, cluster); err != nil {
 		return nil, err
 	}
-	cluster, err = services.ClusterService.Update(ctx, cluster, services.UpdateClusterOption{
+	cluster, updateError := services.ClusterService.Update(ctx, cluster, services.UpdateClusterOption{
 		Description: schema.Description,
 		Config:      schema.Config,
 		KubeConfig:  schema.KubeConfig,
 	})
+	user, err = services.GetCurrentUser(ctx)
 	if err != nil {
+		return nil, err
+	}
+	org, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	createEventOpt := services.CreateEventOption{
+		CreatorId:      user.ID,
+		OrganizationId: &org.ID,
+		ResourceType:   modelschemas.ResourceTypeCluster,
+		ResourceId:     cluster.ID,
+		Status:         modelschemas.EventStatusSuccess,
+		OperationName:  "updated",
+	}
+	if updateError != nil {
+		createEventOpt.Status = modelschemas.EventStatusFailed
+	}
+	if _, eventError := services.EventService.Create(ctx, createEventOpt); eventError != nil {
+		return nil, errors.Wrap(eventError, "create event")
+	}
+	if updateError != nil {
 		return nil, errors.Wrap(err, "update cluster")
 	}
 	return transformersv1.ToClusterFullSchema(ctx, cluster)
