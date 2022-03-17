@@ -89,7 +89,7 @@ func (c *clusterController) Create(ctx *gin.Context, schema *CreateClusterSchema
 		return nil, err
 	}
 
-	cluster, err := services.ClusterService.Create(ctx, services.CreateClusterOption{
+	cluster, createError := services.ClusterService.Create(ctx, services.CreateClusterOption{
 		CreatorId:      user.ID,
 		OrganizationId: org.ID,
 		Name:           schema.Name,
@@ -97,7 +97,21 @@ func (c *clusterController) Create(ctx *gin.Context, schema *CreateClusterSchema
 		KubeConfig:     schema.KubeConfig,
 		Config:         schema.Config,
 	})
-	if err != nil {
+	createEventOpt := services.CreateEventOption{
+		CreatorId:      user.ID,
+		OrganizationId: &org.ID,
+		ResourceType:   modelschemas.ResourceTypeCluster,
+		ResourceId:     cluster.ID,
+		Status:         modelschemas.EventStatusSuccess,
+		OperationName:  "created",
+	}
+	if createError != nil {
+		createEventOpt.Status = modelschemas.EventStatusFailed
+	}
+	if _, eventError := services.EventService.Create(ctx, createEventOpt); eventError != nil {
+		return nil, errors.Wrap(eventError, "create event")
+	}
+	if createError != nil {
 		return nil, errors.Wrap(err, "create cluster")
 	}
 	return transformersv1.ToClusterFullSchema(ctx, cluster)
