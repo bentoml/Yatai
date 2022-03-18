@@ -46,11 +46,6 @@ func NewRouter() (*fizz.Fizz, error) {
 	engine.Use(sessions.Sessions("yatai-session-v1", store))
 
 	engine.GET("/logout", web.Logout)
-	oauthGrp := engine.Group("oauth")
-	oauthGrp.GET("/github", controllersv1.GithubOAuthLogin)
-
-	callbackGrp := engine.Group("callback")
-	callbackGrp.GET("/github", controllersv1.GithubOAuthCallBack)
 
 	fizzApp := fizz.NewFromEngine(engine)
 

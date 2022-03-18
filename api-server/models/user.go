@@ -15,7 +15,6 @@ type User struct {
 	Email           *string               `json:"email"`
 	Password        string                `json:"password"`
 	IsEmailVerified bool                  `json:"is_email_verified"`
-	GithubUsername  *string               `json:"github_username"`
 	Config          *UserConfig           `json:"config"`
 
 	ApiToken *ApiToken `gorm:"-" json:"-"`
