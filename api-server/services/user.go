@@ -27,22 +27,20 @@ func (*userService) getBaseDB(ctx context.Context) *gorm.DB {
 const LoginUserKey = "loginUser"
 
 type CreateUserOption struct {
-	Name           string
-	FirstName      string
-	LastName       string
-	GithubUsername *string
-	Email          *string
-	Password       string
-	Perm           *modelschemas.UserPerm
+	Name      string
+	FirstName string
+	LastName  string
+	Email     *string
+	Password  string
+	Perm      *modelschemas.UserPerm
 }
 
 type UpdateUserOption struct {
-	Config         **models.UserConfig
-	GithubUsername **string
-	Email          **string
-	Name           *string
-	FirstName      *string
-	LastName       *string
+	Config    **models.UserConfig
+	Email     **string
+	Name      *string
+	FirstName *string
+	LastName  *string
 }
 
 type ListUserOption struct {
@@ -60,12 +58,11 @@ func (s *userService) Create(ctx context.Context, opt CreateUserOption) (*models
 		ResourceMixin: models.ResourceMixin{
 			Name: opt.Name,
 		},
-		FirstName:      opt.FirstName,
-		LastName:       opt.LastName,
-		GithubUsername: opt.GithubUsername,
-		Email:          opt.Email,
-		Password:       string(hashedPassword),
-		Perm:           modelschemas.UserPermDefault,
+		FirstName: opt.FirstName,
+		LastName:  opt.LastName,
+		Email:     opt.Email,
+		Password:  string(hashedPassword),
+		Perm:      modelschemas.UserPermDefault,
 	}
 	if opt.Perm != nil {
 		user.Perm = *opt.Perm
@@ -96,14 +93,6 @@ func (s *userService) Update(ctx context.Context, u *models.User, opt UpdateUser
 		defer func() {
 			if err == nil {
 				u.Config = *opt.Config
-			}
-		}()
-	}
-	if opt.GithubUsername != nil {
-		updaters["github_username"] = *opt.GithubUsername
-		defer func() {
-			if err == nil {
-				u.GithubUsername = *opt.GithubUsername
 			}
 		}()
 	}
@@ -214,15 +203,6 @@ func (*userService) GetByUid(ctx context.Context, uid string) (*models.User, err
 func (*userService) GetByName(ctx context.Context, name string) (*models.User, error) {
 	var user models.User
 	err := mustGetSession(ctx).Where("name = ?", name).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
-func (*userService) GetByGithubUsername(ctx context.Context, githubUsername string) (*models.User, error) {
-	var user models.User
-	err := mustGetSession(ctx).Where("github_username = ?", githubUsername).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
