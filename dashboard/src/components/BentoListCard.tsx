@@ -1,14 +1,15 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { useQuery } from 'react-query'
 import Card from '@/components/Card'
-import { createBento, listBentos } from '@/services/bento'
+import { listBentos } from '@/services/bento'
 import { usePage } from '@/hooks/usePage'
-import { ICreateBentoSchema } from '@/schemas/bento'
-import BentoForm from '@/components/BentoForm'
 import useTranslation from '@/hooks/useTranslation'
+import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import { dark, docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { resourceIconMapping } from '@/consts'
 import qs from 'qs'
 import { useQ } from '@/hooks/useQ'
@@ -16,6 +17,7 @@ import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
 import BentoList from './BentoList'
+import Link from './Link'
 
 export interface IBentoListCardProps {
     bentoRepositoryName: string
@@ -23,20 +25,14 @@ export interface IBentoListCardProps {
 
 export default function BentoListCard({ bentoRepositoryName }: IBentoListCardProps) {
     const [page] = usePage()
+    const themeType = useCurrentThemeType()
     const { q, updateQ } = useQ()
     const membersInfo = useFetchOrganizationMembers()
     const queryKey = `fetchBentos:${bentoRepositoryName}:${qs.stringify(page)}`
     const bentosInfo = useQuery(queryKey, () => listBentos(bentoRepositoryName, page))
     const [isCreateBentoVersionOpen, setIsCreateBentoVersionOpen] = useState(false)
-    const handleCreateBentoVersion = useCallback(
-        async (data: ICreateBentoSchema) => {
-            await createBento(bentoRepositoryName, data)
-            await bentosInfo.refetch()
-            setIsCreateBentoVersionOpen(false)
-        },
-        [bentoRepositoryName, bentosInfo]
-    )
     const [t] = useTranslation()
+    const highlightTheme = themeType === 'dark' ? dark : docco
 
     return (
         <Card
@@ -153,7 +149,30 @@ export default function BentoListCard({ bentoRepositoryName }: IBentoListCardPro
             >
                 <ModalHeader>{t('create sth', [t('version')])}</ModalHeader>
                 <ModalBody>
-                    <BentoForm onSubmit={handleCreateBentoVersion} />
+                    <div>
+                        <p>
+                            1. {t('Create an [API-token] and login your BentoML CLI. prefix')}
+                            <Link href='/api_tokens' target='_blank'>
+                                {t('api token')}
+                            </Link>
+                            {t('Create an [API-token] and login your BentoML CLI. suffix')}
+                        </p>
+                        <p>
+                            2. {t('Push new Bento to Yatai with the `bentoml push` CLI command. prefix')}
+                            <SyntaxHighlighter
+                                language='bash'
+                                style={highlightTheme}
+                                customStyle={{
+                                    margin: 0,
+                                    display: 'inline',
+                                    padding: 2,
+                                }}
+                            >
+                                bentoml push
+                            </SyntaxHighlighter>
+                            {t('Push new Bento to Yatai with the `bentoml push` CLI command. suffix')}
+                        </p>
+                    </div>
                 </ModalBody>
             </Modal>
         </Card>
