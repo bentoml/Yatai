@@ -2065,6 +2065,13 @@ const locales0 = {
         ko: '초기 관리자 계정 설정',
         vi: 'Thiết lập tài khoản quản trị đầu tiên',
     },
+    'already the latest version': {
+        en: 'Already the latest version',
+        zh: '已经是最新版本',
+        ja: '最新バージョンです',
+        ko: '이미 최신 버전입니다',
+        vi: 'Đã là phiên bản mới nhất',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
