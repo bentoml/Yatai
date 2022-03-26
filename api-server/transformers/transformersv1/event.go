@@ -199,6 +199,7 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 			Creator:       userSchema,
 			Name:          event.Name,
 			OperationName: event.OperationName,
+			ApiTokenName:  event.ApiTokenName,
 			Status:        event.Status,
 		}
 		resourceUids, ok := resourceUidsGroup[event.ResourceType]
