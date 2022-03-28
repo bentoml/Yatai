@@ -97,7 +97,7 @@ export default function EventList({ isLoading, events, paginationProps }: IEvent
                                 gap: 10,
                             }}
                         >
-                            {item.creator && <User user={item.creator} />}
+                            {item.creator && <User user={item.creator} apiTokenName={item.api_token_name} />}
                             <span>{t(item.operation_name as any)}</span>
                             <div
                                 style={{
