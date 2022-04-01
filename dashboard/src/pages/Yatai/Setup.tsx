@@ -53,8 +53,8 @@ export default function Setup() {
         setValues(newValues)
     }, [])
     const getTokenCommand =
-        'kubectl get pods --selector=app.kubernetes.io/name=yatai -n yatai-system ' +
-        '-o jsonpath=\'{.items[0].spec.containers[0].env[?(@.name=="YATAI_INITIALIZATION_TOKEN")].value}\''
+        `kubectl get pods --selector=app.kubernetes.io/name=yatai -n yatai-system ` +
+        `-o jsonpath=\'{.items[0].spec.containers[0].env[?(@.name=="YATAI_INITIALIZATION_TOKEN")].value}\'`
 
     return (
         <YataiLayout
