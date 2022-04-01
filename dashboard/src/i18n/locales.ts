@@ -2065,6 +2065,13 @@ const locales0 = {
         ko: '초기 관리자 계정 설정',
         vi: 'Thiết lập tài khoản quản trị đầu tiên',
     },
+    'get the initialization token from command': {
+        en: 'Get the initialization token from command',
+        zh: '从命令中获取初始化令牌',
+        ja: 'コマンドから初期化トークンを取得する',
+        ko: '명령어에서 초기화 토큰 가져오기',
+        vi: 'Lấy mã token khởi tạo từ lệnh',
+    },
     'already the latest version': {
         en: 'Already the latest version',
         zh: '已经是最新版本',

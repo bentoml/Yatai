@@ -142,7 +142,14 @@ Run `minikube tunnel` command to allow access to the Yatai Web UI:
 minikube tunnel
 ```
 
-Once the minikube tunnel established, open a browser at [http://yatai.127.0.0.1.sslip.io](http://yatai.127.0.0.1.sslip.io), login with the default username `admin` and password `admin`.
+Once the minikube tunnel established, you can access the Yatai Web UI: http://localhost:8001/setup?token=<token>. You can find the URL link and the token again using `helm get notes yatai -n yatai-system` command.
+
+You can also retrieve the token using `kubectl` command:
+
+```bash
+kubectl get pods --selector=app.kubernetes.io/name=yatai -n yatai-system \
+    -o jsonpath='{.items[0].spec.containers[0].env[?(@.name=="YATAI_INITIALIZATION_TOKEN")].value}'
+```
 
 
 
@@ -261,10 +268,10 @@ Prerequisites:
         BENTO_REPO=yatai-bentos
         MODEL_REPO=yatai-models
         REGISTRY_ID=yatai
-    
+
         aws ecr create-repository --registry-id $REGISTRY_ID --repository-name $BENTO_REPO
         aws ecr create-repository --registry-id $REGISTRY_ID --repository-name $MODEL_REPO
-    
+
         # If the repositories are created use a different registry id from the default
         read ENDPOINT < <(echo $(aws ecr get-authorization-token --regsitry-ids $REGISTRY_ID | jq '.authorizationData[0].proxyEndpoint'))
         ```
