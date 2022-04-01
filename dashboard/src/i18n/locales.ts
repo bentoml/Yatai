@@ -2072,6 +2072,13 @@ const locales0 = {
         ko: '명령어에서 초기화 토큰 가져오기',
         vi: 'Lấy mã token khởi tạo từ lệnh',
     },
+    'already the latest version': {
+        en: 'Already the latest version',
+        zh: '已经是最新版本',
+        ja: '最新バージョンです',
+        ko: '이미 최신 버전입니다',
+        vi: 'Đã là phiên bản mới nhất',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

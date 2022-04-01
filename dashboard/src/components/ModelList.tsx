@@ -87,7 +87,7 @@ export default function ModelList({ queryKey, isLoading, models, paginationProps
                         <ImageBuildStatusIcon
                             key={model.uid}
                             status={model.image_build_status}
-                            podsSelector={`yatai.io/model=${model.version},yatai.io/model-repository=${model.repository.name}`}
+                            podsSelector={`yatai.ai/model=${model.version},yatai.ai/model-repository=${model.repository.name}`}
                             onRerunClick={async () => {
                                 await recreateModelImageBuilderJob(model.repository.name, model.version)
                             }}

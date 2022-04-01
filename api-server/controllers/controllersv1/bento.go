@@ -222,8 +222,13 @@ func (c *bentoController) FinishUpload(ctx *gin.Context, schema *FinishUploadBen
 		if err != nil {
 			return nil, err
 		}
+		apiTokenName := ""
+		if user.ApiToken != nil {
+			apiTokenName = user.ApiToken.Name
+		}
 		createEventOpt := services.CreateEventOption{
 			CreatorId:      user.ID,
+			ApiTokenName:   apiTokenName,
 			OrganizationId: &org.ID,
 			ResourceType:   modelschemas.ResourceTypeBento,
 			ResourceId:     bento.ID,

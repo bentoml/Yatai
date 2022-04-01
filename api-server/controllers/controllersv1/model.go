@@ -220,8 +220,13 @@ func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadMod
 		if err != nil {
 			return nil, err
 		}
+		apiTokenName := ""
+		if user.ApiToken != nil {
+			apiTokenName = user.ApiToken.Name
+		}
 		createEventOpt := services.CreateEventOption{
 			CreatorId:      user.ID,
+			ApiTokenName:   apiTokenName,
 			OrganizationId: &org.ID,
 			ResourceType:   modelschemas.ResourceTypeModel,
 			ResourceId:     model.ID,

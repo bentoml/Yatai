@@ -6,7 +6,7 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
 	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
 	github.com/bentoml/yatai-deployment-operator v0.0.0-20220307212108-1741d5ad8bb4
-	github.com/bentoml/yatai-schemas v0.0.0-20220310025411-491802a225b7
+	github.com/bentoml/yatai-schemas v0.0.0-20220326064606-43c5c9c27067
 	github.com/elastic/go-sysinfo v1.7.0 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/ghodss/yaml v1.0.0

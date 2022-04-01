@@ -24,6 +24,8 @@ import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
 import { useFetchYataiComponentOperatorHelmCharts } from '@/hooks/useFetchYataiComponentOperatorHelmCharts'
 import semver from 'semver'
 import { useStyletron } from 'baseui'
+import { StatefulTooltip } from 'baseui/tooltip'
+import { AiOutlineQuestionCircle } from 'react-icons/ai'
 import YataiComponentTypeRender from './YataiComponentTypeRender'
 import { YataiComponentPodStatuses } from './YataiComponentPodStatuses'
 
@@ -219,7 +221,7 @@ export default function YataiComponentListCard({ clusterName }: IYataiComponentL
                                 {semver.lt(
                                     yataiComponent.release?.chart.metadata.version ?? '0.0.0',
                                     chart?.metadata.version ?? '0.0.0'
-                                ) && (
+                                ) ? (
                                     <Button
                                         size='compact'
                                         onClick={(e) => {
@@ -230,6 +232,35 @@ export default function YataiComponentListCard({ clusterName }: IYataiComponentL
                                     >
                                         {t('upgrade to sth', [chart?.metadata.version])}
                                     </Button>
+                                ) : (
+                                    <StatefulTooltip placement='bottom' content={() => t('already the latest version')}>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 2,
+                                            }}
+                                        >
+                                            <Button size='compact' disabled>
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 4,
+                                                    }}
+                                                >
+                                                    {t('upgrade')}
+                                                    <div
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        <AiOutlineQuestionCircle size={10} />
+                                                    </div>
+                                                </div>
+                                            </Button>
+                                        </div>
+                                    </StatefulTooltip>
                                 )}
                                 <Button
                                     overrides={{

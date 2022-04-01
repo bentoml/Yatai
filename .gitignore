@@ -46,3 +46,4 @@ build/
 yatai-config.dev.yaml
 yatai-config.test.yaml
 yatai-config.production.yaml
+.yatai-db

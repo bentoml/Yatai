@@ -18,7 +18,6 @@ import (
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
-	"github.com/bentoml/yatai/common/sync/errsgroup"
 	"github.com/bentoml/yatai/common/utils"
 )
 
@@ -374,19 +373,15 @@ func (s *deploymentRevisionService) Deploy(ctx context.Context, deploymentRevisi
 		}
 	}
 
-	var eg errsgroup.Group
-
+	// Can not use goroutine here because of pgx transaction bug
 	for _, deploymentTarget := range deploymentTargets {
-		deploymentTarget := deploymentTarget
-		eg.Go(func() error {
-			_, err := DeploymentTargetService.Deploy(ctx, deploymentTarget, deployOption)
-			return err
-		})
+		_, err = DeploymentTargetService.Deploy(ctx, deploymentTarget, deployOption)
+		if err != nil {
+			return
+		}
 	}
 
-	err = eg.Wait()
-
-	return err
+	return nil
 }
 
 func (s *deploymentRevisionService) GetKubeCliSet(ctx context.Context, deploymentRevision *models.DeploymentRevision) (kubeCli *kubernetes.Clientset, restConfig *rest.Config, err error) {

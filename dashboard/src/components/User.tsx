@@ -5,12 +5,15 @@ import Text from './Text'
 
 export interface IUserProps {
     user: IUserSchema
+    apiTokenName?: string
     size?: 'scale700' | 'scale800' | 'scale1000' | 'scale1200' | 'scale1400' | '64px' | '32px' | '16px' | '14px'
     style?: React.CSSProperties
 }
 
-export default function User({ user, size = 'scale800', style }: IUserProps) {
+export default function User({ user, apiTokenName, size = 'scale800', style }: IUserProps) {
     const name = !user.first_name && !user.last_name ? user.name : `${user.first_name} ${user.last_name}`
+
+    const displayName = apiTokenName ? `${name} (${apiTokenName})` : name
 
     return (
         <div
@@ -22,7 +25,7 @@ export default function User({ user, size = 'scale800', style }: IUserProps) {
             }}
         >
             <Avatar size={size} name={name} src={user.avatar_url} />
-            <Text>{name}</Text>
+            <Text>{displayName}</Text>
         </div>
     )
 }

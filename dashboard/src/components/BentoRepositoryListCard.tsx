@@ -325,7 +325,7 @@ export default function BentoRepositoryListCard() {
                                             <ImageBuildStatusIcon
                                                 size={14}
                                                 status={item.image_build_status}
-                                                podsSelector={`yatai.io/bento=${item.version},yatai.io/bento-repository=${bentoRepository.name}`}
+                                                podsSelector={`yatai.ai/bento=${item.version},yatai.ai/bento-repository=${bentoRepository.name}`}
                                                 onRerunClick={async () => {
                                                     await recreateBentoImageBuilderJob(
                                                         bentoRepository.name,

@@ -42,15 +42,6 @@ type YataiDockerRegistryConfigYaml struct {
 	Secure              bool   `yaml:"secure"`
 }
 
-type YataiOAuthGithubConfigYaml struct {
-	ClientId     string `yaml:"client_id"`
-	ClientSecret string `yaml:"client_secret"`
-}
-
-type YataiOAuthConfigYaml struct {
-	Github YataiOAuthGithubConfigYaml `yaml:"github"`
-}
-
 type YataiConfigYaml struct {
 	IsSass              bool                           `yaml:"is_sass"`
 	InCluster           bool                           `yaml:"in_cluster"`
@@ -58,7 +49,6 @@ type YataiConfigYaml struct {
 	Postgresql          YataiPostgresqlConfigYaml      `yaml:"postgresql"`
 	S3                  *YataiS3ConfigYaml             `yaml:"s3,omitempty"`
 	DockerRegistry      *YataiDockerRegistryConfigYaml `yaml:"docker_registry,omitempty"`
-	OAuth               *YataiOAuthConfigYaml          `yaml:"oauth,omitempty"`
 	NewsURL             string                         `yaml:"news_url"`
 	InitializationToken string                         `yaml:"initialization_token"`
 }
@@ -100,14 +90,6 @@ func PopulateYataiConfig() error {
 	}
 	if YataiConfig.Server.Port == 0 {
 		YataiConfig.Server.Port = 7777
-	}
-	githubClientId, ok := os.LookupEnv(consts.EnvGithubClientId)
-	if ok {
-		YataiConfig.OAuth.Github.ClientId = githubClientId
-	}
-	githubClientSecret, ok := os.LookupEnv(consts.EnvGithubClientSecret)
-	if ok {
-		YataiConfig.OAuth.Github.ClientSecret = githubClientSecret
 	}
 	initialization_token, ok := os.LookupEnv(consts.EnvInitializationToken)
 	if ok {
