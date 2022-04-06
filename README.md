@@ -40,7 +40,9 @@ Core features:
 
 ## Getting Started
 
-#### 1. Install Yatai locally with Minikube 
+<details>
+  <summary>1. Install Yatai locally with Minikube</summary>
+    
    * Prerequisites:
      * Install latest minikube: https://minikube.sigs.k8s.io/docs/start/
      * Install latest Helm: https://helm.sh/docs/intro/install/
@@ -58,15 +60,22 @@ Core features:
       export YATAI_INITIALIZATION_TOKEN=$(kubectl get secret yatai --namespace yatai-system -o jsonpath="{.data.initialization_token}" | base64 --decode)
       echo "Visit: http://yatai.127.0.0.1.sslip.io/setup?token=$YATAI_INITIALIZATION_TOKEN"
       ```
+</details>
 
-#### 2. Get an API token and login BentoML CLI
+    
+<details>
+  <summary>2. Get an API token and login BentoML CLI</summary>
+    
   * Create a new API token in Yatai web UI: http://yatai.127.0.0.1.sslip.io/api_tokens
   * Copy login command upon token creation and run as shell command, e.g.: 
     ```bash
     bentoml yatai login --api-token {YOUR_TOKEN_GOES_HERE} --endpoint http://yatai.127.0.0.1.sslip.io
     ```
+</details>
 
-#### 3. Pushing Bento to Yatai
+<details>
+  <summary>3. Pushing Bento to Yatai</summary>
+    
   * Train a sample ML model and build a Bento using code from the [BentoML Quickstart Project](https://github.com/bentoml/gallery/tree/main/quickstart):
     ```bash
     git clone https://github.com/bentoml/gallery.git && cd ./gallery/quickstart
@@ -78,8 +87,12 @@ Core features:
     ```bash
     bentoml push iris_classifier:latest
     ```
+</details>
 
-#### 4. Create your first deployment!
+    
+<details>
+  <summary>4. Create your first deployment!</summary>
+    
   * A Bento Deployment can be created via Web UI or via kubectl command:
 
     * Deploy via Web UI
@@ -115,9 +128,13 @@ Core features:
         --data "[5, 4, 3, 2]" \
         https://demo-default-yatai-127-0-0-1.apps.yatai.dev/classify
     ```
-
-#### 5. Moving to production
+</details>
+    
+<details>
+  <summary>5. Moving to production</summary>
+    
   * See [Administrator's Guide](https://github.com/bentoml/yatai/blob/main/docs/admin-guide.md) for a comprehensive overview for deploying and configuring Yatai for production use.
+</details>
 
 
 ## Community
