@@ -135,11 +135,11 @@ yatai-system       yatai-6658d565d8-drk9f                                       
 yatai-system       yatai-postgresql-0                                                1/1     Running             0               4m24s
 ```
 
-Run `minikube tunnel` command to allow access to the Yatai Web UI:
+Use minikube tunnel to expose Yatai Web UI locally::
 
 ```bash
 # this requires enter your system password
-minikube tunnel
+sudo minikube tunnel
 ```
 
 Once the minikube tunnel established, you can access the Yatai Web UI: http://localhost:8001/setup?token=<token>. You can find the URL link and the token again using `helm get notes yatai -n yatai-system` command.
