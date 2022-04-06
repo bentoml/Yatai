@@ -21,6 +21,10 @@ export interface IBentoManifestSchema {
             output: string
         }
     }
+    runners?: {
+        name: string
+        runner_type: string
+    }[]
     size_bytes: number
 }
 

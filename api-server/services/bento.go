@@ -46,6 +46,7 @@ type UpdateBentoOption struct {
 	UploadFinishedAt          **time.Time
 	UploadFinishedReason      *string
 	Labels                    *modelschemas.LabelItemsSchema
+	Manifest                  **modelschemas.BentoManifestSchema
 }
 
 type ListBentoOption struct {
@@ -333,6 +334,14 @@ func (s *bentoService) Update(ctx context.Context, bento *models.Bento, opt Upda
 		defer func() {
 			if err == nil {
 				bento.UploadFinishedReason = *opt.UploadFinishedReason
+			}
+		}()
+	}
+	if opt.Manifest != nil {
+		updaters["manifest"] = *opt.Manifest
+		defer func() {
+			if err == nil {
+				bento.Manifest = *opt.Manifest
 			}
 		}()
 	}
