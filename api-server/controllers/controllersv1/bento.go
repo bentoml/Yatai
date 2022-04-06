@@ -117,7 +117,8 @@ func (c *bentoController) Update(ctx *gin.Context, schema *UpdateBentoSchema) (*
 		return nil, err
 	}
 	bento, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
-		Labels: schema.Labels,
+		Labels:   schema.Labels,
+		Manifest: schema.Manifest,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "update bento")

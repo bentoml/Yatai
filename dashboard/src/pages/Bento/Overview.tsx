@@ -31,6 +31,8 @@ import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import ModelList from '@/components/ModelList'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import Link from '@/components/Link'
+import classNames from 'classnames'
+import Table from '@/components/Table'
 
 const useStyles = createUseStyles({
     left: {
@@ -121,6 +123,7 @@ export default function BentoOverview() {
     const downloadCommand = `bentoml pull ${bentoRepositoryName}:${bentoVersion}`
     const [copyNotification, setCopyNotification] = useState<string>()
     const highlightTheme = themeType === 'dark' ? dark : docco
+    const [showRunners, setShowRunners] = useState(false)
 
     if (bentoLoading || !bento) {
         return <Skeleton rows={3} animation />
@@ -166,6 +169,37 @@ export default function BentoOverview() {
                         <div className={styles.item}>
                             <div className={styles.key}>Size</div>
                             <div className={styles.value}>{prettyBytes(bento.manifest.size_bytes)}</div>
+                        </div>
+                        <div
+                            className={classNames({
+                                [styles.item]: true,
+                                [styles.foldedItem]: true,
+                                [styles.closedItem]: !showRunners,
+                                [styles.openedItem]: showRunners,
+                            })}
+                        >
+                            <div
+                                className={styles.key}
+                                role='button'
+                                tabIndex={0}
+                                onClick={() => setShowRunners((v) => !v)}
+                            >
+                                Runners
+                            </div>
+                            <div className={styles.value}>
+                                {showRunners ? (
+                                    <Table
+                                        size='compact'
+                                        columns={[t('name'), t('type')]}
+                                        data={(bento.manifest.runners || []).map((runner) => [
+                                            runner.name,
+                                            runner.runner_type,
+                                        ])}
+                                    />
+                                ) : (
+                                    '...'
+                                )}
+                            </div>
                         </div>
                     </div>
                 </Card>

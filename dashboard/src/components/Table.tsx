@@ -12,7 +12,7 @@ export interface ITableProps extends BaseTableProps {
     paginationProps?: IPaginationProps
 }
 
-export default function Table({ isLoading, columns, data, overrides, paginationProps }: ITableProps) {
+export default function Table({ isLoading, columns, data, overrides, paginationProps, size }: ITableProps) {
     const [t] = useTranslation()
     const [page, setPage] = usePage()
 
@@ -21,6 +21,7 @@ export default function Table({ isLoading, columns, data, overrides, paginationP
             <BaseTable
                 isLoading={isLoading}
                 columns={columns}
+                size={size}
                 data={data}
                 overrides={{
                     TableBodyRow: {
