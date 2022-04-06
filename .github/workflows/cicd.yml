@@ -60,6 +60,10 @@ jobs:
     if: ${{ (github.event_name == 'pull_request' && needs.diff.outputs.golang == 'true') || github.event_name == 'push' }}
 
     steps:
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.17.3' # The Go version to download (if necessary) and use.
+
       - uses: actions/checkout@v2
 
       - name: Run golangci-lint
