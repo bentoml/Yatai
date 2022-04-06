@@ -9,6 +9,8 @@ run:
   #   vendor$, third_party$, testdata$, examples$, Godeps$, builtin$
   skip-dirs-use-default: true
 
+  go: '1.17'
+
 output:
   # colored-line-number|line-number|json|tab|checkstyle|code-climate, default is "colored-line-number"
   format: colored-line-number
