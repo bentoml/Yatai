@@ -61,7 +61,7 @@ func (*deploymentRevisionService) Create(ctx context.Context, opt CreateDeployme
 	if err != nil {
 		return nil, err
 	}
-	deploymentComponentMinVersion := version2.Must(version2.NewVersion("0.2.0"))
+	deploymentComponentMinVersion := version2.Must(version2.NewVersion("0.3.0"))
 	for _, comp := range yataiComponents {
 		if comp.Type == modelschemas.YataiComponentTypeDeployment {
 			var ver *version2.Version
