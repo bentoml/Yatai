@@ -485,7 +485,7 @@ func copyAndStripPod(pod *corev1.Pod, targetContainer string, podLabels map[stri
 	}
 	copied.ResourceVersion = ""
 	copied.UID = ""
-	copied.SelfLink = ""
+	// copied.SelfLink = ""
 	copied.CreationTimestamp = v1.Time{}
 	copied.OwnerReferences = []v1.OwnerReference{}
 

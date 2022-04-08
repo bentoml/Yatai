@@ -11,14 +11,14 @@ import (
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 
-	servingv1alpha1 "github.com/bentoml/yatai-deployment-operator/api/serving/v1alpha1"
+	servingv1alpha2 "github.com/bentoml/yatai-deployment-operator/api/v1alpha2"
 )
 
 type kubeBentoDeploymentService struct{}
 
 var KubeBentoDeploymentService = kubeBentoDeploymentService{}
 
-func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (kubeBentoDeployment *servingv1alpha1.BentoDeployment, err error) {
+func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (kubeBentoDeployment *servingv1alpha2.BentoDeployment, err error) {
 	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
 	if err != nil {
 		err = errors.Wrap(err, "failed to get associated deployment")
@@ -32,7 +32,7 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 	}
 
 	if deploymentTarget.Config != nil && deploymentTarget.Config.KubeResourceUid != "" {
-		var oldKubeBentoDeployment *servingv1alpha1.BentoDeployment
+		var oldKubeBentoDeployment *servingv1alpha2.BentoDeployment
 		oldKubeBentoDeployment, err = cli.Get(ctx, deployment.Name, metav1.GetOptions{})
 		isNotFound := apierrors.IsNotFound(err)
 		if err != nil && !isNotFound {
@@ -89,12 +89,12 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 		resources = deploymentTarget.Config.Resources
 	}
 
-	kubeBentoDeployment = &servingv1alpha1.BentoDeployment{
+	kubeBentoDeployment = &servingv1alpha2.BentoDeployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      deployment.Name,
 			Namespace: DeploymentService.GetKubeNamespace(deployment),
 		},
-		Spec: servingv1alpha1.BentoDeploymentSpec{
+		Spec: servingv1alpha2.BentoDeploymentSpec{
 			BentoTag:    string(tag),
 			Autoscaling: autoscalingSpec,
 			Envs:        &envs,
@@ -102,7 +102,7 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 		},
 	}
 
-	var oldKubeBentoDeployment *servingv1alpha1.BentoDeployment
+	var oldKubeBentoDeployment *servingv1alpha2.BentoDeployment
 	oldKubeBentoDeployment, err = cli.Get(ctx, kubeBentoDeployment.Name, metav1.GetOptions{})
 	isNotFound := apierrors.IsNotFound(err)
 	if err != nil && !isNotFound {

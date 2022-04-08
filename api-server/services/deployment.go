@@ -26,7 +26,7 @@ import (
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/utils"
 
-	servingv1alpha1 "github.com/bentoml/yatai-deployment-operator/generated/serving/clientset/versioned/typed/serving/v1alpha1"
+	servingv1alpha2 "github.com/bentoml/yatai-deployment-operator/generated/serving/clientset/versioned/typed/serving/v1alpha2"
 )
 
 type deploymentService struct{}
@@ -432,13 +432,13 @@ func (s *deploymentService) GetKubeJobsCli(ctx context.Context, d *models.Deploy
 	return jobsCli, nil
 }
 
-func (s *deploymentService) GetKubeBentoDeploymentCli(ctx context.Context, d *models.Deployment) (servingv1alpha1.BentoDeploymentInterface, error) {
+func (s *deploymentService) GetKubeBentoDeploymentCli(ctx context.Context, d *models.Deployment) (servingv1alpha2.BentoDeploymentInterface, error) {
 	_, restConf, err := s.GetKubeCliSet(ctx, d)
 	if err != nil {
 		return nil, errors.Wrap(err, "get k8s cliset")
 	}
 	ns := s.GetKubeNamespace(d)
-	cli, err := servingv1alpha1.NewForConfig(restConf)
+	cli, err := servingv1alpha2.NewForConfig(restConf)
 	if err != nil {
 		return nil, errors.Wrap(err, "get bento deployment cliset")
 	}
