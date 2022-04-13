@@ -833,14 +833,12 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 	informer := podInformer.Informer()
 	defer runtime.HandleCrash()
 
-	deploymentId := fmt.Sprintf("%d", deployment.ID)
-
 	checkPod := func(obj interface{}) bool {
 		pod, ok := obj.(*apiv1.Pod)
 		if !ok {
 			return false
 		}
-		if pod.Labels[consts.KubeLabelYataiDeploymentId] != deploymentId {
+		if pod.Labels[consts.KubeLabelYataiDeployment] != deployment.Name {
 			return false
 		}
 		return true
