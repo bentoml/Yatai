@@ -113,6 +113,7 @@ export function useSubscription() {
             }
 
             ws.onclose = () => {
+                wsRef.current = undefined
                 cancelHeartbeat()
                 if (selfClose) {
                     return
@@ -144,6 +145,7 @@ export function useSubscription() {
         }
         connect()
         return () => {
+            wsRef.current = undefined
             cancelHeartbeat()
             selfClose = true
             ws?.close()
