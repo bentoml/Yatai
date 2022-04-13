@@ -11,8 +11,20 @@ export interface ITimeProps {
 
 export default function Time({ time, style }: ITimeProps) {
     return (
-        <StatefulTooltip placement='bottom' content={() => formatDateTime(time)}>
-            <ReactTimeAgo style={style} date={new Date(time)} timeStyle='round' locales={i18n.languages as string[]} />
+        <StatefulTooltip showArrow content={() => formatDateTime(time)}>
+            <div
+                style={{
+                    display: 'inline-block',
+                }}
+            >
+                <ReactTimeAgo
+                    tooltip={false}
+                    style={style}
+                    date={new Date(time)}
+                    timeStyle='round'
+                    locales={i18n.languages as string[]}
+                />
+            </div>
         </StatefulTooltip>
     )
 }

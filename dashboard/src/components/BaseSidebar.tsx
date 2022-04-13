@@ -286,6 +286,7 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
                                         Build at {versionInfo.data ? formatDateTime(versionInfo.data.build_date) : '-'}
                                     </div>
                                 }
+                                showArrow
                             >
                                 <div
                                     style={{
