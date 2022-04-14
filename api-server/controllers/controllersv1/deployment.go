@@ -610,7 +610,7 @@ type connWrapper struct {
 	IsClosed bool
 }
 
-func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSchema) error {
+func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSchema) (err error) {
 	ctx.Request.Header.Del("Origin")
 	conn, err := wsUpgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
@@ -693,7 +693,8 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 		Payload: podSchemas,
 	})
 	if err != nil {
-		logrus.Errorf("ws write json failed: %q", err.Error())
+		err = errors.Wrap(err, "ws write json failed")
+		return err
 	}
 	connW.IsNew = false
 
@@ -703,6 +704,9 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 			mt, _, err := conn.ReadMessage()
 
 			if err != nil || mt == websocket.CloseMessage || mt == -1 {
+				if err != nil && strings.Contains(err.Error(), "websocket: close 1005") {
+					err = nil
+				}
 				connW.IsClosed = true
 				cancel()
 				break
@@ -747,6 +751,12 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 	}
 
 	send := func(podLister v1.PodNamespaceLister) error {
+		select {
+		case <-pollingCtx.Done():
+			return nil
+		default:
+		}
+
 		rw.Lock()
 		defer rw.Unlock()
 
@@ -758,14 +768,14 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 
 		newConns := make([]*connWrapper, 0, len(conns))
 
-		pods, err := services.KubePodService.ListPodsByDeployment(ctx, podLister, deployment)
+		pods, err := services.KubePodService.ListPodsByDeployment(pollingCtx, podLister, deployment)
 		if err != nil {
 			logrus.Errorf("get app pods failed: %q", err.Error())
 			failed()
 			return err
 		}
 
-		newPodSchemas, err := transformersv1.ToKubePodSchemas(ctx, pods)
+		newPodSchemas, err := transformersv1.ToKubePodSchemas(pollingCtx, pods)
 		if err != nil {
 			logrus.Errorf("get app pods failed: %q", err.Error())
 			failed()
@@ -774,12 +784,14 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 
 		viewChanged := !reflect.DeepEqual(podSchemas, newPodSchemas)
 		if viewChanged {
+			ctx_, cancel := context.WithTimeout(context.Background(), time.Second*10)
 			go func() {
-				deployment_, err := services.DeploymentService.Get(ctx, deployment.ID)
+				defer cancel()
+				deployment_, err := services.DeploymentService.Get(ctx_, deployment.ID)
 				if err != nil {
 					return
 				}
-				_, _ = services.DeploymentService.SyncStatus(ctx, deployment_)
+				_, _ = services.DeploymentService.SyncStatus(ctx_, deployment_)
 			}()
 		}
 		podSchemas = newPodSchemas
