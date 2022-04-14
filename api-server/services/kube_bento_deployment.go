@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"time"
 
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -53,8 +54,10 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 			Status: &status,
 		})
 		deployment.Status = status
+		ctx_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		go func() {
-			_, _ = DeploymentService.SyncStatus(ctx, deployment)
+			defer cancel()
+			_, _ = DeploymentService.SyncStatus(ctx_, deployment)
 		}()
 	}()
 

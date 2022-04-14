@@ -141,6 +141,11 @@ func StartTransaction(ctx context.Context) (*gorm.DB, context.Context, func(erro
 	return startTransaction(ctx)
 }
 
+type TransactionDBWrapper struct {
+	orig     *gorm.DB
+	released bool
+}
+
 // nolint: unparam
 func startTransaction(ctx context.Context) (*gorm.DB, context.Context, func(error), error) {
 	// FIXME: pq: unexpected Parse response 'D'
@@ -148,15 +153,28 @@ func startTransaction(ctx context.Context) (*gorm.DB, context.Context, func(erro
 	// return mustGetDB(), ctx, defaultCb, nil
 	session_ := ctx.Value(DbSessionKey)
 	if session_ != nil {
-		return session_.(*gorm.DB), ctx, defaultCb, nil
+		db_ := session_.(*TransactionDBWrapper)
+		if !db_.released {
+			return db_.orig, ctx, defaultCb, nil
+		}
 	}
 	db := mustGetDB(ctx)
 	tx := db.Begin()
 	if tx.Error != nil {
 		return nil, ctx, defaultCb, tx.Error
 	}
-	ctx = context.WithValue(ctx, DbSessionKey, tx)
+	db_ := &TransactionDBWrapper{orig: tx}
+	ctx = context.WithValue(ctx, DbSessionKey, db_)
 	return tx, ctx, func(err error) {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		if db_.released {
+			return
+		}
+		db_.released = true
 		// nolint: gocritic
 		if p := recover(); p != nil {
 			tx.Rollback()
@@ -172,7 +190,10 @@ func startTransaction(ctx context.Context) (*gorm.DB, context.Context, func(erro
 func mustGetSession(ctx context.Context) *gorm.DB {
 	session_ := ctx.Value(DbSessionKey)
 	if session_ != nil {
-		return session_.(*gorm.DB)
+		db_ := session_.(*TransactionDBWrapper)
+		if !db_.released {
+			return db_.orig
+		}
 	}
 	return mustGetDB(ctx)
 }
