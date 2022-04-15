@@ -286,7 +286,15 @@ func (c *bentoController) ListImageBuilderPods(ctx *gin.Context, schema *GetBent
 	if err != nil {
 		return nil, err
 	}
-	return transformersv1.ToKubePodSchemas(ctx, pods)
+	org, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	majorCluster, err := services.OrganizationService.GetMajorCluster(ctx, org)
+	if err != nil {
+		return nil, err
+	}
+	return transformersv1.ToKubePodSchemas(ctx, majorCluster.ID, pods)
 }
 
 func (c *bentoController) Get(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoFullSchema, error) {

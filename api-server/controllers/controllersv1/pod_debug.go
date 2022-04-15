@@ -65,6 +65,7 @@ const (
 type DebugOptions struct {
 
 	// Pod select options
+	ClusterId uint
 	Namespace string
 	PodName   string
 
@@ -230,7 +231,7 @@ func (o *DebugOptions) Run(ctx context.Context) error {
 		// copy pod and run
 		pod = copyAndStripPod(pod, containerName, podLabels)
 		pod_ := services.KubePodService.MapKubePodsToKubePodWithStatuses(ctx, []corev1.Pod{*pod}, nil)[0]
-		podView, err := transformersv1.ToKubePodSchema(ctx, pod_)
+		podView, err := transformersv1.ToKubePodSchema(ctx, o.ClusterId, pod_)
 		if err != nil {
 			return err
 		}

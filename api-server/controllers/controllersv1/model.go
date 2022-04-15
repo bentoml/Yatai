@@ -270,7 +270,15 @@ func (c *modelController) ListImageBuilderPods(ctx *gin.Context, schema *GetMode
 	if err != nil {
 		return nil, err
 	}
-	return transformersv1.ToKubePodSchemas(ctx, pods)
+	org, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	majorCluster, err := services.OrganizationService.GetMajorCluster(ctx, org)
+	if err != nil {
+		return nil, err
+	}
+	return transformersv1.ToKubePodSchemas(ctx, majorCluster.ID, pods)
 }
 
 func (c *modelController) Get(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelFullSchema, error) {

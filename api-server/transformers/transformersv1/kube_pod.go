@@ -3,7 +3,6 @@ package transformersv1
 import (
 	"context"
 	"sort"
-	"strconv"
 	"strings"
 
 	apiv1 "k8s.io/api/core/v1"
@@ -16,15 +15,15 @@ import (
 	"github.com/bentoml/yatai/common/utils"
 )
 
-func ToKubePodSchema(ctx context.Context, pod *models.KubePodWithStatus) (v *schemasv1.KubePodSchema, err error) {
-	vs, err := ToKubePodSchemas(ctx, []*models.KubePodWithStatus{pod})
+func ToKubePodSchema(ctx context.Context, clusterId uint, pod *models.KubePodWithStatus) (v *schemasv1.KubePodSchema, err error) {
+	vs, err := ToKubePodSchemas(ctx, clusterId, []*models.KubePodWithStatus{pod})
 	if err != nil {
 		return nil, err
 	}
 	return vs[0], nil
 }
 
-func ToKubePodSchemas(ctx context.Context, pods []*models.KubePodWithStatus) (vs []*schemasv1.KubePodSchema, err error) {
+func ToKubePodSchemas(ctx context.Context, clusterId uint, pods []*models.KubePodWithStatus) (vs []*schemasv1.KubePodSchema, err error) {
 	sort.SliceStable(pods, func(i, j int) bool {
 		iName := pods[i].Pod.Name
 		jName := pods[j].Pod.Name
@@ -54,14 +53,10 @@ func ToKubePodSchemas(ctx context.Context, pods []*models.KubePodWithStatus) (vs
 	var deployment *models.Deployment
 
 	for _, p := range pods {
-		deploymentId_, ok := p.Pod.Labels[consts.KubeLabelYataiDeploymentId]
+		deploymentName, ok := p.Pod.Labels[consts.KubeLabelYataiDeployment]
 		if ok {
-			var deploymentId int
-			deploymentId, err = strconv.Atoi(deploymentId_)
-			if err != nil {
-				return
-			}
-			deployment, err = services.DeploymentService.Get(ctx, uint(deploymentId))
+			namespace := p.Pod.Namespace
+			deployment, err = services.DeploymentService.GetByName(ctx, clusterId, namespace, deploymentName)
 			if err != nil {
 				return
 			}
