@@ -265,7 +265,7 @@ func (c *clusterController) WsPods(ctx *gin.Context, schema *GetClusterSchema) (
 			}
 			pods = append(pods, pods_...)
 		}
-		podSchemas, err := transformersv1.ToKubePodSchemas(ctx, pods)
+		podSchemas, err := transformersv1.ToKubePodSchemas(ctx, cluster.ID, pods)
 		if err != nil {
 			return
 		}

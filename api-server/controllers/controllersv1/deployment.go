@@ -681,7 +681,7 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 
 	var podSchemas []*schemasv1.KubePodSchema
 
-	podSchemas, err = transformersv1.ToKubePodSchemas(ctx, pods)
+	podSchemas, err = transformersv1.ToKubePodSchemas(ctx, cluster.ID, pods)
 	if err != nil {
 		err = errors.Wrap(err, "get app all components with pods")
 		return err
@@ -775,7 +775,7 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 			return err
 		}
 
-		newPodSchemas, err := transformersv1.ToKubePodSchemas(pollingCtx, pods)
+		newPodSchemas, err := transformersv1.ToKubePodSchemas(pollingCtx, cluster.ID, pods)
 		if err != nil {
 			logrus.Errorf("get app pods failed: %q", err.Error())
 			failed()
