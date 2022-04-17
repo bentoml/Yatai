@@ -127,12 +127,16 @@ export const PodStatus = React.memo(
                             {msg}
                         </div>
                     }
+                    showArrow
                 >
                     <div
                         role='button'
                         tabIndex={0}
                         onClick={onClick}
                         key={idx}
+                        style={{
+                            display: 'inline-block',
+                        }}
                         className={classNames({
                             [styles.ball]: true,
                             [styles.yellow]: isYellow,

@@ -65,6 +65,7 @@ export default function PodList({ loading = false, clusterName: clusterName_, po
                     <StatefulTooltip key={pod.name} content={pod.name} showArrow>
                         <div
                             style={{
+                                display: 'inline-block',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',

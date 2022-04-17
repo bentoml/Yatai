@@ -113,10 +113,16 @@ func ToKubePodSchemas(ctx context.Context, clusterId uint, pods []*models.KubePo
 			IsCanary:  isCanary,
 			HostIp:    p.Pod.Status.HostIP,
 		}
+		var runnerName *string
+		runnerName_, runnerNameExists := p.Pod.Labels[consts.KubeLabelYataiBentoRunner]
+		if runnerNameExists {
+			runnerName = &runnerName_
+		}
 		vs = append(vs, &schemasv1.KubePodSchema{
 			Name:             p.Pod.Name,
 			Namespace:        p.Pod.Namespace,
 			NodeName:         p.Pod.Spec.NodeName,
+			RunnerName:       runnerName,
 			Status:           status,
 			RawStatus:        p.Pod.Status,
 			PodStatus:        p.Status,
