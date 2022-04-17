@@ -11,7 +11,7 @@ import (
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 
-	servingv1alpha2 "github.com/bentoml/yatai-deployment-operator/api/v1alpha2"
+	servingv1alpha2 "github.com/bentoml/yatai-deployment-operator/apis/serving/v1alpha2"
 )
 
 type kubeBentoDeploymentService struct{}
