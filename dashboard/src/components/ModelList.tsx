@@ -27,7 +27,7 @@ export interface IModelListProps {
 export default function ModelList({ queryKey, isLoading, models, paginationProps }: IModelListProps) {
     const [t] = useTranslation()
 
-    const uids = useMemo(() => models.map((modelVersion) => modelVersion.uid) ?? [], [models])
+    const uids = useMemo(() => models?.map((modelVersion) => modelVersion.uid) ?? [], [models])
     const queryClient = useQueryClient()
     const subscribeCb = useCallback(
         (modelVersion: IModelSchema) => {

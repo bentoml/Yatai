@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
 	github.com/bentoml/yatai-deployment-operator v0.0.0-20220415104518-fa26017318fd
-	github.com/bentoml/yatai-schemas v0.0.0-20220407062954-ad3ae5ff3205
+	github.com/bentoml/yatai-schemas v0.0.0-20220417061512-72201cf333c0
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/sessions v0.0.3
 	github.com/gin-gonic/gin v1.7.3

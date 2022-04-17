@@ -22,6 +22,7 @@ export interface IKubePodSchema {
     name: string
     namespace: string
     node_name: string
+    runner_name?: string
     image: string
     commit_id: string
     status: IPodStatusSchema
