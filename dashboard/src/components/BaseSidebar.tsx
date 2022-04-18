@@ -40,7 +40,7 @@ function transformNavItems(navItems: INavItem[], expanded = true): Item[] {
     return navItems.map((item) => {
         const { icon: Icon } = item
         return {
-            title: (
+            title: expanded ? (
                 <div
                     style={{
                         display: 'flex',
@@ -54,8 +54,25 @@ function transformNavItems(navItems: INavItem[], expanded = true): Item[] {
                     }}
                 >
                     {Icon && <Icon size={12} />}
-                    {expanded && <span>{item.title}</span>}
+                    <span>{item.title}</span>
                 </div>
+            ) : (
+                <StatefulTooltip content={item.title} showArrow placement='bottomRight'>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                            lineHeight: '24px',
+                            height: 24,
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                        }}
+                    >
+                        {Icon && <Icon size={12} />}
+                    </div>
+                </StatefulTooltip>
             ),
             itemId: item.path,
         }
