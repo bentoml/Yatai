@@ -6,7 +6,7 @@ import { Button } from 'baseui/button'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { Input } from 'baseui/input'
 import useTranslation from '@/hooks/useTranslation'
-import { Label4 } from 'baseui/typography'
+import { LabelXSmall } from 'baseui/typography'
 import _ from 'lodash'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
@@ -223,7 +223,7 @@ export default function LabelList({ value = [], onChange, style }: ILabelListPro
                                 gap: 5,
                             }}
                         >
-                            <Label4
+                            <LabelXSmall
                                 overrides={{
                                     Block: {
                                         style: {
@@ -233,7 +233,7 @@ export default function LabelList({ value = [], onChange, style }: ILabelListPro
                                 }}
                             >
                                 {t('key')}
-                            </Label4>
+                            </LabelXSmall>
                             <Input
                                 size='mini'
                                 value={addingKey}
@@ -249,7 +249,7 @@ export default function LabelList({ value = [], onChange, style }: ILabelListPro
                                 gap: 5,
                             }}
                         >
-                            <Label4
+                            <LabelXSmall
                                 overrides={{
                                     Block: {
                                         style: {
@@ -259,7 +259,7 @@ export default function LabelList({ value = [], onChange, style }: ILabelListPro
                                 }}
                             >
                                 {t('value')}
-                            </Label4>
+                            </LabelXSmall>
                             <Input
                                 size='mini'
                                 value={addingValue}

@@ -2,7 +2,7 @@
 import React, { useCallback, useState } from 'react'
 import { Tag, KIND as TagKind, VARIANT as TagVariant } from 'baseui/tag'
 import { ImageBuildStatus } from '@/schemas/bento'
-import { StyledSpinnerNext } from 'baseui/spinner'
+import { Spinner } from 'baseui/spinner'
 import useTranslation from '@/hooks/useTranslation'
 import { IKubePodSchema } from '@/schemas/kube_pod'
 import { useFetchClusterPods } from '@/hooks/useFetchClusterPods'
@@ -97,7 +97,7 @@ export default function ImageBuildStatusTag({ status, podsSelector, onRerunClick
                         gap: 4,
                     }}
                 >
-                    {['pending', 'building'].indexOf(status) >= 0 && <StyledSpinnerNext $size={100} />}
+                    {['pending', 'building'].indexOf(status) >= 0 && <Spinner $size={10} />}
                     {t(status)}
                 </div>
             </Tag>

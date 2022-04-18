@@ -19,7 +19,7 @@ import { resourceIconMapping } from '@/consts'
 import { Tag, KIND as TagKind, VARIANT as TagVariant } from 'baseui/tag'
 import { IListSchema } from '@/schemas/list'
 import { useSubscription } from '@/hooks/useSubscription'
-import { StyledSpinnerNext } from 'baseui/spinner'
+import { Spinner } from 'baseui/spinner'
 import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
 import { useFetchYataiComponentOperatorHelmCharts } from '@/hooks/useFetchYataiComponentOperatorHelmCharts'
 import semver from 'semver'
@@ -198,7 +198,7 @@ export default function YataiComponentListCard({ clusterName }: IYataiComponentL
                                     }}
                                 >
                                     {['deploying'].indexOf(yataiComponent.release?.info.status ?? '') >= 0 && (
-                                        <StyledSpinnerNext $size={100} />
+                                        <Spinner $size={10} />
                                     )}
                                     {yataiComponent.release ? t(yataiComponent.release.info.status) : '-'}
                                 </div>

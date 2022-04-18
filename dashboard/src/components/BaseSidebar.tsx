@@ -128,8 +128,8 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
 
     const settingNavActiveBackground =
         themeType === 'light'
-            ? color(theme.colors.background).darken(0.09).rgb().string()
-            : color(theme.colors.background).lighten(0.3).rgb().string()
+            ? color(theme.colors.backgroundPrimary).darken(0.09).rgb().string()
+            : color(theme.colors.backgroundPrimary).lighten(0.3).rgb().string()
 
     const [t] = useTranslation()
 

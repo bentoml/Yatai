@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-case-declarations */
 import { fetchNews } from '@/services/news'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { createUseStyles } from 'react-jss'
 import { useQuery } from 'react-query'
 import { Notification } from 'baseui/notification'
@@ -67,6 +67,17 @@ export default function Home() {
             window.clearTimeout(timer)
         }
     }, [newsInfo.data?.notifications])
+
+    const listItemOverrides = useMemo(
+        () => ({
+            Content: {
+                style: {
+                    minHeight: '48px',
+                },
+            },
+        }),
+        []
+    )
 
     return (
         <div className={styles.root}>
@@ -158,7 +169,7 @@ export default function Home() {
                         onRenderItem={(item: INewsItem) => {
                             const artwork = () => (item.cover ? <Image src={item.cover} height={32} /> : '◼︎')
                             return (
-                                <ListItem sublist artwork={artwork}>
+                                <ListItem overrides={listItemOverrides} sublist artwork={artwork}>
                                     <div>
                                         <StyledLink href={item.link} target='_blank'>
                                             {item.title}
@@ -176,7 +187,7 @@ export default function Home() {
                         onRenderItem={(item: INewsItem) => {
                             const artwork = () => (item.cover ? <Image src={item.cover} height={32} /> : '◼︎')
                             return (
-                                <ListItem sublist artwork={artwork}>
+                                <ListItem overrides={listItemOverrides} sublist artwork={artwork}>
                                     <div>
                                         <StyledLink href={item.link} target='_blank'>
                                             {item.title}
@@ -194,7 +205,7 @@ export default function Home() {
                         onRenderItem={(item: INewsItem) => {
                             const artwork = () => (item.cover ? <Image src={item.cover} height={32} /> : '◼︎')
                             return (
-                                <ListItem sublist artwork={artwork}>
+                                <ListItem overrides={listItemOverrides} sublist artwork={artwork}>
                                     <div>
                                         <StyledLink href={item.link} target='_blank'>
                                             {item.title}
