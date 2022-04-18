@@ -11,6 +11,7 @@ import { useQ } from '@/hooks/useQ'
 import { DatePicker } from 'baseui/datepicker'
 import moment from 'moment'
 import { ResourceType } from '@/schemas/resource'
+import { resourceIconMapping } from '@/consts'
 import Card from './Card'
 import EventList from './EventList'
 import FilterInput from './FilterInput'
@@ -103,11 +104,11 @@ export default function EventListCard() {
                         options: [
                             {
                                 id: 'bento',
-                                label: t('bento'),
+                                label: <div style={{ display: 'flex', alignItems: 'center', gap: 6, }}>{React.createElement(resourceIconMapping.bento, { size: 12 })}{t('bento')}</div>,
                             },
                             {
                                 id: 'model',
-                                label: t('model'),
+                                label: <div style={{ display: 'flex', alignItems: 'center', gap: 6, }}>{React.createElement(resourceIconMapping.model, { size: 12 })}{t('model')}</div>,
                             },
                         ],
                         value: ((q.resource_type as string[] | undefined) ?? []).map((v) => ({
@@ -126,7 +127,8 @@ export default function EventListCard() {
                         options:
                             operationNamesInfo.data?.map((operationName) => ({
                                 id: operationName,
-                                label: operationName,
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                label: t(operationName as any),
                             })) ?? [],
                         value: ((q.operation_name as string[] | undefined) ?? []).map((v) => ({
                             id: v,
