@@ -14,7 +14,7 @@ import qs from 'qs'
 import { IDeploymentSchema } from '@/schemas/deployment'
 import { IBentoSchema } from '@/schemas/bento'
 import { useQ } from '@/hooks/useQ'
-import { Label2, Label4, MonoParagraphXSmall } from 'baseui/typography'
+import { LabelMedium, LabelXSmall, MonoParagraphXSmall } from 'baseui/typography'
 import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
@@ -221,9 +221,9 @@ export default function BentoRepositoryListCard() {
                             </div>
                             <div>{bentoRepository.n_bentos}</div>
                         </div>
-                        <Label2>
+                        <LabelMedium>
                             <Link href={`/bento_repositories/${bentoRepository.name}`}>{bentoRepository.name}</Link>
-                        </Label2>
+                        </LabelMedium>
                     </div>
                     <div
                         style={{
@@ -245,7 +245,7 @@ export default function BentoRepositoryListCard() {
                                     borderBottom: `1px solid ${theme.borders.border200.borderColor}`,
                                 }}
                             >
-                                <Label4>{t('latest deployments')}</Label4>
+                                <LabelXSmall>{t('latest deployments')}</LabelXSmall>
                             </div>
                             <List
                                 emptyText={t('no deployment found')}
@@ -301,7 +301,7 @@ export default function BentoRepositoryListCard() {
                                     borderBottom: `1px solid ${theme.borders.border200.borderColor}`,
                                 }}
                             >
-                                <Label4>{t('latest versions')}</Label4>
+                                <LabelXSmall>{t('latest versions')}</LabelXSmall>
                             </div>
                             <List
                                 items={bentoRepository.latest_bentos}

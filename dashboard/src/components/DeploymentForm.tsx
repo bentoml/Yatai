@@ -17,7 +17,7 @@ import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import { resourceIconMapping, sidebarExpandedWidth, sidebarFoldedWidth } from '@/consts'
 import { SidebarContext } from '@/contexts/SidebarContext'
 import color from 'color'
-import { Label2, Label3 } from 'baseui/typography'
+import { LabelMedium, LabelSmall } from 'baseui/typography'
 import { useHistory } from 'react-router-dom'
 import { VscServerProcess, VscSymbolVariable } from 'react-icons/vsc'
 import { GrResources } from 'react-icons/gr'
@@ -210,7 +210,7 @@ export default function DeploymentForm({
                 }}
             >
                 <div className={styles.headerLabel}>
-                    <Label2>{deployment ? t('update deployment') : t('new deployment')}</Label2>
+                    <LabelMedium>{deployment ? t('update deployment') : t('new deployment')}</LabelMedium>
                 </div>
                 <div
                     style={{
@@ -385,7 +385,7 @@ export default function DeploymentForm({
                                             }}
                                         >
                                             <VscServerProcess />
-                                            <Label3>{t('number of replicas')}</Label3>
+                                            <LabelSmall>{t('number of replicas')}</LabelSmall>
                                         </div>
                                         <div
                                             style={{
@@ -454,7 +454,7 @@ export default function DeploymentForm({
                                             }}
                                         >
                                             <GrResources />
-                                            <Label3>{t('resource per replicas')}</Label3>
+                                            <LabelSmall>{t('resource per replicas')}</LabelSmall>
                                         </div>
                                         <div
                                             style={{

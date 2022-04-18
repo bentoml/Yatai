@@ -62,7 +62,7 @@ const useStyles = createUseStyles({
         'align-items': 'center',
     },
     userMenu: (props: IThemedStyleProps) => ({
-        'background': props.theme.colors.background,
+        'background': props.theme.colors.backgroundPrimary,
         'position': 'absolute',
         'top': '100%',
         'display': 'none',
@@ -94,7 +94,7 @@ const useStyles = createUseStyles({
         'align-items': 'center',
         'gap': '10px',
         '&:hover': {
-            background: color(props.theme.colors.background)
+            background: color(props.theme.colors.backgroundPrimary)
                 .darken(props.themeType === 'light' ? 0.06 : 0.2)
                 .rgb()
                 .string(),
@@ -362,7 +362,7 @@ export default function Header() {
                             flexBasis: 1,
                             flexShrink: 0,
                             height: 20,
-                            background: theme.colors.borderAlt,
+                            background: theme.colors.borderOpaque,
                             margin: '0 20px',
                         }}
                     />

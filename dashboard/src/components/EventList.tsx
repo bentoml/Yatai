@@ -84,7 +84,9 @@ export default function EventList({ isLoading, events, paginationProps }: IEvent
                     <ListItem
                         overrides={{
                             Content: {
-                                style: {},
+                                style: {
+                                    minHeight: '48px',
+                                },
                             },
                         }}
                         sublist

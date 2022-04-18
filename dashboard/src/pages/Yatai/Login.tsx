@@ -48,7 +48,7 @@ export default function Login() {
     return (
         <YataiLayout
             style={{
-                background: theme.colors.background,
+                background: theme.colors.backgroundPrimary,
             }}
         >
             <div

@@ -1,6 +1,6 @@
 import useTranslation from '@/hooks/useTranslation'
 import { DeploymentStatus } from '@/schemas/deployment'
-import { StyledSpinnerNext } from 'baseui/spinner'
+import { Spinner } from 'baseui/spinner'
 import { Tag, KIND as TagKind, SIZE } from 'baseui/tag'
 
 const statusColorMap: Record<DeploymentStatus, keyof TagKind> = {
@@ -30,7 +30,7 @@ export default function DeploymentStatusTag({ status, size = 'small' }: IDeploym
                     gap: 4,
                 }}
             >
-                {['deploying', 'terminating'].indexOf(status) >= 0 && <StyledSpinnerNext $size={100} />}
+                {['deploying', 'terminating'].indexOf(status) >= 0 && <Spinner $size={10} />}
                 {t(status)}
             </div>
         </Tag>

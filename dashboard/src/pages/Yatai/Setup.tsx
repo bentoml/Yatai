@@ -59,7 +59,7 @@ export default function Setup() {
     return (
         <YataiLayout
             style={{
-                background: theme.colors.background,
+                background: theme.colors.backgroundPrimary,
             }}
         >
             <div
