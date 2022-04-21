@@ -2079,6 +2079,13 @@ const locales0 = {
         ko: '이미 최신 버전입니다',
         vi: 'Đã là phiên bản mới nhất',
     },
+    'group': {
+        en: 'Group',
+        zh: '组',
+        ja: 'グループ',
+        ko: '그룹',
+        vi: 'Nhóm',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
