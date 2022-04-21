@@ -8,14 +8,22 @@ import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import { IoMdList } from 'react-icons/io'
 import { GoTerminal } from 'react-icons/go'
 import { MdEventNote } from 'react-icons/md'
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { StatefulTooltip } from 'baseui/tooltip'
 import { Button } from 'baseui/button'
 import { AiOutlineDashboard, AiOutlineQuestionCircle } from 'react-icons/ai'
 import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
+import {
+    StyledTable,
+    StyledTableBodyCell,
+    StyledTableBodyRow,
+    StyledTableHeadCell,
+    StyledTableHeadRow,
+} from 'baseui/table-semantic'
+import { GiAbstract006, GiAbstract045 } from 'react-icons/gi'
+import { Skeleton } from 'baseui/skeleton'
 import Log from './Log'
 import { PodStatus } from './PodStatuses'
-import Table from './Table'
 import Terminal from './Terminal'
 import KubePodEvents from './KubePodEvents'
 import Toggle from './Toggle'
@@ -26,10 +34,16 @@ import PodMonitor from './PodMonitor'
 export interface IPodListProps {
     loading?: boolean
     clusterName?: string
+    groupByRunner?: boolean
     pods: IKubePodSchema[]
 }
 
-export default function PodList({ loading = false, clusterName: clusterName_, pods }: IPodListProps) {
+export default function PodList({
+    loading = false,
+    clusterName: clusterName_,
+    pods,
+    groupByRunner = false,
+}: IPodListProps) {
     const [t] = useTranslation()
     const { organization } = useOrganization()
     const { cluster } = useCluster()
@@ -48,105 +62,196 @@ export default function PodList({ loading = false, clusterName: clusterName_, po
     const hasLogging = yataiComponentsInfo.data?.find((x) => x.type === 'logging') !== undefined
     const hasMonitoring = yataiComponentsInfo.data?.find((x) => x.type === 'monitoring') !== undefined
 
-    return (
-        <>
-            <Table
-                isLoading={loading}
-                columns={[
-                    t('name'),
-                    t('status'),
-                    t('status name'),
-                    t('type'),
-                    t('node'),
-                    t('start time'),
-                    t('operation'),
-                ]}
-                data={pods.map((pod) => [
-                    <StatefulTooltip key={pod.name} content={pod.name} showArrow>
+    const apiServerPods = pods?.filter((pod) => !pod.runner_name) ?? []
+
+    const runnerPodsGroup =
+        pods?.reduce((acc, pod) => {
+            const { runner_name: runnerName } = pod
+            if (!runnerName) {
+                return acc
+            }
+            const pods_ = acc[runnerName] ?? []
+            return {
+                ...acc,
+                [runnerName]: [...pods_, pod],
+            }
+        }, {} as Record<string, IKubePodSchema[]>) ?? {}
+
+    const runnerNames = Object.keys(runnerPodsGroup).sort((a, b) => {
+        return runnerPodsGroup[a][0].name.localeCompare(runnerPodsGroup[b][0].name)
+    })
+
+    const renderPodRow = useCallback(
+        (pod: IKubePodSchema) => {
+            return (
+                <StyledTableBodyRow>
+                    <StyledTableBodyCell>
+                        <StatefulTooltip key={pod.name} content={pod.name} showArrow>
+                            <div
+                                style={{
+                                    display: 'inline-block',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    maxWidth: 320,
+                                }}
+                            >
+                                {pod.name}
+                            </div>
+                        </StatefulTooltip>
+                    </StyledTableBodyCell>
+                    <StyledTableBodyCell>
+                        <PodStatus key={pod.name} pod={pod} pods={pods} />
+                    </StyledTableBodyCell>
+                    <StyledTableBodyCell>{t(pod.pod_status.status)}</StyledTableBodyCell>
+                    <StyledTableBodyCell>
+                        {pod.deployment_target ? t(pod.deployment_target.type) : '-'}
+                    </StyledTableBodyCell>
+                    <StyledTableBodyCell>{pod.node_name}</StyledTableBodyCell>
+                    <StyledTableBodyCell>{formatDateTime(pod.status.start_time)}</StyledTableBodyCell>
+                    <StyledTableBodyCell>
                         <div
+                            key={pod.name}
                             style={{
-                                display: 'inline-block',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                maxWidth: 320,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 8,
                             }}
                         >
-                            {pod.name}
-                        </div>
-                    </StatefulTooltip>,
-                    <PodStatus key={pod.name} pod={pod} pods={pods} />,
-                    t(pod.pod_status.status),
-                    pod.deployment_target ? t(pod.deployment_target.type) : '-',
-                    pod.node_name,
-                    formatDateTime(pod.status.start_time),
-                    <div
-                        key={pod.name}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                        }}
-                    >
-                        <StatefulTooltip content={t('view log')} showArrow>
-                            <Button size='mini' shape='circle' onClick={() => setDesiredShowLogsPod(pod)}>
-                                <IoMdList />
-                            </Button>
-                        </StatefulTooltip>
-                        <StatefulTooltip content={t('events')} showArrow>
-                            <Button size='mini' shape='circle' onClick={() => setDesiredShowKubeEventsPod(pod)}>
-                                <MdEventNote />
-                            </Button>
-                        </StatefulTooltip>
-                        <StatefulTooltip content={t('terminal')} showArrow>
-                            <Button size='mini' shape='circle' onClick={() => setDesiredShowTerminalPod(pod)}>
-                                <GoTerminal />
-                            </Button>
-                        </StatefulTooltip>
-                        {hasMonitoring ? (
-                            <StatefulTooltip content={t('monitor')} showArrow>
-                                <Button
-                                    disabled={!hasMonitoring}
-                                    size='mini'
-                                    shape='circle'
-                                    onClick={() => setDesiredShowMonitorPod(pod)}
-                                >
-                                    <AiOutlineDashboard />
+                            <StatefulTooltip content={t('view log')} showArrow>
+                                <Button size='mini' shape='circle' onClick={() => setDesiredShowLogsPod(pod)}>
+                                    <IoMdList />
                                 </Button>
                             </StatefulTooltip>
-                        ) : (
-                            <StatefulTooltip
-                                content={t('please install yatai component first', [t('monitoring')])}
-                                showArrow
-                            >
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 2,
-                                    }}
-                                >
+                            <StatefulTooltip content={t('events')} showArrow>
+                                <Button size='mini' shape='circle' onClick={() => setDesiredShowKubeEventsPod(pod)}>
+                                    <MdEventNote />
+                                </Button>
+                            </StatefulTooltip>
+                            <StatefulTooltip content={t('terminal')} showArrow>
+                                <Button size='mini' shape='circle' onClick={() => setDesiredShowTerminalPod(pod)}>
+                                    <GoTerminal />
+                                </Button>
+                            </StatefulTooltip>
+                            {hasMonitoring ? (
+                                <StatefulTooltip content={t('monitor')} showArrow>
                                     <Button
-                                        disabled
+                                        disabled={!hasMonitoring}
                                         size='mini'
                                         shape='circle'
                                         onClick={() => setDesiredShowMonitorPod(pod)}
                                     >
                                         <AiOutlineDashboard />
                                     </Button>
+                                </StatefulTooltip>
+                            ) : (
+                                <StatefulTooltip
+                                    content={t('please install yatai component first', [t('monitoring')])}
+                                    showArrow
+                                >
                                     <div
                                         style={{
-                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 2,
                                         }}
                                     >
-                                        <AiOutlineQuestionCircle size={10} />
+                                        <Button
+                                            disabled
+                                            size='mini'
+                                            shape='circle'
+                                            onClick={() => setDesiredShowMonitorPod(pod)}
+                                        >
+                                            <AiOutlineDashboard />
+                                        </Button>
+                                        <div
+                                            style={{
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <AiOutlineQuestionCircle size={10} />
+                                        </div>
                                     </div>
-                                </div>
-                            </StatefulTooltip>
+                                </StatefulTooltip>
+                            )}
+                        </div>
+                    </StyledTableBodyCell>
+                </StyledTableBodyRow>
+            )
+        },
+        [hasMonitoring, pods, t]
+    )
+
+    return (
+        <>
+            <StyledTable>
+                <StyledTableHeadRow>
+                    {groupByRunner && <StyledTableHeadCell>{t('group')}</StyledTableHeadCell>}
+                    <StyledTableHeadCell>{t('name')}</StyledTableHeadCell>
+                    <StyledTableHeadCell>{t('status')}</StyledTableHeadCell>
+                    <StyledTableHeadCell>{t('status name')}</StyledTableHeadCell>
+                    <StyledTableHeadCell>{t('type')}</StyledTableHeadCell>
+                    <StyledTableHeadCell>{t('node')}</StyledTableHeadCell>
+                    <StyledTableHeadCell>{t('start time')}</StyledTableHeadCell>
+                    <StyledTableHeadCell>{t('operation')}</StyledTableHeadCell>
+                </StyledTableHeadRow>
+                {loading ? (
+                    <tbody>
+                        <tr>
+                            <td
+                                colSpan={groupByRunner ? 8 : 7}
+                                style={{
+                                    padding: 20,
+                                }}
+                            >
+                                <Skeleton animation rows={3} />
+                            </td>
+                        </tr>
+                    </tbody>
+                ) : (
+                    <>
+                        {groupByRunner && (
+                            <>
+                                <StyledTableBodyRow>
+                                    <StyledTableBodyCell rowSpan={apiServerPods.length + 1}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <GiAbstract006 size={12} />
+                                            <span>API Server</span>
+                                        </div>
+                                    </StyledTableBodyCell>
+                                </StyledTableBodyRow>
+                                {apiServerPods.map(renderPodRow)}
+                            </>
                         )}
-                    </div>,
-                ])}
-            />
+                        {groupByRunner &&
+                            runnerNames.reduce((acc, runnerName) => {
+                                const pods_ = runnerPodsGroup[runnerName]
+                                return [
+                                    ...acc,
+                                    <StyledTableBodyRow key={runnerName}>
+                                        <StyledTableBodyCell rowSpan={pods_.length + 1}>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: 6,
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    <GiAbstract045 size={12} />
+                                                    <span>Runner</span>
+                                                </div>
+                                                <span style={{ fontWeight: 'bolder' }}>{runnerName}</span>
+                                            </div>
+                                        </StyledTableBodyCell>
+                                    </StyledTableBodyRow>,
+                                    ...pods_.map(renderPodRow),
+                                ]
+                            }, [] as React.ReactNode[])}
+                        {!groupByRunner && pods.map(renderPodRow)}
+                    </>
+                )}
+            </StyledTable>
             <Modal
                 overrides={{
                     Dialog: {
