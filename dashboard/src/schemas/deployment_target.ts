@@ -61,8 +61,15 @@ export interface IKubeHPAConf {
     min_replicas?: number
 }
 
+export interface IDeploymentTargetRunnerSchema {
+    resources?: IKubeResources
+    hpa_conf?: IKubeHPAConf
+    envs?: ILabelItemSchema[]
+}
+
 export interface IDeploymentTargetConfigSchema {
     resources?: IKubeResources
     hpa_conf?: IKubeHPAConf
     envs?: ILabelItemSchema[]
+    runners?: Record<string, IDeploymentTargetRunnerSchema>
 }

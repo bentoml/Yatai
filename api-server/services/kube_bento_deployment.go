@@ -89,6 +89,25 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 		resources = deploymentTarget.Config.Resources
 	}
 
+	var runners []servingv1alpha2.BentoDeploymentRunnerSpec
+	if deploymentTarget.Config != nil && deploymentTarget.Config.Runners != nil {
+		runners = make([]servingv1alpha2.BentoDeploymentRunnerSpec, 0, len(deploymentTarget.Config.Runners))
+		for name, runner := range deploymentTarget.Config.Runners {
+			envs_ := make([]modelschemas.LabelItemSchema, 0)
+			if runner.Envs != nil {
+				for _, env := range *runner.Envs {
+					envs_ = append(envs_, *env)
+				}
+			}
+			runners = append(runners, servingv1alpha2.BentoDeploymentRunnerSpec{
+				Name:        name,
+				Resources:   runner.Resources,
+				Autoscaling: runner.HPAConf,
+				Envs:        &envs_,
+			})
+		}
+	}
+
 	kubeBentoDeployment = &servingv1alpha2.BentoDeployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      deployment.Name,
@@ -99,6 +118,7 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 			Autoscaling: autoscalingSpec,
 			Envs:        &envs,
 			Resources:   resources,
+			Runners:     runners,
 		},
 	}
 
