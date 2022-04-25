@@ -1,3 +1,4 @@
+import { IBentoWithRepositorySchema } from '@/schemas/bento'
 import { listBentos } from '@/services/bento'
 import { useStyletron } from 'baseui'
 import { Select } from 'baseui/select'
@@ -12,9 +13,10 @@ export interface IBentoSelectorProps {
     bentoRepositoryName: string
     value?: string
     onChange?: (newValue: string) => void
+    onBentoChange?: (newBento?: IBentoWithRepositorySchema) => void
 }
 
-export default function BentoSelector({ bentoRepositoryName, value, onChange }: IBentoSelectorProps) {
+export default function BentoSelector({ bentoRepositoryName, value, onChange, onBentoChange }: IBentoSelectorProps) {
     const [keyword, setKeyword] = useState<string>()
     const [options, setOptions] = useState<{ id: string; label: React.ReactNode }[]>([])
     const bentosInfo = useQuery(`listBento:${bentoRepositoryName}:${keyword}`, () =>
@@ -81,6 +83,10 @@ export default function BentoSelector({ bentoRepositoryName, value, onChange }: 
             setOptions([])
         }
     }, [bentosInfo.data?.items, bentosInfo.isSuccess, theme.colors.contentSecondary])
+
+    useEffect(() => {
+        onBentoChange?.(bentosInfo.data?.items.find((item) => item.version === value))
+    }, [bentosInfo.data?.items, onBentoChange, value])
 
     return (
         <Select
