@@ -155,7 +155,7 @@ type KubeEventFilter func(event *apiv1.Event) bool
 func (s *kubeEventService) MakeDeploymentKubeEventFilter(ctx context.Context, deployment *models.Deployment, deploymentTarget **models.DeploymentTarget) (KubeEventFilter, error) {
 	var err error
 
-	kubeNamePattern, err := regexp.Compile(fmt.Sprintf("^%s-", deployment.Name))
+	kubeNamePattern, err := regexp.Compile(fmt.Sprintf("^%s-[^-]+-[^-]+", deployment.Name))
 	if err != nil {
 		return nil, errors.Wrap(err, "compile regexp pattern")
 	}
@@ -165,6 +165,9 @@ func (s *kubeEventService) MakeDeploymentKubeEventFilter(ctx context.Context, de
 			return true
 		}
 		if event.InvolvedObject.Kind == "BentoDeployment" && event.InvolvedObject.Name == deployment.Name {
+			return true
+		}
+		if event.InvolvedObject.Kind == "HorizontalPodAutoscaler" && event.InvolvedObject.Name == deployment.Name {
 			return true
 		}
 		return false
