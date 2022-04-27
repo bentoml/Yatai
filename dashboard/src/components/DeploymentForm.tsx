@@ -9,7 +9,7 @@ import { Accordion, Panel } from 'baseui/accordion'
 import { IDeploymentRevisionSchema } from '@/schemas/deployment_revision'
 import { RiCpuLine } from 'react-icons/ri'
 import { FaMemory } from 'react-icons/fa'
-import { ICreateDeploymentTargetSchema } from '@/schemas/deployment_target'
+import { ICreateDeploymentTargetSchema, IDeploymentTargetRunnerSchema } from '@/schemas/deployment_target'
 import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
@@ -213,6 +213,39 @@ export default function DeploymentForm({
                 return bento.manifest.runners[0].name
             }
             return runnerTabsActiveKey_
+        })
+        setValues((vs) => {
+            if (vs.targets.length === 0) {
+                return vs
+            }
+            if (vs.targets[0].config?.runners && Object.keys(vs.targets[0].config.runners).length > 0) {
+                return vs
+            }
+            return {
+                ...vs,
+                targets: [
+                    {
+                        ...vs.targets[0],
+                        config: {
+                            ...vs.targets[0].config,
+                            runners:
+                                bento?.manifest?.runners?.reduce((runners, runner) => {
+                                    return {
+                                        ...runners,
+                                        [runner.name]: {
+                                            resources: {
+                                                ...defaultTarget.config?.resources,
+                                            },
+                                            hpa_conf: {
+                                                ...defaultTarget.config?.hpa_conf,
+                                            },
+                                        },
+                                    }
+                                }, {} as Record<string, IDeploymentTargetRunnerSchema>) ?? {},
+                        },
+                    },
+                ],
+            }
         })
     }, [bento?.manifest?.runners])
 

@@ -84,7 +84,7 @@ export default function PodList({
     const renderPodRow = useCallback(
         (pod: IKubePodSchema) => {
             return (
-                <StyledTableBodyRow>
+                <StyledTableBodyRow key={pod.name}>
                     <StyledTableBodyCell>
                         <StatefulTooltip key={pod.name} content={pod.name} showArrow>
                             <div
