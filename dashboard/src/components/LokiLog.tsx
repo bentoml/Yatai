@@ -1,6 +1,6 @@
 import { useDeployment } from '@/hooks/useDeployment'
 import useTranslation, { Translator } from '@/hooks/useTranslation'
-import { ILokiFilter } from '@/interfaces/ILoki'
+import { ILokiLabelFilterNode, ILokiLineFilterNode } from '@/interfaces/ILoki'
 import { IDeploymentSchema } from '@/schemas/deployment'
 import { useStyletron } from 'baseui'
 import { FaJournalWhills } from 'react-icons/fa'
@@ -15,29 +15,40 @@ import { Input } from 'baseui/input'
 import { Search } from 'baseui/icon'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import { useFetchOrganizationMajorCluster } from '@/hooks/useFetchOrganizationMajorCluster'
+import { useFetchBentoOptional } from '@/hooks/useFetchBento'
+import { Select } from 'baseui/select'
+import { resourceIconMapping } from '@/consts'
 import Card from './Card'
 import GrafanaIFrame from './GrafanaIFrame'
 import LokiFiltersForm from './LokiFiltersForm'
 import Text from './Text'
 import Label from './Label'
 
-const filterToString = (filter: ILokiFilter): string => {
-    const value = `"${_.replace(filter.value, /"/g, '\\"')}"`
+const labelFilterNodeToString = (filterNode: ILokiLabelFilterNode): string => {
+    return `${filterNode.name}${filterNode.operator}"${filterNode.value}"`
+}
 
-    if (filter.type === 'contains') {
-        if (filter.isRegexp) {
+const labelFilterNodesToString = (filterNodes: ILokiLabelFilterNode[]): string => {
+    return filterNodes.map(labelFilterNodeToString).join(', ')
+}
+
+const lineFilterNodeToString = (filterNode: ILokiLineFilterNode): string => {
+    const value = `"${_.replace(filterNode.value, /"/g, '\\"')}"`
+
+    if (filterNode.type === 'contains') {
+        if (filterNode.isRegexp) {
             return `|~ ${value}`
         }
         return `|= ${value}`
     }
-    if (filter.isRegexp) {
+    if (filterNode.isRegexp) {
         return `!~ ${value}`
     }
     return `!= ${value}`
 }
 
-const filtersToReadableString = (t: Translator, filters: ILokiFilter[]): string => {
-    return filters
+const lineFilterNodesToReadableString = (t: Translator, filterNodes: ILokiLineFilterNode[]): string => {
+    return filterNodes
         .map((filter) => {
             let verb = ''
             if (filter.type === 'contains') {
@@ -92,15 +103,21 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
         deployment = deployment0
     }
 
+    const bentoInfo = useFetchBentoOptional(
+        deployment?.latest_revision?.targets?.[0]?.bento.repository.name,
+        deployment?.latest_revision?.targets?.[0]?.bento.version
+    )
+
     const [keyword, setKeyword] = useState<string | undefined>()
     const [keyword_, setKeyword_] = useState<string | undefined>()
 
-    const [filters, setFilters] = useState<ILokiFilter[]>([])
-    const [openFiltersModal, setOpenFiltersModal] = useState(false)
+    const [labelFilterNodes, setLabelFilterNodes] = useState<ILokiLabelFilterNode[]>([])
+    const [lineFilterNodes, setLineFilterNodes] = useState<ILokiLineFilterNode[]>([])
+    const [openLineFiltersModal, setOpenLineFiltersModal] = useState(false)
 
-    const onFiltersSubmit = useCallback((filters_) => {
-        setFilters(filters_)
-        setOpenFiltersModal(false)
+    const onLineFilterNodesSubmit = useCallback((filterNodes) => {
+        setLineFilterNodes(filterNodes)
+        setOpenLineFiltersModal(false)
     }, [])
 
     const [, theme] = useStyletron()
@@ -115,11 +132,17 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
         return <div>no data</div>
     }
 
-    let labels: string[] = []
-    let defaultFilters: ILokiFilter[] = []
+    let defaultLabelFilterNodes: ILokiLabelFilterNode[] = []
+    let defaultLineFilterNodes: ILokiLineFilterNode[] = []
     if (deployment) {
-        labels = [`yatai_ai_deployment="${deployment.name}"`]
-        defaultFilters = [
+        defaultLabelFilterNodes = [
+            {
+                name: 'yatai_ai_deployment',
+                value: deployment.name,
+                operator: '=',
+            },
+        ]
+        defaultLineFilterNodes = [
             {
                 type: 'not contains',
                 value: 'kube-probe',
@@ -129,16 +152,30 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
     }
 
     if (podName) {
-        labels = [...labels, `pod="${podName}"`]
+        defaultLabelFilterNodes = [
+            ...defaultLabelFilterNodes,
+            {
+                name: 'pod',
+                value: podName,
+                operator: '=',
+            },
+        ]
     }
 
     if (namespace) {
-        labels = [...labels, `namespace="${namespace}"`]
+        defaultLabelFilterNodes = [
+            ...defaultLabelFilterNodes,
+            {
+                name: 'namespace',
+                value: namespace,
+                operator: '=',
+            },
+        ]
     }
 
     if (keyword) {
-        defaultFilters = [
-            ...defaultFilters,
+        defaultLineFilterNodes = [
+            ...defaultLineFilterNodes,
             {
                 type: 'contains',
                 value: `(?i)${keyword}`,
@@ -147,7 +184,9 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
         ]
     }
 
-    const expr = `{${labels.join(', ')}} ${[...defaultFilters, ...filters].map(filterToString).join(' ')}`
+    const expr = `{${labelFilterNodesToString(defaultLabelFilterNodes)}} ${
+        labelFilterNodes.length > 0 ? `| ${labelFilterNodes.map(labelFilterNodeToString).join(' or ')}` : ''
+    } ${[...defaultLineFilterNodes, ...lineFilterNodes].map(lineFilterNodeToString).join(' ')}`
 
     const pathname = `${grafanaRootPath}explore`
     const query = {
@@ -164,7 +203,7 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
         ]),
     }
 
-    const filtersReadableString = filtersToReadableString(t, filters)
+    const filtersReadableString = lineFilterNodesToReadableString(t, lineFilterNodes)
 
     return (
         <Card
@@ -179,6 +218,8 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
                     style={{
                         display: 'flex',
                         alignItems: 'center',
+                        flexDirection: 'row',
+                        gap: 10,
                     }}
                 >
                     <div
@@ -192,7 +233,6 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
                         <Text
                             style={{
                                 color: color(theme.colors.contentPrimary).lighten(0.3).fade(0.2).rgb().string(),
-                                marginRight: 10,
                             }}
                         >
                             {filtersReadableString}
@@ -200,22 +240,107 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
                     </div>
                     <div
                         style={{
-                            marginRight: 10,
+                            flexShrink: 0,
                         }}
                     >
-                        <Button size='mini' onClick={() => setOpenFiltersModal(true)}>
+                        <Button size='mini' onClick={() => setOpenLineFiltersModal(true)}>
                             {t('advanced search')}
                         </Button>
                     </div>
                     <div
                         style={{
                             display: 'flex',
-                            flexDirection: 'row',
                             alignItems: 'center',
-                            marginRight: 10,
+                            flexShrink: 0,
+                            gap: 10,
                         }}
                     >
-                        <Label style={{ marginRight: 10 }}>{t('max lines')}</Label>
+                        <Label
+                            style={{
+                                flexShrink: 0,
+                            }}
+                        >
+                            {t('component')}
+                        </Label>
+                        <Select
+                            multi
+                            size='mini'
+                            overrides={{
+                                Root: {
+                                    style: {
+                                        minWidth: '300px',
+                                    },
+                                },
+                            }}
+                            clearable={false}
+                            searchable={false}
+                            options={[
+                                {
+                                    id: 'yatai_ai_is_bento_api_server="true"',
+                                    label: (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            {React.createElement(resourceIconMapping.bento_api_server, { size: 12 })}
+                                            <span>API Server</span>
+                                        </div>
+                                    ),
+                                    filterNode: {
+                                        name: 'yatai_ai_is_bento_api_server',
+                                        value: 'true',
+                                        operator: '=',
+                                    },
+                                },
+                                ...(bentoInfo?.data?.manifest?.runners?.map((runner) => {
+                                    return {
+                                        id: `yatai_ai_bento_runner="${runner.name}"`,
+                                        label: (
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 3,
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    {React.createElement(resourceIconMapping.bento_runner, {
+                                                        size: 12,
+                                                    })}
+                                                    <span style={{ fontWeight: 'bold' }}>Runner</span>
+                                                </div>
+                                                {runner.name}
+                                            </div>
+                                        ),
+                                        filterNode: {
+                                            name: 'yatai_ai_bento_runner',
+                                            value: runner.name,
+                                            operator: '=',
+                                        },
+                                    }
+                                }) ?? []),
+                            ]}
+                            value={labelFilterNodes.map((filterNode) => {
+                                return {
+                                    id: labelFilterNodeToString(filterNode),
+                                    filterNode,
+                                }
+                            })}
+                            onChange={(params) => {
+                                // eslint-disable-next-line no-console
+                                console.log(params)
+                                setLabelFilterNodes(
+                                    params.value.map((param) => param.filterNode as ILokiLabelFilterNode)
+                                )
+                            }}
+                        />
+                    </div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 10,
+                        }}
+                    >
+                        <Label style={{ flexShrink: 0 }}>{t('max lines')}</Label>
                         <Input
                             size='mini'
                             overrides={{
@@ -242,9 +367,17 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
                             display: 'flex',
                             flexDirection: 'row',
                             alignItems: 'center',
+                            flexShrink: 0,
+                            gap: 10,
                         }}
                     >
-                        <Label style={{ marginRight: 10 }}>{t('search')}</Label>
+                        <Label
+                            style={{
+                                flexShrink: 0,
+                            }}
+                        >
+                            {t('search')}
+                        </Label>
                         <Input
                             size='mini'
                             endEnhancer={<Search size='18px' />}
@@ -329,15 +462,15 @@ export default function LokiLog({ deployment: deployment_, podName, namespace, s
                         },
                     },
                 }}
-                isOpen={openFiltersModal}
-                onClose={() => setOpenFiltersModal(false)}
+                isOpen={openLineFiltersModal}
+                onClose={() => setOpenLineFiltersModal(false)}
                 closeable
                 animate
                 autoFocus
             >
                 <ModalHeader>{t('advanced search')}</ModalHeader>
                 <ModalBody>
-                    <LokiFiltersForm filters={filters} onSubmit={onFiltersSubmit} />
+                    <LokiFiltersForm filters={lineFilterNodes} onSubmit={onLineFilterNodesSubmit} />
                 </ModalBody>
             </Modal>
         </Card>

@@ -2086,6 +2086,13 @@ const locales0 = {
         ko: '그룹',
         vi: 'Nhóm',
     },
+    'component': {
+        en: 'Component',
+        zh: '组件',
+        ja: 'コンポーネント',
+        ko: '구성 요소',
+        vi: 'Thành phần',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
