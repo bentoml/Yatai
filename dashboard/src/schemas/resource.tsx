@@ -14,6 +14,8 @@ export type ResourceType =
     | 'model_repository'
     | 'model'
     | 'api_token'
+    | 'bento_runner'
+    | 'bento_api_server'
 
 export interface IResourceSchema extends IBaseSchema {
     name: string

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { ILokiFilter, LokiFilterType } from '@/interfaces/ILoki'
+import { ILokiLineFilterNode, LokiFilterType } from '@/interfaces/ILoki'
 import useTranslation from '@/hooks/useTranslation'
 import { Button } from 'baseui/button'
 import { DeleteAlt } from 'baseui/icon'
@@ -9,8 +9,8 @@ import Toggle from './Toggle'
 import Label from './Label'
 
 interface ILokiFiltersFormProps {
-    filters: ILokiFilter[]
-    onSubmit: (filters: ILokiFilter[]) => void
+    filters: ILokiLineFilterNode[]
+    onSubmit: (filters: ILokiLineFilterNode[]) => void
 }
 
 export default ({ filters, onSubmit }: ILokiFiltersFormProps) => {
@@ -20,7 +20,7 @@ export default ({ filters, onSubmit }: ILokiFiltersFormProps) => {
         setCurrentFilters(filters)
     }, [filters])
 
-    const handleUpdate = useCallback((filter: ILokiFilter, idx: number) => {
+    const handleUpdate = useCallback((filter: ILokiLineFilterNode, idx: number) => {
         setCurrentFilters((filters_) =>
             filters_.map((f, i) => {
                 if (i === idx) {
@@ -79,7 +79,13 @@ export default ({ filters, onSubmit }: ILokiFiltersFormProps) => {
                             >
                                 <DeleteAlt />
                             </Button>
-                            <Label>{t('regexp')}</Label>
+                            <Label
+                                style={{
+                                    flexShrink: 0,
+                                }}
+                            >
+                                {t('regexp')}
+                            </Label>
                             <Toggle
                                 overrides={{
                                     Root: {
@@ -108,6 +114,8 @@ export default ({ filters, onSubmit }: ILokiFiltersFormProps) => {
                                     Root: {
                                         style: {
                                             marginRight: 10,
+                                            width: '200px',
+                                            flexShrink: 0,
                                         },
                                     },
                                 }}
@@ -174,7 +182,7 @@ export default ({ filters, onSubmit }: ILokiFiltersFormProps) => {
                             },
                         },
                     }}
-                    kind='secondary'
+                    kind='tertiary'
                     onClick={() => {
                         setCurrentFilters([])
                     }}
@@ -183,6 +191,7 @@ export default ({ filters, onSubmit }: ILokiFiltersFormProps) => {
                 </Button>
                 <Button
                     size='compact'
+                    kind='secondary'
                     overrides={{
                         Root: {
                             style: {

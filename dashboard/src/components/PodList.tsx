@@ -20,8 +20,8 @@ import {
     StyledTableHeadCell,
     StyledTableHeadRow,
 } from 'baseui/table-semantic'
-import { GiAbstract006, GiAbstract045 } from 'react-icons/gi'
 import { Skeleton } from 'baseui/skeleton'
+import { resourceIconMapping } from '@/consts'
 import Log from './Log'
 import { PodStatus } from './PodStatuses'
 import Terminal from './Terminal'
@@ -215,7 +215,7 @@ export default function PodList({
                                 <StyledTableBodyRow>
                                     <StyledTableBodyCell rowSpan={apiServerPods.length + 1}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <GiAbstract006 size={12} />
+                                            {React.createElement(resourceIconMapping.bento_api_server, { size: 12 })}
                                             <span>API Server</span>
                                         </div>
                                     </StyledTableBodyCell>
@@ -238,7 +238,9 @@ export default function PodList({
                                                 }}
                                             >
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                    <GiAbstract045 size={12} />
+                                                    {React.createElement(resourceIconMapping.bento_runner, {
+                                                        size: 12,
+                                                    })}
                                                     <span>Runner</span>
                                                 </div>
                                                 <span style={{ fontWeight: 'bolder' }}>{runnerName}</span>

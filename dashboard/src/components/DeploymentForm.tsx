@@ -25,7 +25,6 @@ import { FiMaximize2, FiMinimize2 } from 'react-icons/fi'
 import { fetchCluster } from '@/services/cluster'
 import { useQuery } from 'react-query'
 import { Tabs, Tab } from 'baseui/tabs-motion'
-import { GiAbstract045 } from 'react-icons/gi'
 import { IBentoWithRepositorySchema } from '@/schemas/bento'
 import DeploymentTargetTypeSelector from './DeploymentTargetTypeSelector'
 import BentoRepositorySelector from './BentoRepositorySelector'
@@ -664,7 +663,9 @@ export default function DeploymentForm({
                                                                     gap: 8,
                                                                 }}
                                                             >
-                                                                <GiAbstract045 size={12} />
+                                                                {React.createElement(resourceIconMapping.bento_runner, {
+                                                                    size: 12,
+                                                                })}
                                                                 <span>{runner.name}</span>
                                                             </div>
                                                         }

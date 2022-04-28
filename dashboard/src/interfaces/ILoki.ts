@@ -1,6 +1,12 @@
 export type LokiFilterType = 'contains' | 'not contains'
 
-export interface ILokiFilter {
+export interface ILokiLabelFilterNode {
+    name: string
+    value: string
+    operator: '=' | '!=' | '=~' | '!~' | '<' | '<=' | '>' | '>='
+}
+
+export interface ILokiLineFilterNode {
     type: LokiFilterType
     isRegexp: boolean
     value: string
