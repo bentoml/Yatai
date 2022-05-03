@@ -5,16 +5,14 @@ let
   lib = import <nixpkgs/lib>;
   inherit (lib) optional optionals;
   postgresql = pkgs.postgresql_14;
-  make = pkgs.gnumake;
   go = pkgs.callPackage ./nix/go.nix { pkgs=pkgs; };
 
   basePackages = [
-    postgresql
     go
-    pkgs.nodejs-14_x
-    pkgs.yarn
+    postgresql
     pkgs.jq
-    make
+    pkgs.yarn
+    pkgs.gnumake
   ];
 
   requiredPackages = basePackages
