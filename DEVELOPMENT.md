@@ -117,8 +117,14 @@ After reboot, just run `nix-shell` and start developing :)
 
     Create `yatai-config.dev.yaml` file that bases on the `yatai-config.sample.yaml` template and update the `postgrsql` section in the configuration file.
 
+2. Spin up `minikube`:
+```bash
+minikube start --cpus 4 --memory 4096
+```
 
-1. Run make command that start the development server for both Yatai UI and Yatai server.
+3. Run `sudo minikube tunnel` to enable ingress controller.
+
+4. Run make command that start the development server for both Yatai UI and Yatai server.
 
     ```bash
     make yatai-dev
@@ -127,6 +133,9 @@ After reboot, just run `nix-shell` and start developing :)
     Visit http://localhost:7777 to view the Yatai Web UI
 
     Visit http://localhost:7777/swagger to view Yatai server’s API definitions.
+
+    Visit http://localhost:3000/setup?token=123 to initially setup a dev
+    credentials.
 
 
 To start Yatai UI separately, run make command:
