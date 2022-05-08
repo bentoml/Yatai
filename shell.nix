@@ -4,17 +4,19 @@ with pkgs;
 let
   lib = import <nixpkgs/lib>;
   inherit (lib) optional optionals;
-  postgresql = pkgs.postgresql_14;
-  make = pkgs.gnumake;
   go = pkgs.callPackage ./nix/go.nix { pkgs=pkgs; };
 
-  basePackages = [
-    postgresql
+  basePackages = with pkgs; [
+    # custom defined go version
     go
-    pkgs.nodejs-14_x
-    pkgs.yarn
-    pkgs.jq
-    make
+    # retrieve from nixpkgs
+    postgresql_14
+    nodejs-14_x
+    yarn
+    jq
+    gnumake
+    git
+    coreutils
   ];
 
   requiredPackages = basePackages
@@ -36,9 +38,11 @@ in pkgs.mkShell {
         export SOCKET_DIRECTORIES="$PWD/.sockets"
         mkdir -p $PGDATA
 
-        initdb -D $PGDATA
-        createuser postgres -h localhost
-        createdb yatai
+        if [[ ! -d $PGDATA ]]; then
+          initdb -D $PGDATA
+          createuser postgres -h localhost
+          createdb yatai
+        fi
 
         if [[ ! $(grep listen_address $PGDATA/postgresql.conf) ]]; then
             cat >> "$PGDATA/postgresql.conf" <<-EOF
