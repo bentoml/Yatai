@@ -37,6 +37,7 @@ import ClusterSelector from './ClusterSelector'
 import Divider from './Divider'
 import LabelList from './LabelList'
 import NumberInput from './NumberInput'
+import Toggle from './Toggle'
 
 const useStyles = createUseStyles({
     wrapper: () => {
@@ -95,6 +96,7 @@ const defaultTarget: ICreateDeploymentTargetSchema = {
         },
         envs: [],
         runners: {},
+        enable_ingress: true,
     },
 }
 
@@ -352,6 +354,13 @@ export default function DeploymentForm({
                     {values.targets.map((target, idx) => {
                         return (
                             <div key={idx}>
+                                <FormItem
+                                    required
+                                    name={['targets', idx, 'config', 'enable_ingress']}
+                                    label={t('cluster external access')}
+                                >
+                                    <Toggle />
+                                </FormItem>
                                 <Divider orientation='left'>{t('select bento')}</Divider>
                                 <div>
                                     <FormItem
