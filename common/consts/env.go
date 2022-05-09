@@ -14,4 +14,10 @@ const (
 	EnvGithubClientSecret = "GITHUB_CLIENT_SECRET"
 
 	EnvInitializationToken = "YATAI_INITIALIZATION_TOKEN"
+
+	// tracking related environment
+	EnvYataiVersion       = "YATAI_VERSION"
+	EnvYataiOrgUID        = "YATAI_ORG_UID"
+	EnvYataiDeploymentUID = "YATAI_DEPLOYMENT_UID"
+	EnvYataiClusterUID    = "YATAI_CLUSTER_UID"
 )
