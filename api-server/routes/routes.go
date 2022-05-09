@@ -162,6 +162,12 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("List yatai component operator helm charts"),
 	}, tonic.Handler(controllersv1.YataiComponentController.ListOperatorHelmCharts, 200))
 
+	// setup exported envars
+	apiRootGroup.POST("/envars", []fizz.OperationOption{
+		fizz.ID("Retreive all exported environment variables"),
+		fizz.Summary("Retreive all exported environment variables"),
+	}, tonic.Handler(controllersv1.EnvarsController.SetEnvars, 200))
+
 	authRoutes(publicApiRootGroup)
 	userRoutes(apiRootGroup)
 	organizationRoutes(apiRootGroup)
