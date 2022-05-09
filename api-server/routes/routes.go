@@ -163,9 +163,9 @@ func NewRouter() (*fizz.Fizz, error) {
 	}, tonic.Handler(controllersv1.YataiComponentController.ListOperatorHelmCharts, 200))
 
 	// setup exported envars
-	apiRootGroup.POST("/envars", []fizz.OperationOption{
-		fizz.ID("Retreive all exported environment variables"),
-		fizz.Summary("Retreive all exported environment variables"),
+	apiRootGroup.POST("/envars/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName", []fizz.OperationOption{
+		fizz.ID("Retrieve exported environment variables for given clusterName, kubeNamespace and deploymentName"),
+		fizz.Summary("Retrieve exported environment variables for given clusterName, kubeNamespace and deploymentName"),
 	}, tonic.Handler(controllersv1.EnvarsController.SetEnvars, 200))
 
 	authRoutes(publicApiRootGroup)
