@@ -2093,6 +2093,48 @@ const locales0 = {
         ko: '구성 요소',
         vi: 'Thành phần',
     },
+    'cluster external access': {
+        en: 'Cluster external access',
+        zh: '集群外部访问',
+        ja: 'クラスタ外部アクセス',
+        ko: '클러스터 외부 접근',
+        vi: 'Truy cập ngoài',
+    },
+    'cluster internal url': {
+        en: 'Cluster internal URL',
+        zh: '集群内部 URL',
+        ja: 'クラスタ内部 URL',
+        ko: '클러스터 내부 URL',
+        vi: 'URL nội bộ',
+    },
+    'accessing deployments from outside the cluster': {
+        en: 'Accessing deployments from outside the cluster',
+        zh: '从集群外部访问部署',
+        ja: 'クラスタ外部からのデプロイ設定にアクセス',
+        ko: '클러스터 외부에서 배포 설정에 접근',
+        vi: 'Truy cập để đặt cấu hình để đặt trên nền tảng',
+    },
+    'deployment accessing tips': {
+        en: 'There are two ways to access the deployment from outside the cluster:',
+        zh: '有两种方式从集群外部访问部署:',
+        ja: 'クラスタ外部からデプロイメントへのアクセス方法は2つあります:',
+        ko: '클러스터 외부에서 배포에 접근하는 방법은 2가지입니다:',
+        vi: 'Có 2 cách truy cập phần cấu hình từ bên ngoài:',
+    },
+    'the first way of the deployment accessing': {
+        en: '1. Click the Update button to enable cluster external accessing',
+        zh: '1. 点击更新按钮启用集群外部访问',
+        ja: '1. クラスタ外部アクセスを有効にするには更新ボタンをクリックします',
+        ko: '1. 배포 설정에 외부 접근을 사용하려면 업데이트 버튼을 클릭하십시오.',
+        vi: '1. Nhấn nút Cập nhật để kích hoạt truy cập ngoài',
+    },
+    'the second way of the deployment accessing': {
+        en: '2. Use the kubectl command to forward the local port to the inside of the cluster, for debugging purposes only:',
+        zh: '2. 使用 kubectl 命令将本地端口转发到集群内部, 仅用于调试:',
+        ja: '2. kubectl コマンドを使用して、ローカルポートをクラスタ内部に転送します。デバッグ目的のみ:',
+        ko: '2. kubectl 명령어를 사용하여 로컬 포트를 클러스터 내부로 전달합니다. 단지 디버깅 목적으로:',
+        vi: '2. Use the kubectl command to forward the local port to the inside of the cluster, for debugging purposes only:',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

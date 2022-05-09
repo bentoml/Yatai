@@ -72,4 +72,5 @@ export interface IDeploymentTargetConfigSchema {
     hpa_conf?: IKubeHPAConf
     envs?: ILabelItemSchema[]
     runners?: Record<string, IDeploymentTargetRunnerSchema>
+    enable_ingress?: boolean
 }

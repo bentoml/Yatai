@@ -108,6 +108,12 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 		}
 	}
 
+	ingress := servingv1alpha2.BentoDeploymentIngressSpec{}
+
+	if deploymentTarget.Config != nil && deploymentTarget.Config.EnableIngress != nil && *deploymentTarget.Config.EnableIngress {
+		ingress.Enabled = true
+	}
+
 	kubeBentoDeployment = &servingv1alpha2.BentoDeployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      deployment.Name,
@@ -119,6 +125,7 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 			Envs:        &envs,
 			Resources:   resources,
 			Runners:     runners,
+			Ingress:     ingress,
 		},
 	}
 
