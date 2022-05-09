@@ -104,6 +104,8 @@ Install [nix](https://nixos.org/download.html):
 sh <(curl -L https://nixos.org/nix/install) --daemon
 ```
 
+We are using [niv](https://github.com/nmattia/niv) to manage your dependencies.
+
 If you are on MacOS, then do:
 ```bash
 sh <(curl -L https://nixos.org/nix/install) --darwin-use-unencrypted-nix-store-volume --daemon

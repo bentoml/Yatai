@@ -1,20 +1,28 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ sources ? import nix/sources.nix
+ , pkgs ? import sources.nixpkgs { overlays = [] ; config = {}; }
+}:
 
 with pkgs;
 let
   lib = import <nixpkgs/lib>;
   inherit (lib) optional optionals;
-  postgresql = pkgs.postgresql_14;
-  make = pkgs.gnumake;
-  go = pkgs.callPackage ./nix/go.nix { pkgs=pkgs; };
 
-  basePackages = [
-    postgresql
+  # custom defined packages in nixpkgs
+  go = callPackage ./nix/go.nix { pkgs=pkgs; };
+  nodejs = nodejs-14_x;
+  postgresql = postgresql_14;
+
+  basePackages = with pkgs; [
+    # custom defined go version
     go
-    pkgs.nodejs-14_x
-    pkgs.yarn
-    pkgs.jq
-    make
+    # TODO: lock version with niv
+    postgresql
+    nodejs
+    yarn
+    jq
+    gnumake
+    git
+    coreutils
   ];
 
   requiredPackages = basePackages
@@ -24,7 +32,8 @@ let
         CoreServices
       ]);
 
-in pkgs.mkShell {
+in
+  pkgs.mkShell {
     name = "dev";
 
     buildInputs = requiredPackages;
