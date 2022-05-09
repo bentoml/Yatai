@@ -1,17 +1,23 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ sources ? import nix/sources.nix
+ , pkgs ? import sources.nixpkgs { overlays = [] ; config = {}; }
+}:
 
 with pkgs;
 let
   lib = import <nixpkgs/lib>;
   inherit (lib) optional optionals;
-  go = pkgs.callPackage ./nix/go.nix { pkgs=pkgs; };
+
+  # custom defined packages in nixpkgs
+  go = callPackage ./nix/go.nix { pkgs=pkgs; };
+  nodejs = nodejs-14_x;
+  postgresql = postgresql_14;
 
   basePackages = with pkgs; [
     # custom defined go version
     go
-    # retrieve from nixpkgs
-    postgresql_14
-    nodejs-14_x
+    # TODO: lock version with niv
+    postgresql
+    nodejs
     yarn
     jq
     gnumake
@@ -26,7 +32,8 @@ let
         CoreServices
       ]);
 
-in pkgs.mkShell {
+in
+  pkgs.mkShell {
     name = "dev";
 
     buildInputs = requiredPackages;
@@ -38,11 +45,9 @@ in pkgs.mkShell {
         export SOCKET_DIRECTORIES="$PWD/.sockets"
         mkdir -p $PGDATA
 
-        if [[ ! -d $PGDATA ]]; then
-          initdb -D $PGDATA
-          createuser postgres -h localhost
-          createdb yatai
-        fi
+        initdb -D $PGDATA
+        createuser postgres -h localhost
+        createdb yatai
 
         if [[ ! $(grep listen_address $PGDATA/postgresql.conf) ]]; then
             cat >> "$PGDATA/postgresql.conf" <<-EOF
