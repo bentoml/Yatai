@@ -6,6 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/envars"
+
 	"github.com/gin-gonic/gin"
 	"github.com/huandu/xstrings"
 	"github.com/pkg/errors"
@@ -34,12 +37,18 @@ func (s *GetOrganizationSchema) GetOrganization(ctx context.Context) (*models.Or
 		if err != nil {
 			return nil, err
 		}
-		return services.OrganizationService.GetUserOrganization(ctx, user.ID)
+		organization, err := services.OrganizationService.GetUserOrganization(ctx, user.ID)
+
+		// Set YATAI_ORG_UID
+		envars.SetIfNotExists(consts.EnvYataiOrgUID, organization.GetUid())
+		return organization, err
 	}
 	organization, err := services.OrganizationService.GetByName(ctx, s.OrgName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get organization %s", s.OrgName)
 	}
+
+	envars.SetIfNotExists(consts.EnvYataiOrgUID, organization.GetUid())
 	return organization, nil
 }
 

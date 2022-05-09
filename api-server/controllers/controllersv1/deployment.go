@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bentoml/yatai/common/envars"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/huandu/xstrings"
@@ -49,6 +51,9 @@ func (s *GetDeploymentSchema) GetDeployment(ctx context.Context) (*models.Deploy
 	if err != nil {
 		return nil, errors.Wrapf(err, "get deployment %s", s.DeploymentName)
 	}
+
+	// set YATAI_DEPLOYMENT_UID
+	envars.SetIfNotExists(consts.EnvYataiDeploymentUID, deployment.GetUid())
 	return deployment, nil
 }
 

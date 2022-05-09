@@ -5,6 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/envars"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
@@ -43,6 +46,9 @@ func (s *GetClusterSchema) GetCluster(ctx context.Context) (*models.Cluster, err
 	if err != nil {
 		return nil, errors.Wrapf(err, "get cluster %s", s.ClusterName)
 	}
+
+	// set YATAI_CLUSTER_UID
+	envars.SetIfNotExists(consts.EnvYataiClusterUID, cluster.GetUid())
 	return cluster, nil
 }
 
