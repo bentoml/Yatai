@@ -21,11 +21,13 @@ import { LabelMedium, LabelSmall } from 'baseui/typography'
 import { useHistory } from 'react-router-dom'
 import { VscServerProcess, VscSymbolVariable } from 'react-icons/vsc'
 import { GrResources } from 'react-icons/gr'
-import { FiMaximize2, FiMinimize2 } from 'react-icons/fi'
+import { FiAlertCircle, FiInfo, FiMaximize2, FiMinimize2 } from 'react-icons/fi'
 import { fetchCluster } from '@/services/cluster'
 import { useQuery } from 'react-query'
 import { Tabs, Tab } from 'baseui/tabs-motion'
 import { IBentoWithRepositorySchema } from '@/schemas/bento'
+import { StatefulTooltip } from 'baseui/tooltip'
+import { Block } from 'baseui/block'
 import DeploymentTargetTypeSelector from './DeploymentTargetTypeSelector'
 import BentoRepositorySelector from './BentoRepositorySelector'
 import BentoSelector from './BentoSelector'
@@ -38,6 +40,7 @@ import Divider from './Divider'
 import LabelList from './LabelList'
 import NumberInput from './NumberInput'
 import Toggle from './Toggle'
+import CopyableText from './CopyableText'
 
 const useStyles = createUseStyles({
     wrapper: () => {
@@ -358,9 +361,54 @@ export default function DeploymentForm({
                                 <FormItem
                                     required
                                     name={['targets', idx, 'config', 'enable_ingress']}
-                                    label={t('cluster external access')}
+                                    label={t('endpoint public access')}
                                 >
-                                    <Toggle />
+                                    <Toggle labelPlacement='right'>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 3,
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '12px', fontWeight: 'normal' }}>
+                                                {target?.config?.enable_ingress ? t('enabled') : t('disabled')}
+                                            </span>
+                                            {target?.config?.enable_ingress ? (
+                                                <StatefulTooltip
+                                                    showArrow
+                                                    content={() => (
+                                                        <Block width={['100px', '200px', '400px', '600px']}>
+                                                            <span>{t('endpoint public access enable piece 1')} </span>
+                                                            <span style={{ fontWeight: 'bold' }}>{t('warning')}: </span>
+                                                            <span>{t('endpoint public access enable piece 2')}</span>
+                                                        </Block>
+                                                    )}
+                                                >
+                                                    <div>
+                                                        <FiAlertCircle size={12} />
+                                                    </div>
+                                                </StatefulTooltip>
+                                            ) : (
+                                                <StatefulTooltip
+                                                    showArrow
+                                                    content={() => (
+                                                        <Block width={['100px', '200px', '400px', '600px']}>
+                                                            <span>{t('endpoint public access disable piece 1')} </span>
+                                                            <span>
+                                                                <CopyableText highlight text='kubectl port-forward' />{' '}
+                                                            </span>
+                                                            <span>{t('endpoint public access disable piece 2')}</span>
+                                                        </Block>
+                                                    )}
+                                                >
+                                                    <div>
+                                                        <FiInfo size={12} />
+                                                    </div>
+                                                </StatefulTooltip>
+                                            )}
+                                        </div>
+                                    </Toggle>
                                 </FormItem>
                                 <Divider orientation='left'>{t('select bento')}</Divider>
                                 <div>
