@@ -18,7 +18,7 @@ You can do this the [hard way](#conventional-way) or the [easy way](#nix)
 
     > For Apple computer with M1 chip, please install nodejs version `>=14.17.1`
     >
-    - We recommend installing NodeJS using `nvm`which allows developers to quickly install and use different versions of node:
+    - We recommend installing NodeJS using `nvm` which allows developers to quickly install and use different versions of node:
 
         ```bash
         # Install NVM
@@ -99,28 +99,64 @@ go mod download
 
 ## Nix
 
-Install [nix](https://nixos.org/download.html):
+Using [nix](https://nixos.org/download.html) will enable a reproducable workflow
+and faster development setup.
+
+We are using [niv](https://github.com/nmattia/niv) to manage your dependencies.
+
+Install `nix`:
 ```shell
 sh <(curl -L https://nixos.org/nix/install) --daemon
 ```
-
-We are using [niv](https://github.com/nmattia/niv) to manage your dependencies.
 
 If you are on MacOS, then do:
 ```bash
 sh <(curl -L https://nixos.org/nix/install) --darwin-use-unencrypted-nix-store-volume --daemon
 ```
+and follow the instruction from the installer. Then reboot your system.
 
-After reboot, just run `nix-shell` and start developing :)
+Enter the development environment without any package leakage via `nix-shell`.
+```bash
+nix-shell --pure
+```
+`nix-shell` enables users to start an interactive shell based on a Nix
+expression [`shell.nix`](./shell.nix) without any local
+environment variables, more [here](https://nixos.org/manual/nix/stable/command-ref/nix-shell.html).
 
-NOTE: make sure to run `minikube` after `nix-shell` in order for minikube to
-have access to the database managed via nix-shell.
+In order for `minikube` to recognize the `PostgreSQL` database managed via `nix`, open another terminal windows and then run:
+```bash
+nix-shell
+```
+This will run `nix-shell` in `impure` mode. This means that `nix-shell` won't
+clear your environment variable before starting the interactive shell. Then
+proceed to step 3 and 4 in [Run development server](#run-development-server)
 
 ## Run development server
 
 1. Generate Yatai config file
 
     Create `yatai-config.dev.yaml` file that bases on the `yatai-config.sample.yaml` template and update the `postgrsql` section in the configuration file.
+
+    An example for a local `yatai-config.dev.yaml` (nix-shell compatible):
+
+    ```yaml
+        in_cluster: false
+
+        server:
+        enable_https: false
+        port: 7777
+        session_secret_key:
+        migration_dir: ./api-server/db/migrations
+
+        postgresql:
+        host: localhost
+        port: 5432
+        user: postgres
+        password: ''
+        database: yatai
+
+        initialization_token: 12345
+    ```
 
 2. Spin up `minikube`:
 ```bash
@@ -139,18 +175,32 @@ minikube start --cpus 4 --memory 4096
 
     Visit http://localhost:7777/swagger to view Yatai server’s API definitions.
 
-    Visit http://localhost:3000/setup?token=123 to initially setup a dev
+    Visit http://localhost:3000/setup?token=12345 to initially setup a dev
     credentials.
 
+5. In order to push bentos locally to the development Yatai:
 
-To start Yatai UI separately, run make command:
+    1. Clone [`yatai-deployment-operator`](https://github.com/bentoml/yatai-deployment-operator):
 
-```bash
-make fe-run
-```
+    ```bash
+    git clone https://github.com/bentoml/yatai-deployment-operator && cd
+    yatai-deployment-operator
+    ```
 
-To start Yatai server separately, run make command:
+    2. `yatai-deployment-operator` is automatically setup when you run
+       `yatai-api-server`, thus we need to scale the replica to 0 from
+       `kubectl`:
 
-```bash
-make be-run
-```
+    ```bash
+    kubectl -n yatai-components scale deployment/yatai-yatai-deployment-operator --replicas=0
+    ```
+
+    3. One can retrieve `YATAI_API_TOKEN` from the yatai dashboard, it should be
+       the same `API_TOKEN` that is used for `bentoml yatai login`
+
+    4. Run the following command:
+    ```bash
+    YATAI_ENDPOINT=http://localhost:3000 YATAI_API_TOKEN=<API_TOKEN_HERE> YATAI_CLUSTER_NAME=default ENABLE_WEBHOOKS=false make run
+    ```
+
+    5. You should then be able to push bentos with `bentoml push`
