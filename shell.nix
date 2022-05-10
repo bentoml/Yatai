@@ -74,10 +74,11 @@ in
         if [ ! -d "$PGDATA" ]; then
           initdb --auth=trust --auth-host=trust >/dev/null
           echo "unix_socket_directories = '$SOCKET_DIRECTORIES'" >> $PGDATA/postgresql.conf
-          pg_ctl -l $PGDATA/logfile start
           createuser postgres --createdb -h localhost
           createdb yatai -h localhost -O postgres
         fi
+
+        pg_ctl -l $PGDATA/logfile start
 
         function end {
           echo "Shutting down the database..."
