@@ -180,6 +180,9 @@ minikube start --cpus 4 --memory 4096
 
 5. In order to push bentos locally to the development Yatai:
 
+    We need to use `yatai-deployment-operator` locally and disable webhooks in
+    order to push bentos to local Yatai. To do that, follow the below steps:
+
     1. Clone [`yatai-deployment-operator`](https://github.com/bentoml/yatai-deployment-operator):
 
     ```bash
@@ -187,7 +190,7 @@ minikube start --cpus 4 --memory 4096
     yatai-deployment-operator
     ```
 
-    2. `yatai-deployment-operator` is automatically setup when you run
+    2. `yatai-deployment-operator` is automatically set up when you run
        `yatai-api-server`, thus we need to scale the replica to 0 from
        `kubectl`:
 
@@ -195,12 +198,33 @@ minikube start --cpus 4 --memory 4096
     kubectl -n yatai-components scale deployment/yatai-yatai-deployment-operator --replicas=0
     ```
 
-    3. One can retrieve `YATAI_API_TOKEN` from the yatai dashboard, it should be
+    3. Due to a ingress [bug](https://github.com/kubernetes/ingress-nginx/issues/5968), we need to delete `ingress-nginx-admission`:
+
+    ```bash
+    kubectl delete -n yatai-components ValidatingWebhookConfiguration yatai-ingress-controller-ingress-nginx-admission
+    ```
+
+    4. Restart `yatai-operators`:
+
+    ```bash
+    kubectl -n yatai-operators rollout restart deploy/deployment-yatai-deployment-comp-operator
+    ```
+
+    5. One can retrieve `YATAI_API_TOKEN` from the yatai dashboard, it should be
        the same `API_TOKEN` that is used for `bentoml yatai login`
 
-    4. Run the following command:
+    6. Run the following command:
     ```bash
     YATAI_ENDPOINT=http://localhost:3000 YATAI_API_TOKEN=<API_TOKEN_HERE> YATAI_CLUSTER_NAME=default ENABLE_WEBHOOKS=false make run
     ```
 
-    5. You should then be able to push bentos with `bentoml push`
+    You should then be able to push bentos with `bentoml push`. Your `minikube
+    tunnel` terminal should look something like shown:
+
+    ![dev local](./docs/statics/minikube_dev_local.png)
+
+    Feel free to contact the BentoML team for further support if you run into
+    any problems :happy:
+
+
+
