@@ -13,8 +13,9 @@ let
   postgresql = postgresql_14;
 
   # postgres definition
-  pg_root = builtins.toString ./. + "/.pg_yatai";
+  pg_root = builtins.toString ./. + "/.yatai_db";
   pg_user = "postgres";
+  pg_host = "localhost";
   pg_db = "yatai";
 
   # base requirements
@@ -25,7 +26,6 @@ let
     postgresql
 
     # Without this, we see a whole bunch of warnings about LANG, LC_ALL and locales in general.
-    # In particular, this makes many tests fail because those warnings show up in test outputs too...
     # The solution is from: https://github.com/NixOS/nix/issues/318#issuecomment-52986702
     glibcLocales
 
@@ -67,15 +67,15 @@ in
 
         make fe-deps be-deps
 
-        export PGDATA="$PWD/.yatai_db"
+        export PGDATA=${pg_root}
         export SOCKET_DIRECTORIES="$PWD/sockets"
         mkdir $SOCKET_DIRECTORIES
 
         if [ ! -d "$PGDATA" ]; then
           initdb --auth=trust --auth-host=trust >/dev/null
           echo "unix_socket_directories = '$SOCKET_DIRECTORIES'" >> $PGDATA/postgresql.conf
-          createuser postgres --createdb -h localhost
-          createdb yatai -h localhost -O postgres
+          createuser ${pg_user} --createdb -h ${pg_host}
+          createdb ${pg_db} -h ${pg_host} k-O ${pg_user}
         fi
 
         pg_ctl -l $PGDATA/logfile start
