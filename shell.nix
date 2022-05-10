@@ -70,11 +70,14 @@ in
         export PGDATA="$PWD/.yatai_db"
         export SOCKET_DIRECTORIES="$PWD/sockets"
         mkdir $SOCKET_DIRECTORIES
-        initdb
-        echo "unix_socket_directories = '$SOCKET_DIRECTORIES'" >> $PGDATA/postgresql.conf
-        pg_ctl -l $PGDATA/logfile start
-        createuser postgres --createdb -h localhost
-        createdb yatai -h localhost -O postgres
+
+        if [ ! -d "$PGDATA" ]; then
+          initdb --auth=trust --auth-host=trust >/dev/null
+          echo "unix_socket_directories = '$SOCKET_DIRECTORIES'" >> $PGDATA/postgresql.conf
+          pg_ctl -l $PGDATA/logfile start
+          createuser postgres --createdb -h localhost
+          createdb yatai -h localhost -O postgres
+        fi
 
         function end {
           echo "Shutting down the database..."
