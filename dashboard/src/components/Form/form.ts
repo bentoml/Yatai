@@ -53,6 +53,7 @@ interface BasicFormItemProps<S extends {} = Store> extends OmittedRcFieldProps {
     className?: string
     required?: boolean
     style?: React.CSSProperties
+    caption?: ReactNode
 }
 
 type Deps<S> = Array<NamePath<S>>
@@ -134,6 +135,7 @@ export function createForm<S extends {} = Store>({
             noStyle,
             label,
             style,
+            caption,
             ...props
         } = {
             ...defaultProps,
@@ -195,6 +197,7 @@ export function createForm<S extends {} = Store>({
                                   React.createElement('div', { style: { flexShrink: 0 } }, label),
                               ])
                             : label,
+                        caption,
                         children: childNode,
                     },
                     childNode

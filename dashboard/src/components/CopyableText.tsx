@@ -3,14 +3,15 @@ import { Notification } from 'baseui/notification'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import { Button } from 'baseui/button'
 import { TiClipboard } from 'react-icons/ti'
-import Text from '@/components/Text'
 import useTranslation from '@/hooks/useTranslation'
+import HighlightText from './HighlightText'
 
 export interface ICopyableTextProps {
     text: string
+    highlight?: boolean
 }
 
-export default function CopyableText({ text }: ICopyableTextProps) {
+export default function CopyableText({ text, highlight = false }: ICopyableTextProps) {
     const [copyNotification, setCopyNotification] = useState<string>()
 
     const [t] = useTranslation()
@@ -20,7 +21,7 @@ export default function CopyableText({ text }: ICopyableTextProps) {
             role='button'
             tabIndex={0}
             style={{
-                display: 'flex',
+                display: 'inline-flex',
                 gap: 3,
             }}
             onClick={(e) => {
@@ -34,13 +35,17 @@ export default function CopyableText({ text }: ICopyableTextProps) {
                     gap: 4,
                 }}
             >
-                <Text
-                    style={{
-                        lineHeight: '24px',
-                    }}
-                >
-                    {text}
-                </Text>
+                {!highlight ? (
+                    <span
+                        style={{
+                            lineHeight: '16px',
+                        }}
+                    >
+                        {text}
+                    </span>
+                ) : (
+                    <HighlightText>{text}</HighlightText>
+                )}
                 {copyNotification && (
                     <Notification
                         closeable
@@ -52,9 +57,12 @@ export default function CopyableText({ text }: ICopyableTextProps) {
                                     margin: '0 !important',
                                     width: '100%',
                                     boxSizing: 'border-box',
-                                    padding: '2px 4px !important',
+                                    padding: '0px 4px !important',
                                     borderRadius: '2px !important',
                                     fontSize: '11px !important',
+                                    lineHeight: '100% !important',
+                                    display: 'flex !important',
+                                    alignItems: 'center !important',
                                 },
                             },
                         }}
@@ -70,7 +78,23 @@ export default function CopyableText({ text }: ICopyableTextProps) {
                         setCopyNotification(t('copied to clipboard'))
                     }}
                 >
-                    <Button kind='tertiary' size='mini'>
+                    <Button
+                        kind='tertiary'
+                        size='mini'
+                        overrides={{
+                            BaseButton: {
+                                style: {
+                                    'color': 'inherit',
+                                    'backgroundColor': 'inherit',
+                                    'padding': '0px',
+                                    'height': '16px',
+                                    ':hover': {
+                                        backgroundColor: 'inherit',
+                                    },
+                                },
+                            },
+                        }}
+                    >
                         <TiClipboard size={12} />
                     </Button>
                 </CopyToClipboard>

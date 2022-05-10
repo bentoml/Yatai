@@ -21,6 +21,8 @@ import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import { Notification } from 'baseui/notification'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import { TiClipboard } from 'react-icons/ti'
+import HighlightText from '@/components/HighlightText'
+import { Block } from 'baseui/block'
 
 export default function DeploymentOverview() {
     const { clusterName, kubeNamespace, deploymentName } =
@@ -55,7 +57,7 @@ export default function DeploymentOverview() {
                                 startEnhancer={<MdOutlineAccessibilityNew />}
                                 onClick={() => setShowAccessDeploymentModal(true)}
                             >
-                                {t('accessing deployments from outside the cluster')}
+                                {t('accessing endpoint')}
                             </Button>
                         )}
                         <Button
@@ -141,72 +143,100 @@ export default function DeploymentOverview() {
                 animate
                 autoFocus
             >
-                <ModalHeader>{t('accessing deployments from outside the cluster')}</ModalHeader>
+                <ModalHeader>{t('accessing endpoint')}</ModalHeader>
                 <ModalBody>
-                    <div>
-                        <p>{t('deployment accessing tips')}</p>
-                        <p>{t('the first way of the deployment accessing')}</p>
-                        <p>{t('the second way of the deployment accessing')}</p>
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'flex-start',
-                                gap: 10,
-                                marginLeft: 30,
-                            }}
-                        >
+                    <Block
+                        width={['200px', '400px', '600px']}
+                        overrides={{
+                            Block: {
+                                style: {
+                                    lineHeight: '1.8',
+                                },
+                            },
+                        }}
+                    >
+                        <p>
+                            <span>{t('accessing endpoint modal content piece 1')} </span>
+                            <HighlightText>public endpoint access: Disabled</HighlightText>
+                            <span>, {t('accessing endpoint modal content piece 2')}</span>
+                        </p>
+                        <p>
+                            <span>{t('accessing endpoint modal content piece 3')} </span>
+                            <HighlightText>kubectl</HighlightText>
+                            <span> {t('accessing endpoint modal content piece 4')}: </span>
                             <div
                                 style={{
                                     display: 'flex',
-                                    flexDirection: 'column',
-                                    flexGrow: 1,
+                                    alignItems: 'flex-start',
+                                    gap: 10,
+                                    marginLeft: 10,
+                                    marginTop: 10,
                                 }}
                             >
-                                <SyntaxHighlighter
-                                    language='bash'
-                                    style={highlightTheme}
-                                    customStyle={{
-                                        margin: 0,
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        flexGrow: 1,
                                     }}
                                 >
-                                    {portForwardCommand}
-                                </SyntaxHighlighter>
-                                {copyNotification && (
-                                    <Notification
-                                        closeable
-                                        onClose={() => setCopyNotification(undefined)}
-                                        kind='positive'
-                                        overrides={{
-                                            Body: {
-                                                style: {
-                                                    margin: 0,
-                                                    width: '100%',
-                                                    boxSizing: 'border-box',
-                                                    padding: '8px !important',
-                                                    borderRadius: '3px !important',
-                                                    fontSize: '13px !important',
-                                                },
-                                            },
+                                    <SyntaxHighlighter
+                                        language='bash'
+                                        style={highlightTheme}
+                                        customStyle={{
+                                            margin: 0,
                                         }}
                                     >
-                                        {copyNotification}
-                                    </Notification>
-                                )}
+                                        {portForwardCommand}
+                                    </SyntaxHighlighter>
+                                    {copyNotification && (
+                                        <Notification
+                                            closeable
+                                            onClose={() => setCopyNotification(undefined)}
+                                            kind='positive'
+                                            overrides={{
+                                                Body: {
+                                                    style: {
+                                                        margin: 0,
+                                                        width: '100%',
+                                                        boxSizing: 'border-box',
+                                                        padding: '8px !important',
+                                                        borderRadius: '3px !important',
+                                                        fontSize: '13px !important',
+                                                    },
+                                                },
+                                            }}
+                                        >
+                                            {copyNotification}
+                                        </Notification>
+                                    )}
+                                </div>
+                                <div style={{ flexShrink: 0 }}>
+                                    <CopyToClipboard
+                                        text={portForwardCommand}
+                                        onCopy={() => {
+                                            setCopyNotification(t('copied to clipboard'))
+                                        }}
+                                    >
+                                        <Button
+                                            startEnhancer={<TiClipboard size={14} />}
+                                            kind='secondary'
+                                            size='compact'
+                                        >
+                                            {t('copy')}
+                                        </Button>
+                                    </CopyToClipboard>
+                                </div>
                             </div>
-                            <div style={{ flexShrink: 0 }}>
-                                <CopyToClipboard
-                                    text={portForwardCommand}
-                                    onCopy={() => {
-                                        setCopyNotification(t('copied to clipboard'))
-                                    }}
-                                >
-                                    <Button startEnhancer={<TiClipboard size={14} />} kind='secondary' size='compact'>
-                                        {t('copy')}
-                                    </Button>
-                                </CopyToClipboard>
-                            </div>
-                        </div>
-                    </div>
+                        </p>
+                        <p>
+                            <span>{t('accessing endpoint modal content piece 5')} </span>
+                            <Link href='http://127.0.0.1:8080' target='_blank'>
+                                http://127.0.0.1:8080
+                            </Link>
+                            <span>, {t('accessing endpoint modal content piece 6')}</span>
+                        </p>
+                    </Block>
                 </ModalBody>
             </Modal>
         </div>
