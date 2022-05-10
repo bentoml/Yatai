@@ -12,11 +12,23 @@ let
   nodejs = nodejs-14_x;
   postgresql = postgresql_14;
 
+  # postgres definition
+  pg_root = builtins.toString ./. + "/.pg_yatai";
+  pg_user = "postgres";
+  pg_db = "yatai";
+
+  # base requirements
   basePackages = with pkgs; [
     # custom defined go version
     go
     # TODO: lock version with niv
     postgresql
+
+    # Without this, we see a whole bunch of warnings about LANG, LC_ALL and locales in general.
+    # In particular, this makes many tests fail because those warnings show up in test outputs too...
+    # The solution is from: https://github.com/NixOS/nix/issues/318#issuecomment-52986702
+    glibcLocales
+
     nodejs
     yarn
     jq
@@ -32,32 +44,37 @@ let
         CoreServices
       ]);
 
-in
-  pkgs.mkShell {
-    name = "dev";
+  env = buildEnv {
+    name = "build-env";
+    paths = requiredPackages;
+  };
 
-    buildInputs = requiredPackages;
+in
+  stdenv.mkDerivation rec {
+    name = "yatai-dev";
+
+    phases = ["nobuild"];
+    buildInputs = [env];
 
     shellHook = ''
-        # setup postgres
-        export PGDATA="$PWD/.yatai-db"
-        export PGHOST="$PWD"
-        export SOCKET_DIRECTORIES="$PWD/.sockets"
-        mkdir -p $PGDATA
+        # "nix-shell --pure" resets LANG to POSIX, this breaks "make TAGS".
+        export LANG="en_US.UTF-8"
+        # /bin/ps cannot be found in the build environment.
+        export PATH="/bin:/usr/bin:/usr/local/bin:/usr/sbin:$PATH"
 
-        initdb -D $PGDATA
-        createuser postgres -h localhost
-        createdb yatai
+        # setup for dashboard
+        alias scripts='jq ".scripts" dashboard/package.json'
 
-        if [[ ! $(grep listen_address $PGDATA/postgresql.conf) ]]; then
-            cat >> "$PGDATA/postgresql.conf" <<-EOF
-listen_addresses = 'localhost'
-port = 5432
-unix_socket_directories = '$PGHOST'
-EOF
-        fi
+        make fe-deps be-deps
 
+        export PGDATA="$PWD/.yatai_db"
+        export SOCKET_DIRECTORIES="$PWD/sockets"
+        mkdir $SOCKET_DIRECTORIES
+        initdb
+        echo "unix_socket_directories = '$SOCKET_DIRECTORIES'" >> $PGDATA/postgresql.conf
         pg_ctl -l $PGDATA/logfile start
+        createuser postgres --createdb -h localhost
+        createdb yatai -h localhost -O postgres
 
         function end {
           echo "Shutting down the database..."
@@ -66,10 +83,12 @@ EOF
           rm -rf $SOCKET_DIRECTORIES
         }
         trap end EXIT
+    '';
+    enableParallelBuilding = true;
 
-        # setup for dashboard
-        alias scripts='jq ".scripts" dashboard/package.json'
+    LOCALE_ARCHIVE = if stdenv.isLinux then "${glibcLocales}/lib/locale/locale-archive" else "";
 
-        make fe-deps be-deps
+    nobuild = ''
+      echo Do not run this derivation with nix-build, it can only be used with nix-shell
     '';
 }

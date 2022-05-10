@@ -113,6 +113,9 @@ sh <(curl -L https://nixos.org/nix/install) --darwin-use-unencrypted-nix-store-v
 
 After reboot, just run `nix-shell` and start developing :)
 
+NOTE: make sure to run `minikube` after `nix-shell` in order for minikube to
+have access to the database managed via nix-shell.
+
 ## Run development server
 
 1. Generate Yatai config file
