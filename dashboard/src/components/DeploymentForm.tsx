@@ -209,6 +209,7 @@ export default function DeploymentForm({
         setRunnerTabsActiveKey((runnerTabsActiveKey_) => {
             if (
                 bento?.manifest?.runners &&
+                bento.manifest.runners.length > 0 &&
                 !bento.manifest.runners.find((runner) => runner.name === runnerTabsActiveKey_)
             ) {
                 return bento.manifest.runners[0].name
