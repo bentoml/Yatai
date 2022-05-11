@@ -133,21 +133,15 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		return nil, errors.Wrap(err, "create deployment")
 	}
 
-	createEventOpt := services.CreateEventOption{
-		CreatorId:      user.ID,
-		OrganizationId: &org.ID,
-		ResourceType:   modelschemas.ResourceTypeDeployment,
-		ResourceId:     deployment.ID,
-		Status:         modelschemas.EventStatusSuccess,
-		OperationName:  "created",
-	}
-	if _, err = services.EventService.Create(ctx_, createEventOpt); err != nil {
-		return nil, errors.Wrap(err, "create event")
-	}
-
 	deploymentSchema, updateError := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
+
+	apiTokenName := ""
+	if user.ApiToken != nil {
+		apiTokenName = user.ApiToken.Name
+	}
 	createEventOpt = services.CreateEventOption{
 		CreatorId:      user.ID,
+		ApiTokenName:   apiTokenName,
 		OrganizationId: &org.ID,
 		ResourceType:   modelschemas.ResourceTypeDeployment,
 		ResourceId:     deployment.ID,
@@ -221,9 +215,15 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err
+
+	apiTokenName := ""
+	if user.ApiToken != nil {
+		apiTokenName = user.ApiToken.Name
 	}
+
 	createEventOpt := services.CreateEventOption{
 		CreatorId:      user.ID,
+		ApiTokenName: apiTokenName,
 		OrganizationId: &org.ID,
 		ResourceType:   modelschemas.ResourceTypeDeployment,
 		ResourceId:     deployment.ID,
@@ -432,8 +432,13 @@ func (c *deploymentController) Terminate(ctx *gin.Context, schema *GetDeployment
 	if err != nil {
 		return nil, err
 	}
+	apiTokenName := ""
+	if user.ApiToken != nil {
+		apiTokenName = user.ApiToken.Name
+	}
 	createEventOpt := services.CreateEventOption{
 		CreatorId:      user.ID,
+		ApiTokenName:  apiTokenName,
 		OrganizationId: &org.ID,
 		ResourceType:   modelschemas.ResourceTypeDeployment,
 		ResourceId:     deployment.ID,
@@ -465,8 +470,17 @@ func (c *deploymentController) Delete(ctx *gin.Context, schema *GetDeploymentSch
 	if err != nil {
 		return nil, err
 	}
+	user, err := services.GetCurrentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	apiTokenName := ""
+	if user.ApiToken != nil {
+		apiTokenName = user.ApiToken.Name
+	}
 	createEventOpt := services.CreateEventOption{
-		CreatorId:      deployment.CreatorId,
+		CreatorId:      user.ID,
+		ApiTokenName: apiTokenName,
 		OrganizationId: &org.ID,
 		ResourceType:   modelschemas.ResourceTypeDeployment,
 		ResourceId:     deployment.ID,

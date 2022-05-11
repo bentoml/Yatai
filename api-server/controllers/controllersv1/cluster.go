@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/opencontainers/runc/libcontainer/user"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/atomic"
@@ -98,8 +97,14 @@ func (c *clusterController) Create(ctx *gin.Context, schema *CreateClusterSchema
 		KubeConfig:     schema.KubeConfig,
 		Config:         schema.Config,
 	})
+
+	apiTokenName := ""
+	if user.ApiToken != nil {
+		apiTokenName = user.ApiToken.Name
+	}
 	createEventOpt := services.CreateEventOption{
 		CreatorId:      user.ID,
+		ApiTokenName:   apiTokenName,
 		OrganizationId: &org.ID,
 		ResourceType:   modelschemas.ResourceTypeCluster,
 		ResourceId:     cluster.ID,
@@ -136,7 +141,7 @@ func (c *clusterController) Update(ctx *gin.Context, schema *UpdateClusterSchema
 		Config:      schema.Config,
 		KubeConfig:  schema.KubeConfig,
 	})
-	user, err = services.GetCurrentUser(ctx)
+	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -144,8 +149,13 @@ func (c *clusterController) Update(ctx *gin.Context, schema *UpdateClusterSchema
 	if err != nil {
 		return nil, err
 	}
+	apiTokenName := ""
+	if user.ApiToken != nil {
+		apiTokenName = user.ApiToken.Name
+	}
 	createEventOpt := services.CreateEventOption{
 		CreatorId:      user.ID,
+		ApiTokenName:   apiTokenName,
 		OrganizationId: &org.ID,
 		ResourceType:   modelschemas.ResourceTypeCluster,
 		ResourceId:     cluster.ID,
