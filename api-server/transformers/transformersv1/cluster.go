@@ -70,7 +70,7 @@ func ToClusterFullSchema(ctx context.Context, cluster *models.Cluster) (*schemas
 		return nil, errors.Wrap(err, "get current user")
 	}
 	if err = services.MemberService.CanUpdate(ctx, &services.ClusterMemberService, currentUser, cluster.ID); err != nil {
-		if !jujuerrors.IsForbidden(err) {
+		if !jujuerrors.IsUnauthorized(err) {
 			return nil, err
 		}
 	} else {

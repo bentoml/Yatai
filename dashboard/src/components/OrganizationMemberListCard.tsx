@@ -17,6 +17,7 @@ import Table from '@/components/Table'
 import { resourceIconMapping } from '@/consts'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import { IOrganizationMemberSchema } from '@/schemas/organization_member'
+import { useStyletron } from 'baseui'
 import UserForm from './UserForm'
 
 const isDeactivated = (deleted_at: string | undefined): boolean => {
@@ -32,8 +33,8 @@ export default function OrganizationMemberListCard() {
     const [isEditUserRoleOpen, setIsEditUserRoleOpen] = useState(false)
     const [selectedMember, setSelectedMember] = useState<IOrganizationMemberSchema | undefined>(undefined)
     const [newUserInfo, setNewUserInfo] = useState<ICreateUserSchema | undefined>(undefined)
-    const [copiedText, setCopiedText] = useState('')
     const [displaySuccessCopiedMessage, setDisplaySuccessCopiedMessage] = useState(false)
+    const [, theme] = useStyletron()
 
     const handleCreateMember = useCallback(
         async (data: ICreateMembersSchema) => {
@@ -53,9 +54,6 @@ export default function OrganizationMemberListCard() {
             setIsCreateUserOpen(false)
             setIsSuccessfulCreateUserOpen(true)
             setNewUserInfo(newData)
-            setCopiedText(
-                `Sign-in URL: ${window.location.origin}/login  Email: ${newData.email}  Password: ${newData.password}`
-            )
             toaster.positive(`${t('created new user')} ${data.name}`, { autoHideDuration: 2000 })
         },
         [t, membersInfo]
@@ -128,7 +126,6 @@ export default function OrganizationMemberListCard() {
                 onClose={() => {
                     setIsSuccessfulCreateUserOpen(false)
                     setNewUserInfo(undefined)
-                    setCopiedText('')
                     setDisplaySuccessCopiedMessage(false)
                 }}
                 closeable
@@ -137,25 +134,59 @@ export default function OrganizationMemberListCard() {
             >
                 <ModalHeader>{t('success')}</ModalHeader>
                 <ModalBody>
-                    <div>
-                        <p>You can view and copy the login information below:</p>
-                        Sign-in URL: {window.location.origin}/login
-                        <br />
-                        Email: {newUserInfo?.email}
-                        <br />
-                        Password: {newUserInfo?.password}
-                    </div>
-                    <CopyToClipboard
-                        text={copiedText}
-                        onCopy={() => {
-                            setDisplaySuccessCopiedMessage(true)
+                    <div
+                        style={{
+                            marginBottom: 20,
                         }}
                     >
-                        <Button startEnhancer={<TiClipboard size={14} />} kind='secondary'>
-                            {t('copy')}
-                        </Button>
-                    </CopyToClipboard>
-                    {displaySuccessCopiedMessage && <div style={{ marginTop: 8 }}>{t('copied to clipboard')}</div>}
+                        <p>You can view and copy the login information below:</p>
+                        <pre
+                            style={{
+                                lineHeight: '1.6',
+                                fontSize: '12px',
+                                padding: '4px 8px',
+                                backgroundColor: theme.colors.backgroundTertiary,
+                                borderRadius: 4,
+                            }}
+                        >
+                            <div>Sign-in URL: {window.location.origin}/login</div>
+                            <div>Email: {newUserInfo?.email}</div>
+                            <div>Password: {newUserInfo?.password}</div>
+                        </pre>
+                    </div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <div style={{ flexGrow: 1 }} />
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                            }}
+                        >
+                            <div style={{ display: 'flex', flexDirection: 'row' }}>
+                                <div style={{ flexGrow: 1 }} />
+                                <CopyToClipboard
+                                    text={`Sign-in URL: ${window.location.origin}/login
+Email: ${newUserInfo?.email}
+Password: ${newUserInfo?.password}`}
+                                    onCopy={() => {
+                                        setDisplaySuccessCopiedMessage(true)
+                                    }}
+                                >
+                                    <Button startEnhancer={<TiClipboard size={14} />} kind='secondary' size='compact'>
+                                        {t('copy')}
+                                    </Button>
+                                </CopyToClipboard>
+                            </div>
+                            {displaySuccessCopiedMessage && (
+                                <div style={{ marginTop: 8 }}>{t('copied to clipboard')}</div>
+                            )}
+                        </div>
+                    </div>
                 </ModalBody>
             </Modal>
             <Modal isOpen={isEditUserRoleOpen} onClose={() => setIsEditUserRoleOpen(false)} closeable animate autoFocus>

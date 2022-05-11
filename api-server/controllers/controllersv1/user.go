@@ -96,5 +96,20 @@ func (c *userController) Create(ctx *gin.Context, schema *CreateOrganizationUser
 		return nil, errors.Wrap(err, "create organization member")
 	}
 
+	majorCluster, err := services.OrganizationService.GetMajorCluster(ctx, org)
+	if err != nil {
+		return nil, errors.Wrap(err, "get major cluster")
+	}
+
+	_, err = services.ClusterMemberService.Create(ctx, currentUser.ID, services.CreateClusterMemberOption{
+		CreatorId: currentUser.ID,
+		UserId:    user.ID,
+		ClusterId: majorCluster.ID,
+		Role:      schema.Role,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "create cluster member")
+	}
+
 	return transformersv1.ToUserSchema(ctx, user)
 }
