@@ -7,8 +7,7 @@ let
   lib = import <nixpkgs/lib>;
   inherit (lib) optional optionals;
 
-  # custom defined packages in nixpkgs
-  go = callPackage ./nix/go.nix { pkgs = pkgs; };
+  # custom defined packages in nixpkgs go = callPackage ./nix/go.nix { pkgs = pkgs; };
   nodejs = nodejs-14_x;
   postgresql = postgresql_14;
 
@@ -74,11 +73,11 @@ stdenv.mkDerivation rec {
     if [ ! -d "$PGDATA" ]; then
       initdb --auth=trust --auth-host=trust >/dev/null
       echo "unix_socket_directories = '$SOCKET_DIRECTORIES'" >> $PGDATA/postgresql.conf
-      createuser ${pg_user} --createdb -h ${pg_host}
-      createdb ${pg_db} -h ${pg_host} k-O ${pg_user}
     fi
 
     pg_ctl -l $PGDATA/logfile start
+    createuser ${pg_user} --createdb -h ${pg_host} || true
+    createdb ${pg_db} -h ${pg_host} -O ${pg_user} || true
 
     function end {
       echo "Shutting down the database..."
