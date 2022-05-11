@@ -85,7 +85,7 @@ func (c *yataiComponentController) Get(ctx *gin.Context, schema *GetYataiCompone
 	if err != nil {
 		return nil, errors.Wrap(err, "get cluster")
 	}
-	if err = c.canOperate(ctx, cluster); err != nil {
+	if err = c.canView(ctx, cluster); err != nil {
 		return nil, err
 	}
 	comp, err := services.YataiComponentService.Get(ctx, services.GetYataiComponentReleaseOption{
@@ -146,7 +146,7 @@ func (c *yataiComponentController) ListHelmChartReleaseResources(ctx *gin.Contex
 		return
 	}
 
-	if err = c.canOperate(ctx, cluster); err != nil {
+	if err = c.canView(ctx, cluster); err != nil {
 		return
 	}
 

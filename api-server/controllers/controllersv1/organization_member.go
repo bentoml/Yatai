@@ -33,6 +33,10 @@ func (c *organizationMemberController) Create(ctx *gin.Context, schema *CreateOr
 	if err = c.canOperate(ctx, org); err != nil {
 		return nil, err
 	}
+	majorCluster, err := services.OrganizationService.GetMajorCluster(ctx, org)
+	if err != nil {
+		return nil, err
+	}
 	users, err := services.UserService.ListByNames(ctx, schema.Usernames)
 	if err != nil {
 		return nil, err
@@ -47,6 +51,15 @@ func (c *organizationMemberController) Create(ctx *gin.Context, schema *CreateOr
 		})
 		if err != nil {
 			return nil, errors.Wrap(err, "create organizationMember")
+		}
+		_, err = services.ClusterMemberService.Create(ctx, currentUser.ID, services.CreateClusterMemberOption{
+			CreatorId: currentUser.ID,
+			UserId:    u.ID,
+			ClusterId: majorCluster.ID,
+			Role:      schema.Role,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "create clusterMember")
 		}
 		s, err := transformersv1.ToOrganizationMemberSchema(ctx, organizationMember)
 		if err != nil {
