@@ -6,7 +6,6 @@ import { usePage } from '@/hooks/usePage'
 import { ICreateDeploymentSchema, IDeploymentSchema } from '@/schemas/deployment'
 import DeploymentForm from '@/components/DeploymentForm'
 import useTranslation from '@/hooks/useTranslation'
-import { Button, SIZE as ButtonSize } from 'baseui/button'
 import User from '@/components/User'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import Table from '@/components/Table'
@@ -20,9 +19,11 @@ import qs from 'qs'
 import { useQ } from '@/hooks/useQ'
 import FilterBar from '@/components/FilterBar'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import FilterInput from './FilterInput'
 import Time from './Time'
 import Link from './Link'
+import TooltipButton from './TooltipButton'
 
 export interface IDeploymentListCardProps {
     clusterName?: string
@@ -31,6 +32,7 @@ export interface IDeploymentListCardProps {
 export default function DeploymentListCard({ clusterName }: IDeploymentListCardProps) {
     const { q, updateQ } = useQ()
     const membersInfo = useFetchOrganizationMembers()
+    const { currentUser } = useCurrentUser()
     const clustersInfo = useFetchClusters({
         start: 0,
         count: 1000,
@@ -108,6 +110,11 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
 
     const history = useHistory()
 
+    const hasOperationPermission = useMemo(
+        () => membersInfo?.data?.find((m) => m.user.uid === currentUser?.uid && m.role === 'admin') !== undefined,
+        [currentUser?.uid, membersInfo?.data]
+    )
+
     return (
         <Card
             title={t('deployments')}
@@ -149,9 +156,21 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                 </div>
             }
             extra={
-                <Button size={ButtonSize.compact} onClick={() => history.push('/new_deployment')}>
+                <TooltipButton
+                    tooltip={
+                        !hasOperationPermission
+                            ? () =>
+                                  t(
+                                      'Only the administrator has permission to create deployments, please contact the administrator'
+                                  )
+                            : undefined
+                    }
+                    disabled={!hasOperationPermission}
+                    size='compact'
+                    onClick={() => history.push('/new_deployment')}
+                >
                     {t('create')}
-                </Button>
+                </TooltipButton>
             }
         >
             <FilterBar

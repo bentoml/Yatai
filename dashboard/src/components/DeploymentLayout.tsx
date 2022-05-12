@@ -1,8 +1,10 @@
 import { resourceIconMapping } from '@/consts'
 import { useCluster } from '@/hooks/useCluster'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useDeployment, useDeploymentLoading } from '@/hooks/useDeployment'
 import { useFetchDeployment } from '@/hooks/useFetchDeployment'
 import { useFetchDeploymentRevisions } from '@/hooks/useFetchDeploymentRevisions'
+import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
 import { useOrganization } from '@/hooks/useOrganization'
 import { usePage } from '@/hooks/usePage'
@@ -11,7 +13,7 @@ import useTranslation from '@/hooks/useTranslation'
 import { IDeploymentFullSchema, IDeploymentSchema, IUpdateDeploymentSchema } from '@/schemas/deployment'
 import { deleteDeployment, terminateDeployment, updateDeployment } from '@/services/deployment'
 import { useStyletron } from 'baseui'
-import { Button } from 'baseui/button'
+import { Block } from 'baseui/block'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import color from 'color'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
@@ -27,6 +29,7 @@ import Card from './Card'
 import DeploymentForm from './DeploymentForm'
 import DeploymentStatusTag from './DeploymentStatusTag'
 import DoubleCheckForm from './DoubleCheckForm'
+import TooltipButton from './TooltipButton'
 
 export interface IDeploymentLayoutProps {
     children: React.ReactNode
@@ -178,6 +181,12 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
 
     const isTerminated = deployment?.status === 'terminated' || deployment?.status === 'terminating'
 
+    const membersInfo = useFetchOrganizationMembers()
+    const { currentUser } = useCurrentUser()
+    const hasOperationPermission = useMemo(() => {
+        return membersInfo.data?.find((x) => x.user.uid === currentUser?.uid && x.role === 'admin') !== undefined
+    }, [currentUser?.uid, membersInfo.data])
+
     return (
         <BaseSubLayout
             header={
@@ -214,42 +223,92 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                         >
                             <DeploymentStatusTag status={deployment?.status ?? 'unknown'} />
                             {!isTerminated && (
-                                <Button
+                                <TooltipButton
+                                    tooltip={
+                                        !hasOperationPermission
+                                            ? () => {
+                                                  return (
+                                                      <Block width={['200px', '400px']}>
+                                                          {t(
+                                                              'Only the administrator has permission to operate deployments, please contact the administrator'
+                                                          )}
+                                                      </Block>
+                                                  )
+                                              }
+                                            : undefined
+                                    }
+                                    disabled={!hasOperationPermission}
                                     size='compact'
-                                    overrides={{
-                                        Root: {
-                                            style: {
-                                                ':hover': {
-                                                    background: theme.colors.negative,
-                                                    color: theme.colors.white,
-                                                },
-                                            },
-                                        },
-                                    }}
+                                    overrides={
+                                        hasOperationPermission
+                                            ? {
+                                                  Root: {
+                                                      style: {
+                                                          ':hover': {
+                                                              background: theme.colors.negative,
+                                                              color: theme.colors.white,
+                                                          },
+                                                      },
+                                                  },
+                                              }
+                                            : undefined
+                                    }
                                     onClick={() => setIsTerminateDeploymentModalOpen(true)}
                                 >
                                     {t('terminate')}
-                                </Button>
+                                </TooltipButton>
                             )}
                             {isTerminated && (
-                                <Button
+                                <TooltipButton
+                                    tooltip={
+                                        !hasOperationPermission
+                                            ? () => {
+                                                  return (
+                                                      <Block width={['200px', '400px']}>
+                                                          {t(
+                                                              'Only the administrator has permission to operate deployments, please contact the administrator'
+                                                          )}
+                                                      </Block>
+                                                  )
+                                              }
+                                            : undefined
+                                    }
+                                    disabled={!hasOperationPermission}
                                     size='compact'
-                                    overrides={{
-                                        Root: {
-                                            style: {
-                                                ':hover': {
-                                                    background: theme.colors.negative,
-                                                    color: theme.colors.white,
-                                                },
-                                            },
-                                        },
-                                    }}
+                                    overrides={
+                                        hasOperationPermission
+                                            ? {
+                                                  Root: {
+                                                      style: {
+                                                          ':hover': {
+                                                              background: theme.colors.negative,
+                                                              color: theme.colors.white,
+                                                          },
+                                                      },
+                                                  },
+                                              }
+                                            : undefined
+                                    }
                                     onClick={() => setIsDeleteDeploymentModalOpen(true)}
                                 >
                                     {t('delete')}
-                                </Button>
+                                </TooltipButton>
                             )}
-                            <Button
+                            <TooltipButton
+                                tooltip={
+                                    !hasOperationPermission
+                                        ? () => {
+                                              return (
+                                                  <Block width={['100px', '200px', '400px']}>
+                                                      {t(
+                                                          'Only the administrator has permission to operate deployments, please contact the administrator'
+                                                      )}
+                                                  </Block>
+                                              )
+                                          }
+                                        : undefined
+                                }
+                                disabled={!hasOperationPermission}
                                 onClick={() =>
                                     history.push(
                                         `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/edit`
@@ -258,7 +317,7 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                                 size='compact'
                             >
                                 {isTerminated ? t('restore') : t('update')}
-                            </Button>
+                            </TooltipButton>
                         </div>
                     </div>
                     <Modal

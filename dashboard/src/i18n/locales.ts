@@ -2205,6 +2205,20 @@ const locales0 = {
         ko: '에서 엔드 포인트를 시뮬레이션합니다.',
         vi: 'để kiểm tra đầu vào trực tiếp.',
     },
+    'Only the administrator has permission to create deployments, please contact the administrator': {
+        en: 'Only the administrator has permission to create deployments, please contact the administrator',
+        zh: '只有管理员有权创建部署，请联系管理员',
+        ja: '管理者のみがデプロイを作成することができます。管理者にお問い合わせください。',
+        ko: '오nly the administrator has permission to create deployments, please contact the administrator',
+        vi: 'Chỉ có quyền quản trị viên mới có thể tạo bản đồ, vui lòng liên hệ quản trị viên',
+    },
+    'Only the administrator has permission to operate deployments, please contact the administrator': {
+        en: 'Only the administrator has permission to operate deployments, please contact the administrator',
+        zh: '只有管理员有权操作部署，请联系管理员',
+        ja: '管理者のみがデプロイを操作することができます。管理者にお問い合わせください。',
+        ko: '오nly the administrator has permission to operate deployments, please contact the administrator',
+        vi: 'Chỉ có quyền quản trị viên mới có thể thao tác bản đồ, vui lòng liên hệ quản trị viên',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
