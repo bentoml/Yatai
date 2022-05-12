@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
@@ -52,11 +53,15 @@ func (c *organizationMemberController) Create(ctx *gin.Context, schema *CreateOr
 		if err != nil {
 			return nil, errors.Wrap(err, "create organizationMember")
 		}
+		clusterRole := modelschemas.MemberRoleGuest
+		if schema.Role == modelschemas.MemberRoleAdmin {
+			clusterRole = modelschemas.MemberRoleAdmin
+		}
 		_, err = services.ClusterMemberService.Create(ctx, currentUser.ID, services.CreateClusterMemberOption{
 			CreatorId: currentUser.ID,
 			UserId:    u.ID,
 			ClusterId: majorCluster.ID,
-			Role:      schema.Role,
+			Role:      clusterRole,
 		})
 		if err != nil {
 			return nil, errors.Wrap(err, "create clusterMember")
