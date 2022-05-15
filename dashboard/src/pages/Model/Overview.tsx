@@ -192,14 +192,9 @@ export default function ModelOverview() {
                             </div>
                             <div className={styles.value}>
                                 {showContext ? (
-                                    <div>
-                                        {Object.entries(model.manifest.context).map(([key, value]) => (
-                                            <div key={key} className={styles.item}>
-                                                <div className={styles.key}>{key}</div>
-                                                <div className={styles.value}>{value}</div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <SyntaxHighlighter language='json' style={highlightTheme}>
+                                        {JSON.stringify(model.manifest.context, null, 2)}
+                                    </SyntaxHighlighter>
                                 ) : (
                                     '...'
                                 )}
