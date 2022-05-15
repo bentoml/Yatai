@@ -193,6 +193,8 @@ func (s *apiTokenService) List(ctx context.Context, opt ListApiTokenOption) ([]*
 			return apiTokens, 0, nil
 		}
 		query = query.Where("id in (?)", *opt.Ids)
+	} else {
+		query = query.Where("name != ?", consts.YataiK8sBotApiTokenName)
 	}
 	var total int64
 	err := query.Count(&total).Error
