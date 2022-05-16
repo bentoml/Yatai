@@ -9,10 +9,19 @@ import { usePage } from '@/hooks/usePage'
 import { IPaginationProps } from '@/interfaces/IPaginationProps'
 
 export interface ITableProps extends BaseTableProps {
+    preventAutoClickFirstLink?: boolean
     paginationProps?: IPaginationProps
 }
 
-export default function Table({ isLoading, columns, data, overrides, paginationProps, size }: ITableProps) {
+export default function Table({
+    preventAutoClickFirstLink = false,
+    isLoading,
+    columns,
+    data,
+    overrides,
+    paginationProps,
+    size,
+}: ITableProps) {
     const [t] = useTranslation()
     const [page, setPage] = usePage()
 
@@ -30,6 +39,9 @@ export default function Table({ isLoading, columns, data, overrides, paginationP
                         },
                         props: {
                             onClick: (e: React.MouseEvent) => {
+                                if (preventAutoClickFirstLink) {
+                                    return
+                                }
                                 e.currentTarget.querySelector('a')?.click()
                             },
                         },

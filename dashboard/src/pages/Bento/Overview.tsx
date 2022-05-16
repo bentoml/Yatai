@@ -129,6 +129,9 @@ export default function BentoOverview() {
         return <Skeleton rows={3} animation />
     }
 
+    // eslint-disable-next-line no-console
+    console.log('fuck', modelsInfo.data)
+
     return (
         <div
             style={{
@@ -189,11 +192,30 @@ export default function BentoOverview() {
                             <div className={styles.value}>
                                 {showRunners ? (
                                     <Table
+                                        preventAutoClickFirstLink
                                         size='compact'
-                                        columns={[t('name'), t('type')]}
+                                        columns={[t('name'), t('type'), t('models'), t('resource config')]}
                                         data={(bento.manifest.runners || []).map((runner) => [
                                             runner.name,
-                                            runner.runner_type,
+                                            runner.runnable_type,
+                                            <ModelList
+                                                key={runner.name}
+                                                size='small'
+                                                isLoading={false}
+                                                isListItem={false}
+                                                models={(modelsInfo.data || []).filter(
+                                                    (model_) =>
+                                                        (runner.models || []).indexOf(
+                                                            `${model_.repository.name}:${model_.version}`
+                                                        ) >= 0
+                                                )}
+                                                queryKey={modelsQueryKey}
+                                            />,
+                                            runner.resource_config ? (
+                                                <SyntaxHighlighter language='json' style={highlightTheme}>
+                                                    {JSON.stringify(runner.resource_config, null, 2)}
+                                                </SyntaxHighlighter>
+                                            ) : undefined,
                                         ])}
                                     />
                                 ) : (
@@ -280,6 +302,7 @@ export default function BentoOverview() {
                 <Card title={t('models')} titleIcon={resourceIconMapping.bento}>
                     <ModelList
                         isLoading={modelsInfo.isLoading}
+                        isListItem={false}
                         models={modelsInfo.data ?? []}
                         queryKey={modelsQueryKey}
                     />

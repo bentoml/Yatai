@@ -15,6 +15,8 @@ export default function ListItem({ className, style, onClick, ...props }: IListI
         <div className={classNames('listItem', className)} style={style} onClick={onClick} role='button' tabIndex={0}>
             <BaseListItem
                 overrides={{
+                    // eslint-disable-next-line
+                    ...(((props.overrides as any) as any) ?? {}),
                     Root: {
                         style: {
                             'cursor': 'pointer',

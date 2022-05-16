@@ -23,7 +23,13 @@ export interface IBentoManifestSchema {
     }
     runners?: {
         name: string
-        runner_type: string
+        runnable_type: string
+        models: string[]
+        resource_config?: {
+            cpu?: number
+            nvidia_gpu?: number
+            custom_resources: { [key: string]: number }
+        }
     }[]
     size_bytes: number
 }

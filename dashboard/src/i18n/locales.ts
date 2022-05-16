@@ -2219,6 +2219,13 @@ const locales0 = {
         ko: '오nly the administrator has permission to operate deployments, please contact the administrator',
         vi: 'Chỉ có quyền quản trị viên mới có thể thao tác bản đồ, vui lòng liên hệ quản trị viên',
     },
+    'resource config': {
+        en: 'Resource Config',
+        zh: '资源配置',
+        ja: 'リソース設定',
+        ko: '자원 구성',
+        vi: 'Cấu hình nguồn',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
