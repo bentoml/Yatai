@@ -22,27 +22,56 @@ export interface IModelListProps {
     isLoading: boolean
     models: IModelWithRepositorySchema[]
     paginationProps?: IPaginationProps
+    isListItem?: boolean
+    size?: 'default' | 'small'
 }
 
-export default function ModelList({ queryKey, isLoading, models, paginationProps }: IModelListProps) {
+export default function ModelList({
+    queryKey,
+    isLoading,
+    models,
+    paginationProps,
+    isListItem = true,
+    size = 'default',
+}: IModelListProps) {
     const [t] = useTranslation()
 
     const uids = useMemo(() => models?.map((modelVersion) => modelVersion.uid) ?? [], [models])
     const queryClient = useQueryClient()
     const subscribeCb = useCallback(
         (modelVersion: IModelSchema) => {
-            queryClient.setQueryData(queryKey, (oldData?: IListSchema<IModelSchema>): IListSchema<IModelSchema> => {
-                if (!oldData) {
-                    return {
-                        start: 0,
-                        count: 0,
-                        total: 0,
-                        items: [],
+            if (isListItem) {
+                queryClient.setQueryData(queryKey, (oldData?: IListSchema<IModelSchema>): IListSchema<IModelSchema> => {
+                    if (!oldData) {
+                        return {
+                            start: 0,
+                            count: 0,
+                            total: 0,
+                            items: [],
+                        }
                     }
+                    return {
+                        ...oldData,
+                        items:
+                            oldData.items?.map((oldModelVersion) => {
+                                if (oldModelVersion.uid === modelVersion.uid) {
+                                    return {
+                                        ...oldModelVersion,
+                                        ...modelVersion,
+                                    }
+                                }
+                                return oldModelVersion
+                            }) ?? [],
+                    }
+                })
+                return
+            }
+            queryClient.setQueryData(queryKey, (oldData?: IModelSchema[]): IModelSchema[] => {
+                if (!oldData) {
+                    return []
                 }
-                return {
-                    ...oldData,
-                    items: oldData.items?.map((oldModelVersion) => {
+                return (
+                    oldData?.map((oldModelVersion) => {
                         if (oldModelVersion.uid === modelVersion.uid) {
                             return {
                                 ...oldModelVersion,
@@ -50,12 +79,13 @@ export default function ModelList({ queryKey, isLoading, models, paginationProps
                             }
                         }
                         return oldModelVersion
-                    }),
-                }
+                    }) ?? []
+                )
             })
         },
-        [queryClient, queryKey]
+        [isListItem, queryClient, queryKey]
     )
+
     const { subscribe, unsubscribe } = useSubscription()
 
     useEffect(() => {
@@ -86,6 +116,7 @@ export default function ModelList({ queryKey, isLoading, models, paginationProps
                     artwork={() => (
                         <ImageBuildStatusIcon
                             key={model.uid}
+                            size={size === 'small' ? 14 : undefined}
                             status={model.image_build_status}
                             podsSelector={`yatai.ai/model=${model.version},yatai.ai/model-repository=${model.repository.name}`}
                             onRerunClick={async () => {
@@ -93,38 +124,57 @@ export default function ModelList({ queryKey, isLoading, models, paginationProps
                             }}
                         />
                     )}
-                    endEnhancer={() => (
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 8,
-                            }}
-                        >
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 20,
-                                    justifyContent: 'flex-end',
-                                }}
-                            >
-                                <div>{prettyBytes(model.manifest.size_bytes)}</div>
-                                <div>{model.manifest.module}</div>
-                            </div>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 8,
-                                }}
-                            >
-                                {model.creator && <User size='16px' user={model.creator} />}
-                                {t('Created At')}
-                                <Time time={model.created_at} />
-                            </div>
-                        </div>
-                    )}
+                    overrides={
+                        size === 'small'
+                            ? {
+                                  Content: {
+                                      style: {
+                                          padding: '0px',
+                                          minHeight: '32px',
+                                      },
+                                  },
+                              }
+                            : undefined
+                    }
+                    artworkSize={size === 'small' ? 'SMALL' : undefined}
+                    endEnhancer={
+                        size === 'default'
+                            ? () => {
+                                  return (
+                                      <div
+                                          style={{
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              gap: 8,
+                                          }}
+                                      >
+                                          <div
+                                              style={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  gap: 20,
+                                                  justifyContent: 'flex-end',
+                                              }}
+                                          >
+                                              <div>{prettyBytes(model.manifest.size_bytes)}</div>
+                                              <div>{model.manifest.module}</div>
+                                          </div>
+                                          <div
+                                              style={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  gap: 8,
+                                              }}
+                                          >
+                                              {model.creator && <User size='16px' user={model.creator} />}
+                                              {t('Created At')}
+                                              <Time time={model.created_at} />
+                                          </div>
+                                      </div>
+                                  )
+                              }
+                            : undefined
+                    }
                 >
                     <div
                         style={{
@@ -146,12 +196,12 @@ export default function ModelList({ queryKey, isLoading, models, paginationProps
                                 {model.repository.name}:{model.version}
                             </MonoParagraphXSmall>
                         </Link>
-                        <ResourceLabels resource={model} />
+                        {model.labels && model.labels.length > 0 && <ResourceLabels resource={model} />}
                     </div>
                 </ListItem>
             )
         },
-        [history, t]
+        [history, size, t]
     )
 
     return (
