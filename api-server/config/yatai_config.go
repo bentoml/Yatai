@@ -91,9 +91,65 @@ func PopulateYataiConfig() error {
 	if YataiConfig.Server.Port == 0 {
 		YataiConfig.Server.Port = 7777
 	}
-	initialization_token, ok := os.LookupEnv(consts.EnvInitializationToken)
+	initializationToken, ok := os.LookupEnv(consts.EnvInitializationToken)
 	if ok {
-		YataiConfig.InitializationToken = initialization_token
+		YataiConfig.InitializationToken = initializationToken
+	}
+	s3Endpoint, ok := os.LookupEnv(consts.EnvS3Endpoint)
+	if ok {
+		YataiConfig.S3.Endpoint = s3Endpoint
+	}
+	s3AccessKey, ok := os.LookupEnv(consts.EnvS3AccessKey)
+	if ok {
+		YataiConfig.S3.AccessKey = s3AccessKey
+	}
+	s3SecretKey, ok := os.LookupEnv(consts.EnvS3SecretKey)
+	if ok {
+		YataiConfig.S3.SecretKey = s3SecretKey
+	}
+	s3Region, ok := os.LookupEnv(consts.EnvS3Region)
+	if ok {
+		YataiConfig.S3.Region = s3Region
+	}
+	s3Secure, ok := os.LookupEnv(consts.EnvS3Secure)
+	if ok {
+		s3Secure_, err := strconv.ParseBool(s3Secure)
+		if err != nil {
+			return errors.Wrap(err, "convert s3_secure from env to bool")
+		}
+		YataiConfig.S3.Secure = s3Secure_
+	}
+	s3BucketName, ok := os.LookupEnv(consts.EnvS3BucketName)
+	if ok {
+		YataiConfig.S3.BucketName = s3BucketName
+	}
+	dockerRegistryServer, ok := os.LookupEnv(consts.EnvDockerRegistryServer)
+	if ok {
+		YataiConfig.DockerRegistry.Server = dockerRegistryServer
+	}
+	dockerRegistryUsername, ok := os.LookupEnv(consts.EnvDockerRegistryUsername)
+	if ok {
+		YataiConfig.DockerRegistry.Username = dockerRegistryUsername
+	}
+	dockerRegistryPassword, ok := os.LookupEnv(consts.EnvDockerRegistryPassword)
+	if ok {
+		YataiConfig.DockerRegistry.Password = dockerRegistryPassword
+	}
+	dockerRegistrySecure, ok := os.LookupEnv(consts.EnvDockerRegistrySecure)
+	if ok {
+		dockerRegistrySecure_, err := strconv.ParseBool(dockerRegistrySecure)
+		if err != nil {
+			return errors.Wrap(err, "convert docker_registry_secure from env to bool")
+		}
+		YataiConfig.DockerRegistry.Secure = dockerRegistrySecure_
+	}
+	dockerRegistryBentoRepositoryName, ok := os.LookupEnv(consts.EnvDockerRegistryBentoRepositoryName)
+	if ok {
+		YataiConfig.DockerRegistry.BentoRepositoryName = dockerRegistryBentoRepositoryName
+	}
+	dockerRegistryModelRepositoryName, ok := os.LookupEnv(consts.EnvDockerRegistryModelRepositoryName)
+	if ok {
+		YataiConfig.DockerRegistry.ModelRepositoryName = dockerRegistryModelRepositoryName
 	}
 	return nil
 }
