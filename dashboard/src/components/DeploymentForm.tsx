@@ -28,6 +28,7 @@ import { Tabs, Tab } from 'baseui/tabs-motion'
 import { IBentoWithRepositorySchema } from '@/schemas/bento'
 import { StatefulTooltip } from 'baseui/tooltip'
 import { Block } from 'baseui/block'
+import _ from 'lodash'
 import DeploymentTargetTypeSelector from './DeploymentTargetTypeSelector'
 import BentoRepositorySelector from './BentoRepositorySelector'
 import BentoSelector from './BentoSelector'
@@ -223,9 +224,6 @@ export default function DeploymentForm({
             if (vs.targets.length === 0) {
                 return vs
             }
-            if (vs.targets[0].config?.runners && Object.keys(vs.targets[0].config.runners).length > 0) {
-                return vs
-            }
             return {
                 ...vs,
                 targets: [
@@ -235,16 +233,35 @@ export default function DeploymentForm({
                             ...vs.targets[0].config,
                             runners:
                                 bento?.manifest?.runners?.reduce((runners, runner) => {
+                                    const conf = {
+                                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                        resources: _.cloneDeep(defaultTarget.config!.resources!),
+                                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                        hpa_conf: _.cloneDeep(defaultTarget.config!.hpa_conf!),
+                                    }
+                                    if (runner.resource_config?.cpu) {
+                                        if (!conf.resources.requests) {
+                                            conf.resources.requests = {
+                                                cpu: String(runner.resource_config.cpu),
+                                                memory: '500Mi',
+                                                gpu: '',
+                                            }
+                                        } else {
+                                            conf.resources.requests.cpu = String(runner.resource_config.cpu)
+                                        }
+                                        if (!conf.resources.limits) {
+                                            conf.resources.limits = {
+                                                cpu: String(runner.resource_config.cpu),
+                                                memory: '500Mi',
+                                                gpu: '',
+                                            }
+                                        } else {
+                                            conf.resources.limits.cpu = String(runner.resource_config.cpu)
+                                        }
+                                    }
                                     return {
                                         ...runners,
-                                        [runner.name]: {
-                                            resources: {
-                                                ...defaultTarget.config?.resources,
-                                            },
-                                            hpa_conf: {
-                                                ...defaultTarget.config?.hpa_conf,
-                                            },
-                                        },
+                                        [runner.name]: conf,
                                     }
                                 }, {} as Record<string, IDeploymentTargetRunnerSchema>) ?? {},
                         },
