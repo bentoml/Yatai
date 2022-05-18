@@ -346,11 +346,16 @@ func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiCompo
 	}
 
 	if release_ == nil {
+		_, err = KubeNamespaceService.MakeSureNamespace(ctx, cluster, consts.KubeNamespaceYataiOperators)
+		if err != nil {
+			return
+		}
+
 		install := action.NewInstall(actionConfig)
 
 		install.Namespace = consts.KubeNamespaceYataiOperators
 		install.ReleaseName = operatorReleaseName
-		install.CreateNamespace = true
+		install.CreateNamespace = false
 
 		release_, err = install.Run(chart_, values)
 	} else if release_.Chart.Metadata.Version != chart_.Metadata.Version {
