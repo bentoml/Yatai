@@ -51,7 +51,7 @@ export default function DeploymentOverview() {
                             gap: 10,
                         }}
                     >
-                        {(!deployment?.urls || deployment.urls.length === 0) && (
+                        {deployment?.status === 'running' && (!deployment?.urls || deployment.urls.length === 0) && (
                             <Button
                                 size='mini'
                                 startEnhancer={<MdOutlineAccessibilityNew />}
