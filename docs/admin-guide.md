@@ -282,16 +282,25 @@ Prerequisites:
     PASSWORD=$(aws ecr get-login-password)
     ```
 
+3. Create Kubernetes secrets
+
+    ```bash
+    kubectl create secret generic yatai-docker-registry-credentials \
+        --from-literal=password=$PASSWORD
+    ```
+
 3. Install Yatai chart
 
     ```bash
     helm install yatai yatai/yatai \
-    	--set config.docker_registry.server=$ENDPOINT \
-    	--set config.docker_registry.username=AWS \
-    	--set config.docker_registry.password=$PASSWORD \
-    	--set config.docker_registry.bentos_repository_name=$BENTO_REPO \
-    	--set config.docker_registry.models_repository_name=$MODEL_REPO \
-    	--set config.docker_registry.secure=true \
+    	--set externalDockerRegistry.enabled=true \
+    	--set externalDockerRegistry.server=$ENDPOINT \
+    	--set externalDockerRegistry.username=AWS \
+    	--set externalDockerRegistry.secure=true \
+    	--set externalDockerRegistry.bentoRepositoryName=$BENTO_REPO \
+    	--set externalDockerRegistry.modelRepositoryName=$MODEL_REPO \
+    	--set externalDockerRegistry.existingSecret=yatai-docker-registry-credentials \
+    	--set externalDockerRegistry.existingSecretPasswordKey=$PASSWORD \
     	-n yatai-system --create-namespace
     ```
 
@@ -319,13 +328,14 @@ Prerequisites:
 
     ```bash
     helm install yatai yatai/yatai \
-    	--set config.s3.region=$MY_REGION \
-    	--set config.s3.endpoint=$ENDPOINT \
-    	--set config.s3.secure=true \
-    	--set config.s3.bucket_name=$BUCKET_NAME \
-    	# Please include these values, if the Kubernetes cluster did not configured with AWS credentials or IAM roles.
-    	# --set config.s3.access_key=$access_key \
-    	# --set config.s3.secret_key=$secret_key \
+        --set externalS3.enabled=true \
+        --set externalS3.endpoint=$ENDPOINT \
+    	--set externalS3.region=$MY_REGION \
+    	--set externalS3.bucketName=$BUCKET_NAME \
+    	--set externalS3.secure=true \
+        --set externalS3.existingSecret="k8s secret" \
+    	--set externalS3.existingSecretAccessKeyKey=$access_key \
+    	--set externalS3.existingSecretSecretKeykey=$secret_key \
     	-n yatai-system --create-namespace
     ```
 
