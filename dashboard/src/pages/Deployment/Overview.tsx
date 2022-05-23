@@ -37,6 +37,8 @@ export default function DeploymentOverview() {
     const highlightTheme = themeType === 'dark' ? dark : docco
     const portForwardCommand = `kubectl port-forward -n ${kubeNamespace} svc/${deploymentName} 8080:3000`
     const [copyNotification, setCopyNotification] = useState<string>()
+    const shouldShowAccessButton =
+        deployment?.status !== 'terminated' && (!deployment?.urls || deployment.urls.length === 0)
 
     return (
         <div>
@@ -51,7 +53,7 @@ export default function DeploymentOverview() {
                             gap: 10,
                         }}
                     >
-                        {deployment?.status === 'running' && (!deployment?.urls || deployment.urls.length === 0) && (
+                        {shouldShowAccessButton && (
                             <Button
                                 size='mini'
                                 startEnhancer={<MdOutlineAccessibilityNew />}
