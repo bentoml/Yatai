@@ -300,7 +300,7 @@ Prerequisites:
     	--set externalDockerRegistry.bentoRepositoryName=$BENTO_REPO \
     	--set externalDockerRegistry.modelRepositoryName=$MODEL_REPO \
     	--set externalDockerRegistry.existingSecret=yatai-docker-registry-credentials \
-    	--set externalDockerRegistry.existingSecretPasswordKey=$PASSWORD \
+    	--set externalDockerRegistry.existingSecretPasswordKey=password \
     	-n yatai-system --create-namespace
     ```
 
@@ -324,7 +324,15 @@ Prerequisites:
     aws s3 create-bucket --bucket $BUCKET_NAME --region MY_REGION
     ```
 
-2. Install Yatai chart
+2. Create Kubernetes secrets
+
+    ```bash
+    kubectl create secret generic yatai-s3-credentials \
+        --from-literal=accessKeyId=$AWS_ACCESS_KEY_ID \
+        --from-literal=secretAccessKey=$AWS_SECRET_ACCESS_KEY
+    ```
+
+3. Install Yatai chart
 
     ```bash
     helm install yatai yatai/yatai \
@@ -333,9 +341,9 @@ Prerequisites:
     	--set externalS3.region=$MY_REGION \
     	--set externalS3.bucketName=$BUCKET_NAME \
     	--set externalS3.secure=true \
-        --set externalS3.existingSecret="k8s secret" \
-    	--set externalS3.existingSecretAccessKeyKey=$access_key \
-    	--set externalS3.existingSecretSecretKeykey=$secret_key \
+        --set externalS3.existingSecret="yatai-s3-credentials" \
+    	--set externalS3.existingSecretAccessKeyKey=accessKeyId \
+    	--set externalS3.existingSecretSecretKeykey=secretAccessKey \
     	-n yatai-system --create-namespace
     ```
 
