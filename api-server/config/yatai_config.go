@@ -95,24 +95,34 @@ func PopulateYataiConfig() error {
 	if ok {
 		YataiConfig.InitializationToken = initializationToken
 	}
+	makesureS3IsNotNil := func() {
+		if YataiConfig.S3 == nil {
+			YataiConfig.S3 = &YataiS3ConfigYaml{}
+		}
+	}
 	s3Endpoint, ok := os.LookupEnv(consts.EnvS3Endpoint)
 	if ok {
+		makesureS3IsNotNil()
 		YataiConfig.S3.Endpoint = s3Endpoint
 	}
 	s3AccessKey, ok := os.LookupEnv(consts.EnvS3AccessKey)
 	if ok {
+		makesureS3IsNotNil()
 		YataiConfig.S3.AccessKey = s3AccessKey
 	}
 	s3SecretKey, ok := os.LookupEnv(consts.EnvS3SecretKey)
 	if ok {
+		makesureS3IsNotNil()
 		YataiConfig.S3.SecretKey = s3SecretKey
 	}
 	s3Region, ok := os.LookupEnv(consts.EnvS3Region)
 	if ok {
+		makesureS3IsNotNil()
 		YataiConfig.S3.Region = s3Region
 	}
 	s3Secure, ok := os.LookupEnv(consts.EnvS3Secure)
 	if ok {
+		makesureS3IsNotNil()
 		s3Secure_, err := strconv.ParseBool(s3Secure)
 		if err != nil {
 			return errors.Wrap(err, "convert s3_secure from env to bool")
@@ -121,22 +131,32 @@ func PopulateYataiConfig() error {
 	}
 	s3BucketName, ok := os.LookupEnv(consts.EnvS3BucketName)
 	if ok {
+		makesureS3IsNotNil()
 		YataiConfig.S3.BucketName = s3BucketName
+	}
+	makesureDockerRegistryIsNotNil := func() {
+		if YataiConfig.DockerRegistry == nil {
+			YataiConfig.DockerRegistry = &YataiDockerRegistryConfigYaml{}
+		}
 	}
 	dockerRegistryServer, ok := os.LookupEnv(consts.EnvDockerRegistryServer)
 	if ok {
+		makesureDockerRegistryIsNotNil()
 		YataiConfig.DockerRegistry.Server = dockerRegistryServer
 	}
 	dockerRegistryUsername, ok := os.LookupEnv(consts.EnvDockerRegistryUsername)
 	if ok {
+		makesureDockerRegistryIsNotNil()
 		YataiConfig.DockerRegistry.Username = dockerRegistryUsername
 	}
 	dockerRegistryPassword, ok := os.LookupEnv(consts.EnvDockerRegistryPassword)
 	if ok {
+		makesureDockerRegistryIsNotNil()
 		YataiConfig.DockerRegistry.Password = dockerRegistryPassword
 	}
 	dockerRegistrySecure, ok := os.LookupEnv(consts.EnvDockerRegistrySecure)
 	if ok {
+		makesureDockerRegistryIsNotNil()
 		dockerRegistrySecure_, err := strconv.ParseBool(dockerRegistrySecure)
 		if err != nil {
 			return errors.Wrap(err, "convert docker_registry_secure from env to bool")
@@ -145,10 +165,12 @@ func PopulateYataiConfig() error {
 	}
 	dockerRegistryBentoRepositoryName, ok := os.LookupEnv(consts.EnvDockerRegistryBentoRepositoryName)
 	if ok {
+		makesureDockerRegistryIsNotNil()
 		YataiConfig.DockerRegistry.BentoRepositoryName = dockerRegistryBentoRepositoryName
 	}
 	dockerRegistryModelRepositoryName, ok := os.LookupEnv(consts.EnvDockerRegistryModelRepositoryName)
 	if ok {
+		makesureDockerRegistryIsNotNil()
 		YataiConfig.DockerRegistry.ModelRepositoryName = dockerRegistryModelRepositoryName
 	}
 	return nil
