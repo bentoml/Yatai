@@ -2,7 +2,7 @@
 
 This guide helps you to install and configure Yatai on a Kubernetes Cluster for your machine
 learning team, using the official [Yatai Helm chart](https://github.com/bentoml/yatai-chart). Note
-that Helm chart is the only official supported method of installing Yatai.
+that Helm chart is the official supported method of installing Yatai.
 
 By default, Yatai helm chart will install Yatai and its dependency services in the target Kubernetes cluster. Those dependency services include PostgreSQL, Minio, Docker registry, and Nginx Ingress Controller. Users can configure those services with existing infrastructure or cloud-based services via the Helm chart configuration yaml file.
 
@@ -73,6 +73,8 @@ When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-ope
 
     Yatai uses Nginx ingress controller to facilitates access to deployments and canary deployments.
 
+
+See all available helm chart configuration options [here](./helm-configuration.md)
 
 ## Local Minikube Installation
 
