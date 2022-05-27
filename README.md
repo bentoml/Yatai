@@ -3,7 +3,7 @@
 [![actions_status](https://github.com/bentoml/yatai/workflows/CICD/badge.svg)](https://github.com/bentoml/yatai/actions)
 [![join_slack](https://badgen.net/badge/Join/BentoML%20Slack/cyan?icon=slack)](https://join.slack.bentoml.org)
 
-Yatai helps ML teams to deploy large scale model serving workloads on Kubernetes. It standarlizes [BentoML](https://github.com/bentoml) deployment on Kubernetes, provides UI for managing all your ML models and deployments in one place, and enables advanced GitOps and CI/CD workflow.
+Yatai helps ML teams to deploy large scale model serving workloads on Kubernetes. It standardizes [BentoML](https://github.com/bentoml) deployment on Kubernetes, provides UI for managing all your ML models and deployments in one place, and enables advanced GitOps and CI/CD workflow.
 
 👉 [Pop into our Slack community!](https://l.linklyhq.com/l/ktPW) We're happy to help with any issue you face or even just to meet you and hear what you're working on :)
 
@@ -103,7 +103,7 @@ Core features:
         * Define your Bento deployment in a YAML file:
           ```yaml
           # my_deployment.yaml
-          apiVersion: serving.yatai.ai/v1alpha1
+          apiVersion: serving.yatai.ai/v1alpha2
           kind: BentoDeployment
           metadata:
             name: demo
