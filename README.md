@@ -117,7 +117,7 @@ Core features:
           ```
         * Apply the deployment to your minikube cluster
           ```bash
-          kubeclt apply -f my_deployment.yaml
+          kubectl apply -f my_deployment.yaml
           ```
 
   * Monitor deployment process on Web UI and test out endpoint when deployment created
@@ -125,7 +125,7 @@ Core features:
     curl \                                                                                                                                                      
         -X POST \
         -H "content-type: application/json" \
-        --data "[5, 4, 3, 2]" \
+        --data "[[5, 4, 3, 2]]" \
         https://demo-default-yatai-127-0-0-1.apps.yatai.dev/classify
     ```
 </details>
