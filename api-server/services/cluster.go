@@ -475,7 +475,7 @@ func (s *clusterService) GetGrafana(ctx context.Context, cluster *models.Cluster
 	}, err
 }
 
-func (s *clusterService) MakeSureDockerConfigCM(ctx context.Context, cluster *models.Cluster, namespace string) (dockerConfigCM *corev1.ConfigMap, err error) {
+func (s *clusterService) MakeSureDockerConfigSecret(ctx context.Context, cluster *models.Cluster, namespace string) (dockerConfigSecret *corev1.Secret, err error) {
 	org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
 	if err != nil {
 		return nil, err
@@ -513,9 +513,9 @@ func (s *clusterService) MakeSureDockerConfigCM(ctx context.Context, cluster *mo
 		return nil, err
 	}
 
-	cmsCli := kubeCli.CoreV1().ConfigMaps(namespace)
+	secretsCli := kubeCli.CoreV1().Secrets(namespace)
 
-	dockerConfigCM, err = cmsCli.Get(ctx, dockerConfigCMKubeName, metav1.GetOptions{})
+	dockerConfigSecret, err = secretsCli.Get(ctx, dockerConfigCMKubeName, metav1.GetOptions{})
 	dockerConfigIsNotFound := apierrors.IsNotFound(err)
 	// nolint: gocritic
 	if err != nil && !dockerConfigIsNotFound {
@@ -523,15 +523,15 @@ func (s *clusterService) MakeSureDockerConfigCM(ctx context.Context, cluster *mo
 	}
 	err = nil
 	if dockerConfigIsNotFound {
-		dockerConfigCM = &corev1.ConfigMap{
+		dockerConfigSecret = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{Name: dockerConfigCMKubeName},
-			Data: map[string]string{
+			StringData: map[string]string{
 				"config.json": string(dockerConfigContent),
 			},
 		}
-		_, err_ := cmsCli.Create(ctx, dockerConfigCM, metav1.CreateOptions{})
+		_, err_ := secretsCli.Create(ctx, dockerConfigSecret, metav1.CreateOptions{})
 		if err_ != nil {
-			dockerConfigCM, err = cmsCli.Get(ctx, dockerConfigCMKubeName, metav1.GetOptions{})
+			dockerConfigSecret, err = secretsCli.Get(ctx, dockerConfigCMKubeName, metav1.GetOptions{})
 			dockerConfigIsNotFound = apierrors.IsNotFound(err)
 			if err != nil && !dockerConfigIsNotFound {
 				return nil, err
@@ -543,11 +543,9 @@ func (s *clusterService) MakeSureDockerConfigCM(ctx context.Context, cluster *mo
 				err = nil
 			}
 		}
-	}
-
-	if !dockerConfigIsNotFound {
-		dockerConfigCM.Data["config.json"] = string(dockerConfigContent)
-		_, err = cmsCli.Update(ctx, dockerConfigCM, metav1.UpdateOptions{})
+	} else {
+		dockerConfigSecret.Data["config.json"] = dockerConfigContent
+		_, err = secretsCli.Update(ctx, dockerConfigSecret, metav1.UpdateOptions{})
 		if err != nil {
 			return nil, err
 		}

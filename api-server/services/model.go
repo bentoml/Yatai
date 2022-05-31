@@ -375,7 +375,6 @@ func (s *modelService) CreateImageBuilderJob(ctx context.Context, model *models.
 		return nil, err
 	}
 
-	dockerFileCMKubeName := fmt.Sprintf("docker-file-%d", model.ID)
 	dockerFileContent := `
 FROM scratch
 
@@ -408,14 +407,13 @@ COPY . /model
 	}
 
 	err = ImageBuilderService.CreateImageBuilderJob(ctx, CreateImageBuilderJobOption{
-		KubeName:             kubeName,
-		ImageName:            imageName,
-		S3ObjectName:         s3ObjectName,
-		S3BucketName:         s3BucketName,
-		Cluster:              majorCluster,
-		DockerFileCMKubeName: &dockerFileCMKubeName,
-		DockerFileContent:    &dockerFileContent,
-		KubeLabels:           kubeLabels,
+		KubeName:          kubeName,
+		ImageName:         imageName,
+		S3ObjectName:      s3ObjectName,
+		S3BucketName:      s3BucketName,
+		Cluster:           majorCluster,
+		DockerFileContent: &dockerFileContent,
+		KubeLabels:        kubeLabels,
 	})
 	if err != nil {
 		return nil, err

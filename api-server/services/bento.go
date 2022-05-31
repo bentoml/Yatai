@@ -428,15 +428,14 @@ func (s *bentoService) CreateImageBuilderJob(ctx context.Context, bento *models.
 	}
 
 	err = ImageBuilderService.CreateImageBuilderJob(ctx, CreateImageBuilderJobOption{
-		KubeName:             kubeName,
-		ImageName:            imageName,
-		S3ObjectName:         s3ObjectName,
-		S3BucketName:         s3BucketName,
-		Cluster:              majorCluster,
-		DockerFileCMKubeName: nil,
-		DockerFileContent:    nil,
-		DockerFilePath:       utils.StringPtr("./env/docker/Dockerfile"),
-		KubeLabels:           kubeLabels,
+		KubeName:          kubeName,
+		ImageName:         imageName,
+		S3ObjectName:      s3ObjectName,
+		S3BucketName:      s3BucketName,
+		Cluster:           majorCluster,
+		DockerFileContent: nil,
+		DockerFilePath:    utils.StringPtr("./env/docker/Dockerfile"),
+		KubeLabels:        kubeLabels,
 	})
 	if err != nil {
 		return nil, err
