@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	apiv1 "k8s.io/api/core/v1"
@@ -13,6 +14,7 @@ import (
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
 )
 
 type imageBuilderService struct{}
@@ -20,15 +22,14 @@ type imageBuilderService struct{}
 var ImageBuilderService = &imageBuilderService{}
 
 type CreateImageBuilderJobOption struct {
-	KubeName             string
-	ImageName            string
-	S3ObjectName         string
-	S3BucketName         string
-	Cluster              *models.Cluster
-	DockerFileCMKubeName *string
-	DockerFileContent    *string
-	DockerFilePath       *string
-	KubeLabels           map[string]string
+	KubeName          string
+	ImageName         string
+	S3ObjectName      string
+	S3BucketName      string
+	Cluster           *models.Cluster
+	DockerFileContent *string
+	DockerFilePath    *string
+	KubeLabels        map[string]string
 }
 
 func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt CreateImageBuilderJobOption) (err error) {
@@ -44,20 +45,30 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 		return
 	}
 
-	dockerConfigCM, err := ClusterService.MakeSureDockerConfigCM(ctx, opt.Cluster, kubeNamespace)
+	dockerConfigSecret, err := ClusterService.MakeSureDockerConfigSecret(ctx, opt.Cluster, kubeNamespace)
 	if err != nil {
 		return
 	}
-	dockerConfigCMKubeName := dockerConfigCM.Name
+	dockerConfigSecretKubeName := dockerConfigSecret.Name
 
 	volumes := []apiv1.Volume{
 		{
-			Name: dockerConfigCMKubeName,
+			Name: "yatai",
 			VolumeSource: apiv1.VolumeSource{
-				ConfigMap: &apiv1.ConfigMapVolumeSource{
-					LocalObjectReference: apiv1.LocalObjectReference{
-						Name: dockerConfigCMKubeName,
-					},
+				EmptyDir: &apiv1.EmptyDirVolumeSource{},
+			},
+		},
+		{
+			Name: "workspace",
+			VolumeSource: apiv1.VolumeSource{
+				EmptyDir: &apiv1.EmptyDirVolumeSource{},
+			},
+		},
+		{
+			Name: dockerConfigSecretKubeName,
+			VolumeSource: apiv1.VolumeSource{
+				Secret: &apiv1.SecretVolumeSource{
+					SecretName: dockerConfigSecretKubeName,
 				},
 			},
 		},
@@ -65,59 +76,17 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 
 	volumeMounts := []apiv1.VolumeMount{
 		{
-			Name:      dockerConfigCMKubeName,
+			Name:      "yatai",
+			MountPath: "/yatai",
+		},
+		{
+			Name:      "workspace",
+			MountPath: "/workspace",
+		},
+		{
+			Name:      dockerConfigSecretKubeName,
 			MountPath: "/kaniko/.docker/",
 		},
-	}
-
-	dockerFilePath := ""
-	if opt.DockerFilePath != nil {
-		dockerFilePath = *opt.DockerFilePath
-	}
-
-	cmsCli := kubeCli.CoreV1().ConfigMaps(kubeNamespace)
-	if opt.DockerFileCMKubeName != nil && opt.DockerFileContent != nil {
-		var oldDockerFileCM *apiv1.ConfigMap
-		oldDockerFileCM, err = cmsCli.Get(ctx, *opt.DockerFileCMKubeName, metav1.GetOptions{})
-		// nolint: gocritic
-		if apierrors.IsNotFound(err) {
-			_, err = cmsCli.Create(ctx, &apiv1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{Name: *opt.DockerFileCMKubeName},
-				Data: map[string]string{
-					"Dockerfile": *opt.DockerFileContent,
-				},
-			}, metav1.CreateOptions{})
-			if err != nil {
-				return
-			}
-		} else if err != nil {
-			return
-		} else {
-			oldDockerFileCM.Data["Dockerfile"] = *opt.DockerFileContent
-			_, err = cmsCli.Update(ctx, oldDockerFileCM, metav1.UpdateOptions{})
-			if err != nil {
-				return
-			}
-		}
-		volumes = append(volumes,
-			apiv1.Volume{
-				Name: *opt.DockerFileCMKubeName,
-				VolumeSource: apiv1.VolumeSource{
-					ConfigMap: &apiv1.ConfigMapVolumeSource{
-						LocalObjectReference: apiv1.LocalObjectReference{
-							Name: *opt.DockerFileCMKubeName,
-						},
-					},
-				},
-			},
-		)
-		volumeMounts = append(volumeMounts,
-			apiv1.VolumeMount{
-				Name:      *opt.DockerFileCMKubeName,
-				MountPath: "/docker/",
-			},
-		)
-		dockerFilePath = "/docker/Dockerfile"
 	}
 
 	org, err := OrganizationService.GetAssociatedOrganization(ctx, opt.Cluster)
@@ -130,39 +99,11 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 		return
 	}
 
-	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
-	if err != nil {
-		return
-	}
-
 	// nolint: goconst
 	s3ForcePath := "true"
 	if s3Config.Endpoint == consts.AmazonS3Endpoint {
 		// nolint: goconst
 		s3ForcePath = "false"
-	}
-
-	envs := []apiv1.EnvVar{
-		{
-			Name:  "AWS_ACCESS_KEY_ID",
-			Value: s3Config.AccessKey,
-		},
-		{
-			Name:  "AWS_SECRET_ACCESS_KEY",
-			Value: s3Config.SecretKey,
-		},
-		{
-			Name:  "AWS_REGION",
-			Value: s3Config.Region,
-		},
-		{
-			Name:  "S3_ENDPOINT",
-			Value: s3Config.EndpointWithSchemeInCluster,
-		},
-		{
-			Name:  "S3_FORCE_PATH_STYLE",
-			Value: s3ForcePath,
-		},
 	}
 
 	kubeName := opt.KubeName
@@ -175,15 +116,104 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 		return
 	}
 
-	args := []string{
-		fmt.Sprintf("--dockerfile=%s", dockerFilePath),
-		fmt.Sprintf("--context=s3://%s/%s", s3BucketName, s3ObjectName),
-		fmt.Sprintf("--destination=%s", imageName),
+	securityContext := &apiv1.SecurityContext{
+		RunAsUser:  utils.Int64Ptr(1000),
+		RunAsGroup: utils.Int64Ptr(1000),
 	}
 
-	if !dockerRegistry.Secure {
-		args = append(args, "--insecure")
+	initContainers := []apiv1.Container{
+		{
+			Name:  "s3-downloader",
+			Image: "quay.io/bentoml/s3-downloader",
+			Command: []string{
+				"sh",
+				"-c",
+				"s3-downloader && rm /workspace/buildcontext/context.tar.gz && chown -R 1000:1000 /workspace",
+			},
+			VolumeMounts: volumeMounts,
+			Env: []apiv1.EnvVar{
+				{
+					Name:  "KANIKO_DIR",
+					Value: "/workspace",
+				},
+				{
+					Name:  "BUILD_CONTEXT",
+					Value: fmt.Sprintf("s3://%s/%s", s3BucketName, s3ObjectName),
+				},
+				{
+					Name:  "AWS_ACCESS_KEY_ID",
+					Value: s3Config.AccessKey,
+				},
+				{
+					Name:  "AWS_SECRET_ACCESS_KEY",
+					Value: s3Config.SecretKey,
+				},
+				{
+					Name:  "AWS_REGION",
+					Value: s3Config.Region,
+				},
+				{
+					Name:  "S3_ENDPOINT",
+					Value: s3Config.EndpointWithSchemeInCluster,
+				},
+				{
+					Name:  "S3_FORCE_PATH_STYLE",
+					Value: s3ForcePath,
+				},
+			},
+		},
 	}
+
+	dockerFilePath := ""
+	if opt.DockerFilePath != nil {
+		dockerFilePath = filepath.Join("/workspace/buildcontext", *opt.DockerFilePath)
+	}
+	if opt.DockerFileContent != nil {
+		dockerFilePath = "/yatai/Dockerfile"
+		initContainers = append(initContainers, apiv1.Container{
+			Name:  "init-dockerfile",
+			Image: "busybox",
+			Command: []string{
+				"sh",
+				"-c",
+				fmt.Sprintf("echo \"%s\" > %s", *opt.DockerFileContent, dockerFilePath),
+			},
+			VolumeMounts:    volumeMounts,
+			SecurityContext: securityContext,
+		})
+	}
+
+	envs := []apiv1.EnvVar{
+		{
+			Name:  "DOCKER_CONFIG",
+			Value: "/kaniko/.docker/",
+		},
+		{
+			Name:  "BUILDKITD_FLAGS",
+			Value: "--oci-worker-no-process-sandbox",
+		},
+	}
+
+	args := []string{
+		"build",
+		"--frontend",
+		"dockerfile.v0",
+		"--local",
+		"context=/workspace/buildcontext",
+		"--local",
+		fmt.Sprintf("dockerfile=%s", filepath.Dir(dockerFilePath)),
+		"--output",
+		fmt.Sprintf("type=image,name=%s,push=true", imageName),
+	}
+
+	// dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
+	// if err != nil {
+	// 	return
+	// }
+
+	// if !dockerRegistry.Secure {
+	// 	args = append(args, "--insecure")
+	// }
 
 	podsCli := kubeCli.CoreV1().Pods(kubeNamespace)
 
@@ -191,19 +221,31 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   kubeName,
 			Labels: opt.KubeLabels,
+			Annotations: map[string]string{
+				"container.apparmor.security.beta.kubernetes.io/builder": "unconfined",
+			},
 		},
 		Spec: apiv1.PodSpec{
-			RestartPolicy: apiv1.RestartPolicyNever,
-			Volumes:       volumes,
+			RestartPolicy:  apiv1.RestartPolicyNever,
+			Volumes:        volumes,
+			InitContainers: initContainers,
 			Containers: []apiv1.Container{
 				{
 					Name:         "builder",
-					Image:        "gcr.io/kaniko-project/executor:latest",
+					Image:        "quay.io/bentoml/buildkit:master-rootless",
+					Command:      []string{"buildctl-daemonless.sh"},
 					Args:         args,
 					VolumeMounts: volumeMounts,
 					Env:          envs,
 					TTY:          true,
 					Stdin:        true,
+					SecurityContext: &apiv1.SecurityContext{
+						SeccompProfile: &apiv1.SeccompProfile{
+							Type: apiv1.SeccompProfileTypeUnconfined,
+						},
+						RunAsUser:  utils.Int64Ptr(1000),
+						RunAsGroup: utils.Int64Ptr(1000),
+					},
 				},
 			},
 		},
