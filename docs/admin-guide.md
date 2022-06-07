@@ -189,9 +189,9 @@ To install and operate Yatai in production, we generally recommend using a dedic
         dig +short `kubectl -n yatai-components get svc yatai-ingress-controller-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'` | head -n 1 | sed -En "s/\./-/gp" | awk '{ print "yatai-"$1".apps.yatai.dev" }'
     ```
     
-    Then set the generated yatai domain name at this path:
+    Then replace "127.0.0.1" in the generated yatai domain name at this path with the external ip:
     ```bash
-        .spec.rules[0].http.paths[0].path
+    .spec.rules[0].host
     ```
     
     Using this command:
