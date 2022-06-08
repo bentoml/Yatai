@@ -37,7 +37,7 @@
 ### Example of a BentoDeployment
 
 ```yaml
-apiVersion: v1alpha2
+apiVersion: serving.yatai.ai/v1alpha2
 kind: BentoDeployment
 metadata:
   name: my-bento-deployment
@@ -47,16 +47,16 @@ spec:
   ingress:
     enabled: true
   env:
-    key: values
+    foo: bar
   resources:
     limits:
-        cpu: "1"
-        memory: "2Gi"
+        cpu: 2000m
+        memory: "4Gi"
     requests:
-        cpu: "1"
+        cpu: 1000m
         memory: "2Gi"
   autoScaling:
-    maxReplicas: 3
+    maxReplicas: 5
     minReplicas: 1
     cpu: 50
     memory: 50
@@ -64,23 +64,23 @@ spec:
   - name: runner1
     resources:
       limits:
-        cpu: "1"
-        memory: "2Gi"
+        cpu: 2000m
+        memory: "4Gi"
       requests:
-        cpu: "1"
+        cpu: 1000m
         memory: "2Gi"
       autoscaling:
-        maxReplicas: 1
+        maxReplicas: 2
         minReplicas: 1
   - name: runner2
     resources:
       limits:
-        cpu: "1"
-        memory: "2Gi"
+        cpu: 2000m
+        memory: "4Gi"
       requests:
-        cpu: "1"
+        cpu: 1000m
         memory: "2Gi"
     autoscaling:
-      maxReplicas: 1
+      maxReplicas: 4
       minReplicas: 1
 ```
