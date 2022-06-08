@@ -180,6 +180,24 @@ To install and operate Yatai in production, we generally recommend using a dedic
     helm install yatai yatai/yatai -n yatai-system --create-namespace
     ```
 
+3. Update Ingress to reference external ip
+
+    By default, the host ip address that the Yatai ingress is initialized with is 127.0.0.1. In order to access yatai, you will need to update the host parameter in the ingress spec.
+
+    This command will give you the external ip for the Yatai ingress:
+    ```bash
+    dig +short `kubectl -n yatai-components get svc yatai-ingress-controller-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'` | head -n 1 | sed -En "s/\./-/gp" | awk '{ print "yatai-"$1".apps.yatai.dev" }'
+    ```
+    
+    Then replace "127.0.0.1" in the generated yatai domain name at this path with the external ip:
+    ```bash
+    .spec.rules[0].host
+    ```
+    
+    Using this command:
+    ```bash
+    kubectl -n yatai-system edit ing yatai
+    ```
 
 ### Custom PostgreSQL database
 
