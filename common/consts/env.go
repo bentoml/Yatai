@@ -30,4 +30,6 @@ const (
 	EnvDockerRegistrySecure              = "DOCKER_REGISTRY_SECURE"
 	EnvDockerRegistryBentoRepositoryName = "DOCKER_REGISTRY_BENTO_REPOSITORY_NAME"
 	EnvDockerRegistryModelRepositoryName = "DOCKER_REGISTRY_MODEL_REPOSITORY_NAME"
+
+	EnvDockerImageBuilderPrivileged = "DOCKER_IMAGE_BUILDER_PRIVILEGED"
 )

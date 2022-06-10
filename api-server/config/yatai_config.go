@@ -42,15 +42,20 @@ type YataiDockerRegistryConfigYaml struct {
 	Secure              bool   `yaml:"secure"`
 }
 
+type YataiDockerImageBuilderConfigYaml struct {
+	Privileged bool `yaml:"privileged"`
+}
+
 type YataiConfigYaml struct {
-	IsSass              bool                           `yaml:"is_sass"`
-	InCluster           bool                           `yaml:"in_cluster"`
-	Server              YataiServerConfigYaml          `yaml:"server"`
-	Postgresql          YataiPostgresqlConfigYaml      `yaml:"postgresql"`
-	S3                  *YataiS3ConfigYaml             `yaml:"s3,omitempty"`
-	DockerRegistry      *YataiDockerRegistryConfigYaml `yaml:"docker_registry,omitempty"`
-	NewsURL             string                         `yaml:"news_url"`
-	InitializationToken string                         `yaml:"initialization_token"`
+	IsSass              bool                               `yaml:"is_sass"`
+	InCluster           bool                               `yaml:"in_cluster"`
+	Server              YataiServerConfigYaml              `yaml:"server"`
+	Postgresql          YataiPostgresqlConfigYaml          `yaml:"postgresql"`
+	S3                  *YataiS3ConfigYaml                 `yaml:"s3,omitempty"`
+	DockerRegistry      *YataiDockerRegistryConfigYaml     `yaml:"docker_registry,omitempty"`
+	DockerImageBuilder  *YataiDockerImageBuilderConfigYaml `yaml:"docker_image_builder,omitempty"`
+	NewsURL             string                             `yaml:"news_url"`
+	InitializationToken string                             `yaml:"initialization_token"`
 }
 
 var YataiConfig = &YataiConfigYaml{}
@@ -172,6 +177,20 @@ func PopulateYataiConfig() error {
 	if ok {
 		makesureDockerRegistryIsNotNil()
 		YataiConfig.DockerRegistry.ModelRepositoryName = dockerRegistryModelRepositoryName
+	}
+	makesureDockerImageBuilderIsNotNil := func() {
+		if YataiConfig.DockerImageBuilder == nil {
+			YataiConfig.DockerImageBuilder = &YataiDockerImageBuilderConfigYaml{}
+		}
+	}
+	dockerImageBuilderPrivileged, ok := os.LookupEnv(consts.EnvDockerImageBuilderPrivileged)
+	if ok {
+		makesureDockerImageBuilderIsNotNil()
+		dockerImageBuilderPrivileged_, err := strconv.ParseBool(dockerImageBuilderPrivileged)
+		if err != nil {
+			return errors.Wrap(err, "convert docker_image_builder_privileged from env to bool")
+		}
+		YataiConfig.DockerImageBuilder.Privileged = dockerImageBuilderPrivileged_
 	}
 	return nil
 }
