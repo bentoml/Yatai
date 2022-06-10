@@ -31,7 +31,7 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 		return
 	}
 
-	if deploymentTarget.Config != nil && deploymentTarget.Config.KubeResourceUid != "" {
+	if deploymentTarget.Config != nil && deploymentTarget.Config.KubeResourceVersion != "" {
 		var oldKubeBentoDeployment *servingv1alpha2.BentoDeployment
 		oldKubeBentoDeployment, err = cli.Get(ctx, deployment.Name, metav1.GetOptions{})
 		isNotFound := apierrors.IsNotFound(err)
@@ -39,7 +39,7 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 			err = errors.Wrap(err, "failed to get kube bento deployment")
 			return
 		}
-		if !isNotFound && string(oldKubeBentoDeployment.UID) == deploymentTarget.Config.KubeResourceUid {
+		if !isNotFound && oldKubeBentoDeployment.ResourceVersion == deploymentTarget.Config.KubeResourceVersion {
 			kubeBentoDeployment = oldKubeBentoDeployment
 			return
 		}
@@ -137,14 +137,14 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 		return
 	}
 	if isNotFound {
-		_, err = cli.Create(ctx, kubeBentoDeployment, metav1.CreateOptions{})
+		kubeBentoDeployment, err = cli.Create(ctx, kubeBentoDeployment, metav1.CreateOptions{})
 		if err != nil {
 			err = errors.Wrapf(err, "failed to create kube bento deployment %s", kubeBentoDeployment.Name)
 			return
 		}
 	} else {
 		kubeBentoDeployment.SetResourceVersion(oldKubeBentoDeployment.GetResourceVersion())
-		_, err = cli.Update(ctx, kubeBentoDeployment, metav1.UpdateOptions{})
+		kubeBentoDeployment, err = cli.Update(ctx, kubeBentoDeployment, metav1.UpdateOptions{})
 		if err != nil {
 			err = errors.Wrapf(err, "failed to update kube bento deployment %s", kubeBentoDeployment.Name)
 			return

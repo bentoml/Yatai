@@ -243,6 +243,68 @@ func (c *deploymentController) doUpdate(ctx context.Context, schema schemasv1.Up
 		}
 	}
 
+	status_ := modelschemas.DeploymentRevisionStatusActive
+	deploymentRevisions, _, err := services.DeploymentRevisionService.List(ctx, services.ListDeploymentRevisionOption{
+		DeploymentId: utils.UintPtr(deployment.ID),
+		Status:       &status_,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "list deployment revisions")
+	}
+
+	if schema.DoNotDeploy {
+		for _, deploymentRevision := range deploymentRevisions {
+			deploymentTargets, _, err := services.DeploymentTargetService.List(ctx, services.ListDeploymentTargetOption{
+				DeploymentRevisionId: utils.UintPtr(deploymentRevision.ID),
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, "list deployment targets")
+			}
+			for _, deploymentTarget := range deploymentTargets {
+				for _, createDeploymentTargetSchema := range schema.Targets {
+					bento := bentosMapping[fmt.Sprintf("%s:%s", createDeploymentTargetSchema.BentoRepository, createDeploymentTargetSchema.Bento)]
+					if bento == nil {
+						return nil, errors.Errorf("can't find bento: %s:%s", createDeploymentTargetSchema.BentoRepository, createDeploymentTargetSchema.Bento)
+					}
+					if deploymentTarget.BentoId != bento.ID {
+						continue
+					}
+					if deploymentTarget.Config == nil {
+						deploymentTarget.Config = &modelschemas.DeploymentTargetConfig{}
+					}
+					if createDeploymentTargetSchema.Config == nil {
+						continue
+					}
+					if createDeploymentTargetSchema.Config.KubeResourceVersion == "" {
+						continue
+					}
+					if deploymentTarget.Config.KubeResourceVersion != "" && deploymentTarget.Config.KubeResourceVersion != createDeploymentTargetSchema.Config.KubeResourceVersion {
+						continue
+					}
+
+					config := deploymentTarget.Config
+					config.KubeResourceUid = createDeploymentTargetSchema.Config.KubeResourceUid
+					config.KubeResourceVersion = createDeploymentTargetSchema.Config.KubeResourceVersion
+
+					_, err = services.DeploymentTargetService.Update(ctx, deploymentTarget, services.UpdateDeploymentTargetOption{
+						Config: &config,
+					})
+					if err != nil {
+						return nil, errors.Wrap(err, "update deployment target")
+					}
+					return transformersv1.ToDeploymentSchema(ctx, deployment)
+				}
+			}
+		}
+	} else {
+		for _, createDeploymentTargetSchema := range schema.Targets {
+			if createDeploymentTargetSchema.Config != nil {
+				createDeploymentTargetSchema.Config.KubeResourceVersion = ""
+				createDeploymentTargetSchema.Config.KubeResourceUid = ""
+			}
+		}
+	}
+
 	deploymentRevision, err := services.DeploymentRevisionService.Create(ctx, services.CreateDeploymentRevisionOption{
 		CreatorId:    user.ID,
 		DeploymentId: deployment.ID,
@@ -274,9 +336,23 @@ func (c *deploymentController) doUpdate(ctx context.Context, schema schemasv1.Up
 		deploymentTargets = append(deploymentTargets, deploymentTarget)
 	}
 
-	err = services.DeploymentRevisionService.Deploy(ctx, deploymentRevision, deploymentTargets, false)
-	if err != nil {
-		return nil, errors.Wrap(err, "deploy deployment revision")
+	if !schema.DoNotDeploy {
+		err = services.DeploymentRevisionService.Deploy(ctx, deploymentRevision, deploymentTargets, false)
+		if err != nil {
+			return nil, errors.Wrap(err, "deploy deployment revision")
+		}
+	} else {
+		for _, oldDeploymentRevision := range deploymentRevisions {
+			if oldDeploymentRevision.ID == deploymentRevision.ID {
+				continue
+			}
+			_, err = services.DeploymentRevisionService.Update(ctx, oldDeploymentRevision, services.UpdateDeploymentRevisionOption{
+				Status: modelschemas.DeploymentRevisionStatusPtr(modelschemas.DeploymentRevisionStatusInactive),
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, "update deployment revision")
+			}
+		}
 	}
 
 	return transformersv1.ToDeploymentSchema(ctx, deployment)
