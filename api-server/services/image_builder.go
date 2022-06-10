@@ -12,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
+	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/utils"
@@ -116,9 +117,23 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 		return
 	}
 
+	privileged := false
+	if config.YataiConfig.DockerImageBuilder != nil && config.YataiConfig.DockerImageBuilder.Privileged {
+		privileged = true
+	}
+
 	securityContext := &apiv1.SecurityContext{
 		RunAsUser:  utils.Int64Ptr(1000),
 		RunAsGroup: utils.Int64Ptr(1000),
+	}
+
+	if privileged {
+		securityContext = nil
+	}
+
+	s3DownloaderCommand := "s3-downloader && rm /workspace/buildcontext/context.tar.gz"
+	if !privileged {
+		s3DownloaderCommand += " && chown -R 1000:1000 /workspace"
 	}
 
 	initContainers := []apiv1.Container{
@@ -128,7 +143,7 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 			Command: []string{
 				"sh",
 				"-c",
-				"s3-downloader && rm /workspace/buildcontext/context.tar.gz && chown -R 1000:1000 /workspace",
+				s3DownloaderCommand,
 			},
 			VolumeMounts: volumeMounts,
 			Env: []apiv1.EnvVar{
@@ -188,10 +203,13 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 			Name:  "DOCKER_CONFIG",
 			Value: "/kaniko/.docker/",
 		},
-		{
+	}
+
+	if !privileged {
+		envs = append(envs, apiv1.EnvVar{
 			Name:  "BUILDKITD_FLAGS",
 			Value: "--oci-worker-no-process-sandbox",
-		},
+		})
 	}
 
 	args := []string{
@@ -215,15 +233,36 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 	// 	args = append(args, "--insecure")
 	// }
 
+	annotations := make(map[string]string, 1)
+	if !privileged {
+		annotations["container.apparmor.security.beta.kubernetes.io/builder"] = "unconfined"
+	}
+
+	image := "quay.io/bentoml/buildkit:master-rootless"
+	if privileged {
+		image = "quay.io/bentoml/buildkit:master"
+	}
+
+	securityContext_ := &apiv1.SecurityContext{
+		SeccompProfile: &apiv1.SeccompProfile{
+			Type: apiv1.SeccompProfileTypeUnconfined,
+		},
+		RunAsUser:  utils.Int64Ptr(1000),
+		RunAsGroup: utils.Int64Ptr(1000),
+	}
+	if privileged {
+		securityContext_ = &apiv1.SecurityContext{
+			Privileged: utils.BoolPtr(true),
+		}
+	}
+
 	podsCli := kubeCli.CoreV1().Pods(kubeNamespace)
 
 	pod := &apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   kubeName,
-			Labels: opt.KubeLabels,
-			Annotations: map[string]string{
-				"container.apparmor.security.beta.kubernetes.io/builder": "unconfined",
-			},
+			Name:        kubeName,
+			Labels:      opt.KubeLabels,
+			Annotations: annotations,
 		},
 		Spec: apiv1.PodSpec{
 			RestartPolicy:  apiv1.RestartPolicyNever,
@@ -231,21 +270,16 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 			InitContainers: initContainers,
 			Containers: []apiv1.Container{
 				{
-					Name:         "builder",
-					Image:        "quay.io/bentoml/buildkit:master-rootless",
-					Command:      []string{"buildctl-daemonless.sh"},
-					Args:         args,
-					VolumeMounts: volumeMounts,
-					Env:          envs,
-					TTY:          true,
-					Stdin:        true,
-					SecurityContext: &apiv1.SecurityContext{
-						SeccompProfile: &apiv1.SeccompProfile{
-							Type: apiv1.SeccompProfileTypeUnconfined,
-						},
-						RunAsUser:  utils.Int64Ptr(1000),
-						RunAsGroup: utils.Int64Ptr(1000),
-					},
+					Name:            "builder",
+					Image:           image,
+					ImagePullPolicy: apiv1.PullAlways,
+					Command:         []string{"buildctl-daemonless.sh"},
+					Args:            args,
+					VolumeMounts:    volumeMounts,
+					Env:             envs,
+					TTY:             true,
+					Stdin:           true,
+					SecurityContext: securityContext_,
 				},
 			},
 		},
