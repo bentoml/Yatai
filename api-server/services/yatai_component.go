@@ -125,20 +125,20 @@ func getYataiHelmRelease(ctx context.Context, cluster *models.Cluster) (release_
 }
 
 func getYataiEndpoint(ctx context.Context, cluster *models.Cluster, inCluster bool) (endpoint string, err error) {
+	svcName := "yatai"
+	namespace := "yatai-system"
 	release_, err := getYataiHelmRelease(ctx, cluster)
 	if err != nil {
 		err = errors.Wrapf(err, "get yatai helm release")
 		return
 	}
-	if release_ == nil {
-		endpoint = fmt.Sprintf("http://localhost:%d", config.YataiConfig.Server.Port)
-		return
-	}
-	var svcName string
-	if strings.Contains(release_.Name, "yatai") {
-		svcName = release_.Name
-	} else {
-		svcName = fmt.Sprintf("%s-yatai", release_.Name)
+	if release_ != nil {
+		namespace = release_.Namespace
+		if strings.Contains(release_.Name, "yatai") {
+			svcName = release_.Name
+		} else {
+			svcName = fmt.Sprintf("%s-yatai", release_.Name)
+		}
 	}
 
 	cliset, _, err := ClusterService.GetKubeCliSet(ctx, cluster)
@@ -164,10 +164,10 @@ func getYataiEndpoint(ctx context.Context, cluster *models.Cluster, inCluster bo
 		}
 	}
 
-	svcCli := cliset.CoreV1().Services(release_.Namespace)
+	svcCli := cliset.CoreV1().Services(namespace)
 	svc, err := svcCli.Get(ctx, svcName, metav1.GetOptions{})
 	if err != nil {
-		err = errors.Wrapf(err, "get service %s", svcName)
+		err = errors.Wrapf(err, "get service %s from namespace %s", svcName, namespace)
 		return
 	}
 	for _, port := range svc.Spec.Ports {
