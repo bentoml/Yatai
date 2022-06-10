@@ -9,9 +9,9 @@
 | `spec.bento_tag` | `string` | The bento tag for this deployment. **required** |
 | `spec.ingress` | `object` | The ingress configuration. |
 | `spec.ingress.enabled` | `boolean` | Whether the ingress is enabled. |
-| `spec.env` | `object` | The environment variables. |
-| `spec.env.key` | `string` | The key of the environment variable. |
-| `spec.env.value` | `string` | The value of the environment variable. |
+| `spec.envs` | `array` | The environment variables. |
+| `spec.envs[].key` | `string` | The key of the environment variable. |
+| `spec.envs[].value` | `string` | The value of the environment variable. |
 | `spec.autoscaling` | `object` | The autoscaling configuration for the API server |
 | `spec.autoscaling.max_replicas` | `int32` |  The maximum number of replicas. |
 | `spec.autoscaling.min_replicas` | `int32` |  The minimum number of replicas. |
@@ -30,7 +30,9 @@
 | `spec.runners[].resources.limits.memory` | `string` |  The memory limit. |
 | `spec.runners[].resources.requests.cpu` | `string` |  The CPU request. |
 | `spec.runners[].resources.requests.memory` | `string` |  The memory request. |
-
+| `spec.runners[].envs` | `array` | The environment variables. |
+| `spec.runners[].envs[].key` | `string` | The key of the environment variable. |
+| `spec.runners[].envs[].value` | `string` | The value of the environment variable. |
 
 ### Example of a BentoDeployment
 
@@ -44,8 +46,9 @@ spec:
   bento_tag: iris:0.1.0
   ingress:
     enabled: true
-  env:
-    foo: bar
+  envs:
+  - key: foo
+    value: bar
   resources:
     limits:
         cpu: 2000m
