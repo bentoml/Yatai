@@ -221,32 +221,10 @@ func (s *deploymentTargetService) Update(ctx context.Context, b *models.Deployme
 func (s *deploymentTargetService) Deploy(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (deploymentTarget_ *models.DeploymentTarget, err error) {
 	deploymentTarget_ = deploymentTarget
 
-	kubeBentoDeployment, err := KubeBentoDeploymentService.Deploy(ctx, deploymentTarget, deployOption)
+	_, err = KubeBentoDeploymentService.Deploy(ctx, deploymentTarget, deployOption)
 	if err != nil {
 		err = errors.Wrap(err, "failed to deploy kube bento deployment")
 		return
-	}
-
-	configUpdated := false
-	config := deploymentTarget.Config
-	if config == nil {
-		configUpdated = true
-		config = &modelschemas.DeploymentTargetConfig{
-			KubeResourceUid: string(kubeBentoDeployment.UID),
-		}
-	} else if config.KubeResourceUid == "" {
-		configUpdated = true
-		config.KubeResourceUid = string(kubeBentoDeployment.UID)
-	}
-
-	if configUpdated {
-		deploymentTarget_, err = s.Update(ctx, deploymentTarget, UpdateDeploymentTargetOption{
-			Config: &config,
-		})
-		if err != nil {
-			err = errors.Wrap(err, "failed to update deployment target config")
-			return
-		}
 	}
 
 	return
