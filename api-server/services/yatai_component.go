@@ -299,11 +299,15 @@ func (s *yataiComponentService) Create(ctx context.Context, opt CreateYataiCompo
 				return
 			}
 		}
+		values_ := map[string]interface{}{}
+		if config.YataiConfig.S3 == nil {
+			values_["minio"] = map[string]interface{}{}
+		}
+		if config.YataiConfig.DockerRegistry == nil {
+			values_["dockerRegistry"] = map[string]interface{}{}
+		}
 		values = map[string]interface{}{
-			string(opt.Type): map[string]interface{}{
-				"minio":          map[string]interface{}{},
-				"dockerRegistry": map[string]interface{}{},
-			},
+			string(opt.Type): values_,
 			"yatai": map[string]interface{}{
 				"endpoint":    yataiEndpoint,
 				"apiToken":    apiToken.Token,
