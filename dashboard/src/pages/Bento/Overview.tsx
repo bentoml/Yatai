@@ -129,9 +129,6 @@ export default function BentoOverview() {
         return <Skeleton rows={3} animation />
     }
 
-    // eslint-disable-next-line no-console
-    console.log('fuck', modelsInfo.data)
-
     return (
         <div
             style={{
