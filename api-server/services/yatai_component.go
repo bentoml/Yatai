@@ -171,12 +171,17 @@ func getYataiEndpoint(ctx context.Context, cluster *models.Cluster, inCluster bo
 		return
 	}
 	for _, port := range svc.Spec.Ports {
-		if port.Name == "http" {
+		if port.TargetPort.String() == "http" {
 			endpoint = fmt.Sprintf("http://%s.%s:%d", svc.Name, svc.Namespace, port.Port)
 			return
 		}
 	}
-	err = errors.Errorf("no http port found in service %s", svcName)
+	if len(svc.Spec.Ports) > 0 {
+		port := svc.Spec.Ports[0]
+		endpoint = fmt.Sprintf("http://%s.%s:%d", svc.Name, svc.Namespace, port.Port)
+		return
+	}
+	err = errors.Errorf("no http port found in service %s/%s", namespace, svcName)
 	return
 }
 
