@@ -22,6 +22,7 @@ type YataiPostgresqlConfigYaml struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	Database string `yaml:"database"`
+	SSLMode  string `yaml:"sslmode"`
 }
 
 type YataiS3ConfigYaml struct {
@@ -84,6 +85,10 @@ func PopulateYataiConfig() error {
 	pgDatabase, ok := os.LookupEnv(consts.EnvPgDatabase)
 	if ok {
 		YataiConfig.Postgresql.Database = pgDatabase
+	}
+	pgSSLMode, ok := os.LookupEnv(consts.EnvPgSSLMode)
+	if ok {
+		YataiConfig.Postgresql.SSLMode = pgSSLMode
 	}
 	migrationDir, ok := os.LookupEnv(consts.EnvMigrationDir)
 	if ok {
