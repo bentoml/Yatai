@@ -80,17 +80,19 @@ func getPgHost() string {
 
 // nolint: unparam
 func getDBURI() (string, error) {
+	user := url.QueryEscape(config.YataiConfig.Postgresql.User)
 	password := url.QueryEscape(config.YataiConfig.Postgresql.Password)
+	database := url.QueryEscape(config.YataiConfig.Postgresql.Database)
 	sslMode := "disable"
 	if config.YataiConfig.Postgresql.SSLMode != "" {
 		sslMode = config.YataiConfig.Postgresql.SSLMode
 	}
 	uri := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		config.YataiConfig.Postgresql.User,
+		user,
 		password,
 		getPgHost(),
 		config.YataiConfig.Postgresql.Port,
-		config.YataiConfig.Postgresql.Database,
+		database,
 		sslMode)
 	return uri, nil
 }
