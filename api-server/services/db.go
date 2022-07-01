@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -79,9 +80,10 @@ func getPgHost() string {
 
 // nolint: unparam
 func getDBURI() (string, error) {
+	password := url.QueryEscape(config.YataiConfig.Postgresql.Password)
 	uri := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		config.YataiConfig.Postgresql.User,
-		config.YataiConfig.Postgresql.Password,
+		password,
 		getPgHost(),
 		config.YataiConfig.Postgresql.Port,
 		config.YataiConfig.Postgresql.Database)
