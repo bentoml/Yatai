@@ -6,6 +6,7 @@ const (
 	EnvPgUser     = "PG_USER"
 	EnvPgPassword = "PG_PASSWORD"
 	EnvPgDatabase = "PG_DATABASE"
+	EnvPgSSLMode  = "PG_SSLMODE"
 
 	EnvMigrationDir     = "MIGRATION_DIR"
 	EnvSessionSecretKey = "SESSION_SECRET_KEY"
