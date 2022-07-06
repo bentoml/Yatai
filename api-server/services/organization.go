@@ -416,6 +416,8 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		scheme = "https"
 	}
 
+	inClusterScheme := scheme
+
 	if endpointInCluster == "" {
 		svcCli := cliset.CoreV1().Services(consts.KubeNamespaceYataiComponents)
 		var svc *corev1.Service
@@ -430,6 +432,7 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 			endpointInCluster = endpoint
 		} else {
 			endpointInCluster = fmt.Sprintf("%s.%s", svc.Name, svc.Namespace)
+			inClusterScheme = "http"
 		}
 	}
 
@@ -437,7 +440,7 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		Endpoint:                    endpoint,
 		EndpointInCluster:           endpointInCluster,
 		EndpointWithScheme:          fmt.Sprintf("%s://%s", scheme, endpoint),
-		EndpointWithSchemeInCluster: fmt.Sprintf("%s://%s", scheme, endpointInCluster),
+		EndpointWithSchemeInCluster: fmt.Sprintf("%s://%s", inClusterScheme, endpointInCluster),
 		AccessKey:                   string(accessKey),
 		SecretKey:                   string(secretKey),
 		Secure:                      secure,
