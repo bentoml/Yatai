@@ -57,6 +57,7 @@ const (
 	KubeLabelHelmHeritage = "heritage"
 	KubeLabelHelmRelease  = "release"
 
+	KubeAnnotationEnableSSL         = "yatai.ai/enable-ssl"
 	KubeAnnotationBento             = "yatai.ai/bento"
 	KubeAnnotationYataiDeploymentId = "yatai.ai/deployment-id"
 	KubeAnnotationHelmReleaseName   = "meta.helm.sh/release-name"
