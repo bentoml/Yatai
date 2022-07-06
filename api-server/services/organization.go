@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 
@@ -394,24 +395,44 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		err = errors.Errorf("cannot found ingress rule for %s", ingName)
 		return
 	}
+
 	endpoint := ""
 	endpointInCluster := ""
 	for _, rule := range ing.Spec.Rules {
-		if strings.Contains(rule.Host, "yatai-infra-external") {
-			endpoint = rule.Host
-		}
 		if strings.Contains(rule.Host, "yatai-infra-cluster") {
 			endpointInCluster = rule.Host
+		} else {
+			endpoint = rule.Host
 		}
 	}
+
 	secure := endpointInCluster != ""
-	if endpointInCluster == "" {
-		endpointInCluster = fmt.Sprintf("minio.%s", consts.KubeNamespaceYataiComponents)
+	if enableSSL, ok := ing.Annotations[consts.KubeAnnotationEnableSSL]; ok {
+		secure = enableSSL == "true"
 	}
+
 	scheme := "http"
 	if secure {
 		scheme = "https"
 	}
+
+	if endpointInCluster == "" {
+		svcCli := cliset.CoreV1().Services(consts.KubeNamespaceYataiComponents)
+		var svc *corev1.Service
+		svcName := "minio"
+		svc, err = svcCli.Get(ctx, svcName, metav1.GetOptions{})
+		isNotFound := apierrors.IsNotFound(err)
+		if err != nil && !isNotFound {
+			err = errors.Wrapf(err, "cannot get service %s", svcName)
+			return
+		}
+		if isNotFound {
+			endpointInCluster = endpoint
+		} else {
+			endpointInCluster = fmt.Sprintf("%s.%s", svc.Name, svc.Namespace)
+		}
+	}
+
 	conf = &S3Config{
 		Endpoint:                    endpoint,
 		EndpointInCluster:           endpointInCluster,
@@ -503,17 +524,22 @@ func (s *organizationService) GetDockerRegistry(ctx context.Context, org *models
 		err = errors.Errorf("cannot found ingress rule for %s", ingName)
 		return
 	}
+
 	domain := ""
 	domainInCluster := ""
 	for _, rule := range ing.Spec.Rules {
-		if strings.Contains(rule.Host, "yatai-infra-external") {
-			domain = rule.Host
-		}
 		if strings.Contains(rule.Host, "yatai-infra-cluster") {
 			domainInCluster = rule.Host
+		} else {
+			domain = rule.Host
 		}
 	}
+
 	secure := domainInCluster != ""
+	if enableSSL, ok := ing.Annotations[consts.KubeAnnotationEnableSSL]; ok {
+		secure = enableSSL == "true"
+	}
+
 	if domainInCluster == "" {
 		svcCli := cliset.CoreV1().Services(consts.KubeNamespaceYataiComponents)
 		svcName := "yatai-docker-registry"
@@ -526,6 +552,7 @@ func (s *organizationService) GetDockerRegistry(ctx context.Context, org *models
 		svcIp := svc.Spec.ClusterIP
 		domainInCluster = fmt.Sprintf("%s:5000", svcIp)
 	}
+
 	registry = &modelschemas.DockerRegistrySchema{
 		BentosRepositoryURI:          fmt.Sprintf("%s/bentos", domain),
 		ModelsRepositoryURI:          fmt.Sprintf("%s/models", domain),
