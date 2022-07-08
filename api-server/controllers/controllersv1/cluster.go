@@ -89,7 +89,7 @@ func (c *clusterController) Create(ctx *gin.Context, schema *CreateClusterSchema
 		return nil, err
 	}
 
-	cluster, err := services.ClusterService.Create(ctx, services.CreateClusterOption{
+	cluster, createError := services.ClusterService.Create(ctx, services.CreateClusterOption{
 		CreatorId:      user.ID,
 		OrganizationId: org.ID,
 		Name:           schema.Name,
@@ -97,7 +97,27 @@ func (c *clusterController) Create(ctx *gin.Context, schema *CreateClusterSchema
 		KubeConfig:     schema.KubeConfig,
 		Config:         schema.Config,
 	})
-	if err != nil {
+
+	apiTokenName := ""
+	if user.ApiToken != nil {
+		apiTokenName = user.ApiToken.Name
+	}
+	createEventOpt := services.CreateEventOption{
+		CreatorId:      user.ID,
+		ApiTokenName:   apiTokenName,
+		OrganizationId: &org.ID,
+		ResourceType:   modelschemas.ResourceTypeCluster,
+		ResourceId:     cluster.ID,
+		Status:         modelschemas.EventStatusSuccess,
+		OperationName:  "created",
+	}
+	if createError != nil {
+		createEventOpt.Status = modelschemas.EventStatusFailed
+	}
+	if _, eventError := services.EventService.Create(ctx, createEventOpt); eventError != nil {
+		return nil, errors.Wrap(eventError, "create event")
+	}
+	if createError != nil {
 		return nil, errors.Wrap(err, "create cluster")
 	}
 	return transformersv1.ToClusterFullSchema(ctx, cluster)
@@ -116,12 +136,39 @@ func (c *clusterController) Update(ctx *gin.Context, schema *UpdateClusterSchema
 	if err = c.canUpdate(ctx, cluster); err != nil {
 		return nil, err
 	}
-	cluster, err = services.ClusterService.Update(ctx, cluster, services.UpdateClusterOption{
+	cluster, updateError := services.ClusterService.Update(ctx, cluster, services.UpdateClusterOption{
 		Description: schema.Description,
 		Config:      schema.Config,
 		KubeConfig:  schema.KubeConfig,
 	})
+	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
+		return nil, err
+	}
+	org, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+	apiTokenName := ""
+	if user.ApiToken != nil {
+		apiTokenName = user.ApiToken.Name
+	}
+	createEventOpt := services.CreateEventOption{
+		CreatorId:      user.ID,
+		ApiTokenName:   apiTokenName,
+		OrganizationId: &org.ID,
+		ResourceType:   modelschemas.ResourceTypeCluster,
+		ResourceId:     cluster.ID,
+		Status:         modelschemas.EventStatusSuccess,
+		OperationName:  "updated",
+	}
+	if updateError != nil {
+		createEventOpt.Status = modelschemas.EventStatusFailed
+	}
+	if _, eventError := services.EventService.Create(ctx, createEventOpt); eventError != nil {
+		return nil, errors.Wrap(eventError, "create event")
+	}
+	if updateError != nil {
 		return nil, errors.Wrap(err, "update cluster")
 	}
 	return transformersv1.ToClusterFullSchema(ctx, cluster)
