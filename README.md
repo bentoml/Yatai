@@ -100,20 +100,39 @@ Core features:
         * Click `Create` button and follow instructions on UI
 
     * Deploy directly via `kubectl` command:
-        * Define your Bento deployment in a YAML file:
+        * Define your Bento deployment in a `my_deployment.yaml` file:
           ```yaml
-          # my_deployment.yaml
-          apiVersion: serving.yatai.ai/v1alpha2
-          kind: BentoDeployment
-          metadata:
-            name: demo
-          spec:
-            bento_tag: iris_classifier:3oevmqfvnkvwvuqj
-            resources:
-              limits:
-                cpu: 1000m
-              requests:
-                cpu: 500m
+            apiVersion: serving.yatai.ai/v1alpha2
+            kind: BentoDeployment
+            metadata:
+              name: my-bento-deployment
+              namespace: my-namespace
+            spec:
+              bento_tag: iris_classifier:3oevmqfvnkvwvuqj
+              ingress:
+                enabled: true
+              resources:
+                limits:
+                    cpu: "500m"
+                    memory: "512m"
+                requests:
+                    cpu: "250m"
+                    memory: "128m"
+              autoscaling:
+                max_replicas: 10
+                min_replicas: 2
+              runners:
+              - name: iris_clf
+                resources:
+                  limits:
+                    cpu: "1000m"
+                    memory: "1Gi"
+                  requests:
+                    cpu: "500m"
+                    memory: "512m"
+                  autoscaling:
+                    max_replicas: 4
+                    min_replicas: 1
           ```
         * Apply the deployment to your minikube cluster
           ```bash
