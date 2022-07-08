@@ -139,7 +139,7 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 	if user.ApiToken != nil {
 		apiTokenName = user.ApiToken.Name
 	}
-	createEventOpt = services.CreateEventOption{
+	createEventOpt := services.CreateEventOption{
 		CreatorId:      user.ID,
 		ApiTokenName:   apiTokenName,
 		OrganizationId: &org.ID,
