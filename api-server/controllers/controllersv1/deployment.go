@@ -215,6 +215,7 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	user, err := services.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, err
+	}
 
 	apiTokenName := ""
 	if user.ApiToken != nil {
@@ -223,7 +224,7 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 
 	createEventOpt := services.CreateEventOption{
 		CreatorId:      user.ID,
-		ApiTokenName: apiTokenName,
+		ApiTokenName:   apiTokenName,
 		OrganizationId: &org.ID,
 		ResourceType:   modelschemas.ResourceTypeDeployment,
 		ResourceId:     deployment.ID,
@@ -438,7 +439,7 @@ func (c *deploymentController) Terminate(ctx *gin.Context, schema *GetDeployment
 	}
 	createEventOpt := services.CreateEventOption{
 		CreatorId:      user.ID,
-		ApiTokenName:  apiTokenName,
+		ApiTokenName:   apiTokenName,
 		OrganizationId: &org.ID,
 		ResourceType:   modelschemas.ResourceTypeDeployment,
 		ResourceId:     deployment.ID,
@@ -480,7 +481,7 @@ func (c *deploymentController) Delete(ctx *gin.Context, schema *GetDeploymentSch
 	}
 	createEventOpt := services.CreateEventOption{
 		CreatorId:      user.ID,
-		ApiTokenName: apiTokenName,
+		ApiTokenName:   apiTokenName,
 		OrganizationId: &org.ID,
 		ResourceType:   modelschemas.ResourceTypeDeployment,
 		ResourceId:     deployment.ID,
