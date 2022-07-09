@@ -382,7 +382,7 @@ Check installation status with Helm
 helm status yatai -n yatai-system
 ```
 
-Run `kubectl get sv`svc command to list out all of the services deployed by Yatai.
+Run the `kubectl get svc` command to list out all of the services deployed by Yatai.
 
 ```bash
 kubectl get svc --all-namespaces
