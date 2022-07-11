@@ -139,7 +139,7 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 	initContainers := []apiv1.Container{
 		{
 			Name:  "s3-downloader",
-			Image: "quay.io/bentoml/s3-downloader",
+			Image: "quay.io/bentoml/s3-downloader:0.0.1",
 			Command: []string{
 				"sh",
 				"-c",
@@ -187,7 +187,7 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 		dockerFilePath = "/yatai/Dockerfile"
 		initContainers = append(initContainers, apiv1.Container{
 			Name:  "init-dockerfile",
-			Image: "busybox",
+			Image: "quay.io/bentoml/busybox:1.33",
 			Command: []string{
 				"sh",
 				"-c",
