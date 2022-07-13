@@ -1,9 +1,9 @@
-# 🦄️ Yatai: An open platform for ML in production
+# 🦄️ Yatai: Model Deployment at Scale on Kubernetes
 
 [![actions_status](https://github.com/bentoml/yatai/workflows/CICD/badge.svg)](https://github.com/bentoml/yatai/actions)
 [![join_slack](https://badgen.net/badge/Join/BentoML%20Slack/cyan?icon=slack)](https://join.slack.bentoml.org)
 
-Yatai is open platform for ML in production, built for collaborative [BentoML](https://github.com/bentoml) workflow on Kubernetes. It helps ML teams to run model serving at scale, while simplifying model management and deployment across teams. 
+Yatai is an open source platform for deploying ML in production. It brings collaborative [BentoML](https://github.com/bentoml) workflows to Kubernetes, helps ML teams to run model serving at scale, while simplifying model management and deployment across teams. 
 
 👉 [Pop into our Slack community!](https://l.linklyhq.com/l/ktPW) We're happy to help with any issue you face or even just to meet you and hear what you're working on :)
 
