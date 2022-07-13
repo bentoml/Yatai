@@ -3,16 +3,18 @@
 [![actions_status](https://github.com/bentoml/yatai/workflows/CICD/badge.svg)](https://github.com/bentoml/yatai/actions)
 [![join_slack](https://badgen.net/badge/Join/BentoML%20Slack/cyan?icon=slack)](https://join.slack.bentoml.org)
 
-Yatai is open platform for ML in production, built for collaborative [BentoML](https://github.com/bentoml) workflow on Kubernetes. It helps ML teams to run model serving at scale, while standardizing model management and deployment across teams. 
-
-Yatai is made for Data Science teams. It accelerates the process of taking ML models from training stage to production, and makes it easy for Data Scientists to keep track of their model assets and understand model performance in production.
-
-Yatai also simplifies collabration between Data Science and engineering. It ensures a reliable and efficient model serving system, provides a flexible platform with a wide range of integrations to best fit your infrastruce needs, and is easily customizable for your CI/CD needs.
+Yatai is open platform for ML in production, built for collaborative [BentoML](https://github.com/bentoml) workflow on Kubernetes. It helps ML teams to run model serving at scale, while simplifying model management and deployment across teams. 
 
 👉 [Pop into our Slack community!](https://l.linklyhq.com/l/ktPW) We're happy to help with any issue you face or even just to meet you and hear what you're working on :)
 
+## Why Yatai?
 
-Core features:
+* Yatai is made for Data Science teams. It accelerates the process of taking ML models from training stage to production, and makes it easy for Data Scientists to keep track of their model assets and understand model performance in production.
+
+* Yatai also simplifies collabration between Data Science and engineering. It ensures a reliable and efficient model serving system, provides a flexible platform with a wide range of integrations to best fit your infrastruce needs, and is easily customizable for your CI/CD needs.
+
+
+## Core features:
 
 * **Bento Registry** - manage all your team's ML models via simple Web UI and API, and store ML assets on cloud blob storage
 * **Deployment Automation** - deploy Bentos as auto-scaling API endpoints on Kubernetes and easily rollout new versions
@@ -31,15 +33,6 @@ Core features:
   <img width="785" alt="yatai-deployment-details" src="https://user-images.githubusercontent.com/489344/151456024-151c275d-b33e-480e-be34-dadab5b01915.png">
   <img width="785" alt="yatai-activities" src="https://user-images.githubusercontent.com/489344/151456011-69c283bc-7382-4b30-bfbf-2686e2abdc0f.png">
 </details>
-
-
-
-## Why Yatai
-
-* Yatai is built upon [BentoML](https://github.com/bentoml/BentoML), the unified model serving framework that is high-performing and feature-rich
-* Yatai focus on the model serving and deployment part of your MLOps stack, works well with any ML training/monitoring platforms, such as AWS SageMaker or MLFlow
-* Yatai is Kubernetes native, integrates well with other cloud native tools in the K8s eco-system
-* Yatai is human-centric, provides easy-to-use Web UI and APIs for ML scientists, MLOps engineers, and project managers
 
 
 ## Getting Started
