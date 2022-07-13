@@ -1,17 +1,19 @@
-# 🦄️ Yatai: Model Deployment at Scale on Kubernetes
+# 🦄️ Yatai: Production-first ML platform on Kubernetes
 
 [![actions_status](https://github.com/bentoml/yatai/workflows/CICD/badge.svg)](https://github.com/bentoml/yatai/actions)
 [![join_slack](https://badgen.net/badge/Join/BentoML%20Slack/cyan?icon=slack)](https://join.slack.bentoml.org)
 
-Yatai is an open source platform for deploying ML in production. It brings collaborative [BentoML](https://github.com/bentoml) workflows to Kubernetes, helps ML teams to run model serving at scale, while simplifying model management and deployment across teams. 
+Yatai is a production-first platform for your machine learning needs. It brings collaborative [BentoML](https://github.com/bentoml) workflows to Kubernetes, helps ML teams to run model serving at scale, while simplifying model management and deployment across teams. 
 
 👉 [Pop into our Slack community!](https://l.linklyhq.com/l/ktPW) We're happy to help with any issue you face or even just to meet you and hear what you're working on :)
 
 ## Why Yatai?
 
-* Yatai is made for Data Science teams. It accelerates the process of taking ML models from training stage to production, and makes it easy for Data Scientists to keep track of their model assets and understand model performance in production.
+* Yatai accelerates the process of taking ML models from training stage to production and reduces the operational overhead of running a reliable model serving system.
 
-* Yatai also simplifies collabration between Data Science and engineering. It ensures a reliable and efficient model serving system, provides a flexible platform with a wide range of integrations to best fit your infrastruce needs, and is easily customizable for your CI/CD needs.
+* Yatai simplifies collaboration between Data Science and Engineering teams. It is designed to leverage the BentoML standard and streamline production ML workflows.
+
+* Yatai is a cloud native platform with a wide range of integrations to best fit your infrastructure needs, and it is easily customizable for your CI/CD needs.
 
 
 ## Core features:
