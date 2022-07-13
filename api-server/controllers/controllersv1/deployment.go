@@ -133,29 +133,8 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 		return nil, errors.Wrap(err, "create deployment")
 	}
 
-	deploymentSchema, updateError := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
-
-	apiTokenName := ""
-	if user.ApiToken != nil {
-		apiTokenName = user.ApiToken.Name
-	}
-	createEventOpt := services.CreateEventOption{
-		CreatorId:      user.ID,
-		ApiTokenName:   apiTokenName,
-		OrganizationId: &org.ID,
-		ResourceType:   modelschemas.ResourceTypeDeployment,
-		ResourceId:     deployment.ID,
-		Status:         modelschemas.EventStatusSuccess,
-		OperationName:  "created",
-	}
-	if updateError != nil {
-		createEventOpt.Status = modelschemas.EventStatusFailed
-	}
-	if _, eventErr := services.EventService.Create(ctx_, createEventOpt); eventErr != nil {
-		return nil, errors.Wrap(eventErr, "create event")
-	}
-
-	return deploymentSchema, updateError
+	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
+	return deploymentSchema, err
 }
 
 type UpdateDeploymentSchema struct {
@@ -210,34 +189,8 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 		return nil, err
 	}
 
-	deploymentSchema, updateError := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
-
-	user, err := services.GetCurrentUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	apiTokenName := ""
-	if user.ApiToken != nil {
-		apiTokenName = user.ApiToken.Name
-	}
-
-	createEventOpt := services.CreateEventOption{
-		CreatorId:      user.ID,
-		ApiTokenName:   apiTokenName,
-		OrganizationId: &org.ID,
-		ResourceType:   modelschemas.ResourceTypeDeployment,
-		ResourceId:     deployment.ID,
-		Status:         modelschemas.EventStatusSuccess,
-		OperationName:  "updated",
-	}
-	if updateError != nil {
-		createEventOpt.Status = modelschemas.EventStatusFailed
-	}
-	if _, eventErr := services.EventService.Create(ctx_, createEventOpt); eventErr != nil {
-		return nil, errors.Wrap(eventErr, "create event")
-	}
-	return deploymentSchema, updateError
+	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
+	return deploymentSchema, err
 }
 
 func (c *deploymentController) doUpdate(ctx context.Context, schema schemasv1.UpdateDeploymentSchema, org *models.Organization, deployment *models.Deployment) (*schemasv1.DeploymentSchema, error) {
@@ -424,36 +377,9 @@ func (c *deploymentController) Terminate(ctx *gin.Context, schema *GetDeployment
 	if err = c.canOperate(ctx, deployment); err != nil {
 		return nil, err
 	}
-	deployment, terminateError := services.DeploymentService.Terminate(ctx, deployment)
-	user, err := services.GetCurrentUser(ctx)
+	deployment, err = services.DeploymentService.Terminate(ctx, deployment)
 	if err != nil {
 		return nil, err
-	}
-	org, err := schema.GetOrganization(ctx)
-	if err != nil {
-		return nil, err
-	}
-	apiTokenName := ""
-	if user.ApiToken != nil {
-		apiTokenName = user.ApiToken.Name
-	}
-	createEventOpt := services.CreateEventOption{
-		CreatorId:      user.ID,
-		ApiTokenName:   apiTokenName,
-		OrganizationId: &org.ID,
-		ResourceType:   modelschemas.ResourceTypeDeployment,
-		ResourceId:     deployment.ID,
-		Status:         modelschemas.EventStatusSuccess,
-		OperationName:  "terminated",
-	}
-	if terminateError != nil {
-		createEventOpt.Status = modelschemas.EventStatusFailed
-	}
-	if _, eventErr := services.EventService.Create(ctx, createEventOpt); eventErr != nil {
-		return nil, errors.Wrap(eventErr, "create event")
-	}
-	if terminateError != nil {
-		return nil, terminateError
 	}
 	return transformersv1.ToDeploymentSchema(ctx, deployment)
 }
@@ -466,37 +392,9 @@ func (c *deploymentController) Delete(ctx *gin.Context, schema *GetDeploymentSch
 	if err = c.canOperate(ctx, deployment); err != nil {
 		return nil, err
 	}
-	deployment, deleteError := services.DeploymentService.Delete(ctx, deployment)
-	org, err := schema.GetOrganization(ctx)
+	deployment, err = services.DeploymentService.Delete(ctx, deployment)
 	if err != nil {
 		return nil, err
-	}
-	user, err := services.GetCurrentUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-	apiTokenName := ""
-	if user.ApiToken != nil {
-		apiTokenName = user.ApiToken.Name
-	}
-	createEventOpt := services.CreateEventOption{
-		CreatorId:      user.ID,
-		ApiTokenName:   apiTokenName,
-		OrganizationId: &org.ID,
-		ResourceType:   modelschemas.ResourceTypeDeployment,
-		ResourceId:     deployment.ID,
-		Status:         modelschemas.EventStatusSuccess,
-		OperationName:  "deleted",
-	}
-	if deleteError != nil {
-		createEventOpt.Status = modelschemas.EventStatusFailed
-	}
-	if _, eventErr := services.EventService.Create(ctx, createEventOpt); eventErr != nil {
-		return nil, errors.Wrap(eventErr, "create event")
-	}
-
-	if deleteError != nil {
-		return nil, deleteError
 	}
 	return transformersv1.ToDeploymentSchema(ctx, deployment)
 }
