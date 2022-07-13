@@ -9,9 +9,10 @@ import HighlightText from './HighlightText'
 export interface ICopyableTextProps {
     text: string
     highlight?: boolean
+    floatingCopyButton?: boolean
 }
 
-export default function CopyableText({ text, highlight = false }: ICopyableTextProps) {
+export default function CopyableText({ text, highlight = false, floatingCopyButton = false }: ICopyableTextProps) {
     const [copyNotification, setCopyNotification] = useState<string>()
 
     const [t] = useTranslation()
@@ -23,6 +24,7 @@ export default function CopyableText({ text, highlight = false }: ICopyableTextP
             style={{
                 display: 'inline-flex',
                 gap: 3,
+                width: floatingCopyButton ? '100%' : undefined,
             }}
             onClick={(e) => {
                 e.stopPropagation()
@@ -33,6 +35,7 @@ export default function CopyableText({ text, highlight = false }: ICopyableTextP
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 4,
+                    width: floatingCopyButton ? '100%' : undefined,
                 }}
             >
                 {!highlight ? (
@@ -71,7 +74,12 @@ export default function CopyableText({ text, highlight = false }: ICopyableTextP
                     </Notification>
                 )}
             </div>
-            <div>
+            <div
+                style={{
+                    position: floatingCopyButton ? 'absolute' : 'static',
+                    right: 0,
+                }}
+            >
                 <CopyToClipboard
                     text={text}
                     onCopy={() => {

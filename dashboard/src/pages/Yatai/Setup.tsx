@@ -1,8 +1,6 @@
 import React, { useCallback, useState } from 'react'
 import qs from 'qs'
 import { useStyletron } from 'baseui'
-import SyntaxHighlighter from 'react-syntax-highlighter'
-import { docco, dark } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import YataiLayout from '@/components/YataiLayout'
 import useTranslation from '@/hooks/useTranslation'
 import { createForm } from '@/components/Form'
@@ -17,6 +15,7 @@ import { Button } from 'baseui/button'
 import { setupSelfHost } from '@/services/setup'
 import { toaster } from 'baseui/toast'
 import { ISetupSelfHostSchema } from '@/schemas/setup'
+import CopyableText from '@/components/CopyableText'
 
 const { Form, FormItem } = createForm<ISetupSelfHostSchema>()
 
@@ -28,7 +27,6 @@ export default function Setup() {
     const history = useHistory()
     const location = useLocation()
     const [values, setValues] = useState<ISetupSelfHostSchema | undefined>(undefined)
-    const highlightTheme = currentThemeType === 'dark' ? dark : docco
     const handleFinish = useCallback(
         async (data: ISetupSelfHostSchema) => {
             setIsLoading(true)
@@ -53,8 +51,7 @@ export default function Setup() {
         setValues(newValues)
     }, [])
     const getTokenCommand =
-        'kubectl get pods --selector=app.kubernetes.io/name=yatai -n yatai-system ' +
-        '-o jsonpath=\'{.items[0].spec.containers[0].env[?(@.name=="YATAI_INITIALIZATION_TOKEN")].value}\''
+        "kubectl -n yatai-system get secret yatai -o jsonpath='{.data.initialization_token}' | base64 -d"
 
     return (
         <YataiLayout
@@ -161,22 +158,17 @@ export default function Setup() {
                         </div>
                         <div
                             style={{
-                                flexShrink: 0,
-                                display: 'flex',
-                                paddingBottom: 10,
-                                alignItems: 'center',
-                                gap: 10,
+                                position: 'relative',
                             }}
                         >
-                            <SyntaxHighlighter
-                                language='bash'
-                                style={highlightTheme}
-                                customStyle={{
-                                    margin: 0,
+                            <div
+                                style={{
+                                    overflowX: 'scroll',
+                                    paddingRight: 16,
                                 }}
                             >
-                                {getTokenCommand}
-                            </SyntaxHighlighter>
+                                <CopyableText highlight text={getTokenCommand} floatingCopyButton />
+                            </div>
                         </div>
                     </Card>
                 </div>
