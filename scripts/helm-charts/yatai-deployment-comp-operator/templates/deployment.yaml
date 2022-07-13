@@ -2,8 +2,8 @@ apiVersion: component.yatai.ai/v1alpha1
 kind: Deployment
 metadata:
   name: deployment
-{{- with .Values.deployment }}
 spec:
+{{- with .Values.deployment }}
   {{- toYaml . | nindent 2 }}
 {{- end }}
 
