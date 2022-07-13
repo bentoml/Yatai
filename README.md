@@ -1,18 +1,22 @@
-# 🦄️ Yatai: Model Deployment at scale on Kubernetes
+# 🦄️ Yatai: An open platform for ML in production
 
 [![actions_status](https://github.com/bentoml/yatai/workflows/CICD/badge.svg)](https://github.com/bentoml/yatai/actions)
 [![join_slack](https://badgen.net/badge/Join/BentoML%20Slack/cyan?icon=slack)](https://join.slack.bentoml.org)
 
-Yatai helps ML teams to deploy large scale model serving workloads on Kubernetes. It standardizes [BentoML](https://github.com/bentoml) deployment on Kubernetes, provides UI for managing all your ML models and deployments in one place, and enables advanced GitOps and CI/CD workflow.
+Yatai is open platform for ML in production, built for collaborative [BentoML](https://github.com/bentoml) workflow on Kubernetes. It helps ML teams to run model serving at scale, while standardizing model management and deployment across teams. 
+
+Yatai is made for Data Science teams. It accelerates the process of taking ML models from training stage to production, and makes it easy for Data Scientists to keep track of their model assets and understand model performance in production.
+
+Yatai also simplifies collabration between Data Science and engineering. It ensures a reliable and efficient model serving system, provides a flexible platform with a wide range of integrations to best fit your infrastruce needs, and is easily customizable for your CI/CD needs.
 
 👉 [Pop into our Slack community!](https://l.linklyhq.com/l/ktPW) We're happy to help with any issue you face or even just to meet you and hear what you're working on :)
 
 
 Core features:
 
+* **Bento Registry** - manage all your team's ML models via simple Web UI and API, and store ML assets on cloud blob storage
 * **Deployment Automation** - deploy Bentos as auto-scaling API endpoints on Kubernetes and easily rollout new versions
-* **Bento Registry** - manage all your team's Bentos and Models, backed by cloud blob storage (S3, MinIO)
-* **Observability** - monitoring dashboard helping users to identify model performance issues
+* **Observability** - monitoring dashboard and logging integration helping users to identify model performance issues
 * **CI/CD** - flexible APIs for integrating with your training and CI pipelines
 
 
