@@ -172,12 +172,17 @@ To install and operate Yatai in production, we generally recommend using a dedic
     helm repo add yatai https://bentoml.github.io/yatai-chart
 
     helm repo update
+    
+    ```
+    Create yatai-system namespace
+    ```bash
+    kubectl create namespace yatai-system
     ```
 
 2. Install Yatai helm chart
 
     ```bash
-    helm install yatai yatai/yatai -n yatai-system --create-namespace
+    helm install yatai yatai/yatai -n yatai-system
     ```
 
 3. Update Ingress to reference external ip
@@ -213,7 +218,7 @@ Prerequisites:
 - `jq`  command line tool. Follow the [official installation guide](https://stedolan.github.io/jq/download/) to install `jq`
 - AWS CLI with RDS permission. Follow the [official installation guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) to install AWS CLI
 
-1. Create an RDS db instance
+1. Create an RDS db instance and secret
 
     ```bash
     USER_PASSWORD=secret99
@@ -227,6 +232,10 @@ Prerequisites:
         --master-username $USER_NAME \
         --master-user-password $USER_PASSWORD \
         --allocated-storage 20
+    
+    kubectl create secret generic rds-password \
+        --from-literal=password=$USER_PASSWORD \
+        -n yatai-system
     ```
 
 2. Get the RDS instance’s endpoint and port information
@@ -246,9 +255,10 @@ Prerequisites:
     	--set externalPostgresql.host=$host \
     	--set externalPostgresql.port=$port \
     	--set externalPostgresql.user=$USER_NAME \
-    	--set externalPostgresql.password=$USER_PASSWORD \
+    	--set externalPostgresql.existingSecret=rds-password \
+        --set externalPostgresql.existingSecretPasswordKey=password \
     	--set externalPostgresql.database=$DB_NAME \
-    	-n yatai-system --create-namespace
+    	-n yatai-system
     ```
 
 
@@ -262,7 +272,7 @@ helm install yatai yatai/yatai \
 	--set config.docker_registry.username='MY_DOCKER_USER' \
 	--set config.docker_registry.password='MY_DOCKER_USER_PASSWORD' \
 	--set config.docker_registry.secure=true \
-	-n yatai-system --create-namespace
+	-n yatai-system
 ```
 
 #### AWS ECR
@@ -312,6 +322,7 @@ Prerequisites:
     ```bash
     kubectl create secret generic yatai-docker-registry-credentials \
         --from-literal=password=$PASSWORD
+        -n yatai-system
     ```
 
 3. Install Yatai chart
@@ -326,7 +337,7 @@ Prerequisites:
     	--set externalDockerRegistry.modelRepositoryName=$MODEL_REPO \
     	--set externalDockerRegistry.existingSecret=yatai-docker-registry-credentials \
     	--set externalDockerRegistry.existingSecretPasswordKey=password \
-    	-n yatai-system --create-namespace
+    	-n yatai-system
     ```
 
 
@@ -352,9 +363,12 @@ Prerequisites:
 2. Create Kubernetes secrets
 
     ```bash
+    AWS_ACCESS_KEY_ID=$(aws configure get default.aws_access_key_id)
+    AWS_SECRET_ACCESS_KEY=$(aws configure get default.aws_secret_access_key)
     kubectl create secret generic yatai-s3-credentials \
         --from-literal=accessKeyId=$AWS_ACCESS_KEY_ID \
         --from-literal=secretAccessKey=$AWS_SECRET_ACCESS_KEY
+        -n yatai-system
     ```
 
 3. Install Yatai chart
@@ -368,8 +382,8 @@ Prerequisites:
     	--set externalS3.secure=true \
         --set externalS3.existingSecret="yatai-s3-credentials" \
     	--set externalS3.existingSecretAccessKeyKey=accessKeyId \
-    	--set externalS3.existingSecretSecretKeykey=secretAccessKey \
-    	-n yatai-system --create-namespace
+    	--set externalS3.existingSecretSecretKeyKey=secretAccessKey \
+    	-n yatai-system
     ```
 
 
