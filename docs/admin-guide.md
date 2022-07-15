@@ -223,9 +223,11 @@ Prerequisites:
     ```bash
     USER_PASSWORD=secret99
     USER_NAME=admin
+    DB_NAME=yatai
     INSTANCE_IDENTIFIER=yatai-postgres
 
     aws rds create-db-instance \
+        --db-name $DB_NAME \
         --db-instance-identifier $INSTANCE_IDENTIFIER \
         --db-instance-class db.t3.micro \
         --engine postgres \
