@@ -239,6 +239,7 @@ Prerequisites:
         --from-literal=password=$USER_PASSWORD \
         -n yatai-system
     ```
+    Make sure your RDS db allows has a security group that will allow Yatai to access it.
 
 2. Get the RDS instance’s endpoint and port information
 
