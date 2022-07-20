@@ -358,7 +358,7 @@ Prerequisites:
     ```bash
     BUCKET_NAME=my_yatai_bucket
     MY_REGION=us-west-1
-    ENDPOINT='https://s3.amazonaws.com'
+    ENDPOINT='s3.amazonaws.com'
 
     aws s3 create-bucket --bucket $BUCKET_NAME --region MY_REGION
     ```
