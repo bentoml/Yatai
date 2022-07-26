@@ -11,8 +11,6 @@ import { MdEventNote } from 'react-icons/md'
 import React, { useState, useCallback } from 'react'
 import { StatefulTooltip } from 'baseui/tooltip'
 import { Button } from 'baseui/button'
-import { AiOutlineDashboard, AiOutlineQuestionCircle } from 'react-icons/ai'
-import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
 import {
     StyledTable,
     StyledTableBodyCell,
@@ -26,9 +24,7 @@ import Log from './Log'
 import { PodStatus } from './PodStatuses'
 import Terminal from './Terminal'
 import KubePodEvents from './KubePodEvents'
-import Toggle from './Toggle'
 import Label from './Label'
-import LokiLog from './LokiLog'
 import PodMonitor from './PodMonitor'
 
 export interface IPodListProps {
@@ -52,15 +48,10 @@ export default function PodList({
     const [desiredShowKubeEventsPod, setDesiredShowKubeEventsPod] = useState<IKubePodSchema>()
     const [desiredShowMonitorPod, setDesiredShowMonitorPod] = useState<IKubePodSchema>()
     const [desiredShowTerminalPod, setDesiredShowTerminalPod] = useState<IKubePodSchema>()
-    const [advancedLog, setAdvancedLog] = useState(false)
     let clusterName = cluster?.name
     if (clusterName_) {
         clusterName = clusterName_
     }
-    const { yataiComponentsInfo } = useFetchYataiComponents(clusterName)
-
-    const hasLogging = yataiComponentsInfo.data?.find((x) => x.type === 'logging') !== undefined
-    const hasMonitoring = yataiComponentsInfo.data?.find((x) => x.type === 'monitoring') !== undefined
 
     const apiServerPods = pods?.filter((pod) => !pod.runner_name) ?? []
 
@@ -133,53 +124,12 @@ export default function PodList({
                                     <GoTerminal />
                                 </Button>
                             </StatefulTooltip>
-                            {hasMonitoring ? (
-                                <StatefulTooltip content={t('monitor')} showArrow>
-                                    <Button
-                                        disabled={!hasMonitoring}
-                                        size='mini'
-                                        shape='circle'
-                                        onClick={() => setDesiredShowMonitorPod(pod)}
-                                    >
-                                        <AiOutlineDashboard />
-                                    </Button>
-                                </StatefulTooltip>
-                            ) : (
-                                <StatefulTooltip
-                                    content={t('please install yatai component first', [t('monitoring')])}
-                                    showArrow
-                                >
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 2,
-                                        }}
-                                    >
-                                        <Button
-                                            disabled
-                                            size='mini'
-                                            shape='circle'
-                                            onClick={() => setDesiredShowMonitorPod(pod)}
-                                        >
-                                            <AiOutlineDashboard />
-                                        </Button>
-                                        <div
-                                            style={{
-                                                cursor: 'pointer',
-                                            }}
-                                        >
-                                            <AiOutlineQuestionCircle size={10} />
-                                        </div>
-                                    </div>
-                                </StatefulTooltip>
-                            )}
                         </div>
                     </StyledTableBodyCell>
                 </StyledTableBodyRow>
             )
         },
-        [hasMonitoring, pods, t]
+        [pods, t]
     )
 
     return (
@@ -284,28 +234,20 @@ export default function PodList({
                         >
                             {t('advanced')}
                         </Label>
-                        <Toggle disabled={!hasLogging} value={advancedLog} onChange={setAdvancedLog} />
                     </div>
                 </ModalHeader>
                 <ModalBody>
-                    {organization &&
-                        clusterName &&
-                        desiredShowLogsPod &&
-                        (advancedLog ? (
-                            <div style={{ height: 'calc(80vh - 100px)' }}>
-                                <LokiLog podName={desiredShowLogsPod.name} namespace={desiredShowLogsPod.namespace} />
-                            </div>
-                        ) : (
-                            <Log
-                                open={desiredShowLogsPod !== undefined}
-                                clusterName={clusterName}
-                                deploymentName={deployment?.name}
-                                namespace={desiredShowLogsPod.namespace}
-                                podName={desiredShowLogsPod.name}
-                                width='auto'
-                                height='calc(80vh - 200px)'
-                            />
-                        ))}
+                    {organization && clusterName && desiredShowLogsPod && (
+                        <Log
+                            open={desiredShowLogsPod !== undefined}
+                            clusterName={clusterName}
+                            deploymentName={deployment?.name}
+                            namespace={desiredShowLogsPod.namespace}
+                            podName={desiredShowLogsPod.name}
+                            width='auto'
+                            height='calc(80vh - 200px)'
+                        />
+                    )}
                 </ModalBody>
             </Modal>
             <Modal
