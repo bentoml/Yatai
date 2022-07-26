@@ -597,11 +597,6 @@ func bentoRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Finish upload a bento"),
 	}, tonic.Handler(controllersv1.BentoController.FinishUpload, 200))
 
-	resourceGrp.PATCH("/recreate_image_builder_job", []fizz.OperationOption{
-		fizz.ID("Recreate bento image builder job"),
-		fizz.Summary("Recreate bento image builder job"),
-	}, tonic.Handler(controllersv1.BentoController.RecreateImageBuilderJob, 200))
-
 	resourceGrp.GET("/image_builder_pods", []fizz.OperationOption{
 		fizz.ID("List bento image builder pods"),
 		fizz.Summary("List bento image builder pods"),
@@ -771,11 +766,6 @@ func modelRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Finish upload a model"),
 		fizz.Summary("Finish upload a model"),
 	}, tonic.Handler(controllersv1.ModelController.FinishUpload, 200))
-
-	resourceGrp.PATCH("/recreate_image_builder_job", []fizz.OperationOption{
-		fizz.ID("Recreate model image builder job"),
-		fizz.Summary("Recreate model image builder job"),
-	}, tonic.Handler(controllersv1.ModelController.RecreateImageBuilderJob, 200))
 
 	resourceGrp.GET("/image_builder_pods", []fizz.OperationOption{
 		fizz.ID("List model image builder pods"),

@@ -197,7 +197,6 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 			err = errors.Wrapf(err, "get api token")
 			return nil, err
 		}
-		err = nil
 		if apiTokenIsNotFound {
 			scopes := modelschemas.ApiTokenScopes{
 				modelschemas.ApiTokenScopeApi,
