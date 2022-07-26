@@ -137,11 +137,6 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("Ws cluster pods"),
 	}, tonic.Handler(controllersv1.ClusterController.WsPods, 200))
 
-	wsRootGroup.GET("/clusters/:clusterName/yatai_components/:componentType/helm_chart_release_resources", []fizz.OperationOption{
-		fizz.ID("List yatai component helm chart release resources"),
-		fizz.Summary("List yatai component helm chart release resources"),
-	}, tonic.Handler(controllersv1.YataiComponentController.ListHelmChartReleaseResources, 200))
-
 	clusterGroup := engine.Group("/api/v1/clusters/:clusterName")
 	clusterGroup.Use(requireLogin)
 
@@ -157,11 +152,6 @@ func NewRouter() (*fizz.Fizz, error) {
 	apiRootGroup.Use(requireLogin)
 
 	// Setup routes.
-	apiRootGroup.GET("/yatai_component_operator_helm_charts", []fizz.OperationOption{
-		fizz.ID("List yatai component operator helm charts"),
-		fizz.Summary("List yatai component operator helm charts"),
-	}, tonic.Handler(controllersv1.YataiComponentController.ListOperatorHelmCharts, 200))
-
 	authRoutes(publicApiRootGroup)
 	userRoutes(apiRootGroup)
 	organizationRoutes(apiRootGroup)
@@ -490,33 +480,6 @@ func clusterRoutes(grp *fizz.RouterGroup) {
 	}, tonic.Handler(controllersv1.ClusterController.Create, 200))
 
 	deploymentRoutes(resourceGrp)
-	yataiComponentRoutes(resourceGrp)
-}
-
-func yataiComponentRoutes(grp *fizz.RouterGroup) {
-	grp = grp.Group("/yatai_components", "yatai components", "yatai components")
-
-	resourceGrp := grp.Group("/:componentType", "yatai component resource", "yatai component resource")
-
-	resourceGrp.GET("", []fizz.OperationOption{
-		fizz.ID("Get a yatai component"),
-		fizz.Summary("Get a yatai component"),
-	}, tonic.Handler(controllersv1.YataiComponentController.Get, 200))
-
-	resourceGrp.DELETE("", []fizz.OperationOption{
-		fizz.ID("Delete a yatai component"),
-		fizz.Summary("Delete a yatai component"),
-	}, tonic.Handler(controllersv1.YataiComponentController.Delete, 200))
-
-	grp.GET("", []fizz.OperationOption{
-		fizz.ID("List yatai components"),
-		fizz.Summary("List yatai components"),
-	}, tonic.Handler(controllersv1.YataiComponentController.List, 200))
-
-	grp.POST("", []fizz.OperationOption{
-		fizz.ID("Create yatai component"),
-		fizz.Summary("Create yatai component"),
-	}, tonic.Handler(controllersv1.YataiComponentController.Create, 200))
 }
 
 func bentoRepositoryRoutes(grp *fizz.RouterGroup) {

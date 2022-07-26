@@ -1,7 +1,6 @@
 package controllersv1
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,6 +12,7 @@ import (
 	"github.com/huandu/xstrings"
 
 	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
+
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
@@ -39,12 +39,6 @@ var (
 
 func getGrafanaCacheKey(orgName, clusterName string) string {
 	return fmt.Sprintf("grafana:%s:%s", orgName, clusterName)
-}
-
-func clearGrafanaCache(ctx context.Context, orgName, clusterName string) error {
-	key := getGrafanaCacheKey(orgName, clusterName)
-	_, err := services.CacheService.Delete(ctx, key)
-	return err
 }
 
 func (c *grafanaController) Proxy(ctx *gin.Context) {
