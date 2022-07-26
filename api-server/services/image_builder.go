@@ -95,6 +95,11 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 		return
 	}
 
+	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
+	if err != nil {
+		return
+	}
+
 	s3Config, err := OrganizationService.GetS3Config(ctx, org)
 	if err != nil {
 		return
@@ -221,7 +226,7 @@ func (s *imageBuilderService) CreateImageBuilderJob(ctx context.Context, opt Cre
 		"--local",
 		fmt.Sprintf("dockerfile=%s", filepath.Dir(dockerFilePath)),
 		"--output",
-		fmt.Sprintf("type=image,name=%s,push=true", imageName),
+		fmt.Sprintf("type=image,name=%s,push=true,registry.insecure=%v", imageName, !dockerRegistry.Secure),
 	}
 
 	// dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)

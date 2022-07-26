@@ -406,6 +406,10 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		}
 	}
 
+	if endpoint == "" {
+		endpoint = endpointInCluster
+	}
+
 	secure := endpointInCluster != ""
 	if enableSSL, ok := ing.Annotations[consts.KubeAnnotationEnableSSL]; ok {
 		secure = enableSSL == "true"
@@ -431,7 +435,7 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		if isNotFound {
 			endpointInCluster = endpoint
 		} else {
-			endpointInCluster = fmt.Sprintf("%s.%s", svc.Name, svc.Namespace)
+			endpointInCluster = fmt.Sprintf("%s.%s.svc.cluster.local", svc.Name, svc.Namespace)
 			inClusterScheme = "http"
 		}
 	}
@@ -508,60 +512,16 @@ func (s *organizationService) GetDockerRegistry(ctx context.Context, org *models
 		}
 		return
 	}
-	cluster, err := s.GetMajorCluster(ctx, org)
-	if err != nil {
-		return
-	}
-	cliset, _, err := ClusterService.GetKubeCliSet(ctx, cluster)
-	if err != nil {
-		return
-	}
-	ingCli := cliset.NetworkingV1().Ingresses(consts.KubeNamespaceYataiComponents)
-	ingName := "yatai-docker-registry"
-	ing, err := ingCli.Get(ctx, ingName, metav1.GetOptions{})
-	if err != nil {
-		err = errors.Wrapf(err, "cannot get ingress %s", ingName)
-		return
-	}
-	if len(ing.Spec.Rules) == 0 {
-		err = errors.Errorf("cannot found ingress rule for %s", ingName)
-		return
-	}
 
-	domain := ""
-	domainInCluster := ""
-	for _, rule := range ing.Spec.Rules {
-		if strings.Contains(rule.Host, "yatai-infra-cluster") {
-			domainInCluster = rule.Host
-		} else {
-			domain = rule.Host
-		}
-	}
-
-	secure := domainInCluster != ""
-	if enableSSL, ok := ing.Annotations[consts.KubeAnnotationEnableSSL]; ok {
-		secure = enableSSL == "true"
-	}
-
-	if domainInCluster == "" {
-		svcCli := cliset.CoreV1().Services(consts.KubeNamespaceYataiComponents)
-		svcName := "yatai-docker-registry"
-		var svc *corev1.Service
-		svc, err = svcCli.Get(ctx, svcName, metav1.GetOptions{})
-		if err != nil {
-			err = errors.Wrapf(err, "cannot get service %s", svcName)
-			return
-		}
-		svcIp := svc.Spec.ClusterIP
-		domainInCluster = fmt.Sprintf("%s:5000", svcIp)
-	}
+	domain := "127.0.0.1:5000"
+	domainInCluster := fmt.Sprintf("yatai-docker-registry.%s.svc.cluster.local:5000", consts.KubeNamespaceYataiComponents)
 
 	registry = &modelschemas.DockerRegistrySchema{
 		BentosRepositoryURI:          fmt.Sprintf("%s/bentos", domain),
 		ModelsRepositoryURI:          fmt.Sprintf("%s/models", domain),
 		BentosRepositoryURIInCluster: fmt.Sprintf("%s/bentos", domainInCluster),
 		ModelsRepositoryURIInCluster: fmt.Sprintf("%s/models", domainInCluster),
-		Secure:                       secure,
+		Secure:                       false,
 	}
 	return
 }

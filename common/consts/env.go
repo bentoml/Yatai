@@ -33,4 +33,6 @@ const (
 	EnvDockerRegistryModelRepositoryName = "DOCKER_REGISTRY_MODEL_REPOSITORY_NAME"
 
 	EnvDockerImageBuilderPrivileged = "DOCKER_IMAGE_BUILDER_PRIVILEGED"
+
+	EnvReadHeaderTimeout = "READ_HEADER_TIMEOUT"
 )

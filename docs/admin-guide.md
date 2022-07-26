@@ -367,6 +367,7 @@ See all available helm chart configuration options [here](./helm-configuration.m
 
 By default, the host IP address that the Yatai ingress is initialized with is 127.0.0.1. To access Yatai, you will need to update the host parameter in the ingress spec.
 
+
 This command will give you the external IP for the Yatai ingress:
 ```bash
 kubectl -n yatai-components get svc yatai-ingress-controller-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'

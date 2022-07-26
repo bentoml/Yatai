@@ -312,11 +312,17 @@ func (opt *ServeOption) Run(ctx context.Context, args []string) error {
 		return err
 	}
 
+	readHeaderTimeout := 10 * time.Second
+	if config.YataiConfig.Server.ReadHeaderTimeout > 0 {
+		readHeaderTimeout = time.Duration(config.YataiConfig.Server.ReadHeaderTimeout) * time.Second
+	}
+
 	logrus.Infof("listening on 0.0.0.0:%d", config.YataiConfig.Server.Port)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", config.YataiConfig.Server.Port),
-		Handler: router,
+		Addr:              fmt.Sprintf(":%d", config.YataiConfig.Server.Port),
+		Handler:           router,
+		ReadHeaderTimeout: readHeaderTimeout,
 	}
 	return srv.ListenAndServe()
 }
