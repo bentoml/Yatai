@@ -134,6 +134,47 @@ func (s *organizationService) GetByName(ctx context.Context, name string) (*mode
 	return &org, nil
 }
 
+func (s *organizationService) GetDefault(ctx context.Context) (*models.Organization, error) {
+	var defaultOrg *models.Organization
+	orgs, total, err := s.List(ctx, ListOrganizationOption{
+		BaseListOption: BaseListOption{
+			Start: utils.UintPtr(0),
+			Count: utils.UintPtr(1),
+		},
+		Order: utils.StringPtr("id ASC"),
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "list organizations")
+	}
+
+	adminUser, err := UserService.GetDefaultAdmin(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get default admin user")
+	}
+
+	if total == 0 {
+		defaultOrg, err = s.Create(ctx, CreateOrganizationOption{
+			CreatorId: adminUser.ID,
+			Name:      "default",
+		})
+		if err != nil {
+			return nil, errors.Wrapf(err, "create default organization")
+		}
+		_, err = OrganizationMemberService.Create(ctx, adminUser.ID, CreateOrganizationMemberOption{
+			CreatorId:      adminUser.ID,
+			UserId:         adminUser.ID,
+			OrganizationId: defaultOrg.ID,
+			Role:           modelschemas.MemberRoleAdmin,
+		})
+		if err != nil {
+			return nil, errors.Wrapf(err, "create default organization member")
+		}
+	} else {
+		defaultOrg = orgs[0]
+	}
+	return defaultOrg, nil
+}
+
 func (s *organizationService) List(ctx context.Context, opt ListOrganizationOption) ([]*models.Organization, uint, error) {
 	orgs := make([]*models.Organization, 0)
 	query := getBaseQuery(ctx, s)

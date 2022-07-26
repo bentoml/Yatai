@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	jujuerrors "github.com/juju/errors"
 	"github.com/pkg/errors"
+	"github.com/rs/xid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
@@ -219,6 +220,33 @@ func (*userService) GetByEmail(ctx context.Context, email string) (*models.User,
 		return nil, consts.ErrNotFound
 	}
 	return &user, nil
+}
+
+func (s *userService) GetDefaultAdmin(ctx context.Context) (*models.User, error) {
+	var adminUser *models.User
+	users, total, err := s.List(ctx, ListUserOption{
+		BaseListOption: BaseListOption{
+			Start: utils.UintPtr(0),
+			Count: utils.UintPtr(1),
+		},
+		Perm:  modelschemas.UserPermPtr(modelschemas.UserPermAdmin),
+		Order: utils.StringPtr("id ASC"),
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "list users")
+	}
+	if total == 0 {
+		adminUser, err = s.Create(ctx, CreateUserOption{
+			Name:     "admin",
+			Password: xid.New().String(),
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "create admin user")
+		}
+	} else {
+		adminUser = users[0]
+	}
+	return adminUser, nil
 }
 
 func (s *userService) List(ctx context.Context, opt ListUserOption) ([]*models.User, uint, error) {
