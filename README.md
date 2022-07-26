@@ -3,17 +3,17 @@
 [![actions_status](https://github.com/bentoml/yatai/workflows/CICD/badge.svg)](https://github.com/bentoml/yatai/actions)
 [![join_slack](https://badgen.net/badge/Join/BentoML%20Slack/cyan?icon=slack)](https://join.slack.bentoml.org)
 
-Yatai is a production-first platform for your machine learning needs. It brings collaborative [BentoML](https://github.com/bentoml) workflows to Kubernetes, helps ML teams to run model serving at scale, while simplifying model management and deployment across teams. 
+Yatai is a production-first platform for your machine learning needs. It brings collaborative [BentoML](https://github.com/bentoml) workflows to Kubernetes and helps ML teams to run model serving at scale while simplifying model management and deployment across teams.
 
 👉 [Pop into our Slack community!](https://l.linklyhq.com/l/ktPW) We're happy to help with any issue you face or even just to meet you and hear what you're working on :)
 
 ## Why Yatai?
 
-* Yatai accelerates the process of taking ML models from training stage to production and reduces the operational overhead of running a reliable model serving system.
+* Yatai accelerates the process of taking ML models from the training stage to production and reduces the operational overhead of running a reliable model serving system.
 
 * Yatai simplifies collaboration between Data Science and Engineering teams. It is designed to leverage the BentoML standard and streamline production ML workflows.
 
-* Yatai is a cloud native platform with a wide range of integrations to best fit your infrastructure needs, and it is easily customizable for your CI/CD needs.
+* Yatai is a cloud-native platform with a wide range of integrations to best fit your infrastructure needs, and it is easily customizable for your CI/CD needs.
 
 
 ## Core features:
@@ -41,10 +41,10 @@ Yatai is a production-first platform for your machine learning needs. It brings 
 
 <details>
   <summary>1. Install Yatai locally with Minikube</summary>
-    
+
    * Prerequisites:
-     * Install latest minikube: https://minikube.sigs.k8s.io/docs/start/
-     * Install latest Helm: https://helm.sh/docs/intro/install/
+     * Install the latest version of Minikube: https://minikube.sigs.k8s.io/docs/start/
+     * Install the latest version of Helm: https://helm.sh/docs/intro/install/
    * Start a minikube Kubernetes cluster: `minikube start --cpus 4 --memory 4096`
    * Install Yatai Helm Chart:
      ```bash
@@ -52,21 +52,21 @@ Yatai is a production-first platform for your machine learning needs. It brings 
      helm repo update
      helm install yatai yatai/yatai -n yatai-system --create-namespace
      ```
-   * Wait for installation to complete, this may take a few minutes to complete: `helm status yatai -n yatai-system`
+   * Wait for the installation to complete, this may take a few minutes to complete: `helm status yatai -n yatai-system`
    * Start minikube tunnel for accessing Yatai UI: `sudo minikube tunnel`
-   * Get initialization link for creating your admin account:
-      ```bash 
+   * Get the initialization link for creating your admin account:
+      ```bash
       export YATAI_INITIALIZATION_TOKEN=$(kubectl get secret yatai --namespace yatai-system -o jsonpath="{.data.initialization_token}" | base64 --decode)
       echo "Visit: http://yatai.127.0.0.1.sslip.io/setup?token=$YATAI_INITIALIZATION_TOKEN"
       ```
 </details>
 
-    
+
 <details>
-  <summary>2. Get an API token and login BentoML CLI</summary>
-    
+  <summary>2. Get an API token and login with BentoML CLI</summary>
+
   * Create a new API token in Yatai web UI: http://yatai.127.0.0.1.sslip.io/api_tokens
-  * Copy login command upon token creation and run as shell command, e.g.: 
+  * Copy login command upon token creation and run as a shell command, e.g.:
     ```bash
     bentoml yatai login --api-token {YOUR_TOKEN_GOES_HERE} --endpoint http://yatai.127.0.0.1.sslip.io
     ```
@@ -74,7 +74,7 @@ Yatai is a production-first platform for your machine learning needs. It brings 
 
 <details>
   <summary>3. Pushing Bento to Yatai</summary>
-    
+
   * Train a sample ML model and build a Bento using code from the [BentoML Quickstart Project](https://github.com/bentoml/gallery/tree/main/quickstart):
     ```bash
     git clone https://github.com/bentoml/gallery.git && cd ./gallery/quickstart
@@ -88,14 +88,14 @@ Yatai is a production-first platform for your machine learning needs. It brings 
     ```
 </details>
 
-    
+
 <details>
   <summary>4. Create your first deployment!</summary>
-    
+
   * A Bento Deployment can be created via Web UI or via kubectl command:
 
     * Deploy via Web UI
-        * Go to deployments page: http://yatai.127.0.0.1.sslip.io/deployments
+        * Go to the deployments page: http://yatai.127.0.0.1.sslip.io/deployments
         * Click `Create` button and follow instructions on UI
 
     * Deploy directly via `kubectl` command:
@@ -133,24 +133,24 @@ Yatai is a production-first platform for your machine learning needs. It brings 
                     max_replicas: 4
                     min_replicas: 1
           ```
-        * Apply the deployment to your minikube cluster
+        * Apply the deployment to your Minikube cluster
           ```bash
           kubectl apply -f my_deployment.yaml
           ```
 
   * Monitor deployment process on Web UI and test out endpoint when deployment created
     ```bash
-    curl \                                                                                                                                                      
+    curl \
         -X POST \
         -H "content-type: application/json" \
         --data "[[5, 4, 3, 2]]" \
         https://demo-default-yatai-127-0-0-1.apps.yatai.dev/classify
     ```
 </details>
-    
+
 <details>
   <summary>5. Moving to production</summary>
-    
+
   * See [Administrator's Guide](https://github.com/bentoml/yatai/blob/main/docs/admin-guide.md) for a comprehensive overview for deploying and configuring Yatai for production use.
 </details>
 
@@ -168,7 +168,7 @@ There are many ways to contribute to the project:
 
 - If you have any feedback on the project, share it with the community in [GitHub Discussions](https://github.com/bentoml/BentoML/discussions) under the [BentoML repo](https://github.com/bentoml/BentoML/).
 - Report issues you're facing and "Thumbs up" on issues and feature requests that are relevant to you.
-- Investigate bugs and reviewing other developer's pull requests.
+- Investigate bugs and review other developers' pull requests.
 - Contributing code or documentation to the project by submitting a GitHub pull request. See the [development guide](https://github.com/bentoml/yatai/blob/main/DEVELOPMENT.md).
 
 
