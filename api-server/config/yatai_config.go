@@ -10,10 +10,11 @@ import (
 )
 
 type YataiServerConfigYaml struct {
-	EnableHTTPS      bool   `yaml:"enable_https"`
-	Port             uint   `yaml:"port"`
-	SessionSecretKey string `yaml:"session_secret_key"`
-	MigrationDir     string `yaml:"migration_dir"`
+	EnableHTTPS       bool   `yaml:"enable_https"`
+	Port              uint   `yaml:"port"`
+	SessionSecretKey  string `yaml:"session_secret_key"`
+	MigrationDir      string `yaml:"migration_dir"`
+	ReadHeaderTimeout int    `yaml:"read_header_timeout"`
 }
 
 type YataiPostgresqlConfigYaml struct {
@@ -101,6 +102,16 @@ func PopulateYataiConfig() error {
 	if YataiConfig.Server.Port == 0 {
 		YataiConfig.Server.Port = 7777
 	}
+
+	readHeaderTimeout, ok := os.LookupEnv(consts.EnvReadHeaderTimeout)
+	if ok {
+		readHeaderTimeout_, err := strconv.Atoi(readHeaderTimeout)
+		if err != nil {
+			return errors.Wrapf(err, "convert %s from env to int", consts.EnvReadHeaderTimeout)
+		}
+		YataiConfig.Server.ReadHeaderTimeout = readHeaderTimeout_
+	}
+
 	initializationToken, ok := os.LookupEnv(consts.EnvInitializationToken)
 	if ok {
 		YataiConfig.InitializationToken = initializationToken
