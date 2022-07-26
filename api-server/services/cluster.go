@@ -33,6 +33,7 @@ import (
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/helmchart"
+	"github.com/bentoml/yatai/common/utils"
 )
 
 const (
@@ -270,6 +271,53 @@ func (s *clusterService) GetDeploymentKubeNamespace(c *models.Cluster) string {
 		return defaultKubeNamespace
 	}
 	return kubeNamespace
+}
+
+func (s *clusterService) GetDefault(ctx context.Context, orgId uint) (defaultCluster *models.Cluster, err error) {
+	clusters, total, err := s.List(ctx, ListClusterOption{
+		BaseListOption: BaseListOption{
+			Start: utils.UintPtr(0),
+			Count: utils.UintPtr(1),
+		},
+		OrganizationId: utils.UintPtr(orgId),
+		Order:          utils.StringPtr("id ASC"),
+	})
+	if err != nil {
+		err = errors.Wrapf(err, "list clusters")
+		return
+	}
+
+	adminUser, err := UserService.GetDefaultAdmin(ctx)
+	if err != nil {
+		err = errors.Wrapf(err, "get default admin user")
+		return
+	}
+
+	if total == 0 {
+		defaultCluster, err = s.Create(ctx, CreateClusterOption{
+			CreatorId:      adminUser.ID,
+			OrganizationId: orgId,
+			Name:           "default",
+		})
+		if err != nil {
+			err = errors.Wrapf(err, "create default cluster")
+			return
+		}
+		_, err = ClusterMemberService.Create(ctx, adminUser.ID, CreateClusterMemberOption{
+			CreatorId: adminUser.ID,
+			UserId:    adminUser.ID,
+			ClusterId: defaultCluster.ID,
+			Role:      modelschemas.MemberRoleAdmin,
+		})
+		if err != nil {
+			err = errors.Wrapf(err, "create default cluster member")
+			return
+		}
+	} else {
+		defaultCluster = clusters[0]
+	}
+
+	return
 }
 
 func (s *clusterService) GetKubeCliSet(ctx context.Context, c *models.Cluster) (clientSet *kubernetes.Clientset, restConfig *rest.Config, err error) {
