@@ -357,74 +357,6 @@ func (s *modelService) Update(ctx context.Context, model *models.Model, opt Upda
 		return model, nil
 	}
 
-	return s.CreateImageBuilderJob(ctx, model)
-}
-
-func (s *modelService) CreateImageBuilderJob(ctx context.Context, model *models.Model) (*models.Model, error) {
-	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
-	if err != nil {
-		return nil, err
-	}
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
-	if err != nil {
-		return nil, err
-	}
-
-	majorCluster, err := OrganizationService.GetMajorCluster(ctx, org)
-	if err != nil {
-		return nil, err
-	}
-
-	dockerFileContent := `
-FROM scratch
-
-COPY . /model
-`
-
-	kubeName, err := s.GetImageBuilderKubeName(ctx, model)
-	if err != nil {
-		return nil, err
-	}
-
-	s3ObjectName, err := s.getS3ObjectName(ctx, model)
-	if err != nil {
-		return nil, err
-	}
-
-	imageName, err := s.GetImageName(ctx, model, true)
-	if err != nil {
-		return nil, err
-	}
-
-	s3BucketName, err := s.GetS3BucketName(ctx, model)
-	if err != nil {
-		return nil, err
-	}
-
-	kubeLabels, err := s.GetImageBuilderKubeLabels(ctx, model)
-	if err != nil {
-		return nil, err
-	}
-
-	err = ImageBuilderService.CreateImageBuilderJob(ctx, CreateImageBuilderJobOption{
-		KubeName:          kubeName,
-		ImageName:         imageName,
-		S3ObjectName:      s3ObjectName,
-		S3BucketName:      s3BucketName,
-		Cluster:           majorCluster,
-		DockerFileContent: &dockerFileContent,
-		KubeLabels:        kubeLabels,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	go func() {
-		_, _ = s.SyncImageBuilderStatus(ctx, model)
-	}()
-
-	model.ImageBuildStatus = modelschemas.ImageBuildStatusBuilding
-
 	return model, nil
 }
 
@@ -598,15 +530,6 @@ func (s *modelService) GetImageBuilderKubeLabels(ctx context.Context, model *mod
 	}, nil
 }
 
-func (s *modelService) CalculateImageBuildStatus(ctx context.Context, model *models.Model) (modelschemas.ImageBuildStatus, error) {
-	defaultStatus := modelschemas.ImageBuildStatusPending
-	pods, err := s.ListImageBuilderPods(ctx, model)
-	if err != nil {
-		return defaultStatus, err
-	}
-	return ImageBuilderService.CalculateImageBuildStatus(pods)
-}
-
 func (s *modelService) ListImageBuildStatusUnsynced(ctx context.Context) ([]*models.Model, error) {
 	q := getBaseQuery(ctx, s)
 	now := time.Now()
@@ -615,45 +538,6 @@ func (s *modelService) ListImageBuildStatusUnsynced(ctx context.Context) ([]*mod
 	models_ := make([]*models.Model, 0)
 	err := q.Order("id DESC").Find(&models_).Error
 	return models_, err
-}
-
-func (s *modelService) SyncImageBuilderStatus(ctx context.Context, model *models.Model) (modelschemas.ImageBuildStatus, error) {
-	now := time.Now()
-	nowPtr := &now
-	_, err := s.Update(ctx, model, UpdateModelOption{
-		ImageBuildStatusSyncingAt: &nowPtr,
-	})
-	if err != nil {
-		return model.ImageBuildStatus, err
-	}
-	currentStatus, err := s.CalculateImageBuildStatus(ctx, model)
-	if err != nil {
-		return model.ImageBuildStatus, err
-	}
-	now = time.Now()
-	nowPtr = &now
-	_, err = s.Update(ctx, model, UpdateModelOption{
-		ImageBuildStatus:          &currentStatus,
-		ImageBuildStatusUpdatedAt: &nowPtr,
-	})
-	if err != nil {
-		return currentStatus, err
-	}
-	if currentStatus == modelschemas.ImageBuildStatusSuccess {
-		bentos, _, err := BentoService.List(ctx, ListBentoOption{
-			ModelIds: &[]uint{model.ID},
-		})
-		if err != nil {
-			return currentStatus, err
-		}
-		for _, bento := range bentos {
-			bento := bento
-			go func() {
-				_, _ = BentoService.SyncImageBuilderStatus(ctx, bento)
-			}()
-		}
-	}
-	return currentStatus, nil
 }
 
 type IModelAssociated interface {

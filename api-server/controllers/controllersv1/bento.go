@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/huandu/xstrings"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
@@ -242,34 +241,6 @@ func (c *bentoController) FinishUpload(ctx *gin.Context, schema *FinishUploadBen
 		if _, err = services.EventService.Create(ctx, createEventOpt); err != nil {
 			return nil, errors.Wrap(err, "create event")
 		}
-	}
-	return transformersv1.ToBentoSchema(ctx, bento)
-}
-
-func (c *bentoController) RecreateImageBuilderJob(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
-	bento, err := schema.GetBento(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err = c.canUpdate(ctx, bento); err != nil {
-		return nil, err
-	}
-	models_, err := services.BentoService.ListModelsFromManifests(ctx, bento)
-	if err != nil {
-		return nil, err
-	}
-	for _, model := range models_ {
-		model := model
-		go func() {
-			_, err := services.ModelService.CreateImageBuilderJob(ctx, model)
-			if err != nil {
-				logrus.Errorf("failed to create image builder job for model %s: %v", model.Version, err)
-			}
-		}()
-	}
-	bento, err = services.BentoService.CreateImageBuilderJob(ctx, bento)
-	if err != nil {
-		return nil, err
 	}
 	return transformersv1.ToBentoSchema(ctx, bento)
 }

@@ -52,6 +52,7 @@ more_set_headers "X-Powered-By: Yatai";
 more_set_headers "X-Yatai-Bento: %s";
 `, string(tag))
 	if deploymentTarget.Type == modelschemas.DeploymentTargetTypeCanary && deploymentTarget.CanaryRules != nil {
+		// nolint: goconst
 		annotations["nginx.ingress.kubernetes.io/canary"] = "true"
 		for _, rule := range *deploymentTarget.CanaryRules {
 			// nolint: gocritic
