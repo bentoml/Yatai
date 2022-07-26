@@ -2,24 +2,37 @@
 
 This guide helps you to install and configure Yatai on a Kubernetes Cluster for your machine
 learning team, using the official [Yatai Helm chart](https://github.com/bentoml/yatai-chart). Note
-that Helm chart is the official supported method of installing Yatai.
-
-By default, Yatai helm chart will install Yatai and its dependency services in the target Kubernetes cluster. Those dependency services include PostgreSQL, Minio, Docker registry, and Nginx Ingress Controller. Users can configure those services with existing infrastructure or cloud-based services via the Helm chart configuration yaml file.
+that helm chart is the officially supported method of installing Yatai.
 
 
 - [System Overview](#system-overview)
-- [Local Minikube Installation](#local-minikube-installation)
-- [Production Installation](#production-installation)
-  - Custom PostgreSQL database
+- [Install for prototyping](#for-prototyping)
+- [Install for production](#for-production)
+  - Configure Database dependency
     - [AWS RDS](#aws-rds)
-  - Custom Docker Registry
-    - [Docker hub](#docker-hub)
-    - [AWR ECR](#aws-ecr)
-  - Custom Blob Storage
+    - [GCP Cloud SQL](#gcp-cloud-sql)
+    - [Azure SQL](#azure-sql)
+  - Configure blob storage dependency
     - [AWS S3](#aws-s3)
-  - [Verify Yatai installation](#verify-yatai-installation)
+    - [GCP Cloud Storage](#gcp-cloud-storage)
+    - [Azure Storage](#azure-storage)
+  - Configure image registry dependency
+    - [AWR ECR](#aws-ecr)
+    - [Docker hub](#dockerhub)
+    - [GCP Container Registry](#gcp-container-registry)
+    - [Azure Container Registry](#azure-container-registry)
+  - [Verify installation](#verify-installation)
 
 ## System Overview
+
+### Dependencies
+
+1. Database dependency
+    Yatai depends on a PostgreSQL database to store metadata, deployment configuration, users and other information.
+2. Blob storage dependency
+    Yatai uses a blob storage to store models and bentos.
+3. Image registry dependency
+    Yatai builds and store bento images in an image registry for deployment.
 
 ### Namespaces:
 
@@ -27,7 +40,7 @@ When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-ope
 
 * **Yatai-system:**
 
-    All the services that run the yatai platform are group under `yatai-system` namespace.  These services include Yatai application and the default PostgreSQL database.
+    All the services that run the Yatai platform are grouped under `yatai-system`` namespace.  These services include the Yatai application and the default PostgreSQL database.
 
 * **Yatai-components:**
 
@@ -37,59 +50,32 @@ When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-ope
 
     * *Deployment*: Nginx Ingress Controller, Minio, Docker Registry
 
-    * *Logging*: Loki, Grafana
-
-    * *Monitoring*: Prometheus, Grafana
-
 
 * **Yatai-operators:**
 
-    Yatai uses controllers to manage the lifecycle of Yatai component services. The controllers deployed in the `yatai-operators` namespace.
+    Yatai uses controllers to manage the lifecycle of Yatai component services. The controllers are deployed in the `yatai-operators` namespace.
 
 * **Yatai-builders:**
 
-    All the automated jobs such as build docker images for models and bentos are executed in the `yatai-builder` namespace.
+    All the automated jobs such as building docker images for models and bentos are executed in the `yatai-builder` namespace.
 
 * **Yatai:**
 
-    By default Yatai server will create a `yatai` namespace on the Kuberentes cluster for managing all the user created bento deployments. User can configure this namespace value in the Yatai web UI.
+    By default Yatai server will create a `yatai` namespace on the Kubernetes cluster for managing all the user-created bento deployments. Users can configure this namespace value in the Yatai web UI.
 
 
-### Default dependency services installed:
+## Installation
 
-* *PostgreSQL*:
-
-    Yatai uses Postgres database to store model and bento’s metadata , deployment configuration, user activities and other information. Users can use their existing database or cloud provider’s services such as AWS RDS.  By default, Yatai will create a Postgres service in the Kubernetes cluster. For production usage, we recommend users to setup external Postgres database from cloud provider such as AWS RDS. This setup provides reliability, high performance and reliability, while persist the data, in case the Kuberentes cluster goes down.
-
-* *Minio datastore*:
-
-    Yatai uses the datastore as persistence layer for storing bentos. By default Yatai will start a Minio service. Users can configure to use cloud-based object store such as AWS S3. Cloud based object stores provide scalability, high performance and reliability at a desirable cost.  They are recommended for production usage.
-
-* *Docker registry*:
-
-    Yatai uses an internal docker registry to provide docker images access for deployments. For users who want to access the built images for other system, they can configure to use DockerHub or other cloud based docker registry services.
-
-* *Nginx Ingress controller*:
-
-    Yatai uses Nginx ingress controller to facilitates access to deployments and canary deployments.
-
-
-See all available helm chart configuration options [here](./helm-configuration.md)
-
-## Local Minikube Installation
-
-Minikube is recommended for development and testing purpose only.
+### For prototyping
 
 **prerequisites**
 - Minikube version 1.20 or newer. Please follow the [official installation guide](https://minikube.sigs.k8s.io/docs/start/) to install Minikube.
 - Recommend system with 4 CPUs and 4GB of RAM or more
 
-
 **Step 1. Start a new minikube cluster**
 
-If you have an existing minikube cluster, make sure to delete it first: `minikube delete`
-
 ```bash
+minikube delete
 # Start a new minikube cluster
 minikube start --cpus 4 --memory 4096
 ```
@@ -103,14 +89,16 @@ helm repo update
 
 **Step 3. Install Yatai chart**
 
-This will create a new namespace `yatai-system` in the Minikube cluster, install Yatai and all its dependency services.
+The following command will create an `yatai-system` namespace in the Minikube cluster, and install Yatai and all its dependency services.
+
+```bash
 
 ```bash
 helm install yatai yatai/yatai -n yatai-system --create-namespace
 ```
 
 
-### Verify installation
+**Verify installation**
 
 Check installation status:
 
@@ -121,7 +109,7 @@ helm status yatai -n yatai-system
 Check Yatai containers status in the Minikube cluster:
 
 ```bash
-# If kubectl is installed, run the following command:
+# Run the following command:
 kubectl get pod --all-namespaces
 
 # If kubectl is not installed, run the following command:
@@ -144,85 +132,45 @@ Use minikube tunnel to expose Yatai Web UI locally::
 sudo minikube tunnel
 ```
 
-Once the minikube tunnel established, you can access the Yatai Web UI: http://localhost:8001/setup?token=<token>. You can find the URL link and the token again using `helm get notes yatai -n yatai-system` command.
-
-You can also retrieve the token using `kubectl` command:
-
-```bash
-kubectl get pods --selector=app.kubernetes.io/name=yatai -n yatai-system \
-    -o jsonpath='{.items[0].spec.containers[0].env[?(@.name=="YATAI_INITIALIZATION_TOKEN")].value}'
-```
+Once established minkube tunnel, you can access the Yatai Web UI: http://localhost:8001/setup?token=<token>. You can find the URL link and the token again using `helm get notes yatai -n yatai-system` command.
 
 
+### For production
 
-## Production Installation
-
-To install and operate Yatai in production, we generally recommend using a dedicated database service(e.g. AWS RDS) and a managed blob storage (AWS S3 or managed MinIO cluster). The following demonstrates how to customize a Yatai deployment for production use.
-
-**Prerequisite**
-
-- Kubernetes cluster with version 1.20 or newer
-- LoadBalancer (If you are using AWS EKS, Google GKS, your cluster is likely already configured with a working LoadBalancer. If you are using Kubernetes in a private data center, contact your system admin)
-
-**Install Yatai with default configuration.**
-
-1. Download and update Helm repo
-
-    ```bash
-    helm repo add yatai https://bentoml.github.io/yatai-chart
-
-    helm repo update
-    
-    ```
-    Create yatai-system namespace
-    ```bash
-    kubectl create namespace yatai-system
-    ```
-
-2. Install Yatai helm chart
-
-    ```bash
-    helm install yatai yatai/yatai -n yatai-system
-    ```
-
-3. Update Ingress to reference external ip
-
-    By default, the host ip address that the Yatai ingress is initialized with is 127.0.0.1. In order to access yatai, you will need to update the host parameter in the ingress spec.
-
-    This command will give you the external ip for the Yatai ingress:
-    ```bash
-    kubectl -n yatai-components get svc yatai-ingress-controller-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
-    ```
-
-    If the previous command does not return anything, use the following command:
-    ```bash
-    dig +short `kubectl -n yatai-components get svc yatai-ingress-controller-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'` | head -n 1
-    ```
-    
-    Then replace "127.0.0.1" in the generated yatai domain name at this path with the external ip:
-    ```bash
-    .spec.rules[0].host
-    ```
-    
-    Using this command:
-    ```bash
-    kubectl -n yatai-system edit ing yatai
-    ```
-
-### Custom PostgreSQL database
-
-#### AWS RDS
+In production environment, Yatai recommands to use a Kubernetes cluster that is managed by a cloud provider. Uses external services for storage, database, and other services in case the Kubernetes cluster went down.
 
 Prerequisites:
 
-- `jq`  command line tool. Follow the [official installation guide](https://stedolan.github.io/jq/download/) to install `jq`
-- AWS CLI with RDS permission. Follow the [official installation guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) to install AWS CLI
 
-1. Create an RDS db instance and secret
+- Kubernetes cluster with version 1.20 or newer
+- **LoadBalancer** (If you are using AWS EKS, or Google GKS, your cluster is likely already configured with a working LoadBalancer. If you are using Kubernetes in a private data center, contact your system admin)
+- Helm installed and configured
+- `jq` command line tool. Follow the [official installation guide](https://stedolan.github.io/jq/download/) to install `jq`
+- `yatai-system` namespace. Run the following command to create the namespace:
+    ```
+    kubectl create namespace yatai-system
+    ```
+- Cloud provider CLI tools installed and configured.
+    - For AWS:
+       -  Download the AWS CLI and follow the [installation guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) to install the AWS CLI.
+        - Run: `aws configure` to configure the AWS CLI.
+    - For Google cloud
+        - Download the Google Cloud SDK and follow the [installation guide](https://cloud.google.com/sdk/docs/downloads-intall) to install the Google Cloud SDK.
+        - Run: `gcloud init` to configure the Google Cloud SDK.
+    - For Azure cloud
+        - Download the Azure CLI and follow the [installation guide](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) to install the Azure CLI.
+        - Run: `az login` to login to Azure.
+
+
+### Configure database dependency
+
+#### AWS RDS:
+
+1. Create a RDS DB instance
 
     ```bash
-    USER_PASSWORD=secret99
-    USER_NAME=admin
+    DB_USER_PASSWORD=secret999
+    DB_USER_NAME=admin
     DB_NAME=yatai
     INSTANCE_IDENTIFIER=yatai-postgres
 
@@ -231,63 +179,76 @@ Prerequisites:
         --db-instance-identifier $INSTANCE_IDENTIFIER \
         --db-instance-class db.t3.micro \
         --engine postgres \
-        --master-username $USER_NAME \
-        --master-user-password $USER_PASSWORD \
+        --master-username $DB_USER_NAME \
+        --master-user-password $DB_USER_PASSWORD \
         --allocated-storage 20
-    
+    ```
+
+2. Create a secret on the Kubernetes cluster
+
+    ```bash
     kubectl create secret generic rds-password \
-        --from-literal=password=$USER_PASSWORD \
+        --from-literal=password=$DB_USER_PASSWORD
         -n yatai-system
     ```
-    Make sure your RDS db allows has a security group that will allow Yatai to access it.
 
-2. Get the RDS instance’s endpoint and port information
+3. Get the RDS instance's endpoint and port information
 
     ```bash
-    read ENDPOINT PORT < <(echo $(aws rds describe-db-instances --db-instance-identifier $INSTANCE_IDENTIFIER | jq '.DBInstances[0].Endpoint.Address, .DBInstances[0].Endpoint.Port'))
+    read DB_ENDPOINT DB_PORT < <(echo $(aws rds describe-db-instances --db-instance-identifier $INSTANCE_IDENTIFIER | jq '.DBInstances[0].Endpoint.Address, .DBInstances[0].Endpoint.Port'))
     ```
 
 
-1. Install Yatai chart with the RDS configuration
+#### GCP Cloud SQL:
+
+*TODO*
+
+#### Azure SQL:
+
+*TODO*
+
+
+### Configure blob storage dependency
+
+#### AWS S3:
+
+1. Configure AWS S3 bucket for Yatai
 
     ```bash
-    DB_NAME=yatai
+    BUCKET_NAME=my_yatai_bucket
+    BLOB_REGION=us-west-1
+    BLOB_ENDPOINT='https://s3.us-west-1.amazonaws.com'
 
-    helm install yatai yatai/yatai \
-    	--set postgresql.enabled=false \
-    	--set externalPostgresql.host=$host \
-    	--set externalPostgresql.port=$port \
-    	--set externalPostgresql.user=$USER_NAME \
-    	--set externalPostgresql.existingSecret=rds-password \
-        --set externalPostgresql.existingSecretPasswordKey=password \
-    	--set externalPostgresql.database=$DB_NAME \
-    	-n yatai-system
+    aws s3 create-bucket --bucket $BUCKET_NAME --region BLOB_REGION
     ```
 
+2. Create Kubernetes secrets
 
-### Custom Docker registry
+    ```bash
+    AWS_ACCESS_KEY_ID=$(aws configure get default.aws_access_key_id)
+    AWS_SECRET_ACCESS_KEY=$(aws configure get default.aws_secret_access_key)
+    kubectl create secret generic yatai-s3-credentials \
+        --from-literal=accessKeyId=$AWS_ACCESS_KEY_ID \
+        --from-literal=secretAccessKey=$AWS_SECRET_ACCESS_KEY
+        -n yatai-system
+    ```
 
-#### Docker hub
+#### GCP Cloud Storage:
 
-```bash
-helm install yatai yatai/yatai \
-	--set config.docker_registry.server='https://index.docker.io/v1' \
-	--set config.docker_registry.username='MY_DOCKER_USER' \
-	--set config.docker_registry.password='MY_DOCKER_USER_PASSWORD' \
-	--set config.docker_registry.secure=true \
-	-n yatai-system
-```
+*TODO*
 
-#### AWS ECR
 
-Prerequisites:
+#### Azure Storage:
 
-- `jq`  command line tool. Follow the [official installation guide](https://stedolan.github.io/jq/download/) to install `jq`
-- AWS CLI with AWS ECR permission. Follow the [official installation guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) to install AWS CLI
+*TODO*
 
+
+### Configure Image Registry dependency
+
+#### AWS ECR:
 
 1. Create AWS ECR repositories:
-    1. Create repositories using default registry ID:
+    1. Create repositories using the default registry ID:
 
         ```bash
         BENTO_REPO=yatai-bentos
@@ -306,12 +267,13 @@ Prerequisites:
         BENTO_REPO=yatai-bentos
         MODEL_REPO=yatai-models
         REGISTRY_ID=yatai
+        REGISTRY_USERNAME=AWS
 
         aws ecr create-repository --registry-id $REGISTRY_ID --repository-name $BENTO_REPO
         aws ecr create-repository --registry-id $REGISTRY_ID --repository-name $MODEL_REPO
 
         # If the repositories are created use a different registry id from the default
-        read ENDPOINT < <(echo $(aws ecr get-authorization-token --regsitry-ids $REGISTRY_ID | jq '.authorizationData[0].proxyEndpoint'))
+        read REGISTRY_ENDPOINT < <(echo $(aws ecr get-authorization-token --regsitry-ids $REGISTRY_ID | jq '.authorizationData[0].proxyEndpoint'))
         ```
 
 2. Get ECR registry password info
@@ -324,98 +286,117 @@ Prerequisites:
 
     ```bash
     kubectl create secret generic yatai-docker-registry-credentials \
-        --from-literal=password=$PASSWORD
+        --from-literal=password=$PASSWORD \
         -n yatai-system
     ```
 
-3. Install Yatai chart
+#### DockerHub:
+
+1. Create a Kubernetes secrets
 
     ```bash
-    helm install yatai yatai/yatai \
-    	--set externalDockerRegistry.enabled=true \
-    	--set externalDockerRegistry.server=$ENDPOINT \
-    	--set externalDockerRegistry.username=AWS \
-    	--set externalDockerRegistry.secure=true \
-    	--set externalDockerRegistry.bentoRepositoryName=$BENTO_REPO \
-    	--set externalDockerRegistry.modelRepositoryName=$MODEL_REPO \
-    	--set externalDockerRegistry.existingSecret=yatai-docker-registry-credentials \
-    	--set externalDockerRegistry.existingSecretPasswordKey=password \
-    	-n yatai-system
-    ```
+    REGISTRY_ENDPOINT="https://index.docker.r.io/v1"
+    REGISTRY_USERNAME="my_dockerhub_user_name"
 
-
-### Custom blob storage
-
-#### AWS S3
-
-Prerequisites:
-
-- AWS CLI with AWS S3 permission. Follow the [official installation guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) to install AWS CLI
-
-
-1. Configure AWS S3 bucket for Yatai
-
-    ```bash
-    BUCKET_NAME=my_yatai_bucket
-    MY_REGION=us-west-1
-    ENDPOINT='https://s3.amazonaws.com'
-
-    aws s3 create-bucket --bucket $BUCKET_NAME --region MY_REGION
-    ```
-
-2. Create Kubernetes secrets
-
-    ```bash
-    AWS_ACCESS_KEY_ID=$(aws configure get default.aws_access_key_id)
-    AWS_SECRET_ACCESS_KEY=$(aws configure get default.aws_secret_access_key)
-    kubectl create secret generic yatai-s3-credentials \
-        --from-literal=accessKeyId=$AWS_ACCESS_KEY_ID \
-        --from-literal=secretAccessKey=$AWS_SECRET_ACCESS_KEY
+    kubectl create secret generic yatai-docker-registry-credentials \
+        --from-literal=password=MY_DOCKER_USER_PASSWORD \
         -n yatai-system
     ```
 
-3. Install Yatai chart
+#### GCP Container Registry:
 
-    ```bash
-    helm install yatai yatai/yatai \
-        --set externalS3.enabled=true \
-        --set externalS3.endpoint=$ENDPOINT \
-    	--set externalS3.region=$MY_REGION \
-    	--set externalS3.bucketName=$BUCKET_NAME \
-    	--set externalS3.secure=true \
-        --set externalS3.existingSecret="yatai-s3-credentials" \
-    	--set externalS3.existingSecretAccessKeyKey=accessKeyId \
-    	--set externalS3.existingSecretSecretKeyKey=secretAccessKey \
-    	-n yatai-system
+*TODO*
+
+#### Azure Container Registry:
+
+*TODO*
+
+### Install Yatai
+
+
+1. Create `my_value.yaml` file with the information from previous steps
+
+    ```yaml
+    postgresql:
+        enabled: false
+
+    externalPostgresql:
+        host: $DB_ENDPOINT
+        port: $DB_PORT
+        user: $DB_USER_NAME
+        database: $DB_NAME
+        sslmode: disable
+        existingSecret: rds-password
+        existingSecretPasswordKey: password
+
+    externalS3:
+        enabled: true
+        endpoint: $BLOB_ENDPOINT
+        region: $BLOB_REGION
+        bucketName: $BUCKET_NAME
+        secure: true
+        existingSecret: 'yatai-s3-credentials'
+        existingSecretAccessKeyKey: 'accessKeyId'
+        existingSecretSecretKeyKey: 'secretAccessKey'
+
+    externalDockerRegistry:
+        enabled: true
+        server: $REGISTRY_ENDPOINT
+        username: $REGISTRY_USERNAME
+        secure: true
+        bentoRepositoryName: $BENTO_REPO
+        modelRepositoryName: $MODEL_REPO
+        existingSecret: 'yatai-docker-registry-credentials'
+        existingSecretPasswordKey: password
+
+    # Due to an issue with GKE https://github.com/moby/buildkit/issues/879,
+    # please enable `dockerImageBuilder.privileged` to `true` when
+    # installing Yatai.
+    dockerImageBuilder:
+        privileged: false
     ```
 
+See all available helm chart configuration options [here](./helm-configuration.md)
 
-#### Verify Yatai installation
+2. Run Helm install command:
+
+    ```bash
+    helm install yatai yatai/yatai -n yatai-system -f my_value.yaml
+    ```
+
+### Update external IP address
+
+By default, the host IP address that the Yatai ingress is initialized with is 127.0.0.1. To access Yatai, you will need to update the host parameter in the ingress spec.
+
+This command will give you the external IP for the Yatai ingress:
+```bash
+kubectl -n yatai-components get svc yatai-ingress-controller-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+```
+
+If the previous command does not return anything, use the following command:
+```bash
+dig +short `kubectl -n yatai-components get svc yatai-ingress-controller-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'` | head -n 1
+```
+
+Then replace "127.0.0.1" in the generated Yatai domain name at this path with the external ip:
+```bash
+.spec.rules[0].host
+```
+
+Using this command:
+```bash
+kubectl -n yatai-system edit ing yatai
+```
+
+
+
+## Verify installation
 
 
 Check installation status with Helm
 
 ```bash
 helm status yatai -n yatai-system
-```
-
-Run the `kubectl get svc` command to list out all of the services deployed by Yatai.
-
-```bash
-kubectl get svc --all-namespaces
-
-# With default Yatai installation, the following services should be running.
-yatai-components   console                                                       ClusterIP      10.108.153.223   <none>        9090/TCP,9443/TCP            16m
-yatai-components   minio                                                         ClusterIP      10.96.13.19      <none>        80/TCP                       15m
-yatai-components   operator                                                      ClusterIP      10.100.170.75    <none>        4222/TCP                     16m
-yatai-components   yatai-docker-registry                                         ClusterIP      10.103.89.42     <none>        5000/TCP                     15m
-yatai-components   yatai-ingress-controller-ingress-nginx-controller             LoadBalancer   10.106.230.175   127.0.0.1     80:32320/TCP,443:32351/TCP   17m
-yatai-components   yatai-ingress-controller-ingress-nginx-controller-admission   ClusterIP      10.110.83.157    <none>        443/TCP                      17m
-yatai-components   yatai-minio-console                                           ClusterIP      10.111.44.219    <none>        9090/TCP                     15m
-yatai-components   yatai-minio-hl                                                ClusterIP      None             <none>        9000/TCP                     15m
-yatai-system       yatai                                                         NodePort       10.99.111.8      <none>        80:30080/TCP                 20m
-yatai-system       yatai-postgresql                                              ClusterIP      10.111.156.46    <none>        5432/TCP                     20m
-yatai-system       yatai-postgresql-headless                                     ClusterIP      None             <none>        5432/TCP                     20m
 ```
 
 Visit the link listed in the post Helm installation notes to access Yatai Web UI.
