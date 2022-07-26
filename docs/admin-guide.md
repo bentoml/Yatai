@@ -1,8 +1,7 @@
 # Yatai Administrator's Guide
 
 This guide helps you to install and configure Yatai on a Kubernetes Cluster for your machine
-learning team, using the official [Yatai Helm chart](https://github.com/bentoml/yatai-chart). Note
-that helm chart is the officially supported method of installing Yatai.
+learning team, using the official [Yatai Helm chart](https://github.com/bentoml/yatai-chart).
 
 
 - [System Overview](#system-overview)
@@ -32,7 +31,7 @@ that helm chart is the officially supported method of installing Yatai.
 2. Blob storage dependency
     Yatai uses a blob storage to store models and bentos.
 3. Image registry dependency
-    Yatai builds and store bento images in an image registry for deployment.
+    Yatai builds and stores bento images in an image registry for deployment.
 
 ### Namespaces:
 
@@ -70,9 +69,9 @@ When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-ope
 
 **prerequisites**
 - Minikube version 1.20 or newer. Please follow the [official installation guide](https://minikube.sigs.k8s.io/docs/start/) to install Minikube.
-- Recommend system with 4 CPUs and 4GB of RAM or more
+- Recommend system with 6 CPUs and 8GB of RAM or more
 
-**Step 1. Start a new minikube cluster**
+**Step 1. Start a new Minikube cluster**
 
 ```bash
 minikube delete
@@ -89,7 +88,7 @@ helm repo update
 
 **Step 3. Install Yatai chart**
 
-The following command will create an `yatai-system` namespace in the Minikube cluster, and install Yatai and all its dependency services.
+The following command will create a namespace `yatai-system` in the Minikube cluster, and install Yatai and all its dependency services.
 
 ```bash
 
@@ -125,19 +124,19 @@ yatai-system       yatai-6658d565d8-drk9f                                       
 yatai-system       yatai-postgresql-0                                                1/1     Running             0               4m24s
 ```
 
-Use minikube tunnel to expose Yatai Web UI locally::
+Use Minikube tunnel to expose Yatai Web UI locally::
 
 ```bash
 # this requires enter your system password
 sudo minikube tunnel
 ```
 
-Once established minkube tunnel, you can access the Yatai Web UI: http://localhost:8001/setup?token=<token>. You can find the URL link and the token again using `helm get notes yatai -n yatai-system` command.
+Once established the Minikube tunnel, you can access the Yatai Web UI: http://localhost:8001/setup?token=<token>. You can find the URL link and the token again using `helm get notes yatai -n yatai-system` command.
 
 
 ### For production
 
-In production environment, Yatai recommands to use a Kubernetes cluster that is managed by a cloud provider. Uses external services for storage, database, and other services in case the Kubernetes cluster went down.
+In a Production environment, Yatai recommends using a Kubernetes cluster that is managed by a cloud provider. Uses external services for storage, database, and other services in case the Kubernetes cluster went down.
 
 Prerequisites:
 
@@ -314,7 +313,7 @@ Prerequisites:
 ### Install Yatai
 
 
-1. Create `my_value.yaml` file with the information from previous steps
+1. Create `my_value.yaml` file with the information from the previous steps
 
     ```yaml
     postgresql:
@@ -400,3 +399,24 @@ helm status yatai -n yatai-system
 ```
 
 Visit the link listed in the post Helm installation notes to access Yatai Web UI.
+
+
+## Debugging
+
+If Yatai is not correctly installed, you can use the following commands to debug the installation:
+
+```bash
+kubectl -n yatai-operators logs -f deploy/deployment-yatai-deployment-comp-operator
+```
+
+If Yatai is unable to create a deployment, you can use the following commands to debug the installation:
+
+```bash
+kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment-operator
+```
+
+If the Kubernetes pod created by Yatai cannot mount the volume, you can use the following commands to debug the installation:
+
+```bash
+kubectl -n yatai-components logs -f ds/yatai-csi-driver-image-populator -c image
+```
