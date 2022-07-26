@@ -5,14 +5,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/huandu/xstrings"
 	"github.com/pkg/errors"
 	"github.com/rs/xid"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/util/validation"
 
+	"github.com/bentoml/yatai-common/config"
+	"github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
 )
 
 type apiTokenService struct{}
@@ -156,6 +159,63 @@ func (s *apiTokenService) GetByUid(ctx context.Context, uid string) (*models.Api
 }
 
 func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models.ApiToken, error) {
+	prefix, _, token_ := xstrings.Partition(token, ":")
+	if prefix == consts.YataiApiTokenPrefixYataiDeploymentOperator {
+		defaultOrg, err := OrganizationService.GetDefault(ctx)
+		if err != nil {
+			err = errors.Wrap(err, "failed to get default organization")
+			return nil, err
+		}
+		defaultCluster, err := ClusterService.GetDefault(ctx, defaultOrg.ID)
+		if err != nil {
+			err = errors.Wrap(err, "failed to get default cluster")
+			return nil, err
+		}
+		cliset, _, err := ClusterService.GetKubeCliSet(ctx, defaultCluster)
+		if err != nil {
+			err = errors.Wrap(err, "failed to get kube cli set")
+			return nil, err
+		}
+		yataiConf, err := config.GetYataiConfig(ctx, cliset, consts.KubeNamespaceYataiDeploymentComponent, consts.KubeConfigMapNameYataiConfig, true)
+		if err != nil {
+			err = errors.Wrap(err, "failed to get yatai config")
+			return nil, err
+		}
+		if token_ != yataiConf.ApiToken {
+			err = errors.New("the api token is not valid")
+			return nil, err
+		}
+		adminUser, err := UserService.GetDefaultAdmin(ctx)
+		if err != nil {
+			err = errors.Wrap(err, "failed to get default admin user")
+			return nil, err
+		}
+		var apiToken *models.ApiToken
+		apiToken, err = ApiTokenService.GetByName(ctx, defaultOrg.ID, adminUser.ID, consts.YataiK8sBotApiTokenName)
+		apiTokenIsNotFound := utils.IsNotFound(err)
+		if err != nil && !apiTokenIsNotFound {
+			err = errors.Wrapf(err, "get api token")
+			return nil, err
+		}
+		err = nil
+		if apiTokenIsNotFound {
+			scopes := modelschemas.ApiTokenScopes{
+				modelschemas.ApiTokenScopeApi,
+			}
+			apiToken, err = ApiTokenService.Create(ctx, CreateApiTokenOption{
+				Name:           consts.YataiK8sBotApiTokenName,
+				OrganizationId: defaultOrg.ID,
+				UserId:         adminUser.ID,
+				Description:    "yatai k8s bot api token",
+				Scopes:         &scopes,
+			})
+			if err != nil {
+				err = errors.Wrapf(err, "create api token %s", consts.YataiK8sBotApiTokenName)
+				return nil, err
+			}
+		}
+		return apiToken, nil
+	}
 	var apiToken models.ApiToken
 	err := getBaseQuery(ctx, s).Where("token = ?", token).First(&apiToken).Error
 	if err != nil {
