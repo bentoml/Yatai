@@ -5,7 +5,6 @@ import { useDeployment, useDeploymentLoading } from '@/hooks/useDeployment'
 import { useFetchDeployment } from '@/hooks/useFetchDeployment'
 import { useFetchDeploymentRevisions } from '@/hooks/useFetchDeploymentRevisions'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
-import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
 import { useOrganization } from '@/hooks/useOrganization'
 import { usePage } from '@/hooks/usePage'
 import { useSubscription } from '@/hooks/useSubscription'
@@ -17,8 +16,6 @@ import { Block } from 'baseui/block'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import color from 'color'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { AiOutlineDashboard } from 'react-icons/ai'
-import { FaJournalWhills } from 'react-icons/fa'
 import { RiSurveyLine } from 'react-icons/ri'
 import { VscServerProcess } from 'react-icons/vsc'
 import { useQueryClient } from 'react-query'
@@ -103,10 +100,6 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
 
     const [t] = useTranslation()
 
-    const { yataiComponentsInfo } = useFetchYataiComponents(clusterName)
-    const hasLogging = yataiComponentsInfo.data?.find((x) => x.type === 'logging') !== undefined
-    const hasMonitoring = yataiComponentsInfo.data?.find((x) => x.type === 'monitoring') !== undefined
-
     const [page] = usePage()
     const { deploymentRevisionsInfo } = useFetchDeploymentRevisions(clusterName, kubeNamespace, deploymentName, page)
     const [isCreateDeploymentRevisionOpen, setIsCreateDeploymentRevisionOpen] = useState(false)
@@ -149,28 +142,12 @@ export default function DeploymentLayout({ children }: IDeploymentLayoutProps) {
                     icon: VscServerProcess,
                 },
                 {
-                    title: t('view log'),
-                    path: `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/log`,
-                    icon: FaJournalWhills,
-                    disabled: !hasLogging,
-                    helpMessage: !hasLogging ? t('please install yatai component first', [t('logging')]) : undefined,
-                },
-                {
-                    title: t('monitor'),
-                    path: `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/monitor`,
-                    icon: AiOutlineDashboard,
-                    disabled: !hasMonitoring,
-                    helpMessage: !hasMonitoring
-                        ? t('please install yatai component first', [t('monitoring')])
-                        : undefined,
-                },
-                {
                     title: t('revisions'),
                     path: `/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/revisions`,
                     icon: resourceIconMapping.deployment_revision,
                 },
             ] as INavItem[],
-        [clusterName, deploymentName, hasLogging, hasMonitoring, kubeNamespace, t]
+        [clusterName, deploymentName, kubeNamespace, t]
     )
 
     const [, theme] = useStyletron()
