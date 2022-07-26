@@ -37,7 +37,6 @@ export default function BentoSelector({ bentoRepositoryName, value, onChange, on
             setOptions(
                 bentosInfo.data?.items.map((item) => ({
                     id: item.version,
-                    disabled: item.image_build_status !== 'success',
                     label: (
                         <div
                             style={{

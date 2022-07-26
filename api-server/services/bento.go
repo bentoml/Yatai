@@ -383,70 +383,6 @@ func (s *bentoService) Update(ctx context.Context, bento *models.Bento, opt Upda
 		return bento, err
 	}
 
-	return s.CreateImageBuilderJob(ctx, bento)
-}
-
-func (s *bentoService) CreateImageBuilderJob(ctx context.Context, bento *models.Bento) (*models.Bento, error) {
-	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
-	if err != nil {
-		return nil, err
-	}
-
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
-	if err != nil {
-		return nil, err
-	}
-
-	majorCluster, err := OrganizationService.GetMajorCluster(ctx, org)
-	if err != nil {
-		return nil, err
-	}
-
-	kubeName, err := s.GetImageBuilderKubeName(ctx, bento)
-	if err != nil {
-		return nil, err
-	}
-
-	s3ObjectName, err := s.getS3ObjectName(ctx, bento)
-	if err != nil {
-		return nil, err
-	}
-
-	imageName, err := s.GetImageName(ctx, bento, true)
-	if err != nil {
-		return nil, err
-	}
-
-	s3BucketName, err := s.GetS3BucketName(ctx, bento)
-	if err != nil {
-		return nil, err
-	}
-
-	kubeLabels, err := s.GetImageBuilderKubeLabels(ctx, bento)
-	if err != nil {
-		return nil, err
-	}
-
-	err = ImageBuilderService.CreateImageBuilderJob(ctx, CreateImageBuilderJobOption{
-		KubeName:          kubeName,
-		ImageName:         imageName,
-		S3ObjectName:      s3ObjectName,
-		S3BucketName:      s3BucketName,
-		Cluster:           majorCluster,
-		DockerFileContent: nil,
-		DockerFilePath:    utils.StringPtr("./env/docker/Dockerfile"),
-		KubeLabels:        kubeLabels,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	go func() {
-		_, _ = s.SyncImageBuilderStatus(ctx, bento)
-	}()
-
-	bento.ImageBuildStatus = modelschemas.ImageBuildStatusBuilding
-
 	return bento, nil
 }
 
@@ -754,15 +690,6 @@ func (s *bentoService) ListImageBuilderPods(ctx context.Context, bento *models.B
 	return pods, nil
 }
 
-func (s *bentoService) CalculateImageBuildStatus(ctx context.Context, bento *models.Bento) (modelschemas.ImageBuildStatus, error) {
-	defaultStatus := modelschemas.ImageBuildStatusPending
-	pods, err := s.ListImageBuilderPods(ctx, bento)
-	if err != nil {
-		return defaultStatus, err
-	}
-	return ImageBuilderService.CalculateImageBuildStatus(pods)
-}
-
 func (s *bentoService) ListImageBuildStatusUnsynced(ctx context.Context) ([]*models.Bento, error) {
 	q := getBaseQuery(ctx, s)
 	now := time.Now()
@@ -771,31 +698,6 @@ func (s *bentoService) ListImageBuildStatusUnsynced(ctx context.Context) ([]*mod
 	bentos := make([]*models.Bento, 0)
 	err := q.Order("id DESC").Find(&bentos).Error
 	return bentos, err
-}
-
-func (s *bentoService) SyncImageBuilderStatus(ctx context.Context, bento *models.Bento) (modelschemas.ImageBuildStatus, error) {
-	now := time.Now()
-	nowPtr := &now
-	_, err := s.Update(ctx, bento, UpdateBentoOption{
-		ImageBuildStatusSyncingAt: &nowPtr,
-	})
-	if err != nil {
-		return bento.ImageBuildStatus, err
-	}
-	currentStatus, err := s.CalculateImageBuildStatus(ctx, bento)
-	if err != nil {
-		return bento.ImageBuildStatus, err
-	}
-	now = time.Now()
-	nowPtr = &now
-	_, err = s.Update(ctx, bento, UpdateBentoOption{
-		ImageBuildStatus:          &currentStatus,
-		ImageBuildStatusUpdatedAt: &nowPtr,
-	})
-	if err != nil {
-		return currentStatus, err
-	}
-	return currentStatus, nil
 }
 
 type IBentoAssociate interface {
