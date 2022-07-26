@@ -82,6 +82,7 @@ func (s *clusterService) Create(ctx context.Context, opt CreateClusterOption) (*
 		return nil, errors.New(strings.Join(errs, ";"))
 	}
 
+	// nolint: ineffassign,staticcheck
 	db, ctx, df, err := startTransaction(ctx)
 	if err != nil {
 		return nil, err
@@ -106,10 +107,6 @@ func (s *clusterService) Create(ctx context.Context, opt CreateClusterOption) (*
 	if err != nil {
 		return nil, err
 	}
-	_, err = YataiComponentService.Create(ctx, CreateYataiComponentReleaseOption{
-		ClusterId: cluster.ID,
-		Type:      modelschemas.YataiComponentTypeDeployment,
-	})
 
 	return &cluster, err
 }
