@@ -130,9 +130,7 @@ However, this is for advanced user only. Use with precaution!
 minikube start --cpus 4 --memory 4096
 ```
 
-3. Run `sudo minikube tunnel` to enable ingress controller.
-
-4. Run make command that start the development server for both Yatai UI and Yatai server.
+3. Run make command that start the development server for both Yatai UI and Yatai server.
 
     ```bash
     make yatai-dev

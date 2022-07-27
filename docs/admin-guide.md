@@ -17,42 +17,49 @@ By default, Yatai helm chart will install Yatai and its dependency services in t
     - [AWR ECR](#aws-ecr)
   - Custom Blob Storage
     - [AWS S3](#aws-s3)
-  - [Verify Yatai installation](#verify-yatai-installation)
+- [Verify Installation](#verify-installation)
 
 ## System Overview
 
 ### Namespaces:
 
-When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-operators`, `yatai-builder`, and `yatai` in the Kubernetes cluster.
+When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-operators`, `yatai-builders`, and `yatai` in the Kubernetes cluster.
 
-* **Yatai-system:**
+* **yatai-system:**
 
     All the services that run the yatai platform are group under `yatai-system` namespace.  These services include Yatai application and the default PostgreSQL database.
 
-* **Yatai-components:**
+* **yatai-components:**
 
     Yatai groups dependency services into components for easy management. These dependency services are deployed in the `yatai-components` namespace. Yatai installs the default deployment component after the service start.
 
     *Components and their managed services:*
 
-    * *Deployment*: Nginx Ingress Controller, Minio, Docker Registry
+    * *Deployment*: Minio, Docker Registry
 
     * *Logging*: Loki, Grafana
 
     * *Monitoring*: Prometheus, Grafana
 
 
-* **Yatai-operators:**
+* **yatai-operators:**
 
     Yatai uses controllers to manage the lifecycle of Yatai component services. The controllers deployed in the `yatai-operators` namespace.
 
-* **Yatai-builders:**
+* **yatai-builders:**
 
     All the automated jobs such as build docker images for models and bentos are executed in the `yatai-builder` namespace.
 
-* **Yatai:**
+* **yatai:**
 
     By default Yatai server will create a `yatai` namespace on the Kuberentes cluster for managing all the user created bento deployments. User can configure this namespace value in the Yatai web UI.
+
+
+### Prerequisites:
+
+* *Ingress controller*:
+
+    Yatai uses ingress controller to facilitates access to deployments and canary deployments.
 
 
 ### Default dependency services installed:
@@ -68,11 +75,6 @@ When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-ope
 * *Docker registry*:
 
     Yatai uses an internal docker registry to provide docker images access for deployments. For users who want to access the built images for other system, they can configure to use DockerHub or other cloud based docker registry services.
-
-* *Nginx Ingress controller*:
-
-    Yatai uses Nginx ingress controller to facilitates access to deployments and canary deployments.
-
 
 See all available helm chart configuration options [here](./helm-configuration.md)
 
@@ -94,14 +96,20 @@ If you have an existing minikube cluster, make sure to delete it first: `minikub
 minikube start --cpus 4 --memory 4096
 ```
 
-**Step 2. Add and update Yatai helm chart**
+**Step 2. Enable ingress controller**
+
+```bash
+minikube addons enable ingress
+```
+
+**Step 3. Add and update Yatai helm chart**
 
 ```bash
 helm repo add yatai https://bentoml.github.io/yatai-chart
 helm repo update
 ```
 
-**Step 3. Install Yatai chart**
+**Step 4. Install Yatai chart**
 
 This will create a new namespace `yatai-system` in the Minikube cluster, install Yatai and all its dependency services.
 
@@ -109,50 +117,9 @@ This will create a new namespace `yatai-system` in the Minikube cluster, install
 helm install yatai yatai/yatai -n yatai-system --create-namespace
 ```
 
+**Step 5. Verify installation**
 
-### Verify installation
-
-Check installation status:
-
-```bash
-helm status yatai -n yatai-system
-```
-
-Check Yatai containers status in the Minikube cluster:
-
-```bash
-# If kubectl is installed, run the following command:
-kubectl get pod --all-namespaces
-
-# If kubectl is not installed, run the following command:
-minikube kubectl -- get pod --all-namespaces
-
-# With default Yatai installation, the following pods should be running.
-yatai-components   minio-operator-99f8cf4f4-6kzcz                                    1/1     Running             0               45s
-yatai-components   yatai-ingress-controller-ingress-nginx-controller-7cf9494f59z5k   1/1     Running             0               112s
-yatai-components   yatai-minio-console-84568cc987-twqtp                              0/1     ContainerCreating   0               45s
-yatai-operators    deployment-yatai-deployment-comp-operator-58fd6b7667-x65cb        1/1     Running             0               2m16s
-yatai-operators    yatai-csi-driver-image-populator-mkcz2                            2/2     Running             0               2m5s
-yatai-system       yatai-6658d565d8-drk9f                                            1/1     Running             3 (2m41s ago)   4m25s
-yatai-system       yatai-postgresql-0                                                1/1     Running             0               4m24s
-```
-
-Use minikube tunnel to expose Yatai Web UI locally::
-
-```bash
-# this requires enter your system password
-sudo minikube tunnel
-```
-
-Once the minikube tunnel established, you can access the Yatai Web UI: http://localhost:8001/setup?token=<token>. You can find the URL link and the token again using `helm get notes yatai -n yatai-system` command.
-
-You can also retrieve the token using `kubectl` command:
-
-```bash
-kubectl get pods --selector=app.kubernetes.io/name=yatai -n yatai-system \
-    -o jsonpath='{.items[0].spec.containers[0].env[?(@.name=="YATAI_INITIALIZATION_TOKEN")].value}'
-```
-
+Go to [Verify installation](#verify-installation) section
 
 
 ## Production Installation
@@ -183,30 +150,6 @@ To install and operate Yatai in production, we generally recommend using a dedic
 
     ```bash
     helm install yatai yatai/yatai -n yatai-system
-    ```
-
-3. Update Ingress to reference external ip
-
-    By default, the host ip address that the Yatai ingress is initialized with is 127.0.0.1. In order to access yatai, you will need to update the host parameter in the ingress spec.
-
-    This command will give you the external ip for the Yatai ingress:
-    ```bash
-    kubectl -n yatai-components get svc yatai-ingress-controller-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
-    ```
-
-    If the previous command does not return anything, use the following command:
-    ```bash
-    dig +short `kubectl -n yatai-components get svc yatai-ingress-controller-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'` | head -n 1
-    ```
-    
-    Then replace "127.0.0.1" in the generated yatai domain name at this path with the external ip:
-    ```bash
-    .spec.rules[0].host
-    ```
-    
-    Using this command:
-    ```bash
-    kubectl -n yatai-system edit ing yatai
     ```
 
 ### Custom PostgreSQL database
@@ -389,33 +332,120 @@ Prerequisites:
     	-n yatai-system
     ```
 
+### Verify Installation
 
-#### Verify Yatai installation
+NOTE: If you don't have `kubectl` installed and you use `minikube`, you can use `minikube kubectl --` instead of `kubectl`, for more details on using it, please check: [minikube kubectl](https://minikube.sigs.k8s.io/docs/commands/kubectl/)
 
-
-Check installation status with Helm
+1. Check helm release installation status with following command:
 
 ```bash
 helm status yatai -n yatai-system
 ```
 
-Run the `kubectl get svc` command to list out all of the services deployed by Yatai.
+The output should be:
 
 ```bash
-kubectl get svc --all-namespaces
+NAME: yatai
+LAST DEPLOYED: Wed Jul 27 17:53:07 2022
+NAMESPACE: yatai-system
+STATUS: deployed
+REVISION: 1
+NOTES:
+When installing Yatai for the first time, run the following command to get an initialzation link for creating your admin account:
 
-# With default Yatai installation, the following services should be running.
-yatai-components   console                                                       ClusterIP      10.108.153.223   <none>        9090/TCP,9443/TCP            16m
-yatai-components   minio                                                         ClusterIP      10.96.13.19      <none>        80/TCP                       15m
-yatai-components   operator                                                      ClusterIP      10.100.170.75    <none>        4222/TCP                     16m
-yatai-components   yatai-docker-registry                                         ClusterIP      10.103.89.42     <none>        5000/TCP                     15m
-yatai-components   yatai-ingress-controller-ingress-nginx-controller             LoadBalancer   10.106.230.175   127.0.0.1     80:32320/TCP,443:32351/TCP   17m
-yatai-components   yatai-ingress-controller-ingress-nginx-controller-admission   ClusterIP      10.110.83.157    <none>        443/TCP                      17m
-yatai-components   yatai-minio-console                                           ClusterIP      10.111.44.219    <none>        9090/TCP                     15m
-yatai-components   yatai-minio-hl                                                ClusterIP      None             <none>        9000/TCP                     15m
-yatai-system       yatai                                                         NodePort       10.99.111.8      <none>        80:30080/TCP                 20m
-yatai-system       yatai-postgresql                                              ClusterIP      10.111.156.46    <none>        5432/TCP                     20m
-yatai-system       yatai-postgresql-headless                                     ClusterIP      None             <none>        5432/TCP                     20m
+  export YATAI_INITIALIZATION_TOKEN=$(kubectl get secret yatai --namespace yatai-system -o jsonpath="{.data.initialization_token}" | base64 --decode)
+
+  echo "Create admin account at: http://127.0.0.1:8080/setup?token=$YATAI_INITIALIZATION_TOKEN" && kubectl --namespace yatai-system port-forward svc/yatai 8080:80
 ```
 
-Visit the link listed in the post Helm installation notes to access Yatai Web UI.
+2. Check the yatai-system status
+
+NOTE: Since yatai needs to wait for the postgresql pod to start successfully first, so the pod of yatai will restart several times, please be patient and wait for a while, the pod of yatai will start successfully in about 3 minutes.
+
+Check the yatai-system pod status:
+
+```bash
+kubectl -n yatai-system get pod
+```
+
+The output should be:
+
+```bash
+NAME                     READY   STATUS    RESTARTS       AGE
+yatai-7cf7c4f7f7-wkhjn   1/1     Running   4 (2m1s ago)   4m7s
+yatai-postgresql-0       1/1     Running   0              4m7s
+```
+
+3. Check the yatai-operators status
+
+Check the yatai-operators pod status:
+
+```bash
+kubectl -n yatai-operators get pod
+```
+
+The output should be:
+
+```bash
+NAME                                                         READY   STATUS    RESTARTS   AGE
+deployment-yatai-deployment-comp-operator-665dd86559-rkg4l   1/1     Running   0          5m3s
+```
+
+Verify that yatai-deployment-comp-operator is running properly by checking the logs:
+
+```bash
+kubectl -n yatai-operators logs -f deploy/deployment-yatai-deployment-comp-operator
+```
+
+The output should be:
+
+```bash
+time="2022-07-27T18:00:04Z" level=info msg="Deployment is not ready: yatai-components/yatai-docker-registry. 0 out of 1 expected pods are ready"
+1.658944806495706e+09   INFO    controller.deployment   helm release yatai-docker-registry installed successfully       {"reconciler group": "component.yatai.ai", "reconciler kind": "Deploymen
+t", "name": "deployment", "namespace": ""}
+1.6589448065974028e+09  INFO    controller.deployment   creating daemonset docker-private-registry-proxy ...    {"reconciler group": "component.yatai.ai", "reconciler kind": "Deployment", "nam
+e": "deployment", "namespace": ""}
+1.6589448066120095e+09  INFO    controller.deployment   Installed DockerRegistryComponent successfully  {"reconciler group": "component.yatai.ai", "reconciler kind": "Deployment", "name": "dep
+loyment", "namespace": ""}
+1.6589448066232717e+09  INFO    controller.deployment   Congratulation! All components are installed!   {"reconciler group": "component.yatai.ai", "reconciler kind": "Deployment", "name": "dep
+loyment", "namespace": ""}
+
+```
+
+4. Check the yatai-components status
+
+Check pod status:
+
+```bash
+kubectl -n yatai-components get pod
+```
+
+The output should be:
+
+```bash
+NAME                                               READY   STATUS    RESTARTS   AGE
+cert-manager-868bc96c6d-z56sg                      1/1     Running   0          9m21s
+cert-manager-cainjector-9cc6bbc8b-8lqc9            1/1     Running   0          9m21s
+cert-manager-webhook-77965c59b5-wbscj              1/1     Running   0          9m21s
+docker-private-registry-proxy-skb8b                1/1     Running   0          5m34s
+minio-operator-765bcdf9c4-nnvh2                    1/1     Running   0          7m56s
+yatai-csi-driver-image-populator-prskt             2/2     Running   0          8m
+yatai-docker-registry-7b8f6b4f59-ckkxr             1/1     Running   0          6m40s
+yatai-minio-console-7d568cc8bc-xgffd               1/1     Running   0          7m56s
+yatai-minio-ss-0-0                                 1/1     Running   0          7m1s
+yatai-minio-ss-0-1                                 1/1     Running   0          7m1s
+yatai-minio-ss-0-2                                 1/1     Running   0          7m1s
+yatai-minio-ss-0-3                                 1/1     Running   0          7m
+yatai-yatai-deployment-operator-8476ff78b5-jsgnw   1/1     Running   0          8m20s
+```
+
+5. Setup
+
+You can access the Yatai Web UI: http://${Yatai URL}/setup?token=<token>. You can find the Yatai URL link and the token again using `helm get notes yatai -n yatai-system` command.
+
+You can also retrieve the token using `kubectl` command:
+
+```bash
+export YATAI_INITIALIZATION_TOKEN=$(kubectl get secret yatai --namespace yatai-system -o jsonpath="{.data.initialization_token}" | base64 --decode)
+```
+

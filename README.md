@@ -46,26 +46,22 @@ Yatai is a production-first platform for your machine learning needs. It brings 
      * Install latest minikube: https://minikube.sigs.k8s.io/docs/start/
      * Install latest Helm: https://helm.sh/docs/intro/install/
    * Start a minikube Kubernetes cluster: `minikube start --cpus 4 --memory 4096`
+   * Enable ingress controller: `minikube addons enable ingress`
    * Install Yatai Helm Chart:
      ```bash
      helm repo add yatai https://bentoml.github.io/yatai-chart
      helm repo update
      helm install yatai yatai/yatai -n yatai-system --create-namespace
      ```
-   * Wait for installation to complete, this may take a few minutes to complete: `helm status yatai -n yatai-system`
-   * Start minikube tunnel for accessing Yatai UI: `sudo minikube tunnel`
-   * Get initialization link for creating your admin account:
-      ```bash 
-      export YATAI_INITIALIZATION_TOKEN=$(kubectl get secret yatai --namespace yatai-system -o jsonpath="{.data.initialization_token}" | base64 --decode)
-      echo "Visit: http://yatai.127.0.0.1.sslip.io/setup?token=$YATAI_INITIALIZATION_TOKEN"
-      ```
+   * [Verify installation](./docs/admin-guide.md#verify-installation)
+   * You can access the Yatai Web UI: http://${Yatai URL}/setup?token=<token>. You can find the Yatai URL link and the token again using `helm get notes yatai -n yatai-system` command.
 </details>
 
     
 <details>
   <summary>2. Get an API token and login BentoML CLI</summary>
     
-  * Create a new API token in Yatai web UI: http://yatai.127.0.0.1.sslip.io/api_tokens
+  * Create a new API token in Yatai web UI: http://${Yatai URL}/api_tokens
   * Copy login command upon token creation and run as shell command, e.g.: 
     ```bash
     bentoml yatai login --api-token {YOUR_TOKEN_GOES_HERE} --endpoint http://yatai.127.0.0.1.sslip.io
