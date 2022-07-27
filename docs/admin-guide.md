@@ -297,7 +297,7 @@ Prerequisites:
         aws ecr create-repository --repository-name $MODEL_REPO
 
         # If the repositories are created using the default registry
-        read ENDPOINT < <(echo $(aws ecr get-authorization-token | jq '.authorizationData[0].proxyEndpoint'))
+        read ENDPOINT < <(echo $(aws ecr get-authorization-token | jq -r '.authorizationData[0].proxyEndpoint' | sed 's/https:\/\///'))
         ```
 
     2. Create repositories using a specific registry ID for Yatai:
@@ -311,7 +311,7 @@ Prerequisites:
         aws ecr create-repository --registry-id $REGISTRY_ID --repository-name $MODEL_REPO
 
         # If the repositories are created use a different registry id from the default
-        read ENDPOINT < <(echo $(aws ecr get-authorization-token --regsitry-ids $REGISTRY_ID | jq '.authorizationData[0].proxyEndpoint'))
+        read ENDPOINT < <(echo $(aws ecr get-authorization-token --regsitry-ids $REGISTRY_ID | jq -r '.authorizationData[0].proxyEndpoint' | sed 's/https:\/\///'))
         ```
 
 2. Get ECR registry password info
