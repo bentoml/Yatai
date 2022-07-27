@@ -334,9 +334,9 @@ Prerequisites:
 
 ### Verify Installation
 
-NOTE: If you don't have `kubectl` installed and you use `minikube`, you can use `minikube kubectl --` instead of `kubectl`, for more details on using it, please check: [minikube kubectl](https://minikube.sigs.k8s.io/docs/commands/kubectl/)
+> NOTE: If you don't have `kubectl` installed and you use `minikube`, you can use `minikube kubectl --` instead of `kubectl`, for more details on using it, please check: [minikube kubectl](https://minikube.sigs.k8s.io/docs/commands/kubectl/)
 
-1. Check helm release installation status with following command:
+#### 1. Check helm release installation status with following command:
 
 ```bash
 helm status yatai -n yatai-system
@@ -358,9 +358,9 @@ When installing Yatai for the first time, run the following command to get an in
   echo "Create admin account at: http://127.0.0.1:8080/setup?token=$YATAI_INITIALIZATION_TOKEN" && kubectl --namespace yatai-system port-forward svc/yatai 8080:80
 ```
 
-2. Check the yatai-system status
+#### 2. Check the yatai-system status
 
-NOTE: Since yatai needs to wait for the postgresql pod to start successfully first, so the pod of yatai will restart several times, please be patient and wait for a while, the pod of yatai will start successfully in about 3 minutes.
+> NOTE: Since yatai needs to wait for the postgresql pod to start successfully first, so the pod of yatai will restart several times, please be patient and wait for a while, the pod of yatai will start successfully in about 3 minutes.
 
 Check the yatai-system pod status:
 
@@ -376,7 +376,7 @@ yatai-7cf7c4f7f7-wkhjn   1/1     Running   4 (2m1s ago)   4m7s
 yatai-postgresql-0       1/1     Running   0              4m7s
 ```
 
-3. Check the yatai-operators status
+#### 3. Check the yatai-operators status
 
 Check the yatai-operators pod status:
 
@@ -412,7 +412,7 @@ loyment", "namespace": ""}
 
 ```
 
-4. Check the yatai-components status
+#### 4. Check the yatai-components status
 
 Check pod status:
 
@@ -439,7 +439,7 @@ yatai-minio-ss-0-3                                 1/1     Running   0          
 yatai-yatai-deployment-operator-8476ff78b5-jsgnw   1/1     Running   0          8m20s
 ```
 
-5. Setup
+#### 5. Setup
 
 You can access the Yatai Web UI: http://${Yatai URL}/setup?token=<token>. You can find the Yatai URL link and the token again using `helm get notes yatai -n yatai-system` command.
 
