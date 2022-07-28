@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/huandu/xstrings"
 	"github.com/pkg/errors"
 	"github.com/rs/xid"
 	"gorm.io/gorm"
@@ -159,24 +158,26 @@ func (s *apiTokenService) GetByUid(ctx context.Context, uid string) (*models.Api
 }
 
 func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models.ApiToken, error) {
-	prefix, _, token_ := xstrings.Partition(token, ":")
-	if prefix == consts.YataiApiTokenPrefixYataiDeploymentOperator {
+	pieces := strings.Split(token, ":")
+	if len(pieces) == 3 && pieces[0] == consts.YataiApiTokenPrefixYataiDeploymentOperator {
+		clusterName := pieces[1]
+		token_ := pieces[2]
 		defaultOrg, err := OrganizationService.GetDefault(ctx)
 		if err != nil {
 			err = errors.Wrap(err, "failed to get default organization")
 			return nil, err
 		}
-		defaultCluster, err := ClusterService.GetDefault(ctx, defaultOrg.ID)
+		cluster, err := ClusterService.GetByName(ctx, defaultOrg.ID, clusterName)
 		if err != nil {
-			err = errors.Wrap(err, "failed to get default cluster")
+			err = errors.Wrapf(err, "failed to get cluster %s", clusterName)
 			return nil, err
 		}
-		cliset, _, err := ClusterService.GetKubeCliSet(ctx, defaultCluster)
+		cliset, _, err := ClusterService.GetKubeCliSet(ctx, cluster)
 		if err != nil {
 			err = errors.Wrap(err, "failed to get kube cli set")
 			return nil, err
 		}
-		yataiConf, err := config.GetYataiConfig(ctx, cliset, consts.KubeNamespaceYataiDeploymentComponent, consts.KubeConfigMapNameYataiConfig, true)
+		yataiConf, err := config.GetYataiConfig(ctx, cliset, consts.KubeNamespaceYataiDeploymentComponent, false)
 		if err != nil {
 			err = errors.Wrap(err, "failed to get yatai config")
 			return nil, err
