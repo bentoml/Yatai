@@ -147,6 +147,18 @@ func NewRouter() (*fizz.Fizz, error) {
 	clusterGroup.HEAD("/grafana/*path", controllersv1.GrafanaController.Proxy)
 	clusterGroup.DELETE("/grafana/*path", controllersv1.GrafanaController.Proxy)
 
+	bentoGroup := engine.Group("/api/v1/bento_repositories/:bentoRepositoryName/bentos/:version")
+	bentoGroup.Use(requireLogin)
+
+	bentoGroup.PUT("/upload", controllersv1.BentoController.Upload)
+	bentoGroup.GET("/download", controllersv1.BentoController.Download)
+
+	modelGroup := engine.Group("/api/v1/model_repositories/:modelRepositoryName/models/:version")
+	modelGroup.Use(requireLogin)
+
+	modelGroup.PUT("/upload", controllersv1.ModelController.Upload)
+	modelGroup.GET("/download", controllersv1.ModelController.Download)
+
 	publicApiRootGroup := fizzApp.Group("/api/v1", "api v1", "api v1")
 	apiRootGroup := fizzApp.Group("/api/v1", "api v1", "api v1")
 	apiRootGroup.Use(requireLogin)

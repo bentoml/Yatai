@@ -3,14 +3,17 @@ package services
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/huandu/xstrings"
 	"github.com/iancoleman/strcase"
+	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"github.com/rs/xid"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
@@ -170,6 +173,51 @@ func (s *bentoService) PreSignUploadUrl(ctx context.Context, bento *models.Bento
 	return
 }
 
+func (s *bentoService) Upload(ctx context.Context, bento *models.Bento, reader io.Reader, objectSize int64) (err error) {
+	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
+		return
+	}
+	minioClient, err := s3Config.GetMinioClient()
+	if err != nil {
+		err = errors.Wrap(err, "create s3 client")
+		return
+	}
+
+	bucketName, err := s.GetS3BucketName(ctx, bento)
+	if err != nil {
+		return
+	}
+
+	err = s3Config.MakeSureBucket(ctx, bucketName)
+	if err != nil {
+		return
+	}
+
+	objectName, err := s.getS3ObjectName(ctx, bento)
+	if err != nil {
+		return
+	}
+
+	logrus.Debugf("uploading to s3: %s/%s", bucketName, objectName)
+	_, err = minioClient.PutObject(ctx, bucketName, objectName, reader, objectSize, minio.PutObjectOptions{ContentType: "application/octet-stream"})
+	if err != nil {
+		err = errors.Wrap(err, "put object")
+		return
+	}
+
+	logrus.Debugf("uploaded to s3: %s/%s", bucketName, objectName)
+	return
+}
+
 func (s *bentoService) PreSignDownloadUrl(ctx context.Context, bento *models.Bento) (url *url.URL, err error) {
 	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 	if err != nil {
@@ -212,6 +260,54 @@ func (s *bentoService) PreSignDownloadUrl(ctx context.Context, bento *models.Ben
 	if s3Config.Endpoint != s3Config.EndpointInCluster {
 		url.Host = s3Config.Endpoint
 	}
+	return
+}
+
+func (s *bentoService) Download(ctx context.Context, bento *models.Bento, writer io.Writer) (err error) {
+	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
+		return
+	}
+	minioClient, err := s3Config.GetMinioClient()
+	if err != nil {
+		err = errors.Wrap(err, "create s3 client")
+		return
+	}
+
+	bucketName, err := s.GetS3BucketName(ctx, bento)
+	if err != nil {
+		return
+	}
+
+	err = s3Config.MakeSureBucket(ctx, bucketName)
+	if err != nil {
+		return
+	}
+
+	objectName, err := s.getS3ObjectName(ctx, bento)
+	if err != nil {
+		return
+	}
+
+	obj, err := minioClient.GetObject(ctx, bucketName, objectName, minio.GetObjectOptions{})
+	if err != nil {
+		err = errors.Wrap(err, "get object")
+		return
+	}
+
+	_, err = io.Copy(writer, obj)
+	if err != nil {
+		err = errors.Wrap(err, "copy object")
+	}
+
 	return
 }
 
