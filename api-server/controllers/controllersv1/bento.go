@@ -33,7 +33,7 @@ type GetBentoSchema struct {
 func (s *GetBentoSchema) GetBento(ctx context.Context) (*models.Bento, error) {
 	bentoRepository, err := s.GetBentoRepository(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get bentoRepository %s", bentoRepository.Name)
+		return nil, errors.Wrapf(err, "get bentoRepository %s", s.BentoRepositoryName)
 	}
 	bento, err := services.BentoService.GetByVersion(ctx, bentoRepository.ID, s.Version)
 	if err != nil {
@@ -125,6 +125,73 @@ func (c *bentoController) Update(ctx *gin.Context, schema *UpdateBentoSchema) (*
 	return transformersv1.ToBentoSchema(ctx, bento)
 }
 
+func abortWithError(ctx *gin.Context, err error) {
+	ctx.AbortWithStatusJSON(500, map[string]string{
+		"error": err.Error(),
+	})
+}
+
+func (c *bentoController) Upload(ctx *gin.Context) {
+	schema := GetBentoSchema{
+		GetBentoRepositorySchema: GetBentoRepositorySchema{
+			BentoRepositoryName: ctx.Param("bentoRepositoryName"),
+		},
+		Version: ctx.Param("version"),
+	}
+
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+
+	if err = c.canUpdate(ctx, bento); err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+
+	uploadStatus := modelschemas.BentoUploadStatusUploading
+	now := time.Now()
+	nowPtr := &now
+	bento, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
+		UploadStatus:    &uploadStatus,
+		UploadStartedAt: &nowPtr,
+	})
+	if err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+
+	bodySize := ctx.Request.ContentLength
+
+	err = services.BentoService.Upload(ctx, bento, ctx.Request.Body, bodySize)
+	if err != nil {
+		uploadStatus = modelschemas.BentoUploadStatusFailed
+		now = time.Now()
+		nowPtr = &now
+		bento, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
+			UploadStatus:    &uploadStatus,
+			UploadStartedAt: &nowPtr,
+		})
+		if err != nil {
+			abortWithError(ctx, err)
+			return
+		}
+	}
+
+	uploadStatus = modelschemas.BentoUploadStatusSuccess
+	now = time.Now()
+	nowPtr = &now
+	_, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
+		UploadStatus:    &uploadStatus,
+		UploadStartedAt: &nowPtr,
+	})
+	if err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+}
+
 func (c *bentoController) PreSignUploadUrl(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
 	bento, err := schema.GetBento(ctx)
 	if err != nil {
@@ -133,16 +200,35 @@ func (c *bentoController) PreSignUploadUrl(ctx *gin.Context, schema *GetBentoSch
 	if err = c.canUpdate(ctx, bento); err != nil {
 		return nil, err
 	}
-	url, err := services.BentoService.PreSignUploadUrl(ctx, bento)
-	if err != nil {
-		return nil, errors.Wrap(err, "pre sign upload url")
-	}
 	bentoSchema, err := transformersv1.ToBentoSchema(ctx, bento)
 	if err != nil {
 		return nil, err
 	}
-	bentoSchema.PresignedUploadUrl = url.String()
+	bentoSchema.PresignedUploadUrl = ""
 	return bentoSchema, nil
+}
+
+func (c *bentoController) Download(ctx *gin.Context) {
+	schema := GetBentoSchema{
+		GetBentoRepositorySchema: GetBentoRepositorySchema{
+			BentoRepositoryName: ctx.Param("bentoRepositoryName"),
+		},
+		Version: ctx.Param("version"),
+	}
+
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+	if err = c.canUpdate(ctx, bento); err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+	if err = services.BentoService.Download(ctx, bento, ctx.Writer); err != nil {
+		abortWithError(ctx, err)
+		return
+	}
 }
 
 func (c *bentoController) PreSignDownloadUrl(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
@@ -153,15 +239,11 @@ func (c *bentoController) PreSignDownloadUrl(ctx *gin.Context, schema *GetBentoS
 	if err = c.canUpdate(ctx, bento); err != nil {
 		return nil, err
 	}
-	url, err := services.BentoService.PreSignDownloadUrl(ctx, bento)
-	if err != nil {
-		return nil, errors.Wrap(err, "pre sign s3 upload url")
-	}
 	bentoSchema, err := transformersv1.ToBentoSchema(ctx, bento)
 	if err != nil {
 		return nil, err
 	}
-	bentoSchema.PresignedDownloadUrl = url.String()
+	bentoSchema.PresignedDownloadUrl = ""
 	return bentoSchema, nil
 }
 

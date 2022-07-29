@@ -3,13 +3,16 @@ package services
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/iancoleman/strcase"
+	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"github.com/rs/xid"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
@@ -107,6 +110,51 @@ func (s *modelService) Create(ctx context.Context, opt CreateModelOption) (model
 	return
 }
 
+func (s *modelService) Upload(ctx context.Context, model *models.Model, reader io.Reader, objectSize int64) (err error) {
+	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
+		return
+	}
+	minioClient, err := s3Config.GetMinioClient()
+	if err != nil {
+		err = errors.Wrap(err, "create s3 client")
+		return
+	}
+
+	bucketName, err := s.GetS3BucketName(ctx, model)
+	if err != nil {
+		return
+	}
+
+	err = s3Config.MakeSureBucket(ctx, bucketName)
+	if err != nil {
+		return
+	}
+
+	objectName, err := s.getS3ObjectName(ctx, model)
+	if err != nil {
+		return
+	}
+
+	logrus.Debugf("uploading to s3: %s/%s", bucketName, objectName)
+	_, err = minioClient.PutObject(ctx, bucketName, objectName, reader, objectSize, minio.PutObjectOptions{ContentType: "application/octet-stream"})
+	if err != nil {
+		err = errors.Wrap(err, "put object")
+		return
+	}
+
+	logrus.Debugf("uploaded to s3: %s/%s", bucketName, objectName)
+	return
+}
+
 func (s *modelService) PreSignUploadUrl(ctx context.Context, model *models.Model) (url *url.URL, err error) {
 	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
 	if err != nil {
@@ -149,6 +197,54 @@ func (s *modelService) PreSignUploadUrl(ctx context.Context, model *models.Model
 	if s3Config.Endpoint != s3Config.EndpointInCluster {
 		url.Host = s3Config.Endpoint
 	}
+	return
+}
+
+func (s *modelService) Download(ctx context.Context, model *models.Model, writer io.Writer) (err error) {
+	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
+		return
+	}
+	minioClient, err := s3Config.GetMinioClient()
+	if err != nil {
+		err = errors.Wrap(err, "create s3 client")
+		return
+	}
+
+	bucketName, err := s.GetS3BucketName(ctx, model)
+	if err != nil {
+		return
+	}
+
+	err = s3Config.MakeSureBucket(ctx, bucketName)
+	if err != nil {
+		return
+	}
+
+	objectName, err := s.getS3ObjectName(ctx, model)
+	if err != nil {
+		return
+	}
+
+	obj, err := minioClient.GetObject(ctx, bucketName, objectName, minio.GetObjectOptions{})
+	if err != nil {
+		err = errors.Wrap(err, "get object")
+		return
+	}
+
+	_, err = io.Copy(writer, obj)
+	if err != nil {
+		err = errors.Wrap(err, "copy object")
+	}
+
 	return
 }
 
