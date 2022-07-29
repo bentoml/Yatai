@@ -101,6 +101,67 @@ func (c *modelController) Create(ctx *gin.Context, schema *CreateModelSchema) (*
 	return transformersv1.ToModelSchema(ctx, model)
 }
 
+func (c *modelController) Upload(ctx *gin.Context) {
+	schema := GetModelSchema{
+		GetModelRepositorySchema: GetModelRepositorySchema{
+			ModelRepositoryName: ctx.Param("modelRepositoryName"),
+		},
+		Version: ctx.Param("version"),
+	}
+
+	model, err := schema.GetModel(ctx)
+	if err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+
+	if err = c.canUpdate(ctx, model); err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+
+	uploadStatus := modelschemas.ModelUploadStatusUploading
+	now := time.Now()
+	nowPtr := &now
+	model, err = services.ModelService.Update(ctx, model, services.UpdateModelOption{
+		UploadStatus:    &uploadStatus,
+		UploadStartedAt: &nowPtr,
+	})
+	if err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+
+	bodySize := ctx.Request.ContentLength
+
+	err = services.ModelService.Upload(ctx, model, ctx.Request.Body, bodySize)
+	if err != nil {
+		uploadStatus = modelschemas.ModelUploadStatusFailed
+		now = time.Now()
+		nowPtr = &now
+		model, err = services.ModelService.Update(ctx, model, services.UpdateModelOption{
+			UploadStatus:    &uploadStatus,
+			UploadStartedAt: &nowPtr,
+		})
+		if err != nil {
+			abortWithError(ctx, err)
+			return
+		}
+	}
+
+	uploadStatus = modelschemas.ModelUploadStatusSuccess
+	now = time.Now()
+	nowPtr = &now
+	_, err = services.ModelService.Update(ctx, model, services.UpdateModelOption{
+		UploadStatus:    &uploadStatus,
+		UploadStartedAt: &nowPtr,
+	})
+	if err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+}
+
 func (c *modelController) PreSignUploadUrl(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
 	model, err := schema.GetModel(ctx)
 	if err != nil {
@@ -109,16 +170,35 @@ func (c *modelController) PreSignUploadUrl(ctx *gin.Context, schema *GetModelSch
 	if err = c.canUpdate(ctx, model); err != nil {
 		return nil, err
 	}
-	url, err := services.ModelService.PreSignUploadUrl(ctx, model)
-	if err != nil {
-		return nil, errors.Wrap(err, "pre sign s3 upload url")
-	}
 	modelSchema, err := transformersv1.ToModelSchema(ctx, model)
 	if err != nil {
 		return nil, err
 	}
-	modelSchema.PresignedUploadUrl = url.String()
+	modelSchema.PresignedUploadUrl = ""
 	return modelSchema, nil
+}
+
+func (c *modelController) Download(ctx *gin.Context) {
+	schema := GetModelSchema{
+		GetModelRepositorySchema: GetModelRepositorySchema{
+			ModelRepositoryName: ctx.Param("modelRepositoryName"),
+		},
+		Version: ctx.Param("version"),
+	}
+
+	model, err := schema.GetModel(ctx)
+	if err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+	if err = c.canUpdate(ctx, model); err != nil {
+		abortWithError(ctx, err)
+		return
+	}
+	if err = services.ModelService.Download(ctx, model, ctx.Writer); err != nil {
+		abortWithError(ctx, err)
+		return
+	}
 }
 
 func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
@@ -129,15 +209,11 @@ func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelS
 	if err = c.canUpdate(ctx, model); err != nil {
 		return nil, err
 	}
-	url, err := services.ModelService.PreSignDownloadUrl(ctx, model)
-	if err != nil {
-		return nil, errors.Wrap(err, "pre sign s3 download url")
-	}
 	modelSchema, err := transformersv1.ToModelSchema(ctx, model)
 	if err != nil {
 		return nil, err
 	}
-	modelSchema.PresignedDownloadUrl = url.String()
+	modelSchema.PresignedDownloadUrl = ""
 	return modelSchema, nil
 }
 
