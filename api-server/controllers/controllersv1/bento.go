@@ -574,3 +574,79 @@ func (c *bentoController) ListAll(ctx *gin.Context, schema *ListAllBentoSchema) 
 		Items: bentoSchemas,
 	}, err
 }
+
+type ListAllImageBuildStatusUnsyncedBentoSchema struct {
+	GetOrganizationSchema
+}
+
+func (c *bentoController) ListImageBuildStatusUnsynced(ctx *gin.Context, schema *ListAllImageBuildStatusUnsyncedBentoSchema) ([]*schemasv1.BentoWithRepositorySchema, error) {
+	organization, err := schema.GetOrganization(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = OrganizationController.canView(ctx, organization); err != nil {
+		return nil, err
+	}
+
+	bentos, err := services.BentoService.ListImageBuildStatusUnsynced(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "list bentos")
+	}
+
+	return transformersv1.ToBentoWithRepositorySchemas(ctx, bentos)
+}
+
+type UpdateBentoImageBuildStatusSyncingAtSchema struct {
+	GetBentoSchema
+}
+
+func (c *bentoController) UpdateBentoImageBuildStatusSyncingAt(ctx *gin.Context, schema *UpdateBentoImageBuildStatusSyncingAtSchema) error {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err = BentoController.canUpdate(ctx, bento); err != nil {
+		return err
+	}
+
+	now := time.Now()
+	nowPtr := &now
+	_, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
+		ImageBuildStatusSyncingAt: &nowPtr,
+	})
+	if err != nil {
+		return errors.Wrap(err, "update bento")
+	}
+
+	return nil
+}
+
+type UpdateBentoImageBuildStatusSchema struct {
+	GetBentoSchema
+	ImageBuildStatus modelschemas.ImageBuildStatus `json:"image_build_status"`
+}
+
+func (c *bentoController) UpdateBentoImageBuildStatus(ctx *gin.Context, schema *UpdateBentoImageBuildStatusSchema) error {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err = BentoController.canUpdate(ctx, bento); err != nil {
+		return err
+	}
+
+	now := time.Now()
+	nowPtr := &now
+	_, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
+		ImageBuildStatus:          &schema.ImageBuildStatus,
+		ImageBuildStatusUpdatedAt: &nowPtr,
+	})
+	if err != nil {
+		return errors.Wrap(err, "update bento")
+	}
+
+	return nil
+}
