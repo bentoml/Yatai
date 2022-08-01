@@ -189,6 +189,11 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("List all bentos"),
 	}, tonic.Handler(controllersv1.BentoController.ListAll, 200))
 
+	apiRootGroup.GET("/image_build_status_unsynced_bentos", []fizz.OperationOption{
+		fizz.ID("List image build status unsynced bentos"),
+		fizz.Summary("List image build status unsynced bentos"),
+	}, tonic.Handler(controllersv1.BentoController.ListImageBuildStatusUnsynced, 200))
+
 	apiRootGroup.GET("/models", []fizz.OperationOption{
 		fizz.ID("List all models"),
 		fizz.Summary("List all models"),
@@ -541,6 +546,16 @@ func bentoRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Update a bento"),
 		fizz.Summary("Update a bento"),
 	}, tonic.Handler(controllersv1.BentoController.Update, 200))
+
+	resourceGrp.PATCH("/update_image_build_status_syncing_at", []fizz.OperationOption{
+		fizz.ID("Update a bento image build status syncing_at"),
+		fizz.Summary("Update a bento image build status syncing_at"),
+	}, tonic.Handler(controllersv1.BentoController.UpdateBentoImageBuildStatusSyncingAt, 200))
+
+	resourceGrp.PATCH("/update_image_build_status", []fizz.OperationOption{
+		fizz.ID("Update a bento image build status"),
+		fizz.Summary("Update a bento image build status"),
+	}, tonic.Handler(controllersv1.BentoController.UpdateBentoImageBuildStatus, 200))
 
 	resourceGrp.GET("/models", []fizz.OperationOption{
 		fizz.ID("List bento models"),
