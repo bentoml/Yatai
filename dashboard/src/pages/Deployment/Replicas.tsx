@@ -8,6 +8,9 @@ import { useState } from 'react'
 import useTranslation from '@/hooks/useTranslation'
 import KubePodEvents from '@/components/KubePodEvents'
 import { MdEventNote } from 'react-icons/md'
+import { useDeployment } from '@/hooks/useDeployment'
+import Pods from '@/components/Pods'
+import { GrDocker } from 'react-icons/gr'
 
 export default function DeploymentReplicas() {
     const { clusterName, kubeNamespace, deploymentName } =
@@ -15,6 +18,7 @@ export default function DeploymentReplicas() {
     const [pods, setPods] = useState<IKubePodSchema[]>()
     const [podsLoading, setPodsLoading] = useState(false)
     const [t] = useTranslation()
+    const { deployment } = useDeployment()
 
     useFetchDeploymentPods({
         clusterName,
@@ -27,8 +31,17 @@ export default function DeploymentReplicas() {
     return (
         <div>
             <Card title={t('replicas')} titleIcon={VscServerProcess}>
-                <PodList loading={podsLoading} pods={pods ?? []} groupByRunner />
+                <PodList deployment={deployment} loading={podsLoading} pods={pods ?? []} groupByRunner />
             </Card>
+            {deployment?.latest_revision?.targets[0] && (
+                <Card title={t('docker image builder pods')} titleIcon={GrDocker}>
+                    <Pods
+                        clusterName={clusterName}
+                        namespace='yatai-builders'
+                        selector={`yatai.ai/bento-repository=${deployment?.latest_revision?.targets[0]?.bento.repository.name},yatai.ai/bento=${deployment?.latest_revision?.targets[0]?.bento.version}`}
+                    />
+                </Card>
+            )}
             <Card title={t('events')} titleIcon={MdEventNote}>
                 <KubePodEvents
                     open
