@@ -13,7 +13,6 @@ import { resourceIconMapping } from '@/consts'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
 import qs from 'qs'
-import ImageBuildStatusTag from './ImageBuildStatusTag'
 
 export interface IModelListCardProps {
     modelRepositoryName: string
@@ -81,7 +80,6 @@ export default function ModelListCard({ modelRepositoryName }: IModelListCardPro
                         <Link key={model.uid} to={`/model_repositories/${modelRepositoryName}/models/${model.version}`}>
                             {model.version}
                         </Link>,
-                        <ImageBuildStatusTag key={model.uid} status={model.image_build_status} />,
                         model.description,
                         model.creator && <User user={model.creator} />,
                         formatDateTime(model.created_at),

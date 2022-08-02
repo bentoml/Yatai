@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { useQueryClient } from 'react-query'
-import { recreateModelImageBuilderJob } from '@/services/model'
 import { IModelSchema, IModelWithRepositorySchema } from '@/schemas/model'
 import useTranslation from '@/hooks/useTranslation'
 import User from '@/components/User'
@@ -12,7 +11,6 @@ import { useHistory } from 'react-router-dom'
 import { IPaginationProps } from '@/interfaces/IPaginationProps'
 import { ResourceLabels } from './ResourceLabels'
 import List from './List'
-import ImageBuildStatusIcon from './ImageBuildStatusIcon'
 import Time from './Time'
 import Link from './Link'
 import ListItem from './ListItem'
@@ -113,17 +111,6 @@ export default function ModelList({
                         history.push(`/model_repositories/${model.repository.name}/models/${model.version}`)
                     }}
                     key={model.uid}
-                    artwork={() => (
-                        <ImageBuildStatusIcon
-                            key={model.uid}
-                            size={size === 'small' ? 14 : undefined}
-                            status={model.image_build_status}
-                            podsSelector={`yatai.ai/model=${model.version},yatai.ai/model-repository=${model.repository.name}`}
-                            onRerunClick={async () => {
-                                await recreateModelImageBuilderJob(model.repository.name, model.version)
-                            }}
-                        />
-                    )}
                     overrides={
                         size === 'small'
                             ? {

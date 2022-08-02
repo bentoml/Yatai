@@ -3,13 +3,11 @@ import useTranslation from '@/hooks/useTranslation'
 import { IPaginationProps } from '@/interfaces/IPaginationProps'
 import { IBentoSchema, IBentoWithRepositorySchema } from '@/schemas/bento'
 import { IListSchema } from '@/schemas/list'
-import { recreateBentoImageBuilderJob } from '@/services/bento'
 import { MonoParagraphXSmall } from 'baseui/typography'
 import prettyBytes from 'pretty-bytes'
-import React, { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useQueryClient } from 'react-query'
 import { useHistory } from 'react-router-dom'
-import ImageBuildStatusIcon from './ImageBuildStatusIcon'
 import Link from './Link'
 import List from './List'
 import ListItem from './ListItem'
@@ -83,16 +81,6 @@ export default function BentoList({ queryKey, isLoading, bentos, paginationProps
                         history.push(`/bento_repositories/${bento.repository.name}/bentos/${bento.version}`)
                     }}
                     key={bento.uid}
-                    artwork={() => (
-                        <ImageBuildStatusIcon
-                            key={bento.uid}
-                            status={bento.image_build_status}
-                            podsSelector={`yatai.ai/bento=${bento.version},yatai.ai/bento-repository=${bento.repository.name}`}
-                            onRerunClick={async () => {
-                                await recreateBentoImageBuilderJob(bento.repository.name, bento.version)
-                            }}
-                        />
-                    )}
                     endEnhancer={() => (
                         <div
                             style={{

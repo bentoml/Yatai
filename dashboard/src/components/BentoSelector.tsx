@@ -6,7 +6,6 @@ import { MonoParagraphXSmall } from 'baseui/typography'
 import _ from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
-import ImageBuildStatusIcon from './ImageBuildStatusIcon'
 import Time from './Time'
 
 export interface IBentoSelectorProps {
@@ -54,7 +53,6 @@ export default function BentoSelector({ bentoRepositoryName, value, onChange, on
                                     gap: 6,
                                 }}
                             >
-                                <ImageBuildStatusIcon key={item.uid} size={12} status={item.image_build_status} />
                                 <MonoParagraphXSmall
                                     overrides={{
                                         Block: {
