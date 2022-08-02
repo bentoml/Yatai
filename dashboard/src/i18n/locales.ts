@@ -2226,6 +2226,13 @@ const locales0 = {
         ko: '자원 구성',
         vi: 'Cấu hình nguồn',
     },
+    'docker image builder pods': {
+        en: 'Docker Image Builder Pods',
+        zh: 'Docker 镜像构建 Pod',
+        ja: 'Docker イメージビルダーのポッド',
+        ko: 'Docker 이미지 빌더 Pods',
+        vi: 'Pods của Docker Image Builder',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

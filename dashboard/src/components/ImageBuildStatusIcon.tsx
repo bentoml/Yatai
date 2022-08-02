@@ -2,15 +2,13 @@
 import React, { useCallback, useState } from 'react'
 import { ImageBuildStatus } from '@/schemas/bento'
 import useTranslation from '@/hooks/useTranslation'
-import { IKubePodSchema } from '@/schemas/kube_pod'
-import { useFetchClusterPods } from '@/hooks/useFetchClusterPods'
 import { StatefulPopover } from 'baseui/popover'
 import { Button } from 'baseui/button'
 import { VscDebugRerun } from 'react-icons/vsc'
 import { IconBaseProps } from 'react-icons'
 import { FcHighPriority, FcOk, FcOvertime, FcWorkflow } from 'react-icons/fc'
 import { createUseStyles } from 'react-jss'
-import PodList from './PodList'
+import Pods from './Pods'
 import Card from './Card'
 
 const useStyles = createUseStyles({
@@ -29,24 +27,6 @@ const imageBuildStatusIconMapping: Record<ImageBuildStatus, React.ComponentType<
     building: FcWorkflow,
     failed: FcHighPriority,
     success: FcOk,
-}
-
-interface IPodsProps {
-    selector: string
-}
-
-function Pods({ selector }: IPodsProps) {
-    const [pods, setPods] = useState<IKubePodSchema[]>([])
-    const [podsLoading, setPodsLoading] = useState(false)
-    useFetchClusterPods({
-        clusterName: 'default',
-        namespace: 'yatai-builders',
-        selector,
-        setPods,
-        setPodsLoading,
-    })
-
-    return <PodList clusterName='default' loading={podsLoading} pods={pods} />
 }
 
 export interface IImageBuildStatusIconProps {
@@ -111,7 +91,7 @@ export default function ImageBuildStatusIcon({
                                     )
                                 }
                             >
-                                <Pods selector={podsSelector} />
+                                <Pods clusterName='default' namespace='yatai-builders' selector={podsSelector} />
                             </Card>
                         )
                     )
