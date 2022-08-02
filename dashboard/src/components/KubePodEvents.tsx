@@ -1,8 +1,8 @@
 import { ScrollFollow } from 'react-lazylog'
-import { formatDateTime } from '@/utils/datetime'
+import { formatMoment } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { IWsRespSchema } from '@/schemas/websocket'
-import { IKubeEventSchema } from '@/schemas/kube_event'
+import { getEventTime, IKubeEventSchema } from '@/schemas/kube_event'
 import qs from 'qs'
 import { useEffect, useRef, useState } from 'react'
 import { toaster } from 'baseui/toast'
@@ -78,14 +78,14 @@ export default function KubePodEvents({
                 }
                 setItems(
                     events.map((event) => {
+                        const eventTime = getEventTime(event)
+                        const eventTimeStr = eventTime ? formatMoment(eventTime) : '-'
                         if (podName) {
-                            return `[${event.lastTimestamp ? formatDateTime(event.lastTimestamp) : '-'}] [${
-                                event.reason
-                            }] ${event.message}`
+                            return `[${eventTimeStr}] [${event.reason}] ${event.message}`
                         }
-                        return `[${event.lastTimestamp ? formatDateTime(event.lastTimestamp) : '-'}] [${
-                            event.involvedObject?.kind ?? '-'
-                        }] [${event.involvedObject?.name ?? '-'}] [${event.reason}] ${event.message}`
+                        return `[${eventTimeStr}] [${event.involvedObject?.kind ?? '-'}] [${
+                            event.involvedObject?.name ?? '-'
+                        }] [${event.reason}] ${event.message}`
                     })
                 )
             }

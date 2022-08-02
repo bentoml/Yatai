@@ -3,8 +3,7 @@ import { useModel, useModelLoading } from '@/hooks/useModel'
 import { Skeleton } from 'baseui/skeleton'
 import { createUseStyles } from 'react-jss'
 import useTranslation from '@/hooks/useTranslation'
-import ImageBuildStatusTag from '@/components/ImageBuildStatusTag'
-import { listModelBentos, listModelDeployments, recreateModelImageBuilderJob, updateModel } from '@/services/model'
+import { listModelBentos, listModelDeployments, updateModel } from '@/services/model'
 import LabelList from '@/components/LabelList'
 import Card from '@/components/Card'
 import Time from '@/components/Time'
@@ -144,18 +143,6 @@ export default function ModelOverview() {
             <div className={styles.left}>
                 <Card>
                     <div className={styles.itemsWrapper}>
-                        <div className={styles.item}>
-                            <div className={styles.key}>{t('status')}</div>
-                            <div className={styles.value}>
-                                <ImageBuildStatusTag
-                                    status={model.image_build_status}
-                                    podsSelector={`yatai.ai/model=${model.version},yatai.ai/model-repository=${model.repository.name}`}
-                                    onRerunClick={async () => {
-                                        await recreateModelImageBuilderJob(model.repository.name, model.version)
-                                    }}
-                                />
-                            </div>
-                        </div>
                         <div className={styles.item}>
                             <div className={styles.key}>{t('created_at')}</div>
                             <div className={styles.value}>

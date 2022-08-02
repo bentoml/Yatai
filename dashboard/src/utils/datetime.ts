@@ -1,24 +1,21 @@
 import moment from 'moment'
 import { dateTimeFormat } from '@/consts'
 
-export function formatDateTime(s: string, format = 'YYYY-MM-DDTHH:mm:ssZ'): string {
-    return moment(s, format).format(dateTimeFormat)
+export function timeStrToMoment(timeStr: string, format = 'YYYY-MM-DDTHH:mm:ssZ'): moment.Moment | null {
+    if (timeStr) {
+        return moment(timeStr, format)
+    }
+    return null
 }
 
-export function durationToStr(v: number) {
-    const units = ['μs', 'ms', 's', 'm', 'h', 'd']
-    let basic = 1000
-    let unitIdx = 0
-    let newV = v
-    while (newV >= basic) {
-        unitIdx++
-        newV /= basic
-        if (unitIdx > 2) {
-            basic = 60
-        }
-        if (unitIdx > 4) {
-            basic = 24
-        }
+export function formatMoment(m: moment.Moment): string {
+    return m.format(dateTimeFormat)
+}
+
+export function formatDateTime(s: string, format = 'YYYY-MM-DDTHH:mm:ssZ'): string {
+    const m = timeStrToMoment(s, format)
+    if (m) {
+        return m.format(dateTimeFormat)
     }
-    return `${newV.toFixed(2)}${units[unitIdx]}`
+    return s
 }

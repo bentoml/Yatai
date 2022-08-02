@@ -3,8 +3,7 @@ import { useBento, useBentoLoading } from '@/hooks/useBento'
 import { Skeleton } from 'baseui/skeleton'
 import { createUseStyles } from 'react-jss'
 import useTranslation from '@/hooks/useTranslation'
-import ImageBuildStatusTag from '@/components/ImageBuildStatusTag'
-import { listBentoModels, listBentoDeployments, recreateBentoImageBuilderJob, updateBento } from '@/services/bento'
+import { listBentoModels, listBentoDeployments, updateBento } from '@/services/bento'
 import LabelList from '@/components/LabelList'
 import Card from '@/components/Card'
 import Time from '@/components/Time'
@@ -140,18 +139,6 @@ export default function BentoOverview() {
             <div className={styles.left}>
                 <Card>
                     <div className={styles.itemsWrapper}>
-                        <div className={styles.item}>
-                            <div className={styles.key}>{t('status')}</div>
-                            <div className={styles.value}>
-                                <ImageBuildStatusTag
-                                    status={bento.image_build_status}
-                                    podsSelector={`yatai.ai/bento=${bento.version},yatai.ai/bento-repository=${bento.repository.name}`}
-                                    onRerunClick={async () => {
-                                        await recreateBentoImageBuilderJob(bento.repository.name, bento.version)
-                                    }}
-                                />
-                            </div>
-                        </div>
                         <div className={styles.item}>
                             <div className={styles.key}>{t('created_at')}</div>
                             <div className={styles.value}>
