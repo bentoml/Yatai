@@ -23,6 +23,8 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import { TiClipboard } from 'react-icons/ti'
 import HighlightText from '@/components/HighlightText'
 import { Block } from 'baseui/block'
+import Pods from '@/components/Pods'
+import { GrDocker } from 'react-icons/gr'
 
 export default function DeploymentOverview() {
     const { clusterName, kubeNamespace, deploymentName } =
@@ -108,6 +110,15 @@ export default function DeploymentOverview() {
                     ]}
                 />
             </Card>
+            {deployment?.latest_revision?.targets[0] && (
+                <Card title={t('docker image builder pods')} titleIcon={GrDocker}>
+                    <Pods
+                        clusterName={clusterName}
+                        namespace='yatai-builders'
+                        selector={`yatai.ai/bento-repository=${deployment?.latest_revision?.targets[0]?.bento.repository.name},yatai.ai/bento=${deployment?.latest_revision?.targets[0]?.bento.version}`}
+                    />
+                </Card>
+            )}
             <Card title={t('events')} titleIcon={MdEventNote}>
                 <KubePodEvents
                     open

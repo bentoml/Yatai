@@ -1,5 +1,4 @@
 import { useCluster } from '@/hooks/useCluster'
-import { useDeployment } from '@/hooks/useDeployment'
 import { useOrganization } from '@/hooks/useOrganization'
 import useTranslation from '@/hooks/useTranslation'
 import { IKubePodSchema } from '@/schemas/kube_pod'
@@ -20,6 +19,7 @@ import {
 } from 'baseui/table-semantic'
 import { Skeleton } from 'baseui/skeleton'
 import { resourceIconMapping } from '@/consts'
+import { IDeploymentSchema } from '@/schemas/deployment'
 import Log from './Log'
 import { PodStatus } from './PodStatuses'
 import Terminal from './Terminal'
@@ -32,10 +32,12 @@ export interface IPodListProps {
     clusterName?: string
     groupByRunner?: boolean
     pods: IKubePodSchema[]
+    deployment?: IDeploymentSchema
 }
 
 export default function PodList({
     loading = false,
+    deployment,
     clusterName: clusterName_,
     pods,
     groupByRunner = false,
@@ -43,7 +45,6 @@ export default function PodList({
     const [t] = useTranslation()
     const { organization } = useOrganization()
     const { cluster } = useCluster()
-    const { deployment } = useDeployment()
     const [desiredShowLogsPod, setDesiredShowLogsPod] = useState<IKubePodSchema>()
     const [desiredShowKubeEventsPod, setDesiredShowKubeEventsPod] = useState<IKubePodSchema>()
     const [desiredShowMonitorPod, setDesiredShowMonitorPod] = useState<IKubePodSchema>()

@@ -327,6 +327,7 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 			je := _events[j]
 
 			it := time.Now()
+			// nolint: gocritic
 			if !ie.EventTime.IsZero() {
 				it = ie.EventTime.Time
 			} else if !ie.LastTimestamp.IsZero() {
@@ -336,6 +337,7 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 			}
 
 			jt := time.Now()
+			// nolint: gocritic
 			if !je.EventTime.IsZero() {
 				jt = je.EventTime.Time
 			} else if !je.LastTimestamp.IsZero() {
