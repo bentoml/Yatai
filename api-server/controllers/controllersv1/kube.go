@@ -9,15 +9,15 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	apiv1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/cache"
 
+	"github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/common/consts"
 )
 
 type kubeController struct {
@@ -70,7 +70,7 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 		}
 	}()
 
-	filter := func(event *apiv1.Event) bool {
+	filter := func(event *corev1.Event) bool {
 		return true
 	}
 
@@ -89,7 +89,7 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 			return err
 		}
 
-		filter = func(event *apiv1.Event) bool {
+		filter = func(event *corev1.Event) bool {
 			return event.InvolvedObject.Kind == consts.KubeEventResourceKindPod && event.InvolvedObject.UID == pod.UID
 		}
 	}
@@ -122,7 +122,7 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 			return
 		}
 
-		_events := make([]*apiv1.Event, 0)
+		_events := make([]*corev1.Event, 0)
 
 		for _, event := range events {
 			if !filter(event) {
@@ -154,7 +154,7 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			if event, ok := obj.(*apiv1.Event); ok {
+			if event, ok := obj.(*corev1.Event); ok {
 				if !filter(event) {
 					return
 				}
@@ -162,7 +162,7 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 			}
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			if event, ok := newObj.(*apiv1.Event); ok {
+			if event, ok := newObj.(*corev1.Event); ok {
 				if !filter(event) {
 					return
 				}
@@ -170,7 +170,7 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
-			if event, ok := obj.(*apiv1.Event); ok {
+			if event, ok := obj.(*corev1.Event); ok {
 				if !filter(event) {
 					return
 				}
@@ -251,7 +251,7 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 		return err
 	}
 
-	filter, err := services.KubeEventService.MakeDeploymentKubeEventFilter(ctx, deployment, nil)
+	eventFilter, err := services.KubeEventService.MakeDeploymentKubeEventFilter(ctx, deployment, nil)
 	if err != nil {
 		return err
 	}
@@ -275,7 +275,7 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 			return errors.Errorf("pod %s not in this deployment", podName)
 		}
 
-		filter = func(event *apiv1.Event) bool {
+		eventFilter = func(event *corev1.Event) bool {
 			return event.InvolvedObject.Kind == consts.KubeEventResourceKindPod && event.InvolvedObject.UID == pod.UID
 		}
 	}
@@ -286,7 +286,7 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 		return err
 	}
 
-	informer := eventInformer.Informer()
+	eventInformer_ := eventInformer.Informer()
 	defer runtime.HandleCrash()
 
 	ticker := time.NewTicker(time.Second * 3)
@@ -300,6 +300,8 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 		time.Sleep(time.Second * 10)
 	}
 
+	seen := make(map[string]struct{})
+
 	send := func() {
 		events, err := eventLister.List(labels.Everything())
 		if err != nil {
@@ -308,20 +310,41 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 			return
 		}
 
-		_events := make([]*apiv1.Event, 0)
+		_events := make([]*corev1.Event, 0)
 
 		for _, event := range events {
-			if !filter(event) {
+			if !eventFilter(event) {
+				continue
+			}
+			if _, ok := seen[event.Message]; ok {
 				continue
 			}
 			_events = append(_events, event)
 		}
 
 		sort.SliceStable(_events, func(i, j int) bool {
-			it := _events[i].LastTimestamp
-			jt := _events[j].LastTimestamp
+			ie := _events[i]
+			je := _events[j]
 
-			return it.Before(&jt)
+			it := time.Now()
+			if !ie.EventTime.IsZero() {
+				it = ie.EventTime.Time
+			} else if !ie.LastTimestamp.IsZero() {
+				it = ie.LastTimestamp.Time
+			} else if !ie.FirstTimestamp.IsZero() {
+				it = ie.FirstTimestamp.Time
+			}
+
+			jt := time.Now()
+			if !je.EventTime.IsZero() {
+				jt = je.EventTime.Time
+			} else if !je.LastTimestamp.IsZero() {
+				jt = je.LastTimestamp.Time
+			} else if !je.FirstTimestamp.IsZero() {
+				jt = je.FirstTimestamp.Time
+			}
+
+			return it.Before(jt)
 		})
 
 		err = conn.WriteJSON(&schemasv1.WsRespSchema{
@@ -338,26 +361,26 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 
 	send()
 
-	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	eventInformer_.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			if event, ok := obj.(*apiv1.Event); ok {
-				if !filter(event) {
+			if event, ok := obj.(*corev1.Event); ok {
+				if !eventFilter(event) {
 					return
 				}
 				send()
 			}
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			if event, ok := newObj.(*apiv1.Event); ok {
-				if !filter(event) {
+			if event, ok := newObj.(*corev1.Event); ok {
+				if !eventFilter(event) {
 					return
 				}
 				send()
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
-			if event, ok := obj.(*apiv1.Event); ok {
-				if !filter(event) {
+			if event, ok := obj.(*corev1.Event); ok {
+				if !eventFilter(event) {
 					return
 				}
 				send()
