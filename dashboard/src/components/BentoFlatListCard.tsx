@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import Card from '@/components/Card'
-import { listAllBentos, recreateBentoImageBuilderJob } from '@/services/bento'
+import { listAllBentos } from '@/services/bento'
 import { usePage } from '@/hooks/usePage'
 import { IBentoSchema, IBentoWithRepositorySchema } from '@/schemas/bento'
 import useTranslation from '@/hooks/useTranslation'
@@ -16,7 +16,6 @@ import prettyBytes from 'pretty-bytes'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
 import { ResourceLabels } from './ResourceLabels'
-import ImageBuildStatusIcon from './ImageBuildStatusIcon'
 import Time from './Time'
 import List from './List'
 import Link from './Link'
@@ -84,16 +83,6 @@ export default function BentoFlatListCard() {
             return (
                 <ListItem
                     key={bento.uid}
-                    artwork={() => (
-                        <ImageBuildStatusIcon
-                            key={bento.uid}
-                            status={bento.image_build_status}
-                            podsSelector={`yatai.ai/bento=${bento.version},yatai.ai/bento-repository=${bento.repository.name}`}
-                            onRerunClick={async () => {
-                                await recreateBentoImageBuilderJob(bento.repository.name, bento.version)
-                            }}
-                        />
-                    )}
                     endEnhancer={() => (
                         <div
                             style={{

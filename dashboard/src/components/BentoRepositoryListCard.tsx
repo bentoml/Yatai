@@ -19,7 +19,6 @@ import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
-import { recreateBentoImageBuilderJob } from '@/services/bento'
 import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
 import SyntaxHighlighter from 'react-syntax-highlighter'
@@ -30,7 +29,6 @@ import Time from './Time'
 import Grid from './Grid'
 import List from './List'
 import DeploymentStatusTag from './DeploymentStatusTag'
-import ImageBuildStatusIcon from './ImageBuildStatusIcon'
 import Link from './Link'
 
 const useStyles = createUseStyles({
@@ -322,17 +320,6 @@ export default function BentoRepositoryListCard() {
                                             role='button'
                                             tabIndex={0}
                                         >
-                                            <ImageBuildStatusIcon
-                                                size={14}
-                                                status={item.image_build_status}
-                                                podsSelector={`yatai.ai/bento=${item.version},yatai.ai/bento-repository=${bentoRepository.name}`}
-                                                onRerunClick={async () => {
-                                                    await recreateBentoImageBuilderJob(
-                                                        bentoRepository.name,
-                                                        item.version
-                                                    )
-                                                }}
-                                            />
                                             <div
                                                 style={{
                                                     display: 'flex',
