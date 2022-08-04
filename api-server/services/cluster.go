@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"net"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -26,6 +25,8 @@ import (
 	clientcmdapiv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 
 	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
+
+	"github.com/bentoml/yatai-common/system"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/config"
@@ -379,55 +380,16 @@ func (s *clusterService) GetDockerRegistryRef(ctx context.Context, cluster *mode
 	return ref, nil
 }
 
-func (s *clusterService) GetIngressIp(ctx context.Context, cluster *models.Cluster) (string, error) {
-	var ip string
-	if cluster.Config != nil {
-		ip = cluster.Config.IngressIp
-	}
-	if ip == "" {
-		cliset, _, err := s.GetKubeCliSet(ctx, cluster)
-		if err != nil {
-			return "", errors.Wrap(err, "get kube cli set")
-		}
-		servicesCli := cliset.CoreV1().Services(consts.KubeNamespaceYataiComponents)
-		svcName := "yatai-ingress-controller-ingress-nginx-controller"
-		svc, err := servicesCli.Get(ctx, svcName, metav1.GetOptions{})
-		if err != nil {
-			return "", errors.Wrap(err, "get ingress service")
-		}
-		if len(svc.Status.LoadBalancer.Ingress) == 0 {
-			return "", errors.Errorf("the external ip of service %s on namespace %s is empty!", svcName, consts.KubeNamespaceYataiComponents)
-		}
-
-		ing := svc.Status.LoadBalancer.Ingress[0]
-
-		ip = ing.IP
-		if ip == "" {
-			ip = ing.Hostname
-		}
-	}
-	if ip == "" {
-		return "", errors.Errorf("please specify the ingress ip or hostname in cluster %s", cluster.Name)
-	}
-	if net.ParseIP(ip) == nil {
-		addr, err := net.LookupIP(ip)
-		if err != nil {
-			return "", errors.Wrapf(err, "lookup ip from ingress hostname %s in cluster %s", ip, cluster.Name)
-		}
-		if len(addr) == 0 {
-			return "", errors.Errorf("cannot lookup ip from ingress hostname %s in cluster %s", ip, cluster.Name)
-		}
-		ip = addr[0].String()
-	}
-	return ip, nil
-}
-
 func (s *clusterService) GenerateGrafanaHostname(ctx context.Context, cluster *models.Cluster) (string, error) {
-	ip, err := ClusterService.GetIngressIp(ctx, cluster)
+	clientset, _, err := s.GetKubeCliSet(ctx, cluster)
+	if err != nil {
+		return "", errors.Wrap(err, "get kube cli set")
+	}
+	domainSuffix, err := system.GetDomainSuffix(ctx, clientset)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("grafana-yatai-infra-external-%s.apps.yatai.dev", strings.ReplaceAll(ip, ".", "-")), nil
+	return fmt.Sprintf("grafana-yatai-infra-external.%s", domainSuffix), nil
 }
 
 func (s *clusterService) GetGrafanaRootPath(ctx context.Context, cluster *models.Cluster) (string, error) {
