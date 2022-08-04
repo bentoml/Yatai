@@ -21,6 +21,7 @@ import (
 	networkingtypev1 "k8s.io/client-go/kubernetes/typed/networking/v1"
 	"k8s.io/client-go/rest"
 
+	"github.com/bentoml/yatai-common/system"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
@@ -602,11 +603,15 @@ func (s *deploymentService) GenerateDefaultHostname(ctx context.Context, deploym
 	if err != nil {
 		return "", err
 	}
-	ip, err := ClusterService.GetIngressIp(ctx, cluster)
+	clientset, _, err := ClusterService.GetKubeCliSet(ctx, cluster)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s-yatai-%s.apps.yatai.dev", deployment.Name, strings.ReplaceAll(ip, ".", "-")), nil
+	domainSuffix, err := system.GetDomainSuffix(ctx, clientset)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s-%s.%s", deployment.Name, deployment.KubeNamespace, domainSuffix), nil
 }
 
 func (s *deploymentService) GetURLs(ctx context.Context, deployment *models.Deployment) ([]string, error) {
