@@ -313,7 +313,7 @@ Prerequisites:
     AWS_SECRET_ACCESS_KEY=$(aws configure get default.aws_secret_access_key)
     kubectl create secret generic yatai-s3-credentials \
         --from-literal=accessKeyId=$AWS_ACCESS_KEY_ID \
-        --from-literal=secretAccessKey=$AWS_SECRET_ACCESS_KEY
+        --from-literal=secretAccessKey=$AWS_SECRET_ACCESS_KEY \
         -n yatai-system
     ```
 
