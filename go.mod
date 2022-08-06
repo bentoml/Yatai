@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/GoogleContainerTools/kaniko v1.8.1
 	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
-	github.com/bentoml/yatai-common v0.0.0-20220801050420-8e725fdff9f6
+	github.com/bentoml/yatai-common v0.0.0-20220808132059-f48396b17807
 	github.com/bentoml/yatai-deployment-operator v0.0.0-20220509150025-8aae33c8b98b
 	github.com/bentoml/yatai-schemas v0.0.0-20220802041824-8a5d92f674cb
 	github.com/ghodss/yaml v1.0.0
