@@ -6,10 +6,10 @@ THe following table lists the configurable parameters for the Yatai Helm chart a
 ## Yatai Kuberentes service configuration
 | Parameter | Default | Description |
 | --------- | ------- | ----------- |
-| `replicatCount` | `1` | The image to use for the Yatai Helm chart. |
-| `registry` | `quay.io/bentoml` | The version of the Yatai Helm chart to use. |
-| `image.repository` | `yatai` | The namespace to use for the Yatai Helm chart. |
-| `image.pullPolicy` | `IfNotPresent` | The image pull policy to use for the Yatai Helm chart. |
+| `replicaCount` | `1` | Number of replicas of Yatai. |
+| `registry` | `quay.io/bentoml` | The docker image registry of Yatai. |
+| `image.repository` | `yatai` | The docker image repository of Yatai. |
+| `image.pullPolicy` | `IfNotPresent` | The image pull policy to use for the Yatai. |
 | `image.tag` | `latest` | The tag to use for the Yatai Helm chart. |
 | `imagePullSecrets` | `[]` | The image pull secrets to use for the Yatai Helm chart. |
 | `nameOverride` | `""` | The name of the Yatai Helm chart. |
@@ -64,14 +64,25 @@ THe following table lists the configurable parameters for the Yatai Helm chart a
 | `externalPostgresql.existingSecretPasswordKey` | `""` | The key of the PostgreSQL secret for the Yatai Helm chart. |
 
 
-## BentoDeployment ingress configuration
+## Yatai ingress configuration
 | Parameter | Default | Description |
 | --------- | ------- | ----------- |
-| `ingress.enabled` | `true` | Whether to enable the ingress for the Yatai Helm chart. |
-| `ingress.className` | `yatai-ingress` | The class name of the ingress for the Yatai Helm chart. |
-| `ingress.hosts[0].host` | `yatai.127.0.0.1.sslip.io` | The host of the ingress for the Yatai Helm chart. |
-| `ingress.hosts[0].paths[0]` | `/` | The path of the ingress for the Yatai Helm chart. |
-| `ingress.tls` | `[]` | The TLS configuration of the ingress for the Yatai Helm chart. |
+| `ingress.enabled` | `false` | Whether to enable the ingress for Yatai itself. |
+| `ingress.className` | `''` | The class name of the ingress for Yatai itself. |
+| `ingress.hosts[0].host` | `yatai-dashboard.example.com` | The host of the ingress for Yatai itself. |
+| `ingress.hosts[0].paths[0]` | `/` | The path of the ingress for Yatai itself. |
+| `ingress.tls` | `[]` | The TLS configuration of the ingress for Yatai itself. |
+
+
+## Network configuration
+This configuration is for BentoDeployment access and MinIO access.
+
+| Parameter | Default | Description |
+| --------- | ------- | ----------- |
+| `layers.network.ingressClass` | `''` | The ingress-class for BentoDeployment ingress and MinIO ingress |
+| `layers.network.domainSuffix` | `''` | The domain suffix for BentoDeployment ingress host and MinIO ingress host. If you don't set it or set it to an empty string, yatai will use [sslip.io](https://sslip.io) to automatically generate |
+
+To understand more detailed network configuration information, you can read [here](./admin-guide.md#configure-network)
 
 
 ## Common Kubernetes configuration

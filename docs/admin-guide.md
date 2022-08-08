@@ -4,20 +4,25 @@ This guide helps you to install and configure Yatai on a Kubernetes Cluster for 
 learning team, using the official [Yatai Helm chart](https://github.com/bentoml/yatai-chart). Note
 that Helm chart is the official supported method of installing Yatai.
 
-By default, Yatai helm chart will install Yatai and its dependency services in the target Kubernetes cluster. Those dependency services include PostgreSQL, Minio, Docker registry, and Nginx Ingress Controller. Users can configure those services with existing infrastructure or cloud-based services via the Helm chart configuration yaml file.
-
+By default, Yatai helm chart will install Yatai and its dependency services in the target Kubernetes cluster. Those dependency services include PostgreSQL, Minio, and Docker registry. Users can configure those services with existing infrastructure or cloud-based services via the Helm chart configuration yaml file.
 
 - [System Overview](#system-overview)
 - [Local Minikube Installation](#local-minikube-installation)
 - [Production Installation](#production-installation)
-  - Custom PostgreSQL database
+  - [Configure Network](#configure-network)
+    - [Ingress Class](#ingress-class)
+    - [DNS for domain suffix](#dns-for-domain-suffix)
+  - [Custom PostgreSQL database](#custom-postgresql-database)
     - [AWS RDS](#aws-rds)
-  - Custom Docker Registry
+  - [Custom Docker Registry](#custom-docker-registry)
     - [Docker hub](#docker-hub)
     - [AWR ECR](#aws-ecr)
-  - Custom Blob Storage
+  - [Custom Blob Storage](#custom-blob-storage)
     - [AWS S3](#aws-s3)
 - [Verify Installation](#verify-installation)
+- [Debugging](#debugging)
+  - [Cannot create a bento deployment](#cannot-create-a-bento-deployment)
+  - [Bento deployment cannot mount volume](#bento-deployment-cannot-mount-volume)
 
 ## System Overview
 
@@ -35,7 +40,7 @@ When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-ope
 
     *Components and their managed services:*
 
-    * *Deployment*: Minio, Docker Registry
+    * *Deployment*: Minio, Docker Registry, CSI Driver Image Populator
 
     * *Logging*: Loki, Grafana
 
@@ -55,13 +60,6 @@ When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-ope
     By default Yatai server will create a `yatai` namespace on the Kuberentes cluster for managing all the user created bento deployments. User can configure this namespace value in the Yatai web UI.
 
 
-### Prerequisites:
-
-* *Ingress controller*:
-
-    Yatai uses ingress controller to facilitates access to deployments and canary deployments.
-
-
 ### Default dependency services installed:
 
 * *PostgreSQL*:
@@ -76,13 +74,20 @@ When deploying Yatai with Helm,  `yatai-system`, `yatai-components`,  `yatai-ope
 
     Yatai uses an internal docker registry to provide docker images access for deployments. For users who want to access the built images for other system, they can configure to use DockerHub or other cloud based docker registry services.
 
+* *CSI Driver Image Populator*:
+
+    Yatai splits a bento into several model layers and a python code layer. Each layer is compiled into a docker image, so yatai can use the layered caching feature of docker image to reduce the pressure on network IO and disk space consumption of large model files, each model file will only be downloaded at most once on the same node and will only take up at most one share of storage space. This advantage grows as different bento's share the same model.
+
+    Yatai use [csi driver image populator](https://github.com/bentoml/csi-driver-image-populator) to mount a docker image as a volume for bento deployment container. You also can use [warm-metal/csi-driver-image](https://github.com/warm-metal/csi-driver-image) to insteed of `csi-driver-image-populator`.
+
 See all available helm chart configuration options [here](./helm-configuration.md)
 
 ## Local Minikube Installation
 
 Minikube is recommended for development and testing purpose only.
 
-**prerequisites**
+**Prerequisites:**
+
 - Minikube version 1.20 or newer. Please follow the [official installation guide](https://minikube.sigs.k8s.io/docs/start/) to install Minikube.
 - Recommend system with 4 CPUs and 4GB of RAM or more
 
@@ -102,36 +107,7 @@ minikube start --cpus 4 --memory 4096
 minikube addons enable ingress
 ```
 
-**Step 3. Add and update Yatai helm chart**
-
-```bash
-helm repo add yatai https://bentoml.github.io/yatai-chart
-helm repo update
-```
-
-**Step 4. Install Yatai chart**
-
-This will create a new namespace `yatai-system` in the Minikube cluster, install Yatai and all its dependency services.
-
-```bash
-helm install yatai yatai/yatai -n yatai-system --create-namespace
-```
-
-**Step 5. Verify installation**
-
-Go to [Verify installation](#verify-installation) section
-
-
-## Production Installation
-
-To install and operate Yatai in production, we generally recommend using a dedicated database service(e.g. AWS RDS) and a managed blob storage (AWS S3 or managed MinIO cluster). The following demonstrates how to customize a Yatai deployment for production use.
-
-**Prerequisite**
-
-- Kubernetes cluster with version 1.20 or newer
-- LoadBalancer (If you are using AWS EKS, Google GKS, your cluster is likely already configured with a working LoadBalancer. If you are using Kubernetes in a private data center, contact your system admin)
-
-**Install Yatai with default configuration.**
+**Step 3. Install Yatai with default configuration**
 
 1. Download and update Helm repo
 
@@ -139,9 +115,10 @@ To install and operate Yatai in production, we generally recommend using a dedic
     helm repo add yatai https://bentoml.github.io/yatai-chart
 
     helm repo update
-    
     ```
+
     Create yatai-system namespace
+
     ```bash
     kubectl create namespace yatai-system
     ```
@@ -151,6 +128,126 @@ To install and operate Yatai in production, we generally recommend using a dedic
     ```bash
     helm install yatai yatai/yatai -n yatai-system
     ```
+
+    See all available helm chart configuration options [here](./helm-configuration.md)
+
+**Step 4. [Verify Installation](#verify-installation)**
+
+## Production Installation
+
+To install and operate Yatai in production, we generally recommend using a dedicated database service(e.g. AWS RDS) and a managed blob storage (AWS S3 or managed MinIO cluster). The following demonstrates how to customize a Yatai deployment for production use.
+
+**Prerequisite**
+
+* *Kuberentes cluster*:
+
+    Kubernetes cluster with version 1.20 or newer
+
+* *Ingress controller*:
+
+    Yatai uses ingress controller to facilitates access to bento deployments.
+
+    You can use the following command to check if you have ingress controlelr installed in your cluster:
+
+    ```bash
+    kubectl get ingressclass
+    ```
+
+    The output should looks like this:
+
+    ```bash
+    NAME    CONTROLLER             PARAMETERS   AGE
+    nginx   k8s.io/ingress-nginx   <none>       10d
+    ```
+
+    If no value is returned, you do not have an ingress controller installed in your cluster, you need to select an ingress controller and install it, for example you can install [nginx-ingress](https://kubernetes.github.io/ingress-nginx/deploy/#quick-start)
+
+
+**Install Yatai with default configuration:**
+
+1. Download and update Helm repo
+
+    ```bash
+    helm repo add yatai https://bentoml.github.io/yatai-chart
+
+    helm repo update
+    ```
+
+    Create yatai-system namespace
+
+    ```bash
+    kubectl create namespace yatai-system
+    ```
+
+2. Install Yatai helm chart
+
+    ```bash
+    helm install yatai yatai/yatai -n yatai-system
+    ```
+
+    See all available helm chart configuration options [here](./helm-configuration.md)
+
+### Configure Network
+
+The network config is for bento deployment access and minio access.
+
+#### * Ingress Class
+
+Set [ingress class](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class) for BentoDeployment ingress and MinIO ingress.
+
+For example, you ingress class is `nginx`:
+
+* Before installation:
+
+    See the `ingress-class` section of the helm chart for network layer configuration [here](./helm-configuration.md#network-layer-configuration)
+
+* After installation:
+
+    ```bash
+    kubectl -n yatai-system patch cm/network --type merge --patch '{"data":{"ingress-class":"nginx"}}'
+    ```
+
+#### DNS for domain suffix
+
+You can configure DNS to prevent the need to run curl commands with a host header.
+
+You need to configure your DNS in one of the following two options:
+
+##### Option 1 (by default): *Magic DNS(sslip.io)*
+
+You don't need to do anything because Yatai will use [sslip.io](https://sslip.io/) to automatically generate `domain-suffix` for BentoDeployment ingress host and MinIO ingress host.
+
+##### Option 2: *Real DNS*
+
+To configure DNS for Yatai, take the External IP or CNAME from setting up networking, and configure it with your DNS provider as follows:
+
+* If the networking layer produced an External IP address, then configure a wildcard A record for the domain:
+
+```bash
+# Here yatai.example.com is the domain suffix for your cluster
+*.yatai.example.com == A 35.233.41.212
+```
+
+* If the networking layer produced a CNAME, then configure a CNAME record for the domain:
+
+```bash
+# Here yatai.example.com is the domain suffix for your cluster
+*.yatai.example.com == CNAME a317a278525d111e89f272a164fd35fb-1510370581.eu-central-1.elb.amazonaws.com
+```
+
+Once your DNS provider has been configured, direct yatai to use that domain:
+
+* Before installation:
+
+    See the `domain-suffix` section of the helm chart for network layer configuration [here](./helm-configuration.md#network-layer-configuration)
+
+* After installation:
+
+    ```bash
+    # Replace yatai.example.com with your domain suffix
+    kubectl -n yatai-system patch cm/network --type merge --patch '{"data":{"domain-suffix":"yatai.example.com"}}'
+    ```
+
 
 ### Custom PostgreSQL database
 
@@ -197,14 +294,14 @@ Prerequisites:
     DB_NAME=yatai
 
     helm install yatai yatai/yatai \
-    	--set postgresql.enabled=false \
-    	--set externalPostgresql.host=$host \
-    	--set externalPostgresql.port=$port \
-    	--set externalPostgresql.user=$USER_NAME \
-    	--set externalPostgresql.existingSecret=rds-password \
+        --set postgresql.enabled=false \
+        --set externalPostgresql.host=$host \
+        --set externalPostgresql.port=$port \
+        --set externalPostgresql.user=$USER_NAME \
+        --set externalPostgresql.existingSecret=rds-password \
         --set externalPostgresql.existingSecretPasswordKey=password \
-    	--set externalPostgresql.database=$DB_NAME \
-    	-n yatai-system
+        --set externalPostgresql.database=$DB_NAME \
+        -n yatai-system
     ```
 
 
@@ -214,11 +311,11 @@ Prerequisites:
 
 ```bash
 helm install yatai yatai/yatai \
-	--set config.docker_registry.server='https://index.docker.io/v1' \
-	--set config.docker_registry.username='MY_DOCKER_USER' \
-	--set config.docker_registry.password='MY_DOCKER_USER_PASSWORD' \
-	--set config.docker_registry.secure=true \
-	-n yatai-system
+    --set config.docker_registry.server='docker.io' \
+    --set config.docker_registry.username='MY_DOCKER_USER' \
+    --set config.docker_registry.password='MY_DOCKER_USER_PASSWORD' \
+    --set config.docker_registry.secure=true \
+    -n yatai-system
 ```
 
 #### AWS ECR
@@ -275,15 +372,15 @@ Prerequisites:
 
     ```bash
     helm install yatai yatai/yatai \
-    	--set externalDockerRegistry.enabled=true \
-    	--set externalDockerRegistry.server=$ENDPOINT \
-    	--set externalDockerRegistry.username=AWS \
-    	--set externalDockerRegistry.secure=true \
-    	--set externalDockerRegistry.bentoRepositoryName=$BENTO_REPO \
-    	--set externalDockerRegistry.modelRepositoryName=$MODEL_REPO \
-    	--set externalDockerRegistry.existingSecret=yatai-docker-registry-credentials \
-    	--set externalDockerRegistry.existingSecretPasswordKey=password \
-    	-n yatai-system
+        --set externalDockerRegistry.enabled=true \
+        --set externalDockerRegistry.server=$ENDPOINT \
+        --set externalDockerRegistry.username=AWS \
+        --set externalDockerRegistry.secure=true \
+        --set externalDockerRegistry.bentoRepositoryName=$BENTO_REPO \
+        --set externalDockerRegistry.modelRepositoryName=$MODEL_REPO \
+        --set externalDockerRegistry.existingSecret=yatai-docker-registry-credentials \
+        --set externalDockerRegistry.existingSecretPasswordKey=password \
+        -n yatai-system
     ```
 
 
@@ -323,13 +420,13 @@ Prerequisites:
     helm install yatai yatai/yatai \
         --set externalS3.enabled=true \
         --set externalS3.endpoint=$ENDPOINT \
-    	--set externalS3.region=$MY_REGION \
-    	--set externalS3.bucketName=$BUCKET_NAME \
-    	--set externalS3.secure=true \
+        --set externalS3.region=$MY_REGION \
+        --set externalS3.bucketName=$BUCKET_NAME \
+        --set externalS3.secure=true \
         --set externalS3.existingSecret="yatai-s3-credentials" \
-    	--set externalS3.existingSecretAccessKeyKey=accessKeyId \
-    	--set externalS3.existingSecretSecretKeyKey=secretAccessKey \
-    	-n yatai-system
+        --set externalS3.existingSecretAccessKeyKey=accessKeyId \
+        --set externalS3.existingSecretSecretKeyKey=secretAccessKey \
+        -n yatai-system
     ```
 
 ### Verify Installation
@@ -441,7 +538,7 @@ yatai-yatai-deployment-operator-8476ff78b5-jsgnw   1/1     Running   0          
 
 #### 5. Setup
 
-You can access the Yatai Web UI: http://${Yatai URL}/setup?token=<token>. You can find the Yatai URL link and the token again using `helm get notes yatai -n yatai-system` command.
+You can access the Yatai Web UI: `http://${Yatai URL}/setup?token=<token>`. You can find the Yatai URL link and the token again using `helm get notes yatai -n yatai-system` command.
 
 You can also retrieve the token using `kubectl` command:
 
@@ -449,3 +546,20 @@ You can also retrieve the token using `kubectl` command:
 export YATAI_INITIALIZATION_TOKEN=$(kubectl get secret yatai --namespace yatai-system -o jsonpath="{.data.initialization_token}" | base64 --decode)
 ```
 
+## Debugging
+
+### Cannot create a bento deployment
+
+You can use the following commands to debug the yatai-deployment-operator:
+
+```bash
+kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment-operator
+```
+
+### Bento deployment cannot mount volume
+
+You can use the following commands to debug the csi-driver-image-populator:
+
+```bash
+kubectl -n yatai-components logs -f ds/yatai-csi-driver-image-populator -c image
+```
