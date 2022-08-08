@@ -40,22 +40,12 @@ func ToModelSchemas(ctx context.Context, models_ []*models.Model) ([]*schemasv1.
 		if !ok {
 			return nil, errors.Errorf("resourceSchema not found for model %s", model.GetUid())
 		}
-		imageName, err := services.ModelService.GetImageName(ctx, model, false)
-		if err != nil {
-			return nil, errors.Wrap(err, "GetImageName")
-		}
-		inClusterImageName, err := services.ModelService.GetImageName(ctx, model, true)
-		if err != nil {
-			return nil, errors.Wrap(err, "GetInClusterImageName")
-		}
 		res = append(res, &schemasv1.ModelSchema{
 			ResourceSchema:       resourceSchema,
 			ModelUid:             modelRepository.Uid,
 			Version:              model.Version,
 			Creator:              creatorSchema,
 			Description:          model.Description,
-			ImageName:            imageName,
-			InClusterImageName:   inClusterImageName,
 			ImageBuildStatus:     model.ImageBuildStatus,
 			UploadStatus:         model.UploadStatus,
 			UploadStartedAt:      model.UploadStartedAt,

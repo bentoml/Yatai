@@ -466,11 +466,6 @@ func clusterRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Update a cluster"),
 	}, tonic.Handler(controllersv1.ClusterController.Update, 200))
 
-	resourceGrp.GET("/docker_registry_ref", []fizz.OperationOption{
-		fizz.ID("Get a cluster docker registry ref"),
-		fizz.Summary("Get a cluster docker registry ref"),
-	}, tonic.Handler(controllersv1.ClusterController.GetDockerRegistryRef, 200))
-
 	resourceGrp.GET("/members", []fizz.OperationOption{
 		fizz.ID("List cluster members"),
 		fizz.Summary("List cluster members"),
