@@ -306,28 +306,6 @@ func (s *modelService) getS3ObjectName(ctx context.Context, model *models.Model)
 	return objectName, nil
 }
 
-func (s *modelService) GetImageName(ctx context.Context, model *models.Model, inCluster bool) (string, error) {
-	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
-	if err != nil {
-		return "", err
-	}
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
-	if err != nil {
-		return "", err
-	}
-	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
-	if err != nil {
-		return "", err
-	}
-	var imageName string
-	if inCluster {
-		imageName = fmt.Sprintf("%s:yatai.%s.%s.%s", dockerRegistry.ModelsRepositoryURIInCluster, org.Name, modelRepository.Name, model.Version)
-	} else {
-		imageName = fmt.Sprintf("%s:yatai.%s.%s.%s", dockerRegistry.ModelsRepositoryURI, org.Name, modelRepository.Name, model.Version)
-	}
-	return imageName, nil
-}
-
 func (s *modelService) GetS3BucketName(ctx context.Context, model *models.Model) (string, error) {
 	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
 	if err != nil {

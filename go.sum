@@ -360,8 +360,8 @@ github.com/bentoml/yatai-common v0.0.0-20220808163629-fd79fcb6304f/go.mod h1:pox
 github.com/bentoml/yatai-deployment-operator v0.0.0-20220509150025-8aae33c8b98b h1:FTDJ+5TMgBWGB8EYRvLyJKtYDnWKvE6CqqYnhY+TEe4=
 github.com/bentoml/yatai-deployment-operator v0.0.0-20220509150025-8aae33c8b98b/go.mod h1:vu1jltSCPUq+nKmO/ixQxAVKrYEcT/XXGIhluCMtLs8=
 github.com/bentoml/yatai-schemas v0.0.0-20220425180144-46a9d8e948f8/go.mod h1:OT5T7rrtdjJIkJpUazp1fQBbAVzl55YXyUJNVRLqskw=
-github.com/bentoml/yatai-schemas v0.0.0-20220802041824-8a5d92f674cb h1:ShTYUW8eBA4LOoFK73E2cbWsnX3cIsuajwjf6VWX5fg=
-github.com/bentoml/yatai-schemas v0.0.0-20220802041824-8a5d92f674cb/go.mod h1:OT5T7rrtdjJIkJpUazp1fQBbAVzl55YXyUJNVRLqskw=
+github.com/bentoml/yatai-schemas v0.0.0-20220808140747-1ab8e5ea4740 h1:Oql6jCW3/PJAKqO8BaKu6RazRHnJ6ijYpjDW/d9rRRw=
+github.com/bentoml/yatai-schemas v0.0.0-20220808140747-1ab8e5ea4740/go.mod h1:OT5T7rrtdjJIkJpUazp1fQBbAVzl55YXyUJNVRLqskw=
 github.com/beorn7/perks v0.0.0-20160804104726-4c0e84591b9a/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
