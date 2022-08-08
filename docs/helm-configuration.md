@@ -74,7 +74,7 @@ THe following table lists the configurable parameters for the Yatai Helm chart a
 | `ingress.tls` | `[]` | The TLS configuration of the ingress for Yatai itself. |
 
 
-## Network configuration
+## Network layer configuration
 This configuration is for BentoDeployment access and MinIO access.
 
 | Parameter | Default | Description |
