@@ -80,6 +80,7 @@ This configuration is for BentoDeployment access and MinIO access.
 | Parameter | Default | Description |
 | --------- | ------- | ----------- |
 | `layers.network.ingressClass` | `''` | The ingress-class for BentoDeployment ingress and MinIO ingress |
+| `layers.network.ingressAnnotations` | `'{}'` | The annotations for BentoDeployment ingress and MinIO ingress |
 | `layers.network.domainSuffix` | `''` | The domain suffix for BentoDeployment ingress host and MinIO ingress host. If you don't set it or set it to an empty string, yatai will use [sslip.io](https://sslip.io) to automatically generate |
 
 To understand more detailed network configuration information, you can read [here](./admin-guide.md#configure-network)

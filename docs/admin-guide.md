@@ -11,6 +11,7 @@ By default, Yatai helm chart will install Yatai and its dependency services in t
 - [Production Installation](#production-installation)
   - [Configure Network](#configure-network)
     - [Ingress Class](#ingress-class)
+    - [Ingress Annotations](#ingress-annotations)
     - [DNS for domain suffix](#dns-for-domain-suffix)
   - [Custom PostgreSQL database](#custom-postgresql-database)
     - [AWS RDS](#aws-rds)
@@ -191,7 +192,7 @@ To install and operate Yatai in production, we generally recommend using a dedic
 
 The network config is for bento deployment access and minio access.
 
-#### * Ingress Class
+#### Ingress Class
 
 Set [ingress class](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class) for BentoDeployment ingress and MinIO ingress.
 
@@ -205,6 +206,22 @@ For example, you ingress class is `nginx`:
 
     ```bash
     kubectl -n yatai-system patch cm/network --type merge --patch '{"data":{"ingress-class":"nginx"}}'
+    ```
+
+#### Ingress Annotations
+
+Set annotations for BentoDeployment ingress resource and minio ingress resource
+
+For example, you want to set ingress annotation: `"foo": "bar"`
+
+* Before installation:
+
+    See the `ingress-annotations` section of the helm chart for network layer configuration [here](./helm-configuration.md#network-layer-configuration)
+
+* After installation:
+
+    ```bash
+    kubectl -n yatai-system patch cm/network --type merge --patch '{"data": {"ingress-annotations": "{\"foo\":\"bar\"}"}}'
     ```
 
 #### DNS for domain suffix
