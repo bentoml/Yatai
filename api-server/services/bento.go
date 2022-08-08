@@ -324,28 +324,6 @@ func (s *bentoService) getS3ObjectName(ctx context.Context, bento *models.Bento)
 	return objectName, nil
 }
 
-func (s *bentoService) GetImageName(ctx context.Context, bento *models.Bento, inCluster bool) (string, error) {
-	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
-	if err != nil {
-		return "", err
-	}
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
-	if err != nil {
-		return "", err
-	}
-	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
-	if err != nil {
-		return "", err
-	}
-	var imageName string
-	if inCluster {
-		imageName = fmt.Sprintf("%s:yatai.%s.%s.%s", dockerRegistry.BentosRepositoryURIInCluster, org.Name, bentoRepository.Name, bento.Version)
-	} else {
-		imageName = fmt.Sprintf("%s:yatai.%s.%s.%s", dockerRegistry.BentosRepositoryURI, org.Name, bentoRepository.Name, bento.Version)
-	}
-	return imageName, nil
-}
-
 func (s *bentoService) GetS3BucketName(ctx context.Context, bento *models.Bento) (string, error) {
 	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 	if err != nil {

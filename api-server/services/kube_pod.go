@@ -3,23 +3,18 @@ package services
 import (
 	"context"
 	"fmt"
-	"path/filepath"
-	"strconv"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	v1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/utils/pointer"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
-	"github.com/bentoml/yatai/common/utils"
 )
 
 type kubePodService struct{}
@@ -164,206 +159,4 @@ func (s *kubePodService) DeleteKubePod(ctx context.Context, deployment *models.D
 	}
 	logrus.Infof("delete k8s pod %s ...", kubePodName)
 	return podsCli.Delete(ctx, kubePodName, options)
-}
-
-func (s *kubePodService) DeploymentTargetToPodTemplateSpec(ctx context.Context, deploymentTarget *models.DeploymentTarget) (podTemplateSpec *apiv1.PodTemplateSpec, err error) {
-	podLabels, err := DeploymentTargetService.GetKubeLabels(ctx, deploymentTarget)
-	if err != nil {
-		return
-	}
-
-	annotations, err := DeploymentTargetService.GetKubeAnnotations(ctx, deploymentTarget)
-	if err != nil {
-		return
-	}
-
-	kubeName, err := DeploymentTargetService.GetKubeName(ctx, deploymentTarget)
-	if err != nil {
-		return
-	}
-
-	bento, err := BentoService.GetAssociatedBento(ctx, deploymentTarget)
-	if err != nil {
-		return
-	}
-
-	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
-	if err != nil {
-		return
-	}
-
-	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
-	if err != nil {
-		return
-	}
-
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, cluster)
-	if err != nil {
-		return
-	}
-
-	dockerRegistry, err := OrganizationService.GetDockerRegistry(ctx, org)
-	if err != nil {
-		return
-	}
-
-	majorCluster, err := OrganizationService.GetMajorCluster(ctx, org)
-	if err != nil {
-		return
-	}
-
-	imageName, err := BentoService.GetImageName(ctx, bento, cluster.ID == majorCluster.ID)
-	if err != nil {
-		return
-	}
-
-	containerPort := consts.BentoServicePort
-	var envs []apiv1.EnvVar
-	envsSeen := make(map[string]struct{})
-
-	if deploymentTarget.Config != nil && deploymentTarget.Config.Envs != nil {
-		envs = make([]apiv1.EnvVar, 0, len(*deploymentTarget.Config.Envs))
-		for _, v := range *deploymentTarget.Config.Envs {
-			if _, ok := envsSeen[v.Key]; ok {
-				continue
-			}
-			if v.Key == consts.BentoServicePortEnvKey {
-				containerPort, err = strconv.Atoi(v.Value)
-				if err != nil {
-					return nil, errors.Wrapf(err, "invalid port value %s", v.Value)
-				}
-			}
-			envsSeen[v.Key] = struct{}{}
-			envs = append(envs, apiv1.EnvVar{
-				Name:  v.Key,
-				Value: v.Value,
-			})
-		}
-	}
-
-	if _, ok := envsSeen[consts.BentoServicePortEnvKey]; !ok {
-		envs = append(envs, apiv1.EnvVar{
-			Name:  consts.BentoServicePortEnvKey,
-			Value: fmt.Sprintf("%d", containerPort),
-		})
-	}
-
-	livenessProbe := &apiv1.Probe{
-		InitialDelaySeconds: 5,
-		TimeoutSeconds:      5,
-		FailureThreshold:    6,
-		ProbeHandler: apiv1.ProbeHandler{
-			HTTPGet: &apiv1.HTTPGetAction{
-				Path: "/livez",
-				Port: intstr.FromInt(containerPort),
-			},
-		},
-	}
-
-	readinessProbe := &apiv1.Probe{
-		InitialDelaySeconds: 5,
-		TimeoutSeconds:      5,
-		FailureThreshold:    6,
-		ProbeHandler: apiv1.ProbeHandler{
-			HTTPGet: &apiv1.HTTPGetAction{
-				Path: "/readyz",
-				Port: intstr.FromInt(containerPort),
-			},
-		},
-	}
-
-	containers := make([]apiv1.Container, 0, 1)
-
-	vs := make([]apiv1.Volume, 0)
-	vms := make([]apiv1.VolumeMount, 0)
-
-	models_, _, err := ModelService.List(ctx, ListModelOption{
-		BentoIds: &[]uint{bento.ID},
-		Order:    utils.StringPtr("model.build_at ASC"),
-	})
-	if err != nil {
-		return
-	}
-
-	args := make([]string, 0)
-	imageTlsVerify := "false"
-	if dockerRegistry.Secure {
-		imageTlsVerify = "true"
-	}
-
-	for _, model := range models_ {
-		var imageName_ string
-		imageName_, err = ModelService.GetImageName(ctx, model, cluster.ID == majorCluster.ID)
-		if err != nil {
-			return
-		}
-		var modelRepository *models.ModelRepository
-		modelRepository, err = ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
-		if err != nil {
-			return
-		}
-		pvName := fmt.Sprintf("pv-%s", model.Version)
-		sourcePath := fmt.Sprintf("/models/%s/%s", modelRepository.Name, model.Version)
-		destDirPath := fmt.Sprintf("./models/%s", modelRepository.Name)
-		destPath := filepath.Join(destDirPath, model.Version)
-		args = append(args, "mkdir", "-p", destDirPath, ";", "ln", "-sf", filepath.Join(sourcePath, "model"), destPath, ";", "echo", "-n", fmt.Sprintf("'%s'", model.Version), ">", filepath.Join(destDirPath, "latest"), ";")
-		v := apiv1.Volume{
-			Name: pvName,
-			VolumeSource: apiv1.VolumeSource{
-				CSI: &apiv1.CSIVolumeSource{
-					Driver: consts.KubeCSIDriverImage,
-					VolumeAttributes: map[string]string{
-						"image":     imageName_,
-						"tlsVerify": imageTlsVerify,
-					},
-				},
-			},
-		}
-		vs = append(vs, v)
-		vm := apiv1.VolumeMount{
-			Name:      pvName,
-			MountPath: sourcePath,
-		}
-		vms = append(vms, vm)
-	}
-
-	args = append(args, "./env/docker/entrypoint.sh", "bentoml", "serve", ".", "--production")
-
-	container := apiv1.Container{
-		Name:           kubeName,
-		Image:          imageName,
-		Command:        []string{"sh", "-c"},
-		Args:           []string{strings.Join(args, " ")},
-		LivenessProbe:  livenessProbe,
-		ReadinessProbe: readinessProbe,
-		Env:            envs,
-		TTY:            true,
-		Stdin:          true,
-		VolumeMounts:   vms,
-	}
-
-	containers = append(containers, container)
-
-	podLabels[consts.KubeLabelYataiSelector] = kubeName
-
-	podTemplateSpec = &apiv1.PodTemplateSpec{
-		ObjectMeta: metav1.ObjectMeta{
-			Labels:      podLabels,
-			Annotations: annotations,
-		},
-		Spec: apiv1.PodSpec{
-			Containers: containers,
-			Volumes:    vs,
-		},
-	}
-
-	if dockerRegistry.Username != "" {
-		podTemplateSpec.Spec.ImagePullSecrets = []apiv1.LocalObjectReference{
-			{
-				Name: consts.KubeSecretNameRegcred,
-			},
-		}
-	}
-
-	return
 }
