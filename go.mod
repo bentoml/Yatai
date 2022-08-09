@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/GoogleContainerTools/kaniko v1.8.1
 	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
-	github.com/bentoml/yatai-common v0.0.0-20220808132059-f48396b17807
+	github.com/bentoml/yatai-common v0.0.0-20220808163629-fd79fcb6304f
 	github.com/bentoml/yatai-deployment-operator v0.0.0-20220509150025-8aae33c8b98b
 	github.com/bentoml/yatai-schemas v0.0.0-20220808140747-1ab8e5ea4740
 	github.com/ghodss/yaml v1.0.0
@@ -60,7 +60,6 @@ require (
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.43.26 // indirect
-	github.com/bentoml/yatai-common v0.0.0-20220808163629-fd79fcb6304f
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
