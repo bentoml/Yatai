@@ -60,14 +60,16 @@ jobs:
     if: ${{ (github.event_name == 'pull_request' && needs.diff.outputs.golang == 'true') || github.event_name == 'push' }}
 
     steps:
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
           go-version: '1.18' # The Go version to download (if necessary) and use.
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v2.5.2
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: 'v1.47.2'
 
   build-dashboard:
     runs-on: ubuntu-latest
@@ -211,33 +213,6 @@ jobs:
       - name: Tag Yatai image as release
         if: startsWith(github.ref, 'refs/tags/v')
         run: make tag-release
-
-  deploy:
-    runs-on: ubuntu-latest
-
-    if: github.ref == 'refs/heads/main'
-
-    needs:
-      - build-image
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: Azure/k8s-set-context@v1
-        with:
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
-
-      - name: Set git sha_short outputs
-        id: vars
-        run: echo "::set-output name=sha_short::$(git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)"
-
-      - uses: Azure/k8s-deploy@v1.4
-        with:
-          namespace: yatai-system
-          manifests: |
-            scripts/manifests/deployment.yml
-          images: |
-            quay.io/bentoml/yatai:${{ steps.vars.outputs.sha_short }}
 
 concurrency:
   group: yatai${{ github.event.pull_request.number || github.sha }}
