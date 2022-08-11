@@ -723,73 +723,73 @@ kubectl -n yatai-components logs -f ds/yatai-csi-driver-image-populator -c image
 
 1. Check if endpoint is enabled on the UI:
 
-![Endpoint Toggle](./assets/endpoint-toggle.png)
+    ![Endpoint Toggle](./assets/endpoint-toggle.png)
 
 2. Use following command to check the BentoDeployment specification:
 
-```bash
-kubectl -n ${yourDeploymentNamespace} get bentodeployment ${yourDeploymentName} -o yaml
-```
+    ```bash
+    kubectl -n ${yourDeploymentNamespace} get bentodeployment ${yourDeploymentName} -o yaml
+    ```
 
-The output will look like:
+    The output will look like:
 
-> NOTE: The `spec.ingress.enabled` must be `true`
+    > NOTE: The `spec.ingress.enabled` must be `true`
 
-```bash
-apiVersion: serving.yatai.ai/v1alpha2
-kind: BentoDeployment
-metadata:
-  creationTimestamp: "2022-08-08T13:17:47Z"
-  generation: 1
-  name: aaa
-  namespace: yatai
-  resourceVersion: "14503394"
-  uid: 4d6bce8a-b237-45d0-9562-e35c765e1cc6
-spec:
-  autoscaling:
-    max_replicas: 10
-    min_replicas: 2
-  bento_tag: iris_classifier:vlmgcxarqwoe2usu
-  envs: []
-  ingress:
-    enabled: true
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1024Mi
-    requests:
-      cpu: 500m
-      memory: 500Mi
-  runners:
-  - autoscaling:
-      max_replicas: 10
-      min_replicas: 2
-    envs: []
-    name: iris_clf
-    resources:
-      limits:
-        cpu: 1000m
-        memory: 1024Mi
-      requests:
-        cpu: 500m
-        memory: 500Mi
-status:
-  podSelector:
-    creator: yatai
-    yatai.ai/deployment: aaa
-    yatai.ai/is-bento-api-server: "true"
-```
+    ```bash
+    apiVersion: serving.yatai.ai/v1alpha2
+    kind: BentoDeployment
+    metadata:
+      creationTimestamp: "2022-08-08T13:17:47Z"
+      generation: 1
+      name: aaa
+      namespace: yatai
+      resourceVersion: "14503394"
+      uid: 4d6bce8a-b237-45d0-9562-e35c765e1cc6
+    spec:
+      autoscaling:
+        max_replicas: 10
+        min_replicas: 2
+      bento_tag: iris_classifier:vlmgcxarqwoe2usu
+      envs: []
+      ingress:
+        enabled: true
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 1024Mi
+        requests:
+          cpu: 500m
+          memory: 500Mi
+      runners:
+      - autoscaling:
+          max_replicas: 10
+          min_replicas: 2
+        envs: []
+        name: iris_clf
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1024Mi
+          requests:
+            cpu: 500m
+            memory: 500Mi
+    status:
+      podSelector:
+        creator: yatai
+        yatai.ai/deployment: aaa
+        yatai.ai/is-bento-api-server: "true"
+    ```
 
 3. Check the yatai-deployment-operator logs:
 
-```bash
-kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment-operator
-```
+    ```bash
+    kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment-operator
+    ```
 
-If you see some error log about `ingress`, you need to check the `network` configuration:
+    If you see some error log about `ingress`, you need to check the `network` configuration:
 
-```bash
-kubectl -n yatai-system get cm network -o jsonpath='{.data.domain-suffix}'
-```
+    ```bash
+    kubectl -n yatai-system get cm network -o jsonpath='{.data.domain-suffix}'
+    ```
 
-If no output, it means that your network configuration is wrong, you need to [check the network configuration](#5.-check-the-network-configuration)
+    If no output, it means that your network configuration is wrong, you need to [check the network configuration](#5.-check-the-network-configuration)
