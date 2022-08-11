@@ -10,9 +10,9 @@ By default, Yatai helm chart will install Yatai and its dependency services in t
 - [Local Minikube Installation](#local-minikube-installation)
 - [Production Installation](#production-installation)
   - [Configure Network](#configure-network)
-    - [Ingress Class](#1.-ingress-class)
-    - [Ingress Annotations](#2.-ingress-annotations)
-    - [DNS for domain suffix](#3.-dns-for-domain-suffix)
+    - [Ingress Class](#1-ingress-class)
+    - [Ingress Annotations](#2-ingress-annotations)
+    - [DNS for domain suffix](#3-dns-for-domain-suffix)
   - [Custom PostgreSQL database](#custom-postgresql-database)
     - [AWS RDS](#aws-rds)
   - [Custom Docker Registry](#custom-docker-registry)
@@ -662,7 +662,7 @@ Follow the steps below to verify that your ingress controller is working:
     127.0.0.1
     ```
 
-    If your output is not `127.0.0.1`, it means your DNS resolver cannot resolve sslip.io, you must specify the `domain-suffix` manually: [Real DNS](#option-2%3A-real-dns)
+    If your output is not `127.0.0.1`, it means your DNS resolver cannot resolve sslip.io, you must specify the `domain-suffix` manually: [Real DNS](#option-2-real-dns)
 
 6. Confirm that your `domain-suffix` is accessable to you
 
@@ -792,4 +792,4 @@ kubectl -n yatai-components logs -f ds/yatai-csi-driver-image-populator -c image
     kubectl -n yatai-system get cm network -o jsonpath='{.data.domain-suffix}'
     ```
 
-    If no output, it means that your network configuration is wrong, you need to [check the network configuration](#5.-check-the-network-configuration)
+    If no output, it means that your network configuration is wrong, you need to [check the network configuration](#5-check-the-network-configuration)
