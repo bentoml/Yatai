@@ -54,7 +54,7 @@ Yatai is a production-first platform for your machine learning needs. It brings 
      helm install yatai yatai/yatai -n yatai-system --create-namespace
      ```
    * [Verify installation](./docs/admin-guide.md#verify-installation)
-   * You can access the Yatai Web UI: http://${Yatai URL}/setup?token=<token>. You can find the Yatai URL link and the token again using `helm get notes yatai -n yatai-system` command.
+   * You can access the Yatai Web UI: http://{Yatai URL}/setup?token=<token>. You can find the **Yatai URL** link and the **token** again using `helm get notes yatai -n yatai-system` command.
 </details>
 
     
@@ -64,7 +64,7 @@ Yatai is a production-first platform for your machine learning needs. It brings 
   * Create a new API token in Yatai web UI: http://${Yatai URL}/api_tokens
   * Copy login command upon token creation and run as shell command, e.g.: 
     ```bash
-    bentoml yatai login --api-token {YOUR_TOKEN_GOES_HERE} --endpoint http://yatai.127.0.0.1.sslip.io
+    bentoml yatai login --api-token {YOUR_TOKEN_GOES_HERE} --endpoint http://{Yatai URL}
     ```
 </details>
 
@@ -91,7 +91,7 @@ Yatai is a production-first platform for your machine learning needs. It brings 
   * A Bento Deployment can be created via Web UI or via kubectl command:
 
     * Deploy via Web UI
-        * Go to deployments page: http://yatai.127.0.0.1.sslip.io/deployments
+        * Go to deployments page: http://{Yatai URL}/deployments
         * Click `Create` button and follow instructions on UI
 
     * Deploy directly via `kubectl` command:
