@@ -49,15 +49,13 @@ type YataiDockerImageBuilderConfigYaml struct {
 }
 
 type YataiConfigYaml struct {
-	IsSass              bool                               `yaml:"is_sass"`
-	InCluster           bool                               `yaml:"in_cluster"`
-	Server              YataiServerConfigYaml              `yaml:"server"`
-	Postgresql          YataiPostgresqlConfigYaml          `yaml:"postgresql"`
-	S3                  *YataiS3ConfigYaml                 `yaml:"s3,omitempty"`
-	DockerRegistry      *YataiDockerRegistryConfigYaml     `yaml:"docker_registry,omitempty"`
-	DockerImageBuilder  *YataiDockerImageBuilderConfigYaml `yaml:"docker_image_builder,omitempty"`
-	NewsURL             string                             `yaml:"news_url"`
-	InitializationToken string                             `yaml:"initialization_token"`
+	IsSass              bool                      `yaml:"is_sass"`
+	InCluster           bool                      `yaml:"in_cluster"`
+	Server              YataiServerConfigYaml     `yaml:"server"`
+	Postgresql          YataiPostgresqlConfigYaml `yaml:"postgresql"`
+	S3                  *YataiS3ConfigYaml        `yaml:"s3,omitempty"`
+	NewsURL             string                    `yaml:"news_url"`
+	InitializationToken string                    `yaml:"initialization_token"`
 }
 
 var YataiConfig = &YataiConfigYaml{}
@@ -154,59 +152,6 @@ func PopulateYataiConfig() error {
 	if ok {
 		makesureS3IsNotNil()
 		YataiConfig.S3.BucketName = s3BucketName
-	}
-	makesureDockerRegistryIsNotNil := func() {
-		if YataiConfig.DockerRegistry == nil {
-			YataiConfig.DockerRegistry = &YataiDockerRegistryConfigYaml{}
-		}
-	}
-	dockerRegistryServer, ok := os.LookupEnv(consts.EnvDockerRegistryServer)
-	if ok {
-		makesureDockerRegistryIsNotNil()
-		YataiConfig.DockerRegistry.Server = dockerRegistryServer
-	}
-	dockerRegistryUsername, ok := os.LookupEnv(consts.EnvDockerRegistryUsername)
-	if ok {
-		makesureDockerRegistryIsNotNil()
-		YataiConfig.DockerRegistry.Username = dockerRegistryUsername
-	}
-	dockerRegistryPassword, ok := os.LookupEnv(consts.EnvDockerRegistryPassword)
-	if ok {
-		makesureDockerRegistryIsNotNil()
-		YataiConfig.DockerRegistry.Password = dockerRegistryPassword
-	}
-	dockerRegistrySecure, ok := os.LookupEnv(consts.EnvDockerRegistrySecure)
-	if ok {
-		makesureDockerRegistryIsNotNil()
-		dockerRegistrySecure_, err := strconv.ParseBool(dockerRegistrySecure)
-		if err != nil {
-			return errors.Wrap(err, "convert docker_registry_secure from env to bool")
-		}
-		YataiConfig.DockerRegistry.Secure = dockerRegistrySecure_
-	}
-	dockerRegistryBentoRepositoryName, ok := os.LookupEnv(consts.EnvDockerRegistryBentoRepositoryName)
-	if ok {
-		makesureDockerRegistryIsNotNil()
-		YataiConfig.DockerRegistry.BentoRepositoryName = dockerRegistryBentoRepositoryName
-	}
-	dockerRegistryModelRepositoryName, ok := os.LookupEnv(consts.EnvDockerRegistryModelRepositoryName)
-	if ok {
-		makesureDockerRegistryIsNotNil()
-		YataiConfig.DockerRegistry.ModelRepositoryName = dockerRegistryModelRepositoryName
-	}
-	makesureDockerImageBuilderIsNotNil := func() {
-		if YataiConfig.DockerImageBuilder == nil {
-			YataiConfig.DockerImageBuilder = &YataiDockerImageBuilderConfigYaml{}
-		}
-	}
-	dockerImageBuilderPrivileged, ok := os.LookupEnv(consts.EnvDockerImageBuilderPrivileged)
-	if ok {
-		makesureDockerImageBuilderIsNotNil()
-		dockerImageBuilderPrivileged_, err := strconv.ParseBool(dockerImageBuilderPrivileged)
-		if err != nil {
-			return errors.Wrap(err, "convert docker_image_builder_privileged from env to bool")
-		}
-		YataiConfig.DockerImageBuilder.Privileged = dockerImageBuilderPrivileged_
 	}
 	return nil
 }

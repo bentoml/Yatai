@@ -19,12 +19,4 @@ s3:
   bucket_name: <YOUR BUCKET NAME>
   secure: true
 
-docker_registry:
-  bento_repository_name: <YOUR REPOSITORY NAME FOR BENTO>
-  model_repository_name: <YOUR REPOSITORY NAME FOR MODEL>
-  server: https://index.docker.io/v1/
-  username: <YOUR DOCKERHUB USERNAME>
-  password: <YOUR DOCKERHUB PASSWORD>
-  secure: true
-
 initialization_token: 12345

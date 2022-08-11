@@ -10,9 +10,6 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
@@ -407,91 +404,6 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 		}
 		return
 	}
-	cluster, err := s.GetMajorCluster(ctx, org)
-	if err != nil {
-		return
-	}
-	cliset, _, err := ClusterService.GetKubeCliSet(ctx, cluster)
-	if err != nil {
-		return
-	}
-	secretsCli := cliset.CoreV1().Secrets(consts.KubeNamespaceYataiComponents)
-	// nolint: gosec
-	secretName := "yatai-minio-secret"
-	secret, err := secretsCli.Get(ctx, secretName, metav1.GetOptions{})
-	if err != nil {
-		err = errors.Wrapf(err, "cannot get secret %s", secretName)
-		return
-	}
-	accessKey := secret.Data["accesskey"]
-	secretKey := secret.Data["secretkey"]
-	ingCli := cliset.NetworkingV1().Ingresses(consts.KubeNamespaceYataiComponents)
-	ingName := "yatai-minio"
-	ing, err := ingCli.Get(ctx, ingName, metav1.GetOptions{})
-	if err != nil {
-		err = errors.Wrapf(err, "cannot get ingress %s", ingName)
-		return
-	}
-	if len(ing.Spec.Rules) == 0 {
-		err = errors.Errorf("cannot found ingress rule for %s", ingName)
-		return
-	}
-
-	endpoint := ""
-	endpointInCluster := ""
-	for _, rule := range ing.Spec.Rules {
-		if strings.Contains(rule.Host, "yatai-infra-cluster") {
-			endpointInCluster = rule.Host
-		} else {
-			endpoint = rule.Host
-		}
-	}
-
-	if endpoint == "" {
-		endpoint = endpointInCluster
-	}
-
-	secure := endpointInCluster != ""
-	if enableSSL, ok := ing.Annotations[consts.KubeAnnotationEnableSSL]; ok {
-		secure = enableSSL == "true"
-	}
-
-	scheme := "http"
-	if secure {
-		scheme = "https"
-	}
-
-	inClusterScheme := scheme
-
-	if endpointInCluster == "" {
-		svcCli := cliset.CoreV1().Services(consts.KubeNamespaceYataiComponents)
-		var svc *corev1.Service
-		svcName := "minio"
-		svc, err = svcCli.Get(ctx, svcName, metav1.GetOptions{})
-		isNotFound := apierrors.IsNotFound(err)
-		if err != nil && !isNotFound {
-			err = errors.Wrapf(err, "cannot get service %s", svcName)
-			return
-		}
-		if isNotFound {
-			endpointInCluster = endpoint
-		} else {
-			endpointInCluster = fmt.Sprintf("%s.%s.svc.cluster.local", svc.Name, svc.Namespace)
-			inClusterScheme = "http"
-		}
-	}
-
-	conf = &S3Config{
-		Endpoint:                    endpoint,
-		EndpointInCluster:           endpointInCluster,
-		EndpointWithScheme:          fmt.Sprintf("%s://%s", scheme, endpoint),
-		EndpointWithSchemeInCluster: fmt.Sprintf("%s://%s", inClusterScheme, endpointInCluster),
-		AccessKey:                   string(accessKey),
-		SecretKey:                   string(secretKey),
-		Secure:                      secure,
-		Region:                      "i-dont-known",
-		BentosBucketName:            "yatai",
-		ModelsBucketName:            "yatai",
-	}
+	err = errors.New("no s3 config")
 	return
 }
