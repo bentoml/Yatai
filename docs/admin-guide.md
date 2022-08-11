@@ -10,9 +10,9 @@ By default, Yatai helm chart will install Yatai and its dependency services in t
 - [Local Minikube Installation](#local-minikube-installation)
 - [Production Installation](#production-installation)
   - [Configure Network](#configure-network)
-    - [Ingress Class](#ingress-class)
-    - [Ingress Annotations](#ingress-annotations)
-    - [DNS for domain suffix](#dns-for-domain-suffix)
+    - [Ingress Class](#1.-ingress-class)
+    - [Ingress Annotations](#2.-ingress-annotations)
+    - [DNS for domain suffix](#3.-dns-for-domain-suffix)
   - [Custom PostgreSQL database](#custom-postgresql-database)
     - [AWS RDS](#aws-rds)
   - [Custom Docker Registry](#custom-docker-registry)
@@ -24,6 +24,7 @@ By default, Yatai helm chart will install Yatai and its dependency services in t
 - [Debugging](#debugging)
   - [Cannot create a bento deployment](#cannot-create-a-bento-deployment)
   - [Bento deployment cannot mount volume](#bento-deployment-cannot-mount-volume)
+  - [BentoDeployment has no endpoint](#bentodeployment-has-no-endpoint)
 
 ## System Overview
 
@@ -192,7 +193,7 @@ To install and operate Yatai in production, we generally recommend using a dedic
 
 The network config is for bento deployment access and minio access.
 
-#### Ingress Class
+#### 1. Ingress Class
 
 Set [ingress class](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class) for BentoDeployment ingress and MinIO ingress.
 
@@ -208,7 +209,7 @@ For example, you ingress class is `nginx`:
     kubectl -n yatai-system patch cm/network --type merge --patch '{"data":{"ingress-class":"nginx"}}'
     ```
 
-#### Ingress Annotations
+#### 2. Ingress Annotations
 
 Set annotations for BentoDeployment ingress resource and minio ingress resource
 
@@ -224,7 +225,7 @@ For example, you want to set ingress annotation: `"foo": "bar"`
     kubectl -n yatai-system patch cm/network --type merge --patch '{"data": {"ingress-annotations": "{\"foo\":\"bar\"}"}}'
     ```
 
-#### DNS for domain suffix
+#### 3. DNS for domain suffix
 
 You can configure DNS to prevent the need to run curl commands with a host header.
 
@@ -235,6 +236,8 @@ You need to configure your DNS in one of the following two options:
 You don't need to do anything because Yatai will use [sslip.io](https://sslip.io/) to automatically generate `domain-suffix` for BentoDeployment ingress host and MinIO ingress host.
 
 ##### Option 2: *Real DNS*
+
+First, you must register a domain name. The following example assumes that you already have a domain name of `example.com`
 
 To configure DNS for Yatai, take the External IP or CNAME from setting up networking, and configure it with your DNS provider as follows:
 
@@ -553,7 +556,142 @@ yatai-minio-ss-0-3                                 1/1     Running   0          
 yatai-yatai-deployment-operator-8476ff78b5-jsgnw   1/1     Running   0          8m20s
 ```
 
-#### 5. Setup
+#### 5. Check the network configuration
+
+Please read the [configure-network](#configure-network) documentation first.
+
+Follow the steps below to verify that your ingress controller is working:
+
+1. Check that you have the ingress controller installed
+
+    ```bash
+    kubectl get ingressclass
+    ```
+
+    If no output, you should install a ingress controller, for example: [ingress-nginx](https://kubernetes.github.io/ingress-nginx/deploy/#quick-start)
+
+2. Select an ingress class as the ingress class you want to use for BentoDeployment.
+
+    ```bash
+    export INGRESS_CLASS=${yourSelectedIngressClassName}
+    ```
+
+3. Check that your ingress controller is working properly
+
+    ```bash
+    cat <<EOF | kubectl apply -f -
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: test-ingress
+    spec:
+      ingressClassName: $INGRESS_CLASS
+      rules:
+      - http:
+          paths:
+          - path: /testpath
+            pathType: Prefix
+            backend:
+              service:
+                name: test
+                port:
+                  number: 80
+    EOF
+    ```
+
+    Verify that the ingress resource has been assigned the address:
+
+    ```bash
+    kubectl get ing test-ingress
+    ```
+
+    The output should be like:
+
+    ```bash
+    NAME           CLASS   HOSTS   ADDRESS        PORTS   AGE
+    test-ingress   nginx   *       192.168.49.2   80      2m25s
+    ```
+
+    > NOTE: It will take about a minute for the ADDRESS field to be assigned, so you'll need to be patient
+
+    If there is no value in the ADDRESS field after waiting for a minute, it means that there is a problem with your ingress controller, please solve it by yourself according to what your ingress controller is.
+
+4. Make sure your network configuration is set up correctly
+
+    Verify that `ingress-class` is set correctly:
+
+    ```bash
+    kubectl -n yatai-system get cm network -o jsonpath='{.data.ingress-class}'
+    ```
+
+    If it is not correct, please reset it:
+
+    ```bash
+    kubectl -n yatai-system patch cm/network --type merge --patch "{\"data\": {\"ingress-class\": \"$INGRESS_CLASS\"}}"
+    ```
+
+    Verify that `domain-suffix` is set correctly:
+
+    ```bash
+    kubectl -n yatai-system get cm network -o jsonpath='{.data.domain-suffix}'
+    ```
+
+    If it is not correct or if you want Yatai to generate the domain-suffix automatically, you can run the following command:
+
+    ```bash
+    kubectl -n yatai-system patch cm/network --type merge --patch "{\"data\": {\"domain-suffix\": \"\"}}"
+
+    # Then restart yatai-deployment-comp-operator and yatai-deployment-operator:
+    kubectl -n yatai-operators rollout restart deployment deployment-yatai-deployment-comp-operator
+    kubectl -n yatai-components rollout restart deploy/yatai-yatai-deployment-operator
+
+
+    # Check yatai-deployment-operator logs
+    kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment-operator
+    ```
+
+5. Verify that your DNS resolver is resolving `sslip.io` properly
+
+    ```bash
+    dig +short test.127.0.0.1.sslip.io
+    ```
+
+    The output should be like:
+
+    ```bash
+    127.0.0.1
+    ```
+
+    If your output is not `127.0.0.1`, it means your DNS resolver cannot resolve sslip.io, you must specify the `domain-suffix` manually: [Real DNS](#option-2%3A-real-dns)
+
+6. Confirm that your `domain-suffix` is accessable to you
+
+    Get your `domain-suffix`:
+
+    ```bash
+    DOMAIN_SUFFIX=$(kubectl -n yatai-system get cm network -o jsonpath='{.data.domain-suffix}')
+    echo $DOMAIN_SUFFIX
+    ```
+
+    Your DNS resolver can resolve it:
+
+    ```bash
+    dig +short $DOMAIN_SUFFIX
+    ```
+
+    Then test the accessability of your `domain-suffix`:
+
+    ```bash
+    nc -zv $DOMAIN_SUFFIX 80
+    ```
+
+    The output should be like:
+
+    ```bash
+    Connection to 10.0.0.116.sslip.io (10.0.0.116) 80 port [tcp/http] succeeded!
+    ```
+
+#### 6. Setup
 
 You can access the Yatai Web UI: `http://${Yatai URL}/setup?token=<token>`. You can find the Yatai URL link and the token again using `helm get notes yatai -n yatai-system` command.
 
@@ -580,3 +718,78 @@ You can use the following commands to debug the csi-driver-image-populator:
 ```bash
 kubectl -n yatai-components logs -f ds/yatai-csi-driver-image-populator -c image
 ```
+
+### BentoDeployment has no endpoint
+
+1. Check if endpoint is enabled on the UI:
+
+![Endpoint Toggle](./assets/endpoint-toggle.png)
+
+2. Use following command to check the BentoDeployment specification:
+
+```bash
+kubectl -n ${yourDeploymentNamespace} get bentodeployment ${yourDeploymentName} -o yaml
+```
+
+The output will look like:
+
+> NOTE: The `spec.ingress.enabled` must be `true`
+
+```bash
+apiVersion: serving.yatai.ai/v1alpha2
+kind: BentoDeployment
+metadata:
+  creationTimestamp: "2022-08-08T13:17:47Z"
+  generation: 1
+  name: aaa
+  namespace: yatai
+  resourceVersion: "14503394"
+  uid: 4d6bce8a-b237-45d0-9562-e35c765e1cc6
+spec:
+  autoscaling:
+    max_replicas: 10
+    min_replicas: 2
+  bento_tag: iris_classifier:vlmgcxarqwoe2usu
+  envs: []
+  ingress:
+    enabled: true
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 500m
+      memory: 500Mi
+  runners:
+  - autoscaling:
+      max_replicas: 10
+      min_replicas: 2
+    envs: []
+    name: iris_clf
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1024Mi
+      requests:
+        cpu: 500m
+        memory: 500Mi
+status:
+  podSelector:
+    creator: yatai
+    yatai.ai/deployment: aaa
+    yatai.ai/is-bento-api-server: "true"
+```
+
+3. Check the yatai-deployment-operator logs:
+
+```bash
+kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment-operator
+```
+
+If you see some error log about `ingress`, you need to check the `network` configuration:
+
+```bash
+kubectl -n yatai-system get cm network -o jsonpath='{.data.domain-suffix}'
+```
+
+If no output, it means that your network configuration is wrong, you need to [check the network configuration](#5.-check-the-network-configuration)
