@@ -129,7 +129,15 @@ func (s *bentoService) Create(ctx context.Context, opt CreateBentoOption) (bento
 }
 
 func (s *bentoService) PreSignUploadUrl(ctx context.Context, bento *models.Bento) (url *url.URL, err error) {
-	s3Config, err := OrganizationService.GetS3Config(ctx)
+	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
 	if err != nil {
 		return
 	}
@@ -166,7 +174,15 @@ func (s *bentoService) PreSignUploadUrl(ctx context.Context, bento *models.Bento
 }
 
 func (s *bentoService) Upload(ctx context.Context, bento *models.Bento, reader io.Reader, objectSize int64) (err error) {
-	s3Config, err := OrganizationService.GetS3Config(ctx)
+	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
 	if err != nil {
 		return
 	}
@@ -203,7 +219,15 @@ func (s *bentoService) Upload(ctx context.Context, bento *models.Bento, reader i
 }
 
 func (s *bentoService) PreSignDownloadUrl(ctx context.Context, bento *models.Bento) (url *url.URL, err error) {
-	s3Config, err := OrganizationService.GetS3Config(ctx)
+	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
 	if err != nil {
 		return
 	}
@@ -240,7 +264,15 @@ func (s *bentoService) PreSignDownloadUrl(ctx context.Context, bento *models.Ben
 }
 
 func (s *bentoService) Download(ctx context.Context, bento *models.Bento, writer io.Writer) (err error) {
-	s3Config, err := OrganizationService.GetS3Config(ctx)
+	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
 	if err != nil {
 		return
 	}
@@ -293,7 +325,16 @@ func (s *bentoService) getS3ObjectName(ctx context.Context, bento *models.Bento)
 }
 
 func (s *bentoService) GetS3BucketName(ctx context.Context, bento *models.Bento) (string, error) {
-	s3Config, err := OrganizationService.GetS3Config(ctx)
+	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+	if err != nil {
+		return "", err
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
+	if err != nil {
+		return "", err
+	}
+
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
 	if err != nil {
 		return "", err
 	}

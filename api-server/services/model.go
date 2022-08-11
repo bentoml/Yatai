@@ -111,7 +111,15 @@ func (s *modelService) Create(ctx context.Context, opt CreateModelOption) (model
 }
 
 func (s *modelService) Upload(ctx context.Context, model *models.Model, reader io.Reader, objectSize int64) (err error) {
-	s3Config, err := OrganizationService.GetS3Config(ctx)
+	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
 	if err != nil {
 		return
 	}
@@ -148,7 +156,15 @@ func (s *modelService) Upload(ctx context.Context, model *models.Model, reader i
 }
 
 func (s *modelService) PreSignUploadUrl(ctx context.Context, model *models.Model) (url *url.URL, err error) {
-	s3Config, err := OrganizationService.GetS3Config(ctx)
+	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
 	if err != nil {
 		return
 	}
@@ -185,7 +201,15 @@ func (s *modelService) PreSignUploadUrl(ctx context.Context, model *models.Model
 }
 
 func (s *modelService) Download(ctx context.Context, model *models.Model, writer io.Writer) (err error) {
-	s3Config, err := OrganizationService.GetS3Config(ctx)
+	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
 	if err != nil {
 		return
 	}
@@ -225,7 +249,15 @@ func (s *modelService) Download(ctx context.Context, model *models.Model, writer
 }
 
 func (s *modelService) PreSignDownloadUrl(ctx context.Context, model *models.Model) (url *url.URL, err error) {
-	s3Config, err := OrganizationService.GetS3Config(ctx)
+	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
 	if err != nil {
 		return
 	}
@@ -275,7 +307,16 @@ func (s *modelService) getS3ObjectName(ctx context.Context, model *models.Model)
 }
 
 func (s *modelService) GetS3BucketName(ctx context.Context, model *models.Model) (string, error) {
-	s3Config, err := OrganizationService.GetS3Config(ctx)
+	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+	if err != nil {
+		return "", err
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	if err != nil {
+		return "", err
+	}
+
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
 	if err != nil {
 		return "", err
 	}

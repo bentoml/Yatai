@@ -10,14 +10,16 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 
-	commonconfig "github.com/bentoml/yatai-common/config"
-	"github.com/bentoml/yatai-common/consts"
-	"github.com/bentoml/yatai-common/utils"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
 )
 
 type organizationService struct{}
@@ -332,34 +334,164 @@ func (c *S3Config) MakeSureBucket(ctx context.Context, bucketName string) error 
 	return nil
 }
 
-func (s *organizationService) GetS3Config(ctx context.Context) (conf *S3Config, err error) {
-	s3Config_, err := commonconfig.GetS3Config(ctx)
-	if err != nil {
-		return nil, err
+func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organization) (conf *S3Config, err error) {
+	if config.YataiConfig.S3 != nil {
+		scheme := "http"
+		if config.YataiConfig.S3.Secure {
+			scheme = "https"
+		}
+		bentosBucketName := "yatai"
+		if config.YataiConfig.S3.BucketName != "" {
+			bentosBucketName = config.YataiConfig.S3.BucketName
+		}
+		modelsBucketName := "yatai"
+		if config.YataiConfig.S3.BucketName != "" {
+			modelsBucketName = config.YataiConfig.S3.BucketName
+		}
+		conf = &S3Config{
+			Endpoint:                    config.YataiConfig.S3.Endpoint,
+			EndpointInCluster:           config.YataiConfig.S3.Endpoint,
+			EndpointWithScheme:          fmt.Sprintf("%s://%s", scheme, config.YataiConfig.S3.Endpoint),
+			EndpointWithSchemeInCluster: fmt.Sprintf("%s://%s", scheme, config.YataiConfig.S3.Endpoint),
+			AccessKey:                   config.YataiConfig.S3.AccessKey,
+			SecretKey:                   config.YataiConfig.S3.SecretKey,
+			Secure:                      config.YataiConfig.S3.Secure,
+			Region:                      config.YataiConfig.S3.Region,
+			BentosBucketName:            bentosBucketName,
+			ModelsBucketName:            modelsBucketName,
+		}
+		return
 	}
+	if org.Config != nil && org.Config.S3 != nil && org.Config.S3.Endpoint != "" {
+		s3Config := org.Config.S3
+		endpoint := s3Config.Endpoint
+		scheme := "http"
+		if s3Config.Secure {
+			scheme = "https"
+		}
+		bentosBucketName := "bentos"
+		if s3Config.BentosBucketName != "" {
+			bentosBucketName = s3Config.BentosBucketName
+		}
+		modelsBucketName := "models"
+		if s3Config.ModelsBucketName != "" {
+			modelsBucketName = s3Config.ModelsBucketName
+		}
+		conf = &S3Config{
+			Endpoint:                    endpoint,
+			EndpointInCluster:           endpoint,
+			EndpointWithScheme:          fmt.Sprintf("%s://%s", scheme, endpoint),
+			EndpointWithSchemeInCluster: fmt.Sprintf("%s://%s", scheme, endpoint),
+			AccessKey:                   s3Config.AccessKey,
+			SecretKey:                   s3Config.SecretKey,
+			Secure:                      s3Config.Secure,
+			Region:                      s3Config.Region,
+			BentosBucketName:            bentosBucketName,
+			ModelsBucketName:            modelsBucketName,
+		}
+		return
+	}
+	if org.Config != nil && org.Config.AWS != nil && org.Config.AWS.S3 != nil {
+		awsS3Conf := org.Config.AWS.S3
+		conf = &S3Config{
+			Endpoint:                    consts.AmazonS3Endpoint,
+			EndpointInCluster:           consts.AmazonS3Endpoint,
+			EndpointWithScheme:          fmt.Sprintf("https://%s", consts.AmazonS3Endpoint),
+			EndpointWithSchemeInCluster: fmt.Sprintf("https://%s", consts.AmazonS3Endpoint),
+			AccessKey:                   org.Config.AWS.AccessKeyId,
+			SecretKey:                   org.Config.AWS.SecretAccessKey,
+			Secure:                      true,
+			Region:                      awsS3Conf.Region,
+			BentosBucketName:            awsS3Conf.BentosBucketName,
+			ModelsBucketName:            awsS3Conf.ModelsBucketName,
+		}
+		return
+	}
+	cluster, err := s.GetMajorCluster(ctx, org)
+	if err != nil {
+		return
+	}
+	cliset, _, err := ClusterService.GetKubeCliSet(ctx, cluster)
+	if err != nil {
+		return
+	}
+	secretsCli := cliset.CoreV1().Secrets(consts.KubeNamespaceYataiComponents)
+	// nolint: gosec
+	secretName := "yatai-minio-secret"
+	secret, err := secretsCli.Get(ctx, secretName, metav1.GetOptions{})
+	if err != nil {
+		err = errors.Wrapf(err, "cannot get secret %s", secretName)
+		return
+	}
+	accessKey := secret.Data["accesskey"]
+	secretKey := secret.Data["secretkey"]
+	ingCli := cliset.NetworkingV1().Ingresses(consts.KubeNamespaceYataiComponents)
+	ingName := "yatai-minio"
+	ing, err := ingCli.Get(ctx, ingName, metav1.GetOptions{})
+	if err != nil {
+		err = errors.Wrapf(err, "cannot get ingress %s", ingName)
+		return
+	}
+	if len(ing.Spec.Rules) == 0 {
+		err = errors.Errorf("cannot found ingress rule for %s", ingName)
+		return
+	}
+
+	endpoint := ""
+	endpointInCluster := ""
+	for _, rule := range ing.Spec.Rules {
+		if strings.Contains(rule.Host, "yatai-infra-cluster") {
+			endpointInCluster = rule.Host
+		} else {
+			endpoint = rule.Host
+		}
+	}
+
+	if endpoint == "" {
+		endpoint = endpointInCluster
+	}
+
+	secure := endpointInCluster != ""
+	if enableSSL, ok := ing.Annotations[consts.KubeAnnotationEnableSSL]; ok {
+		secure = enableSSL == "true"
+	}
+
 	scheme := "http"
-	if s3Config_.Secure {
+	if secure {
 		scheme = "https"
 	}
-	bentosBucketName := "yatai"
-	if s3Config_.BucketName != "" {
-		bentosBucketName = s3Config_.BucketName
+
+	inClusterScheme := scheme
+
+	if endpointInCluster == "" {
+		svcCli := cliset.CoreV1().Services(consts.KubeNamespaceYataiComponents)
+		var svc *corev1.Service
+		svcName := "minio"
+		svc, err = svcCli.Get(ctx, svcName, metav1.GetOptions{})
+		isNotFound := apierrors.IsNotFound(err)
+		if err != nil && !isNotFound {
+			err = errors.Wrapf(err, "cannot get service %s", svcName)
+			return
+		}
+		if isNotFound {
+			endpointInCluster = endpoint
+		} else {
+			endpointInCluster = fmt.Sprintf("%s.%s.svc.cluster.local", svc.Name, svc.Namespace)
+			inClusterScheme = "http"
+		}
 	}
-	modelsBucketName := "yatai"
-	if s3Config_.BucketName != "" {
-		modelsBucketName = s3Config_.BucketName
-	}
+
 	conf = &S3Config{
-		Endpoint:                    s3Config_.Endpoint,
-		EndpointInCluster:           s3Config_.Endpoint,
-		EndpointWithScheme:          fmt.Sprintf("%s://%s", scheme, s3Config_.Endpoint),
-		EndpointWithSchemeInCluster: fmt.Sprintf("%s://%s", scheme, s3Config_.Endpoint),
-		AccessKey:                   s3Config_.AccessKey,
-		SecretKey:                   s3Config_.SecretKey,
-		Secure:                      s3Config_.Secure,
-		Region:                      s3Config_.Region,
-		BentosBucketName:            bentosBucketName,
-		ModelsBucketName:            modelsBucketName,
+		Endpoint:                    endpoint,
+		EndpointInCluster:           endpointInCluster,
+		EndpointWithScheme:          fmt.Sprintf("%s://%s", scheme, endpoint),
+		EndpointWithSchemeInCluster: fmt.Sprintf("%s://%s", inClusterScheme, endpointInCluster),
+		AccessKey:                   string(accessKey),
+		SecretKey:                   string(secretKey),
+		Secure:                      secure,
+		Region:                      "i-dont-known",
+		BentosBucketName:            "yatai",
+		ModelsBucketName:            "yatai",
 	}
 	return
 }
