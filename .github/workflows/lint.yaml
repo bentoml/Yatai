@@ -1,0 +1,100 @@
+name: Lint
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    outputs:
+      golang: ${{ steps.filter.outputs.golang }}
+      js: ${{ steps.filter.outputs.js }}
+      helmcharts: ${{ steps.filter.outputs.helmcharts }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          base: main
+          filters: |
+            golang:
+              - "api-server/**"
+              - "common/**"
+              - "schemas/**"
+            js:
+              - "dashboard/**"
+            helmcharts:
+              - "helm/**"
+
+  eslint:
+    runs-on: ubuntu-latest
+
+    needs:
+      - diff
+
+    if: ${{ (github.event_name == 'pull_request' && needs.diff.outputs.js == 'true') || github.event_name == 'push' }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/cache@v2
+        with:
+          path: '**/dashboard/node_modules'
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/dashboard/yarn.lock') }}
+
+      - name: Install packages
+        run: cd dashboard; yarn
+
+      - name: Run eslint
+        run: cd dashboard; yarn lint
+
+  golint:
+    runs-on: ubuntu-latest
+
+    needs:
+      - diff
+
+    if: ${{ (github.event_name == 'pull_request' && needs.diff.outputs.golang == 'true') || github.event_name == 'push' }}
+
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.18' # The Go version to download (if necessary) and use.
+
+      - uses: actions/checkout@v3
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: 'v1.47.2'
+
+  helmchartslint:
+    runs-on: ubuntu-latest
+
+    needs:
+      - diff
+
+    if: ${{ (github.event_name == 'pull_request' && needs.diff.outputs.helmcharts == 'true') || github.event_name == 'push' }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.8.1
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.2.1
+
+      - name: Run chart-testing (lint)
+        working-directory: ./helm/yatai
+        run: make lint
+
+      - name: Render Helm Template
+        working-directory: ./helm/yatai
+        run: make template
+
