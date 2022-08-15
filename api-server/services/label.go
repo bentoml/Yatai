@@ -128,7 +128,7 @@ type GetLabelByKeyOption struct {
 func (s *labelService) GetByKey(ctx context.Context, opt GetLabelByKeyOption) (*models.Label, error) {
 	var label models.Label
 	query := getBaseQuery(ctx, s).
-		Where("organization_id = ? ", opt.OrganizationId).
+		Where("organization_id = ?", opt.OrganizationId).
 		Where("key = ?", opt.Key).
 		Where("resource_type = ?", opt.ResourceType).
 		Where("resource_id = ?", opt.ResourceId)

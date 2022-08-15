@@ -51,6 +51,9 @@ func (m *resourceService) Get(ctx context.Context, resourceType modelschemas.Res
 	case modelschemas.ResourceTypeLabel:
 		label, err := LabelService.Get(ctx, resourceId)
 		return label, err
+	case modelschemas.ResourceTypeYataiComponent:
+		yataiComponent, err := YataiComponentService.Get(ctx, resourceId)
+		return yataiComponent, err
 	default:
 		return nil, errors.Errorf("cannot recognize this resource type: %s", resourceType)
 	}
@@ -116,6 +119,11 @@ func (m *resourceService) List(ctx context.Context, resourceType modelschemas.Re
 			Ids: &resourceIds,
 		})
 		return labels, err
+	case modelschemas.ResourceTypeYataiComponent:
+		yataiComponents, err := YataiComponentService.List(ctx, ListYataiComponentOption{
+			Ids: &resourceIds,
+		})
+		return yataiComponents, err
 	default:
 		return nil, errors.Errorf("cannot recognize this resource type: %s", resourceType)
 	}
@@ -159,6 +167,9 @@ func (m *resourceService) GetByUid(ctx context.Context, resourceType modelschema
 	case modelschemas.ResourceTypeLabel:
 		label, err := LabelService.GetByUid(ctx, resourceUid)
 		return label, err
+	case modelschemas.ResourceTypeYataiComponent:
+		yataiComponent, err := YataiComponentService.GetByUid(ctx, resourceUid)
+		return yataiComponent, err
 	default:
 		return nil, errors.Errorf("cannot recognize this resource type: %s", resourceType)
 	}
