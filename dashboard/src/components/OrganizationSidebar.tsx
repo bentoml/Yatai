@@ -7,6 +7,7 @@ import { useQuery } from 'react-query'
 import BaseSidebar, { IComposedSidebarProps, INavItem } from '@/components/BaseSidebar'
 import { resourceIconMapping } from '@/consts'
 import { FiActivity } from 'react-icons/fi'
+import { useFetchOrganizationYataiComponents } from '@/hooks/useFetchYataiComponents'
 
 export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
     const orgInfo = useQuery('fetchOrg', () => fetchOrganization())
@@ -20,6 +21,12 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
             setOrganization(undefined)
         }
     }, [orgInfo.data, orgInfo.isLoading, orgInfo.isSuccess, organization?.uid, setOrganization, setOrganizationLoading])
+
+    const { yataiComponentsInfo } = useFetchOrganizationYataiComponents()
+
+    const deploymentDisabled = useMemo(() => {
+        return yataiComponentsInfo.data?.find((c) => c.name === 'deployment') === undefined
+    }, [yataiComponentsInfo.data])
 
     const [t] = useTranslation()
 
@@ -45,6 +52,10 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
                 title: t('deployments'),
                 path: '/deployments',
                 icon: resourceIconMapping.deployment,
+                disabled: deploymentDisabled,
+                helpMessage: deploymentDisabled
+                    ? t('you need to install yatai-deployment component to enable deployment function')
+                    : undefined,
                 activePathPattern:
                     /^\/(deployments|new_deployment|clusters\/[^/]+\/namespaces\/[^/]+\/deployments\/[^/]+)\/?/,
             },
@@ -59,7 +70,7 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
                 icon: FiActivity,
             },
         ],
-        [t]
+        [deploymentDisabled, t]
     )
     return <BaseSidebar navItems={navItems} style={style} />
 }

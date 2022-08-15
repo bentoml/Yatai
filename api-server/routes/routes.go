@@ -377,6 +377,11 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Update an organization"),
 	}, tonic.Handler(controllersv1.OrganizationController.Update, 200))
 
+	grp.GET("/yatai_components", []fizz.OperationOption{
+		fizz.ID("List organization all yatai components"),
+		fizz.Summary("List organization all yatai components"),
+	}, tonic.Handler(controllersv1.YataiComponentController.ListAll, 200))
+
 	grp.GET("/members", []fizz.OperationOption{
 		fizz.ID("List organization members"),
 		fizz.Summary("Get organization members"),
@@ -491,6 +496,7 @@ func clusterRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Create cluster"),
 	}, tonic.Handler(controllersv1.ClusterController.Create, 200))
 
+	yataiComponentRoutes(resourceGrp)
 	deploymentRoutes(resourceGrp)
 }
 
@@ -596,6 +602,20 @@ func bentoRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Create a bento"),
 		fizz.Summary("Create a bento"),
 	}, tonic.Handler(controllersv1.BentoController.Create, 200))
+}
+
+func yataiComponentRoutes(grp *fizz.RouterGroup) {
+	grp = grp.Group("/yatai_components", "yatai components", "yatai components")
+
+	grp.GET("", []fizz.OperationOption{
+		fizz.ID("List yatai components"),
+		fizz.Summary("List yatai components"),
+	}, tonic.Handler(controllersv1.YataiComponentController.List, 200))
+
+	grp.POST("", []fizz.OperationOption{
+		fizz.ID("Register yatai component"),
+		fizz.Summary("Register yatai component"),
+	}, tonic.Handler(controllersv1.YataiComponentController.Register, 200))
 }
 
 func deploymentRoutes(grp *fizz.RouterGroup) {
