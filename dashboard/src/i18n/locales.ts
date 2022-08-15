@@ -2233,6 +2233,13 @@ const locales0 = {
         ko: 'Docker 이미지 빌더 Pods',
         vi: 'Pods của Docker Image Builder',
     },
+    'you need to install yatai-deployment component to enable deployment function': {
+        en: 'You need to install yatai-deployment component to enable deployment function',
+        zh: '您需要安装 yatai-deployment 组件才能启用部署功能',
+        ja: 'デプロイ機能を有効にするには、yatai-deployment コンポーネントをインストールする必要があります。',
+        ko: '배포 기능을 사용하려면 yatai-deployment 컴포넌트를 설치해야합니다.',
+        vi: 'Bạn cần cài đặt yatai-deployment cấu trúc để kích hoạt chức năng bản đồ',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

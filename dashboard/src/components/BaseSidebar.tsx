@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import { Item, Navigation } from 'baseui/side-navigation'
 import _ from 'lodash'
 import React, { useCallback, useContext, useMemo } from 'react'
@@ -39,23 +40,33 @@ export interface INavItem {
 function transformNavItems(navItems: INavItem[], expanded = true): Item[] {
     return navItems.map((item) => {
         const { icon: Icon } = item
+        const inner = (
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    lineHeight: '24px',
+                    height: 24,
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                }}
+            >
+                {Icon && <Icon size={12} />}
+                <span>{item.title}</span>
+            </div>
+        )
         return {
+            disabled: item.disabled,
             title: expanded ? (
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        lineHeight: '24px',
-                        height: 24,
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                    }}
-                >
-                    {Icon && <Icon size={12} />}
-                    <span>{item.title}</span>
-                </div>
+                item.helpMessage ? (
+                    <StatefulTooltip content={item.helpMessage} showArrow placement='bottomRight'>
+                        {inner}
+                    </StatefulTooltip>
+                ) : (
+                    inner
+                )
             ) : (
                 <StatefulTooltip content={item.title} showArrow placement='bottomRight'>
                     <div
