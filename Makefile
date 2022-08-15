@@ -2,7 +2,9 @@
 
 GIT_COMMIT := $(shell git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
-VERSION := $(shell git describe --tags `git rev-list --tags --max-count=1` | sed 's/v\(\)/\1/')
+ifndef VERSION
+	VERSION := $(shell git describe --tags `git rev-list --tags --max-count=1` | sed 's/v\(\)/\1/')
+endif
 
 PKG := github.com/bentoml/yatai
 VERSION_BUILDFLAGS := -X '$(PKG)/api-server/version.GitCommit=$(GIT_COMMIT)' -X '$(PKG)/api-server/version.Version=$(VERSION)' -X '$(PKG)/api-server/version.BuildDate=$(BUILD_DATE)'
