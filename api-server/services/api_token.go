@@ -216,7 +216,6 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 					err = errors.Wrapf(err, "create api token %s", consts.YataiK8sBotApiTokenName)
 					return nil, err
 				}
-				err = nil
 			}
 		}
 		return apiToken, nil
