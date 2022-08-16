@@ -7,6 +7,7 @@ export interface IUserSchema extends IResourceSchema {
     email: string
     avatar_url: string
     api_token: string
+    is_super_admin: boolean
 }
 
 export interface IRegisterUserSchema {

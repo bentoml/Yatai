@@ -1,3 +1,4 @@
+import { useOrganization } from '@/hooks/useOrganization'
 import { IBentoWithRepositorySchema } from '@/schemas/bento'
 import { listBentos } from '@/services/bento'
 import { useStyletron } from 'baseui'
@@ -18,7 +19,8 @@ export interface IBentoSelectorProps {
 export default function BentoSelector({ bentoRepositoryName, value, onChange, onBentoChange }: IBentoSelectorProps) {
     const [keyword, setKeyword] = useState<string>()
     const [options, setOptions] = useState<{ id: string; label: React.ReactNode }[]>([])
-    const bentosInfo = useQuery(`listBento:${bentoRepositoryName}:${keyword}`, () =>
+    const { organization } = useOrganization()
+    const bentosInfo = useQuery(`listBento:${organization?.name}:${bentoRepositoryName}:${keyword}`, () =>
         listBentos(bentoRepositoryName, { start: 0, count: 100, search: keyword })
     )
     const [, theme] = useStyletron()

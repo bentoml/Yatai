@@ -8,7 +8,7 @@ import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { isModified } from '@/utils'
 import Toggle from './Toggle'
 
-const { Form, FormItem } = createForm<ICreateOrganizationSchema>()
+const { Form, FormItem, useForm } = createForm<ICreateOrganizationSchema>()
 
 export interface IOrganizationFormProps {
     organization?: IOrganizationFullSchema
@@ -16,7 +16,14 @@ export interface IOrganizationFormProps {
 }
 
 export default function OrganizationForm({ organization, onSubmit }: IOrganizationFormProps) {
+    const [form] = useForm()
     const [values, setValues] = useState<ICreateOrganizationSchema | undefined>(organization)
+
+    useEffect(() => {
+        if (values) {
+            form.setFieldsValue(values)
+        }
+    }, [form, values])
 
     useEffect(() => {
         if (!organization) {
@@ -50,7 +57,7 @@ export default function OrganizationForm({ organization, onSubmit }: IOrganizati
     const [t] = useTranslation()
 
     return (
-        <Form initialValues={values} onFinish={handleFinish} onValuesChange={handleValuesChange}>
+        <Form form={form} initialValues={values} onFinish={handleFinish} onValuesChange={handleValuesChange}>
             <FormItem name='name' label={t('name')}>
                 <Input disabled={organization !== undefined} />
             </FormItem>

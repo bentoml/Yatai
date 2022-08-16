@@ -354,13 +354,13 @@ github.com/benbjohnson/clock v1.0.3/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiU
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647 h1:fKWmU8aM6tda4yThxj8SGKWJYCxjLW9gSM6WIIFFgvo=
 github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647/go.mod h1:w8sk7HbPMnOlZislz8Ch3pRw15FNMY6o1Q+53fepnhc=
-github.com/bentoml/yatai-common v0.0.0-20220816152244-197bb805112a h1:AfHdjq19EQzRbPG10meuhD1xnQ5O5B4r7azz4Xm9fDo=
-github.com/bentoml/yatai-common v0.0.0-20220816152244-197bb805112a/go.mod h1:pox0XYk/bVUwKkadn0XwWHEbJmxSEeN3+HwGA4a8uOQ=
+github.com/bentoml/yatai-common v0.0.0-20220816174924-2358c9d58ee3 h1:ajxC2eLKBNBZYWxD/AmtVZ5patX7zMUtEoJG3W1ZfxA=
+github.com/bentoml/yatai-common v0.0.0-20220816174924-2358c9d58ee3/go.mod h1:pox0XYk/bVUwKkadn0XwWHEbJmxSEeN3+HwGA4a8uOQ=
 github.com/bentoml/yatai-deployment-operator v0.0.0-20220509150025-8aae33c8b98b h1:FTDJ+5TMgBWGB8EYRvLyJKtYDnWKvE6CqqYnhY+TEe4=
 github.com/bentoml/yatai-deployment-operator v0.0.0-20220509150025-8aae33c8b98b/go.mod h1:vu1jltSCPUq+nKmO/ixQxAVKrYEcT/XXGIhluCMtLs8=
 github.com/bentoml/yatai-schemas v0.0.0-20220425180144-46a9d8e948f8/go.mod h1:OT5T7rrtdjJIkJpUazp1fQBbAVzl55YXyUJNVRLqskw=
-github.com/bentoml/yatai-schemas v0.0.0-20220816014402-e1efcc5a8e9f h1:xScXGQzJAtV5GWScjhCUc00VxfTCuqn8hOFEY2pgN6g=
-github.com/bentoml/yatai-schemas v0.0.0-20220816014402-e1efcc5a8e9f/go.mod h1:q7tt064G8YIiAwQabKyVaKEdSIHYDQA9Oyt+kyCsflU=
+github.com/bentoml/yatai-schemas v0.0.0-20220816172532-7f61901c2e5e h1:5I/pwqzdw9NmyJvEnlRLJpJrQAS7aYmYiRGg8vGoTL4=
+github.com/bentoml/yatai-schemas v0.0.0-20220816172532-7f61901c2e5e/go.mod h1:q7tt064G8YIiAwQabKyVaKEdSIHYDQA9Oyt+kyCsflU=
 github.com/beorn7/perks v0.0.0-20160804104726-4c0e84591b9a/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
