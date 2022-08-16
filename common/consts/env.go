@@ -1,6 +1,8 @@
 package consts
 
 const (
+	EnvIsSass = "IS_SASS"
+
 	EnvPgHost     = "PG_HOST"
 	EnvPgPort     = "PG_PORT"
 	EnvPgUser     = "PG_USER"

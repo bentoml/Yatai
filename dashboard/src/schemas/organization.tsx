@@ -45,7 +45,6 @@ export interface IOrganizationConfigSchema {
     major_cluster_uid?: string
     aws?: IOrganizationAwsConfigSchema
     s3?: IOrganizationS3Schema
-    docker_registry?: IOrganizationDockerRegistrySchema
 }
 
 export interface IOrganizationSchema extends IResourceSchema {
