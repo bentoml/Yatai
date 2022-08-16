@@ -6,17 +6,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/util/validation"
 
+	"github.com/bentoml/yatai-common/consts"
+	"github.com/bentoml/yatai-common/utils"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/consts"
-	"github.com/bentoml/yatai/common/utils"
 )
 
 type organizationService struct{}
@@ -406,4 +407,25 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 	}
 	err = errors.New("no s3 config")
 	return
+}
+
+const CurrentOrganizationKey = "currentOrganization"
+
+func SetCurrentOrganization(ctx *gin.Context, org *models.Organization) {
+	if org == nil {
+		return
+	}
+	ctx.Set(CurrentOrganizationKey, org)
+}
+
+func GetCurrentOrganization(ctx context.Context) (*models.Organization, error) {
+	org_ := ctx.Value(CurrentOrganizationKey)
+	if org_ == nil {
+		return nil, errors.Wrap(consts.ErrNotFound, "current organization")
+	}
+	org, ok := org_.(*models.Organization)
+	if !ok {
+		return nil, errors.New("current organization is not a organization")
+	}
+	return org, nil
 }

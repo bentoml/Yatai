@@ -24,23 +24,10 @@ type organizationController struct {
 
 var OrganizationController = organizationController{}
 
-type GetOrganizationSchema struct {
-	OrgName string `header:"X-Yatai-Organization"`
-}
+type GetOrganizationSchema struct{}
 
 func (s *GetOrganizationSchema) GetOrganization(ctx context.Context) (*models.Organization, error) {
-	if s.OrgName == "" {
-		user, err := services.GetCurrentUser(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return services.OrganizationService.GetUserOrganization(ctx, user.ID)
-	}
-	organization, err := services.OrganizationService.GetByName(ctx, s.OrgName)
-	if err != nil {
-		return nil, errors.Wrapf(err, "get organization %s", s.OrgName)
-	}
-	return organization, nil
+	return services.GetCurrentOrganization(ctx)
 }
 
 func (c *organizationController) canView(ctx context.Context, organization *models.Organization) error {
