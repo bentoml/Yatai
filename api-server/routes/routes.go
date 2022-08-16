@@ -50,7 +50,7 @@ func injectCurrentOrganization(c *gin.Context) {
 	}
 	org, err := services.OrganizationService.GetByName(c, orgName)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	services.SetCurrentOrganization(c, org)
@@ -297,13 +297,14 @@ func getLoginUser(ctx *gin.Context) (user *models.User, err error) {
 
 	yataicontext.SetUserName(ctx, user.Name)
 	services.SetCurrentUser(ctx, user)
-	org, err := services.GetCurrentOrganization(ctx)
+	_, err = services.GetCurrentOrganization(ctx)
 	isNotFound := utils.IsNotFound(err)
 	if err != nil && !isNotFound {
 		err = errors.Wrap(err, "get current organization")
 		return
 	}
 	if isNotFound {
+		var org *models.Organization
 		org, err = services.OrganizationService.GetUserOrganization(ctx, user.ID)
 		if err != nil {
 			err = errors.Wrap(err, "get user organization")
