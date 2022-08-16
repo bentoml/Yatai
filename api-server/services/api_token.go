@@ -12,9 +12,10 @@ import (
 
 	"github.com/bentoml/yatai-common/config"
 	"github.com/bentoml/yatai-common/consts"
-	"github.com/bentoml/yatai-common/utils"
+	commonutils "github.com/bentoml/yatai-common/utils"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/common/utils"
 )
 
 type apiTokenService struct{}
@@ -164,7 +165,7 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 		token_ := pieces[2]
 		org, err := GetCurrentOrganization(ctx)
 		if err != nil {
-			if utils.IsNotFound(err) {
+			if commonutils.IsNotFound(err) {
 				org, err = OrganizationService.GetDefault(ctx)
 				if err != nil {
 					err = errors.Wrap(err, "get default organization")
