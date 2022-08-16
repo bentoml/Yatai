@@ -10,33 +10,21 @@ Advantage of using Yatai Helm chart:
 * Easy to configure with external services
 * Up to date with the latest Yatai release
 
-This is the top level Yatai chart, which configures all the necessary components to run Yatai. With this chart, a user can make decisions like:
-
-* Use default created service account or use existing service account.
-* Use the default PostgreSQL or use an external database like AWS RDS.
-* Use external object storage services like AWS S3 or use the default Minio.
-* Use external Docker registry or use the default Docker registry.
-
 
 ## TL;DR:
 
 ```bash
-helm repo add yatai https://bentoml.github.io/yatai-chart
+helm repo add bentoml https://bentoml.github.io/charts
 helm repo update
-helm install yatai yatai/yatai -n yatai-system --create-namespace
+kubectl create ns yatai-system
+helm install yatai bentoml/yatai -n yatai-system
 ```
 
 ## Helm chart deployment overview
 
 This chart will create the following resources on Kubernetes:
 1. Yatai service under the `yatai-system` namespace.
-2. Default PostgreSQL under the `yatai-system` namespace (if not configured).
-3. service account (if not configured).
-
-After Yatai is running, it will create the following resources on Kuberenetes:
-1. `yatai-operators`, `yatai-components`, `yatai-builders` and `yatai` namespaces.
-2. `yatai-deployment-comp-operator` under the `yatai-operators` namespace.
-3. Nginx Ingress Controller under the `yatai-components` namespace using `yatai-deployment-comp-operator`.
+2. service account (if not configured).
 
 # Community
 
