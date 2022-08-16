@@ -24,7 +24,6 @@ import (
 	"github.com/bentoml/yatai-common/system"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
-	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/helmchart"
@@ -313,7 +312,7 @@ func (s *clusterService) GetDefault(ctx context.Context, orgId uint) (defaultClu
 }
 
 func (s *clusterService) GetKubeCliSet(ctx context.Context, c *models.Cluster) (clientSet *kubernetes.Clientset, restConfig *rest.Config, err error) {
-	if !config.YataiConfig.IsSass && c.KubeConfig == "" {
+	if c.KubeConfig == "" {
 		restConfig, err = rest.InClusterConfig()
 		if err != nil {
 			kubeConfig :=
