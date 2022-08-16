@@ -164,26 +164,34 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 		token_ := pieces[2]
 		org, err := GetCurrentOrganization(ctx)
 		if err != nil {
-			err = errors.Wrap(err, "failed to get default organization")
-			return nil, err
+			if utils.IsNotFound(err) {
+				org, err = OrganizationService.GetDefault(ctx)
+				if err != nil {
+					err = errors.Wrap(err, "get default organization")
+					return nil, err
+				}
+			} else {
+				err = errors.Wrap(err, "get current organization")
+				return nil, err
+			}
 		}
 		cluster, err := ClusterService.GetByName(ctx, org.ID, clusterName)
 		if err != nil {
-			err = errors.Wrapf(err, "failed to get cluster %s", clusterName)
+			err = errors.Wrapf(err, "failed to get cluster %s in organization %s", clusterName, org.Name)
 			return nil, err
 		}
 		cliset, _, err := ClusterService.GetKubeCliSet(ctx, cluster)
 		if err != nil {
-			err = errors.Wrap(err, "failed to get kube cli set")
+			err = errors.Wrapf(err, "failed to get kube cli set in cluster %s in organization %s", clusterName, org.Name)
 			return nil, err
 		}
 		yataiConf, err := config.GetYataiConfig(ctx, cliset, consts.KubeNamespaceYataiDeploymentComponent, false)
 		if err != nil {
-			err = errors.Wrap(err, "failed to get yatai config")
+			err = errors.Wrapf(err, "failed to get yatai config in cluster %s in organization %s", clusterName, org.Name)
 			return nil, err
 		}
 		if token_ != yataiConf.ApiToken {
-			err = errors.New("the api token is not valid")
+			err = errors.Errorf("the api token is not valid in cluster %s in organization %s", clusterName, org.Name)
 			return nil, err
 		}
 		adminUser, err := UserService.GetDefaultAdmin(ctx)
