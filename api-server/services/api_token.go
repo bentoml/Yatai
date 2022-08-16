@@ -210,8 +210,13 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 				Scopes:         &scopes,
 			})
 			if err != nil {
-				err = errors.Wrapf(err, "create api token %s", consts.YataiK8sBotApiTokenName)
-				return nil, err
+				var err_ error
+				apiToken, err_ = ApiTokenService.GetByName(ctx, defaultOrg.ID, adminUser.ID, consts.YataiK8sBotApiTokenName)
+				if err_ != nil {
+					err = errors.Wrapf(err, "create api token %s", consts.YataiK8sBotApiTokenName)
+					return nil, err
+				}
+				err = nil
 			}
 		}
 		return apiToken, nil
