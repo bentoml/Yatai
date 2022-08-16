@@ -61,6 +61,11 @@ type YataiConfigYaml struct {
 var YataiConfig = &YataiConfigYaml{}
 
 func PopulateYataiConfig() error {
+	isSass, ok := os.LookupEnv(consts.EnvIsSass)
+	if ok {
+		YataiConfig.IsSass = isSass == "true"
+	}
+
 	pgHost, ok := os.LookupEnv(consts.EnvPgHost)
 	if ok {
 		YataiConfig.Postgresql.Host = pgHost

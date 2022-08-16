@@ -196,6 +196,11 @@ func NewRouter() (*fizz.Fizz, error) {
 		fizz.Summary("Get version"),
 	}, tonic.Handler(controllersv1.VersionController.GetVersion, 200))
 
+	publicApiRootGroup.GET("/info", []fizz.OperationOption{
+		fizz.ID("Get info"),
+		fizz.Summary("Get info"),
+	}, tonic.Handler(controllersv1.InfoController.GetInfo, 200))
+
 	apiRootGroup.GET("/news", []fizz.OperationOption{
 		fizz.ID("Get news"),
 		fizz.Summary("Get news"),

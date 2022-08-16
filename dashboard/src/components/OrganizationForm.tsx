@@ -78,30 +78,6 @@ export default function OrganizationForm({ organization, onSubmit }: IOrganizati
             <FormItem name={['config', 's3', 'secure']} label='S3 Secure'>
                 <Toggle />
             </FormItem>
-            <FormItem
-                name={['config', 'docker_registry', 'bentos_repository_uri']}
-                label='Docker Registry Bentos Repository URI'
-            >
-                <Input />
-            </FormItem>
-            <FormItem
-                name={['config', 'docker_registry', 'models_repository_uri']}
-                label='Docker Registry Models Repository URI'
-            >
-                <Input />
-            </FormItem>
-            <FormItem name={['config', 'docker_registry', 'server']} label='Docker Registry Server'>
-                <Input />
-            </FormItem>
-            <FormItem name={['config', 'docker_registry', 'username']} label='Docker Registry Username'>
-                <Input />
-            </FormItem>
-            <FormItem name={['config', 'docker_registry', 'password']} label='Docker Registry Password'>
-                <Input />
-            </FormItem>
-            <FormItem name={['config', 'docker_registry', 'secure']} label='Docker Registry Secure'>
-                <Toggle />
-            </FormItem>
             <FormItem>
                 <div style={{ display: 'flex' }}>
                     <div style={{ flexGrow: 1 }} />
