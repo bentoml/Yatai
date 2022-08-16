@@ -16,13 +16,14 @@ import (
 	"github.com/wI2L/fizz"
 	"github.com/wI2L/fizz/openapi"
 
+	"github.com/bentoml/yatai-common/consts"
+	"github.com/bentoml/yatai-common/utils"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/controllers/controllersv1"
 	"github.com/bentoml/yatai/api-server/controllers/web"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/scookie"
 	"github.com/bentoml/yatai/common/yataicontext"
 )
@@ -40,6 +41,21 @@ var staticFiles = map[string]string{
 }
 
 const WebsocketConnectContextKey = "websocket-connect"
+
+func injectCurrentOrganization(c *gin.Context) {
+	orgName := c.GetHeader(consts.YataiOrganizationHeaderName)
+	if orgName == "" {
+		c.Next()
+		return
+	}
+	org, err := services.OrganizationService.GetByName(c, orgName)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	services.SetCurrentOrganization(c, org)
+	c.Next()
+}
 
 func NewRouter() (*fizz.Fizz, error) {
 	tonic.SetRenderHook(func(c *gin.Context, statusCode int, payload interface{}) {
@@ -66,6 +82,7 @@ func NewRouter() (*fizz.Fizz, error) {
 	engine := gin.New()
 
 	store := cookie.NewStore([]byte(config.YataiConfig.Server.SessionSecretKey))
+	engine.Use(injectCurrentOrganization)
 	engine.Use(sessions.Sessions("yatai-session-v1", store))
 
 	engine.GET("/logout", web.Logout)
@@ -279,7 +296,21 @@ func getLoginUser(ctx *gin.Context) (user *models.User, err error) {
 	}
 
 	yataicontext.SetUserName(ctx, user.Name)
-	services.SetLoginUser(ctx, user)
+	services.SetCurrentUser(ctx, user)
+	org, err := services.GetCurrentOrganization(ctx)
+	isNotFound := utils.IsNotFound(err)
+	if err != nil && !isNotFound {
+		err = errors.Wrap(err, "get current organization")
+		return
+	}
+	if isNotFound {
+		org, err = services.OrganizationService.GetUserOrganization(ctx, user.ID)
+		if err != nil {
+			err = errors.Wrap(err, "get user organization")
+			return
+		}
+		services.SetCurrentOrganization(ctx, org)
+	}
 	return
 }
 

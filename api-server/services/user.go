@@ -11,10 +11,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
+	"github.com/bentoml/yatai-common/consts"
+	"github.com/bentoml/yatai-common/utils"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/consts"
-	"github.com/bentoml/yatai/common/utils"
 )
 
 type userService struct{}
@@ -25,7 +25,7 @@ func (*userService) getBaseDB(ctx context.Context) *gorm.DB {
 	return mustGetSession(ctx).Model(&models.User{})
 }
 
-const LoginUserKey = "loginUser"
+const CurrentUserKey = "currentUser"
 
 type CreateUserOption struct {
 	Name      string
@@ -333,21 +333,21 @@ func (s *userService) GetAssociatedCreator(ctx context.Context, associate ICreat
 	return user, err
 }
 
-func SetLoginUser(ctx *gin.Context, user *models.User) {
+func SetCurrentUser(ctx *gin.Context, user *models.User) {
 	if user == nil {
 		return
 	}
-	ctx.Set(LoginUserKey, user)
+	ctx.Set(CurrentUserKey, user)
 }
 
 func GetCurrentUser(ctx context.Context) (*models.User, error) {
-	user_ := ctx.Value(LoginUserKey)
+	user_ := ctx.Value(CurrentUserKey)
 	if user_ == nil {
 		return nil, errors.Wrap(consts.ErrNotFound, "cannot find current user")
 	}
 	user, ok := user_.(*models.User)
 	if !ok {
-		return nil, errors.New("get login user err")
+		return nil, errors.New("get current user err, the type is not *models.User")
 	}
 	return user, nil
 }

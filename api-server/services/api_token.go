@@ -162,12 +162,12 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 	if len(pieces) == 3 && pieces[0] == consts.YataiApiTokenPrefixYataiDeploymentOperator {
 		clusterName := pieces[1]
 		token_ := pieces[2]
-		defaultOrg, err := OrganizationService.GetDefault(ctx)
+		org, err := GetCurrentOrganization(ctx)
 		if err != nil {
 			err = errors.Wrap(err, "failed to get default organization")
 			return nil, err
 		}
-		cluster, err := ClusterService.GetByName(ctx, defaultOrg.ID, clusterName)
+		cluster, err := ClusterService.GetByName(ctx, org.ID, clusterName)
 		if err != nil {
 			err = errors.Wrapf(err, "failed to get cluster %s", clusterName)
 			return nil, err
@@ -192,7 +192,7 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 			return nil, err
 		}
 		var apiToken *models.ApiToken
-		apiToken, err = ApiTokenService.GetByName(ctx, defaultOrg.ID, adminUser.ID, consts.YataiK8sBotApiTokenName)
+		apiToken, err = ApiTokenService.GetByName(ctx, org.ID, adminUser.ID, consts.YataiK8sBotApiTokenName)
 		apiTokenIsNotFound := utils.IsNotFound(err)
 		if err != nil && !apiTokenIsNotFound {
 			err = errors.Wrapf(err, "get api token")
@@ -204,14 +204,14 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 			}
 			apiToken, err = ApiTokenService.Create(ctx, CreateApiTokenOption{
 				Name:           consts.YataiK8sBotApiTokenName,
-				OrganizationId: defaultOrg.ID,
+				OrganizationId: org.ID,
 				UserId:         adminUser.ID,
 				Description:    "yatai k8s bot api token",
 				Scopes:         &scopes,
 			})
 			if err != nil {
 				var err_ error
-				apiToken, err_ = ApiTokenService.GetByName(ctx, defaultOrg.ID, adminUser.ID, consts.YataiK8sBotApiTokenName)
+				apiToken, err_ = ApiTokenService.GetByName(ctx, org.ID, adminUser.ID, consts.YataiK8sBotApiTokenName)
 				if err_ != nil {
 					err = errors.Wrapf(err, "create api token %s", consts.YataiK8sBotApiTokenName)
 					return nil, err
