@@ -32,6 +32,7 @@ import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import Link from '@/components/Link'
 import classNames from 'classnames'
 import Table from '@/components/Table'
+import { useOrganization } from '@/hooks/useOrganization'
 
 const useStyles = createUseStyles({
     left: {
@@ -107,15 +108,16 @@ export default function BentoOverview() {
     const { bento } = useBento()
     const { bentoLoading } = useBentoLoading()
     const [t] = useTranslation()
-    const modelsQueryKey = `bento:${bentoRepositoryName}/${bentoVersion}:models`
+    const { organization } = useOrganization()
+    const modelsQueryKey = `bento:${organization?.name}:${bentoRepositoryName}/${bentoVersion}:models`
     const modelsInfo = useQuery(modelsQueryKey, () => listBentoModels(bentoRepositoryName, bentoVersion))
     const [deploymentsQuery, setDeploymentsQuery] = useState<IListQuerySchema>({
         start: 0,
         count: 10,
     })
-    const deploymentsQueryKey = `bento:${bentoRepositoryName}/${bentoVersion}:deployments:${qs.stringify(
-        deploymentsQuery
-    )}`
+    const deploymentsQueryKey = `bento:${
+        organization?.name
+    }:${bentoRepositoryName}/${bentoVersion}:deployments:${qs.stringify(deploymentsQuery)}`
     const deploymentsInfo = useQuery(deploymentsQueryKey, () =>
         listBentoDeployments(bentoRepositoryName, bentoVersion, deploymentsQuery)
     )

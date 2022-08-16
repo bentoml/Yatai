@@ -9,12 +9,12 @@ import qs from 'qs'
 import { Modal, ModalHeader, ModalBody } from 'baseui/modal'
 import { Link, useLocation } from 'react-router-dom'
 import { useStyletron } from 'baseui'
-import { headerHeight, resourceIconMapping } from '@/consts'
+import { headerHeight, resourceIconMapping, yataiOrgHeader } from '@/consts'
 import { SidebarContext } from '@/contexts/SidebarContext'
 import logo from '@/assets/logo.svg'
 import logoDark from '@/assets/logo-dark.svg'
 import useTranslation from '@/hooks/useTranslation'
-import { createOrganization } from '@/services/organization'
+import { createOrganization, fetchCurrentOrganization } from '@/services/organization'
 import { Select } from 'baseui/select'
 import { useOrganization } from '@/hooks/useOrganization'
 import OrganizationForm from '@/components/OrganizationForm'
@@ -38,6 +38,9 @@ import i18n from '@/i18n'
 import { simulationJump } from '@/utils'
 import { FiLogOut } from 'react-icons/fi'
 import { MdPassword } from 'react-icons/md'
+import { useFetchOrganizations } from '@/hooks/useFetchOrganizations'
+import { useFetchInfo } from '@/hooks/useFetchInfo'
+import { Button } from 'baseui/button'
 import PasswordForm from './PasswordForm'
 
 const useStyles = createUseStyles({
@@ -244,7 +247,30 @@ export default function Header() {
         }
     }, [userInfo.data, userInfo.isSuccess, setCurrentUser])
 
-    const { organization } = useOrganization()
+    const { organization, setOrganization } = useOrganization()
+
+    useEffect(() => {
+        axios.defaults.headers.common[yataiOrgHeader] = organization?.name ?? ''
+    }, [organization])
+
+    const orgsInfo = useFetchOrganizations({
+        start: 0,
+        count: 100,
+    })
+
+    const currentOrgInfo = useQuery('currentOrg', fetchCurrentOrganization)
+
+    useEffect(() => {
+        if (!organization && currentOrgInfo.isSuccess && currentOrgInfo.data) {
+            setOrganization(currentOrgInfo.data)
+        }
+    }, [currentOrgInfo.data, currentOrgInfo.isSuccess, organization, setOrganization])
+
+    const infoInfo = useFetchInfo()
+
+    const showOrgSelector = useMemo(() => {
+        return currentUser?.is_super_admin && infoInfo.data?.is_sass && currentOrgInfo.data?.name === 'default'
+    }, [currentOrgInfo.data?.name, currentUser?.is_super_admin, infoInfo.data?.is_sass])
 
     const { setCluster } = useCluster()
     useEffect(() => {
@@ -268,10 +294,14 @@ export default function Header() {
 
     const [isCreateOrgModalOpen, setIsCreateOrgModalOpen] = useState(false)
 
-    const handleCreateOrg = useCallback(async (data: ICreateOrganizationSchema) => {
-        await createOrganization(data)
-        setIsCreateOrgModalOpen(false)
-    }, [])
+    const handleCreateOrg = useCallback(
+        async (data: ICreateOrganizationSchema) => {
+            await createOrganization(data)
+            await orgsInfo.refetch()
+            setIsCreateOrgModalOpen(false)
+        },
+        [orgsInfo]
+    )
 
     const [isCreateClusterModalOpen, setIsCreateClusterModalOpen] = useState(false)
 
@@ -355,7 +385,7 @@ export default function Header() {
                     </Text>
                 )}
             </Link>
-            {organization && (
+            {!showOrgSelector && organization && (
                 <>
                     <div
                         style={{
@@ -394,6 +424,91 @@ export default function Header() {
                                 {organization?.name}
                             </Text>
                         </Link>
+                    </div>
+                </>
+            )}
+            {showOrgSelector && (
+                <>
+                    <div
+                        style={{
+                            flexBasis: 1,
+                            flexShrink: 0,
+                            height: 20,
+                            background: theme.colors.borderOpaque,
+                            margin: '0 20px',
+                        }}
+                    />
+                    <div
+                        style={{
+                            flexShrink: 0,
+                            display: 'flex',
+                            gap: 10,
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Link
+                            style={{
+                                display: 'flex',
+                                flexShrink: 0,
+                                textDecoration: 'none',
+                                gap: 8,
+                                alignItems: 'center',
+                                fontSize: '12px',
+                            }}
+                            to='/'
+                        >
+                            {React.createElement(resourceIconMapping.organization, { size: 12 })}
+                            <Text>{t('organization')}</Text>
+                        </Link>
+                        <div
+                            style={{
+                                width: 140,
+                                flexShrink: 0,
+                            }}
+                        >
+                            <Select
+                                isLoading={orgsInfo.isLoading}
+                                clearable={false}
+                                searchable={false}
+                                options={
+                                    orgsInfo.data?.items.map((item) => ({
+                                        id: item.uid,
+                                        label: item.name,
+                                    })) ?? []
+                                }
+                                size='mini'
+                                placeholder={t('select sth', [t('organization')])}
+                                value={
+                                    organization && [
+                                        {
+                                            id: organization.uid,
+                                            label: organization.name,
+                                        },
+                                    ]
+                                }
+                                onChange={(v) => {
+                                    const org = orgsInfo.data?.items.find((item) => item.uid === v.option?.id)
+                                    if (org) {
+                                        setOrganization(org)
+                                    }
+                                }}
+                            />
+                        </div>
+                        <Button
+                            overrides={{
+                                Root: {
+                                    style: {
+                                        flexShrink: 0,
+                                    },
+                                },
+                            }}
+                            size='mini'
+                            onClick={() => {
+                                setIsCreateOrgModalOpen(true)
+                            }}
+                        >
+                            {t('create')}
+                        </Button>
                     </div>
                 </>
             )}

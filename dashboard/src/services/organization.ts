@@ -9,14 +9,19 @@ import {
 import { IListQuerySchema, IListSchema } from '@/schemas/list'
 import { IEventSchema } from '@/schemas/event'
 import { ResourceType } from '@/schemas/resource'
+import { yataiOrgHeader } from '@/consts'
 
 export async function listOrganizations(query: IListQuerySchema): Promise<IListSchema<IOrganizationSchema>> {
     const resp = await axios.get<IListSchema<IOrganizationSchema>>('/api/v1/orgs', { params: query })
     return resp.data
 }
 
-export async function fetchOrganization(): Promise<IOrganizationFullSchema> {
-    const resp = await axios.get<IOrganizationFullSchema>('/api/v1/current_org')
+export async function fetchCurrentOrganization(): Promise<IOrganizationFullSchema> {
+    const resp = await axios.get<IOrganizationFullSchema>('/api/v1/current_org', {
+        headers: {
+            [yataiOrgHeader]: '',
+        },
+    })
     return resp.data
 }
 

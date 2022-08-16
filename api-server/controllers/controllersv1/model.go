@@ -32,7 +32,7 @@ type GetModelSchema struct {
 func (s *GetModelSchema) GetModel(ctx context.Context) (*models.Model, error) {
 	modelRepository, err := s.GetModelRepository(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get modelRepository %s", modelRepository.Name)
+		return nil, errors.Wrapf(err, "get modelRepository %s", s.ModelRepositoryName)
 	}
 	model, err := services.ModelService.GetByVersion(ctx, modelRepository.ID, s.Version)
 	if err != nil {

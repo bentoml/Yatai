@@ -20,6 +20,7 @@ import { useQ } from '@/hooks/useQ'
 import FilterBar from '@/components/FilterBar'
 import { useFetchClusters } from '@/hooks/useFetchClusters'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useOrganization } from '@/hooks/useOrganization'
 import FilterInput from './FilterInput'
 import Time from './Time'
 import Link from './Link'
@@ -38,7 +39,8 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
         count: 1000,
     })
     const [page] = usePage()
-    const queryKey = `fetchClusterDeployments:${clusterName ?? ''}:${qs.stringify(page)}`
+    const { organization } = useOrganization()
+    const queryKey = `fetchClusterDeployments:${organization?.name}:${clusterName ?? ''}:${qs.stringify(page)}`
     const deploymentsInfo = useQuery(queryKey, () =>
         clusterName ? listClusterDeployments(clusterName, page) : listOrganizationDeployments(page)
     )

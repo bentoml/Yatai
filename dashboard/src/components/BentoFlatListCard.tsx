@@ -13,6 +13,7 @@ import qs from 'qs'
 import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import { useQ } from '@/hooks/useQ'
 import prettyBytes from 'pretty-bytes'
+import { useOrganization } from '@/hooks/useOrganization'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
 import { ResourceLabels } from './ResourceLabels'
@@ -24,7 +25,8 @@ import ListItem from './ListItem'
 export default function BentoFlatListCard() {
     const { q, updateQ } = useQ()
     const [page] = usePage()
-    const queryKey = `fetchAllBentos:${qs.stringify(page)}`
+    const { organization } = useOrganization()
+    const queryKey = `fetchAllBentos:${organization?.name}:${qs.stringify(page)}`
     const bentosInfo = useQuery(queryKey, () => listAllBentos(page))
     const membersInfo = useFetchOrganizationMembers()
     const [t] = useTranslation()

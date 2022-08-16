@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
@@ -69,6 +70,7 @@ func ToUserSchemas(ctx context.Context, users []*models.User) ([]*schemasv1.User
 			LastName:       u.LastName,
 			Email:          email,
 			AvatarUrl:      avatarUrl,
+			IsSuperAdmin:   u.Perm == modelschemas.UserPermAdmin,
 		})
 	}
 	return res, nil

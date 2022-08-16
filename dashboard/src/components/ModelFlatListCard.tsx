@@ -18,6 +18,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import { dark, docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { Button } from 'baseui/button'
+import { useOrganization } from '@/hooks/useOrganization'
 import FilterInput from './FilterInput'
 import FilterBar from './FilterBar'
 import Link from './Link'
@@ -26,7 +27,8 @@ import ModelList from './ModelList'
 export default function ModelFlatListCard() {
     const { q, updateQ } = useQ()
     const [page] = usePage()
-    const queryKey = `fetchAllModels:${qs.stringify(page)}`
+    const { organization } = useOrganization()
+    const queryKey = `fetchAllModels:${organization?.name}:${qs.stringify(page)}`
     const modelsInfo = useQuery(queryKey, () => listAllModels(page))
     const membersInfo = useFetchOrganizationMembers()
     const modelModulesInfo = useFetchOrganizationModelModules()

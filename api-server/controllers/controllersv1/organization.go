@@ -25,7 +25,7 @@ type organizationController struct {
 var OrganizationController = organizationController{}
 
 type GetOrganizationSchema struct {
-	OrgName string `header:"X-YATAI-ORGANIZATION"`
+	OrgName string `header:"X-Yatai-Organization"`
 }
 
 func (s *GetOrganizationSchema) GetOrganization(ctx context.Context) (*models.Organization, error) {

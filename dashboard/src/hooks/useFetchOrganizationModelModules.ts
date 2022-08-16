@@ -1,6 +1,8 @@
 import { listOrganizationModelModules } from '@/services/organization'
 import { useQuery } from 'react-query'
+import { useOrganization } from './useOrganization'
 
 export function useFetchOrganizationModelModules() {
-    return useQuery('fetchOrgModelModules', () => listOrganizationModelModules())
+    const { organization } = useOrganization()
+    return useQuery(`fetchOrgModelModules:${organization}`, () => listOrganizationModelModules())
 }

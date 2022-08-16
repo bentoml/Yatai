@@ -23,6 +23,7 @@ import { useSubscription } from '@/hooks/useSubscription'
 import { IListSchema } from '@/schemas/list'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { dark, docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
+import { useOrganization } from '@/hooks/useOrganization'
 import FilterBar from './FilterBar'
 import FilterInput from './FilterInput'
 import Time from './Time'
@@ -56,7 +57,8 @@ export default function BentoRepositoryListCard() {
     const { q, updateQ } = useQ()
     const membersInfo = useFetchOrganizationMembers()
     const [page] = usePage()
-    const queryKey = `fetchBentoRepositories:${qs.stringify(page)}`
+    const { organization } = useOrganization()
+    const queryKey = `fetchBentoRepositories:${organization?.name}:${qs.stringify(page)}`
     const bentoRepositoriesInfo = useQuery(queryKey, () => listBentoRepositories(page))
     const [isCreateBentoOpen, setIsCreateBentoOpen] = useState(false)
     const [t] = useTranslation()

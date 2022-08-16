@@ -214,6 +214,7 @@ func (s *organizationService) GetUserOrganization(ctx context.Context, userId ui
 			Count: utils.UintPtr(1),
 		},
 		VisitorId: utils.UintPtr(userId),
+		Order:     utils.StringPtr("id ASC"),
 	})
 	if err != nil {
 		return nil, err
