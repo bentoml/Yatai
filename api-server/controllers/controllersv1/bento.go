@@ -151,6 +151,43 @@ func (c *bentoController) Upload(ctx *gin.Context) {
 	}
 
 	uploadStatus := modelschemas.BentoUploadStatusUploading
+
+	defer func() {
+		org, err := schema.GetOrganization(ctx)
+		if err != nil {
+			abortWithError(ctx, err)
+			return
+		}
+
+		user, err := services.GetCurrentUser(ctx)
+		if err != nil {
+			abortWithError(ctx, err)
+			return
+		}
+
+		apiTokenName := ""
+		if user.ApiToken != nil {
+			apiTokenName = user.ApiToken.Name
+		}
+		createEventOpt := services.CreateEventOption{
+			CreatorId:      user.ID,
+			ApiTokenName:   apiTokenName,
+			OrganizationId: &org.ID,
+			ResourceType:   modelschemas.ResourceTypeBento,
+			ResourceId:     bento.ID,
+			Status:         modelschemas.EventStatusSuccess,
+			OperationName:  "pushed",
+		}
+		if uploadStatus != modelschemas.BentoUploadStatusSuccess {
+			createEventOpt.Status = modelschemas.EventStatusFailed
+		}
+
+		if _, err = services.EventService.Create(ctx, createEventOpt); err != nil {
+			abortWithError(ctx, err)
+			return
+		}
+	}()
+
 	now := time.Now()
 	nowPtr := &now
 	bento, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
@@ -177,40 +214,6 @@ func (c *bentoController) Upload(ctx *gin.Context) {
 			abortWithError(ctx, err)
 			return
 		}
-	}
-
-	org, err := schema.GetOrganization(ctx)
-	if err != nil {
-		abortWithError(ctx, err)
-		return
-	}
-
-	user, err := services.GetCurrentUser(ctx)
-	if err != nil {
-		abortWithError(ctx, err)
-		return
-	}
-
-	apiTokenName := ""
-	if user.ApiToken != nil {
-		apiTokenName = user.ApiToken.Name
-	}
-	createEventOpt := services.CreateEventOption{
-		CreatorId:      user.ID,
-		ApiTokenName:   apiTokenName,
-		OrganizationId: &org.ID,
-		ResourceType:   modelschemas.ResourceTypeBento,
-		ResourceId:     bento.ID,
-		Status:         modelschemas.EventStatusSuccess,
-		OperationName:  "pushed",
-	}
-	if uploadStatus != modelschemas.BentoUploadStatusSuccess {
-		createEventOpt.Status = modelschemas.EventStatusFailed
-	}
-
-	if _, err = services.EventService.Create(ctx, createEventOpt); err != nil {
-		abortWithError(ctx, err)
-		return
 	}
 
 	uploadStatus = modelschemas.BentoUploadStatusSuccess
