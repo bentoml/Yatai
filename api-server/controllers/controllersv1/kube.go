@@ -59,14 +59,28 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 	}
 
 	closeCh := make(chan struct{})
+	toClose := make(chan struct{}, 1)
+
+	go func() {
+		<-toClose
+		close(closeCh)
+	}()
+
+	doClose := func() {
+		select {
+		case toClose <- struct{}{}:
+		default:
+		}
+	}
+
 	go func() {
 		for {
-			mt, _, _ := conn.ReadMessage()
-
-			if mt == websocket.CloseMessage || mt == -1 {
-				close(closeCh)
-				break
+			_, _, err := conn.ReadMessage()
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				logrus.Errorf("ws read failed: %q", err.Error())
 			}
+			doClose()
+			break
 		}
 	}()
 
@@ -137,6 +151,12 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 
 			return it.Before(&jt)
 		})
+
+		select {
+		case <-closeCh:
+			return
+		default:
+		}
 
 		err = conn.WriteJSON(&schemasv1.WsRespSchema{
 			Type:    schemasv1.WsRespTypeSuccess,
@@ -235,14 +255,28 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 	}
 
 	closeCh := make(chan struct{})
+	toClose := make(chan struct{}, 1)
+
+	go func() {
+		<-toClose
+		close(closeCh)
+	}()
+
+	doClose := func() {
+		select {
+		case toClose <- struct{}{}:
+		default:
+		}
+	}
+
 	go func() {
 		for {
-			mt, _, _ := conn.ReadMessage()
-
-			if mt == websocket.CloseMessage || mt == -1 {
-				close(closeCh)
-				break
+			_, _, err := conn.ReadMessage()
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				logrus.Errorf("ws read failed: %q", err.Error())
 			}
+			doClose()
+			break
 		}
 	}()
 
@@ -348,6 +382,12 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 
 			return it.Before(jt)
 		})
+
+		select {
+		case <-closeCh:
+			return
+		default:
+		}
 
 		err = conn.WriteJSON(&schemasv1.WsRespSchema{
 			Type:    schemasv1.WsRespTypeSuccess,

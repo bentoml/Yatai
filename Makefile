@@ -107,7 +107,7 @@ be-run:
 	fi;
 	@go build -gcflags="all=-N -l" -ldflags "$(VERSION_BUILDFLAGS)" -o ./bin/api-server ./api-server/main.go
 	@./bin/api-server version
-	@./bin/api-server serve -d -c ./yatai-config.dev.yaml
+	@./bin/api-server serve -c ./yatai-config.dev.yaml
 
 fe-deps: ## Fetch frontend deps
 	@cd dashboard && yarn

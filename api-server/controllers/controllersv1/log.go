@@ -41,7 +41,9 @@ type logMessage struct {
 type Tail struct {
 	Finished      bool
 	conn          *websocket.Conn
-	closed        chan bool
+	closed        chan struct{}
+	toClose       chan struct{}
+	err           chan error
 	namespace     string
 	podNames      []string
 	containerName string
@@ -71,7 +73,9 @@ func NewTail(conn *websocket.Conn, namespace string, podNames []string, containe
 	return &Tail{
 		Finished:      false,
 		conn:          conn,
-		closed:        make(chan bool, 1),
+		closed:        make(chan struct{}),
+		toClose:       make(chan struct{}, 1),
+		err:           make(chan error, 1),
 		namespace:     namespace,
 		podNames:      podNames,
 		containerName: containerName,
@@ -86,28 +90,46 @@ func (t *Tail) Write(msg []byte) error {
 	return t.conn.WriteMessage(websocket.TextMessage, msg)
 }
 
+func (t *Tail) doClose(err error) {
+	select {
+	case t.toClose <- struct{}{}:
+	default:
+	}
+	select {
+	case t.err <- err:
+	default:
+	}
+}
+
 // Start starts Pod log streaming
 func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error {
 	go func() {
+		<-t.toClose
+		close(t.closed)
+	}()
+
+	go func() {
 		<-ctx.Done()
-		t.closed <- true
+		t.doClose(nil)
 	}()
 
 	reqCh := make(chan *tailRequest, 1)
 
-	errCh := make(chan error, 1)
-
 	go func() {
 		for {
-			mt, p, err := t.conn.ReadMessage()
-
-			if err != nil {
-				errCh <- err
+			select {
+			case <-t.closed:
 				return
+			default:
 			}
 
-			if mt == websocket.CloseMessage || mt == -1 {
-				t.closed <- true
+			_, p, err := t.conn.ReadMessage()
+
+			if err != nil {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					logrus.Errorf("ws read failed: %q", err.Error())
+				}
+				t.doClose(nil)
 				return
 			}
 
@@ -124,11 +146,11 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 	}()
 
 	go func() {
+	L:
 		for {
 			select {
 			case <-t.closed:
-				t.closed <- true
-				break
+				break L
 			default:
 			}
 
@@ -158,7 +180,7 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 
 				rs, err := clientset.CoreV1().Pods(t.namespace).GetLogs(podName, logOptions).Stream(ctx)
 				if err != nil {
-					errCh <- err
+					t.doClose(errors.Wrapf(err, "get pod %s log failed", podName))
 					return
 				}
 
@@ -206,11 +228,11 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 							}
 							defer rs.Close()
 							sc := bufio.NewScanner(rs)
+						Scan:
 							for sc.Scan() {
 								select {
 								case <-t.closed:
-									t.closed <- true
-									break
+									break Scan
 								default:
 								}
 
@@ -245,13 +267,20 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 					return nil
 				}()
 				if err != nil {
-					errCh <- err
+					t.doClose(err)
+					return
 				}
 			}
 		}
 	}()
 
-	return <-errCh
+	<-t.closed
+	select {
+	case err := <-t.err:
+		return err
+	default:
+		return nil
+	}
 }
 
 // Finish finishes Pod log streaming with Pod completion
@@ -261,7 +290,7 @@ func (t *Tail) Finish() {
 
 // Delete finishes Pod log streaming with Pod deletion
 func (t *Tail) Delete() {
-	t.closed <- true
+	t.doClose(nil)
 }
 
 type logController struct {

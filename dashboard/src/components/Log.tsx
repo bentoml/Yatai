@@ -90,8 +90,10 @@ export default function Log({
         let ws: WebSocket | undefined
         let selfClose = false
         const connect = () => {
+            if (selfClose) {
+                return
+            }
             ws = new WebSocket(wsUrl)
-            selfClose = false
             ws.onmessage = (event) => {
                 const resp = JSON.parse(event.data) as IWsRespSchema<{
                     req_id: string
@@ -119,7 +121,9 @@ export default function Log({
                 }
                 sendTailReq()
             }
-            ws.onclose = () => {
+            ws.onclose = (ev) => {
+                // eslint-disable-next-line no-console
+                console.log('onclose', ev)
                 wsOpenRef.current = false
                 if (selfClose) {
                     return
