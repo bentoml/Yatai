@@ -370,10 +370,12 @@ func (c *terminalController) GetDeploymentPodTerminal(ctx *gin.Context, schema *
 	}
 
 	if debug == "1" {
-		return t.HandleDebug(ctx, cliset, restConfig, fork == "1")
+		err = t.HandleDebug(ctx, cliset, restConfig, fork == "1")
+		return err
 	}
 
-	return t.Handle(ctx, cliset, restConfig, cmd)
+	err = t.Handle(ctx, cliset, restConfig, cmd)
+	return err
 }
 
 func (c *terminalController) GetClusterPodTerminal(ctx *gin.Context, schema *GetClusterSchema) error {
@@ -460,10 +462,12 @@ func (c *terminalController) GetClusterPodTerminal(ctx *gin.Context, schema *Get
 	}
 
 	if debug == "1" {
-		return t.HandleDebug(ctx, cliset, restConfig, fork == "1")
+		err = t.HandleDebug(ctx, cliset, restConfig, fork == "1")
+		return err
 	}
 
-	return t.Handle(ctx, cliset, restConfig, cmd)
+	err = t.Handle(ctx, cliset, restConfig, cmd)
+	return err
 }
 
 // nolint:unused,deadcode
