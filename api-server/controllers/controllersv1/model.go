@@ -121,6 +121,42 @@ func (c *modelController) Upload(ctx *gin.Context) {
 	}
 
 	uploadStatus := modelschemas.ModelUploadStatusUploading
+	defer func() {
+		org, err := schema.GetOrganization(ctx)
+		if err != nil {
+			abortWithError(ctx, err)
+			return
+		}
+
+		user, err := services.GetCurrentUser(ctx)
+		if err != nil {
+			abortWithError(ctx, err)
+			return
+		}
+
+		apiTokenName := ""
+		if user.ApiToken != nil {
+			apiTokenName = user.ApiToken.Name
+		}
+		createEventOpt := services.CreateEventOption{
+			CreatorId:      user.ID,
+			ApiTokenName:   apiTokenName,
+			OrganizationId: &org.ID,
+			ResourceType:   modelschemas.ResourceTypeModel,
+			ResourceId:     model.ID,
+			Status:         modelschemas.EventStatusSuccess,
+			OperationName:  "pushed",
+		}
+		if uploadStatus != modelschemas.ModelUploadStatusSuccess {
+			createEventOpt.Status = modelschemas.EventStatusFailed
+		}
+
+		if _, err = services.EventService.Create(ctx, createEventOpt); err != nil {
+			abortWithError(ctx, err)
+			return
+		}
+	}()
+
 	now := time.Now()
 	nowPtr := &now
 	model, err = services.ModelService.Update(ctx, model, services.UpdateModelOption{
@@ -147,40 +183,6 @@ func (c *modelController) Upload(ctx *gin.Context) {
 			abortWithError(ctx, err)
 			return
 		}
-	}
-
-	org, err := schema.GetOrganization(ctx)
-	if err != nil {
-		abortWithError(ctx, err)
-		return
-	}
-
-	user, err := services.GetCurrentUser(ctx)
-	if err != nil {
-		abortWithError(ctx, err)
-		return
-	}
-
-	apiTokenName := ""
-	if user.ApiToken != nil {
-		apiTokenName = user.ApiToken.Name
-	}
-	createEventOpt := services.CreateEventOption{
-		CreatorId:      user.ID,
-		ApiTokenName:   apiTokenName,
-		OrganizationId: &org.ID,
-		ResourceType:   modelschemas.ResourceTypeModel,
-		ResourceId:     model.ID,
-		Status:         modelschemas.EventStatusSuccess,
-		OperationName:  "pushed",
-	}
-	if uploadStatus != modelschemas.ModelUploadStatusSuccess {
-		createEventOpt.Status = modelschemas.EventStatusFailed
-	}
-
-	if _, err = services.EventService.Create(ctx, createEventOpt); err != nil {
-		abortWithError(ctx, err)
-		return
 	}
 
 	uploadStatus = modelschemas.ModelUploadStatusSuccess
