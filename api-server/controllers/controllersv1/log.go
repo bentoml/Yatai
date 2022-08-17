@@ -127,7 +127,7 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 
 			if err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-					logrus.Errorf("ws read failed: %q", err.Error())
+					logrus.Errorf("[LOG] ws read failed: %q", err.Error())
 				}
 				t.doClose(nil)
 				return
