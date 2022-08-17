@@ -18,6 +18,11 @@ set -x
 helm list -n yatai-system | tail -n +2 | awk '{print $1}' | xargs -I{} helm -n yatai-system uninstall {}
 set +x
 
+echo "Uninstalling yatai-deployment helm chart from cluster.."
+set -x
+helm list -n yatai-deployment | tail -n +2 | awk '{print $1}' | xargs -I{} helm -n yatai-deployment uninstall {}
+set +x
+
 echo "Deleting all crd resources and BentoDeployment.."
 set -x
 kubectl delete crd bentodeployments.serving.yatai.ai
@@ -26,13 +31,9 @@ set +x
 
 echo "Removing additional yatai related namespaces and resources.."
 set -x
-helm list -n yatai-components | tail -n +2 | awk '{print $1}' | xargs -I{} helm -n yatai-components uninstall {}
-kubectl delete namespace yatai-components
-helm list -n yatai-operators | tail -n +2 | awk '{print $1}' | xargs -I{} helm -n yatai-operators uninstall {}
-kubectl delete namespace yatai-operators
-kubectl delete namespace yatai-builders
 kubectl delete namespace yatai
-kubectl delete ingressclass yatai-ingress
+kubectl delete namespace yatai-builders
+kubectl delete namespace yatai-deployment
 kubectl delete namespace yatai-system
 set +x
 
