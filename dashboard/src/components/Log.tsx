@@ -133,8 +133,10 @@ export default function Log({
         }
         connect()
         return () => {
-            ws?.close()
+            // eslint-disable-next-line no-console
+            console.log('ws self close')
             selfClose = true
+            ws?.close(1000)
             wsRef.current = null
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
