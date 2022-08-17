@@ -146,11 +146,10 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 	}()
 
 	go func() {
-	L:
 		for {
 			select {
 			case <-t.closed:
-				break L
+				return
 			default:
 			}
 
@@ -213,7 +212,10 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 					if err != nil {
 						return errors.Wrap(err, "error in marshal log message")
 					}
-					_ = t.Write(msgStr)
+					err = t.Write(msgStr)
+					if err != nil {
+						return errors.Wrap(err, "error in write log message")
+					}
 					if req.Follow {
 						go func() {
 							logOptions.Follow = true
@@ -228,11 +230,10 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 							}
 							defer rs.Close()
 							sc := bufio.NewScanner(rs)
-						Scan:
 							for sc.Scan() {
 								select {
 								case <-t.closed:
-									break Scan
+									return
 								default:
 								}
 
