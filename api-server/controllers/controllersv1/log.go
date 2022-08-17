@@ -387,21 +387,27 @@ func (c *logController) TailClusterPodLog(ctx *gin.Context, schema *GetClusterSc
 				Message: err.Error(),
 				Payload: nil,
 			}
-			_ = conn.WriteJSON(&msg)
+			err_ := conn.WriteJSON(&msg)
+			if err_ != nil {
+				logrus.Errorf("ws write error: %q", err_.Error())
+			}
 		}
 	}()
 
 	cluster, err := schema.GetCluster(ctx)
 	if err != nil {
+		logrus.Errorf("get cluster failed: %q", err.Error())
 		return err
 	}
 
 	if err = ClusterController.canView(ctx, cluster); err != nil {
+		logrus.Errorf("can not view cluster: %q", err.Error())
 		return err
 	}
 
 	cliset, _, err := services.ClusterService.GetKubeCliSet(ctx, cluster)
 	if err != nil {
+		logrus.Errorf("get kube cli set failed: %q", err.Error())
 		return err
 	}
 
@@ -417,6 +423,7 @@ func (c *logController) TailClusterPodLog(ctx *gin.Context, schema *GetClusterSc
 
 		pod, err := podsCli.Get(ctx, podName, metav1.GetOptions{})
 		if err != nil {
+			logrus.Errorf("get pod failed: %q", err.Error())
 			return err
 		}
 
