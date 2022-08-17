@@ -553,7 +553,7 @@ yatai-minio-ss-0-0                                 1/1     Running   0          
 yatai-minio-ss-0-1                                 1/1     Running   0          7m1s
 yatai-minio-ss-0-2                                 1/1     Running   0          7m1s
 yatai-minio-ss-0-3                                 1/1     Running   0          7m
-yatai-yatai-deployment-operator-8476ff78b5-jsgnw   1/1     Running   0          8m20s
+yatai-yatai-deployment-8476ff78b5-jsgnw   1/1     Running   0          8m20s
 ```
 
 #### 5. Check the network configuration
@@ -641,13 +641,13 @@ Follow the steps below to verify that your ingress controller is working:
     ```bash
     kubectl -n yatai-system patch cm/network --type merge --patch "{\"data\": {\"domain-suffix\": \"\"}}"
 
-    # Then restart yatai-deployment-comp-operator and yatai-deployment-operator:
+    # Then restart yatai-deployment-comp-operator and yatai-deployment:
     kubectl -n yatai-operators rollout restart deployment deployment-yatai-deployment-comp-operator
-    kubectl -n yatai-components rollout restart deploy/yatai-yatai-deployment-operator
+    kubectl -n yatai-components rollout restart deploy/yatai-yatai-deployment
 
 
-    # Check yatai-deployment-operator logs
-    kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment-operator
+    # Check yatai-deployment logs
+    kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment
     ```
 
 5. Verify that your DNS resolver is resolving `sslip.io` properly
@@ -705,10 +705,10 @@ export YATAI_INITIALIZATION_TOKEN=$(kubectl get secret yatai --namespace yatai-s
 
 ### Cannot create a bento deployment
 
-You can use the following commands to debug the yatai-deployment-operator:
+You can use the following commands to debug the yatai-deployment:
 
 ```bash
-kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment-operator
+kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment
 ```
 
 ### Bento deployment cannot mount volume
@@ -780,10 +780,10 @@ kubectl -n yatai-components logs -f ds/yatai-csi-driver-image-populator -c image
         yatai.ai/is-bento-api-server: "true"
     ```
 
-3. Check the yatai-deployment-operator logs:
+3. Check the yatai-deployment logs:
 
     ```bash
-    kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment-operator
+    kubectl -n yatai-components logs -f deploy/yatai-yatai-deployment
     ```
 
     If you see some error log about `ingress`, you need to check the `network` configuration:
