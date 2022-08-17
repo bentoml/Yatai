@@ -68,9 +68,9 @@ spec:
                   key: {{ .Values.s3.secretKeyExistingSecretKey | quote }}
             {{- end }}
           livenessProbe:
-            failureThreshold: 10
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            failureThreshold: 15
+            initialDelaySeconds: 10
+            periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 10
             httpGet:
@@ -78,8 +78,8 @@ spec:
               port: http
           readinessProbe:
             failureThreshold: 60
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            initialDelaySeconds: 10
+            periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 10
             httpGet:
