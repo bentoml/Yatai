@@ -76,11 +76,13 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 	go func() {
 		for {
 			_, _, err := conn.ReadMessage()
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				logrus.Errorf("ws read failed: %q", err.Error())
+			if err != nil {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					logrus.Errorf("ws read failed: %q", err.Error())
+				}
+				doClose()
+				return
 			}
-			doClose()
-			break
 		}
 	}()
 
@@ -272,11 +274,13 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 	go func() {
 		for {
 			_, _, err := conn.ReadMessage()
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				logrus.Errorf("ws read failed: %q", err.Error())
+			if err != nil {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					logrus.Errorf("ws read failed: %q", err.Error())
+				}
+				doClose()
+				return
 			}
-			doClose()
-			break
 		}
 	}()
 
