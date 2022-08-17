@@ -2240,6 +2240,13 @@ const locales0 = {
         ko: '배포 기능을 사용하려면 yatai-deployment 컴포넌트를 설치해야합니다.',
         vi: 'Bạn cần cài đặt yatai-deployment cấu trúc để kích hoạt chức năng bản đồ',
     },
+    'created': {
+        en: 'Created',
+        zh: '创建了',
+        ja: '作成しました',
+        ko: '생성됨',
+        vi: 'Đã tạo',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

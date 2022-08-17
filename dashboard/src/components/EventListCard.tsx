@@ -110,6 +110,10 @@ export default function EventListCard() {
                                 id: 'model',
                                 label: <div style={{ display: 'flex', alignItems: 'center', gap: 6, }}>{React.createElement(resourceIconMapping.model, { size: 12 })}{t('model')}</div>,
                             },
+                            {
+                                id: 'deployment',
+                                label: <div style={{ display: 'flex', alignItems: 'center', gap: 6, }}>{React.createElement(resourceIconMapping.deployment, { size: 12 })}{t('deployment')}</div>,
+                            },
                         ],
                         value: ((q.resource_type as string[] | undefined) ?? []).map((v) => ({
                             id: v,

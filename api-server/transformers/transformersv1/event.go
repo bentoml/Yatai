@@ -180,6 +180,25 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 				}
 				resourceSchemasGroup[resourceType][schema.Uid] = schema
 			}
+		case []*models.Deployment:
+			schemas, err := ToDeploymentSchemas(ctx, resources_)
+			if err != nil {
+				return nil, err
+			}
+			for _, resource := range resources_ {
+				resourceUids, ok := resourceUidsGroup[resourceType]
+				if !ok {
+					resourceUids = make(map[uint]string)
+				}
+				resourceUids[resource.ID] = resource.Uid
+				resourceUidsGroup[resourceType] = resourceUids
+			}
+			for _, schema := range schemas {
+				if _, ok := resourceSchemasGroup[resourceType]; !ok {
+					resourceSchemasGroup[resourceType] = make(map[string]interface{})
+				}
+				resourceSchemasGroup[resourceType][schema.Uid] = schema
+			}
 		default:
 		}
 	}

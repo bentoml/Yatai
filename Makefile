@@ -105,8 +105,9 @@ be-run:
 		cp ./yatai-config.sample.yaml ./yatai-config.dev.yaml; \
 		sed -i 's/user: .*/user: '$$(whoami)'/' ./yatai-config.dev.yaml; \
 	fi;
-	@go run -ldflags "$(VERSION_BUILDFLAGS)" ./api-server/main.go version
-	@go run -ldflags "$(VERSION_BUILDFLAGS)" ./api-server/main.go serve -d -c ./yatai-config.dev.yaml
+	@go build -gcflags="all=-N -l" -ldflags "$(VERSION_BUILDFLAGS)" -o ./bin/api-server ./api-server/main.go
+	@./bin/api-server version
+	@./bin/api-server serve -d -c ./yatai-config.dev.yaml
 
 fe-deps: ## Fetch frontend deps
 	@cd dashboard && yarn

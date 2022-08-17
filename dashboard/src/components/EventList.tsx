@@ -5,6 +5,7 @@ import useTranslation from '@/hooks/useTranslation'
 import { IPaginationProps } from '@/interfaces/IPaginationProps'
 import { IBentoWithRepositorySchema } from '@/schemas/bento'
 import { IBentoRepositorySchema } from '@/schemas/bento_repository'
+import { IDeploymentSchema } from '@/schemas/deployment'
 import { IEventSchema } from '@/schemas/event'
 import { IModelWithRepositorySchema } from '@/schemas/model'
 import { IModelRepositorySchema } from '@/schemas/model_repository'
@@ -36,6 +37,18 @@ export default function EventList({ isLoading, events, paginationProps }: IEvent
                 let resourceTypeName = t('unknown')
                 let resourceLink = <span>{'<unknown>'}</span>
                 switch (item.resource?.resource_type) {
+                    case 'deployment':
+                        resourceIcon = resourceIconMapping.deployment
+                        resourceTypeName = t('deployment')
+                        const deployment = item.resource as IDeploymentSchema
+                        resourceLink = (
+                            <Link
+                                to={`/clusters/${deployment.cluster?.name}/namespaces/${deployment.kube_namespace}/deployments/${deployment.name}`}
+                            >
+                                {deployment.name}
+                            </Link>
+                        )
+                        break
                     case 'user':
                         resourceIcon = resourceIconMapping.user
                         resourceTypeName = t('user')
