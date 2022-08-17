@@ -204,15 +204,17 @@ func (c *modelController) PreSignUploadUrl(ctx *gin.Context, schema *GetModelSch
 	if err = c.canUpdate(ctx, model); err != nil {
 		return nil, err
 	}
-	url_, err := services.ModelService.PreSignUploadUrl(ctx, model)
-	if err != nil {
-		return nil, errors.Wrap(err, "pre sign upload url")
-	}
 	modelSchema, err := transformersv1.ToModelSchema(ctx, model)
 	if err != nil {
 		return nil, err
 	}
-	modelSchema.PresignedUploadUrl = url_.String()
+	if !isNewBentomlCli(ctx) {
+		url_, err := services.ModelService.PreSignUploadUrl(ctx, model)
+		if err != nil {
+			return nil, errors.Wrap(err, "pre sign upload url")
+		}
+		modelSchema.PresignedUploadUrl = url_.String()
+	}
 	modelSchema.PresignedUrlsDeprecated = true
 	return modelSchema, nil
 }
@@ -248,15 +250,17 @@ func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelS
 	if err = c.canUpdate(ctx, model); err != nil {
 		return nil, err
 	}
-	url_, err := services.ModelService.PreSignDownloadUrl(ctx, model)
-	if err != nil {
-		return nil, errors.Wrap(err, "pre sign download url")
-	}
 	modelSchema, err := transformersv1.ToModelSchema(ctx, model)
 	if err != nil {
 		return nil, err
 	}
-	modelSchema.PresignedDownloadUrl = url_.String()
+	if !isNewBentomlCli(ctx) {
+		url_, err := services.ModelService.PreSignDownloadUrl(ctx, model)
+		if err != nil {
+			return nil, errors.Wrap(err, "pre sign download url")
+		}
+		modelSchema.PresignedDownloadUrl = url_.String()
+	}
 	modelSchema.PresignedUrlsDeprecated = true
 	return modelSchema, nil
 }

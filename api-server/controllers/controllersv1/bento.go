@@ -226,6 +226,10 @@ func (c *bentoController) Upload(ctx *gin.Context) {
 	}
 }
 
+func isNewBentomlCli(ctx *gin.Context) bool {
+	return ctx.GetHeader("X-Bentoml-Version") != ""
+}
+
 func (c *bentoController) PreSignUploadUrl(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
 	bento, err := schema.GetBento(ctx)
 	if err != nil {
@@ -234,15 +238,17 @@ func (c *bentoController) PreSignUploadUrl(ctx *gin.Context, schema *GetBentoSch
 	if err = c.canUpdate(ctx, bento); err != nil {
 		return nil, err
 	}
-	url_, err := services.BentoService.PreSignUploadUrl(ctx, bento)
-	if err != nil {
-		return nil, errors.Wrap(err, "pre sign upload url")
-	}
 	bentoSchema, err := transformersv1.ToBentoSchema(ctx, bento)
 	if err != nil {
 		return nil, err
 	}
-	bentoSchema.PresignedUploadUrl = url_.String()
+	if !isNewBentomlCli(ctx) {
+		url_, err := services.BentoService.PreSignUploadUrl(ctx, bento)
+		if err != nil {
+			return nil, errors.Wrap(err, "pre sign upload url")
+		}
+		bentoSchema.PresignedUploadUrl = url_.String()
+	}
 	bentoSchema.PresignedUrlsDeprecated = true
 	return bentoSchema, nil
 }
@@ -278,15 +284,17 @@ func (c *bentoController) PreSignDownloadUrl(ctx *gin.Context, schema *GetBentoS
 	if err = c.canUpdate(ctx, bento); err != nil {
 		return nil, err
 	}
-	url_, err := services.BentoService.PreSignDownloadUrl(ctx, bento)
-	if err != nil {
-		return nil, errors.Wrap(err, "pre sign download url")
-	}
 	bentoSchema, err := transformersv1.ToBentoSchema(ctx, bento)
 	if err != nil {
 		return nil, err
 	}
-	bentoSchema.PresignedDownloadUrl = url_.String()
+	if !isNewBentomlCli(ctx) {
+		url_, err := services.BentoService.PreSignDownloadUrl(ctx, bento)
+		if err != nil {
+			return nil, errors.Wrap(err, "pre sign download url")
+		}
+		bentoSchema.PresignedDownloadUrl = url_.String()
+	}
 	bentoSchema.PresignedUrlsDeprecated = true
 	return bentoSchema, nil
 }
