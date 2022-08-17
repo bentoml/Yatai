@@ -134,6 +134,28 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 	}
 
 	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
+
+	apiTokenName := ""
+	if user.ApiToken != nil {
+		apiTokenName = user.ApiToken.Name
+	}
+	createEventOpt := services.CreateEventOption{
+		CreatorId:      user.ID,
+		ApiTokenName:   apiTokenName,
+		OrganizationId: &org.ID,
+		ResourceType:   modelschemas.ResourceTypeDeployment,
+		ResourceId:     deployment.ID,
+		Status:         modelschemas.EventStatusSuccess,
+		OperationName:  "created",
+	}
+	if err != nil {
+		createEventOpt.Status = modelschemas.EventStatusFailed
+	}
+
+	if _, err_ := services.EventService.Create(ctx, createEventOpt); err_ != nil {
+		return nil, err_
+	}
+
 	return deploymentSchema, err
 }
 
