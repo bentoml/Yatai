@@ -129,7 +129,7 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 					logrus.Errorf("[LOG] ws read failed: %q", err.Error())
 				}
-				t.doClose(nil)
+				t.doClose(err)
 				return
 			}
 
@@ -284,16 +284,6 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 	}
 }
 
-// Finish finishes Pod log streaming with Pod completion
-func (t *Tail) Finish() {
-	t.Finished = true
-}
-
-// Delete finishes Pod log streaming with Pod deletion
-func (t *Tail) Delete() {
-	t.doClose(nil)
-}
-
 type logController struct {
 	baseController
 }
@@ -367,7 +357,8 @@ func (c *logController) TailDeploymentPodLog(ctx *gin.Context, schema *GetDeploy
 
 	t := NewTail(conn, kubeNs, podNames, containerName, true, false)
 
-	return t.Start(ctx, cliset)
+	err = t.Start(ctx, cliset)
+	return err
 }
 
 func (c *logController) TailClusterPodLog(ctx *gin.Context, schema *GetClusterSchema) error {
@@ -435,5 +426,6 @@ func (c *logController) TailClusterPodLog(ctx *gin.Context, schema *GetClusterSc
 
 	t := NewTail(conn, kubeNs, podNames, containerName, true, false)
 
-	return t.Start(ctx, cliset)
+	err = t.Start(ctx, cliset)
+	return err
 }
