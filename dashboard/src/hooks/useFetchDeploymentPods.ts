@@ -2,6 +2,8 @@ import { IWsRespSchema } from '@/schemas/websocket'
 import { IKubePodSchema } from '@/schemas/kube_pod'
 import { useEffect, useRef } from 'react'
 import { toaster } from 'baseui/toast'
+import qs from 'qs'
+import { useOrganization } from './useOrganization'
 
 export function useFetchDeploymentPods({
     clusterName,
@@ -18,9 +20,17 @@ export function useFetchDeploymentPods({
     setPodsLoading: (v: boolean) => void
     getErr?: (v: string) => void
 }) {
+    const { organization } = useOrganization()
     const wsUrl = `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
         window.location.host
-    }/ws/v1/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/pods`
+    }/ws/v1/clusters/${clusterName}/namespaces/${kubeNamespace}/deployments/${deploymentName}/pods${qs.stringify(
+        {
+            organization_name: organization?.name,
+        },
+        {
+            addQueryPrefix: true,
+        }
+    )}`
 
     const wsRef = useRef(undefined as undefined | WebSocket)
     const wsHeartbeatTimerRef = useRef(undefined as undefined | number)

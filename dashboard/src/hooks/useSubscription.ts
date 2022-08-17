@@ -5,6 +5,8 @@ import { ResourceType } from '@/schemas/resource'
 import { ISubscriptionReqSchema, ISubscriptionRespSchema } from '@/schemas/subscription'
 import { useCallback, useEffect, useRef } from 'react'
 import _ from 'lodash'
+import qs from 'qs'
+import { useOrganization } from './useOrganization'
 
 type CB = (payload: any) => void
 
@@ -17,9 +19,17 @@ export interface ICBItem {
 export function useSubscription() {
     const cbItemsRef = useRef<ICBItem[]>([])
     const wsRef = useRef<WebSocket | undefined>()
+    const { organization } = useOrganization()
     const wsUrl = `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
         window.location.host
-    }/ws/v1/subscription/resource`
+    }/ws/v1/subscription/resource${qs.stringify(
+        {
+            organization_name: organization?.name,
+        },
+        {
+            addQueryPrefix: true,
+        }
+    )}`
 
     const subscribe = useCallback((cbItem: ICBItem) => {
         if (!wsRef.current) {

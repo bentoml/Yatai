@@ -8,6 +8,7 @@ import { decode } from 'js-base64'
 import { IKubePodSchema } from '@/schemas/kube_pod'
 import { IWsRespSchema } from '@/schemas/websocket'
 import { toaster } from 'baseui/toast'
+import { useOrganization } from '@/hooks/useOrganization'
 
 interface ITerminalProps {
     clusterName: string
@@ -39,6 +40,7 @@ export default function Terminal({
     const elRef = useRef<null | HTMLDivElement>(null)
     const wsRef = useRef<null | WebSocket>(null)
     const fitRef = useRef<null | FitAddon>(null)
+    const { organization } = useOrganization()
 
     useEffect(() => {
         if (fitRef.current) {
@@ -80,6 +82,7 @@ export default function Terminal({
                   window.location.host
               }/ws/v1/clusters/${clusterName}/namespaces/${namespace}/deployments/${deploymentName}/terminal?${qs.stringify(
                   {
+                      organization_name: organization?.name,
                       pod_name: podName,
                       container_name: containerName,
                       debug: debug ? 1 : 0,
@@ -89,6 +92,7 @@ export default function Terminal({
             : `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
                   window.location.host
               }/ws/v1/clusters/${clusterName}/terminal?${qs.stringify({
+                  organization_name: organization?.name,
                   namespace,
                   pod_name: podName,
                   container_name: containerName,
@@ -155,7 +159,18 @@ export default function Terminal({
             window.removeEventListener('resize', resizeHandler)
             ws?.close()
         }
-    }, [clusterName, containerName, debug, deploymentName, fork, namespace, onGetGeneratedPod, open, podName])
+    }, [
+        clusterName,
+        containerName,
+        debug,
+        deploymentName,
+        fork,
+        namespace,
+        onGetGeneratedPod,
+        open,
+        organization?.name,
+        podName,
+    ])
 
     return (
         <div

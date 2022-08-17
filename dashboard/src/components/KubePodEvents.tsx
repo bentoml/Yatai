@@ -6,6 +6,7 @@ import { getEventTime, IKubeEventSchema } from '@/schemas/kube_event'
 import qs from 'qs'
 import { useEffect, useRef, useState } from 'react'
 import { toaster } from 'baseui/toast'
+import { useOrganization } from '@/hooks/useOrganization'
 import LazyLog from './LazyLog'
 
 interface IKubePodEventsProps {
@@ -27,12 +28,15 @@ export default function KubePodEvents({
     width,
     height,
 }: IKubePodEventsProps) {
+    const { organization } = useOrganization()
+
     const wsUrl = deploymentName
         ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
               window.location.host
           }/ws/v1/clusters/${clusterName}/namespaces/${namespace}/deployments/${deploymentName}/kube_events${qs.stringify(
               {
                   pod_name: podName,
+                  organization_name: organization?.name,
               },
               {
                   addQueryPrefix: true,
@@ -44,6 +48,7 @@ export default function KubePodEvents({
               {
                   namespace,
                   pod_name: podName,
+                  organization_name: organization?.name,
               },
               {
                   addQueryPrefix: true,

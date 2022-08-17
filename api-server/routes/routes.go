@@ -45,6 +45,9 @@ const WebsocketConnectContextKey = "websocket-connect"
 func injectCurrentOrganization(c *gin.Context) {
 	orgName := c.GetHeader(consts.YataiOrganizationHeaderName)
 	if orgName == "" {
+		orgName = c.Query("organization_name")
+	}
+	if orgName == "" {
 		c.Next()
 		return
 	}

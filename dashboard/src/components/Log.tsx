@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { IWsReqSchema, IWsRespSchema } from '@/schemas/websocket'
 import { toaster } from 'baseui/toast'
 import { Select } from 'baseui/select'
+import { useOrganization } from '@/hooks/useOrganization'
 import Card from './Card'
 import Toggle from './Toggle'
 import LazyLog from './LazyLog'
@@ -40,17 +41,21 @@ export default function Log({
 
     const [t] = useTranslation()
 
+    const { organization } = useOrganization()
+
     const wsUrl = deploymentName
         ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
               window.location.host
           }/ws/v1/clusters/${clusterName}/namespaces/${namespace}/deployments/${deploymentName}/tail?${qs.stringify({
               pod_name: podName,
+              organization_name: organization?.name,
           })}`
         : `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
               window.location.host
           }/ws/v1/clusters/${clusterName}/tail?${qs.stringify({
               namespace,
               pod_name: podName,
+              organization_name: organization?.name,
           })}`
 
     const [items, setItems] = useState<string[]>([])
