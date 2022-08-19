@@ -43,13 +43,12 @@ var staticFiles = map[string]string{
 const WebsocketConnectContextKey = "websocket-connect"
 
 func injectCurrentOrganization(c *gin.Context) {
-	orgName := c.GetHeader(consts.YataiOrganizationHeaderName)
+	orgName := strings.TrimSpace(c.GetHeader(consts.YataiOrganizationHeaderName))
 	if orgName == "" {
-		orgName = c.Query("organization_name")
+		orgName = strings.TrimSpace(c.Query("organization_name"))
 	}
 	if orgName == "" {
-		c.Next()
-		return
+		orgName = "default"
 	}
 	org, err := services.OrganizationService.GetByName(c, orgName)
 	if err != nil {
