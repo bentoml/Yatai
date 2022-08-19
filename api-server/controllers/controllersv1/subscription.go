@@ -3,7 +3,6 @@ package controllersv1
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"sync"
 	"time"
@@ -43,26 +42,24 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 	schemasCache := make(map[string]interface{})
 
 	pollingCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	go func() {
 		for {
 			var req schemasv1.SubscriptionReqSchema
-			mt, msg, err := conn.ReadMessage()
+			_, msg, err := conn.ReadMessage()
 
-			if err != nil || mt == websocket.CloseMessage || mt == -1 {
-				cancel()
+			if err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-					logrus.Printf("error: %v", err)
+					logrus.Errorf("ws read failed: %q", err.Error())
 				}
-				break
+				cancel()
+				return
 			}
 
 			err = json.Unmarshal(msg, &req)
 			if err != nil {
-				_ = conn.WriteJSON(&schemasv1.WsRespSchema{
-					Type:    schemasv1.WsRespTypeError,
-					Message: fmt.Sprintf("cannot read json: %s", err.Error()),
-				})
+				writeWsError(conn, err)
 				continue
 			}
 
@@ -78,26 +75,17 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 				case modelschemas.ResourceTypeBento:
 					bentos, err := services.BentoService.ListByUids(ctx, req.Payload.ResourceUids)
 					if err != nil {
-						_ = conn.WriteJSON(&schemasv1.WsRespSchema{
-							Type:    schemasv1.WsRespTypeError,
-							Message: err.Error(),
-						})
+						writeWsError(conn, err)
 						continue
 					}
 					for _, bento := range bentos {
 						bentoRepository, err := services.BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 						if err != nil {
-							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
-								Type:    schemasv1.WsRespTypeError,
-								Message: err.Error(),
-							})
+							writeWsError(conn, err)
 							continue
 						}
 						if err = services.MemberService.CanView(ctx, &services.OrganizationMemberService, currentUser, bentoRepository.OrganizationId); err != nil {
-							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
-								Type:    schemasv1.WsRespTypeError,
-								Message: err.Error(),
-							})
+							writeWsError(conn, err)
 							continue
 						}
 						actualUids = append(actualUids, bento.Uid)
@@ -105,26 +93,17 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 				case modelschemas.ResourceTypeModel:
 					models, err := services.ModelService.ListByUids(ctx, req.Payload.ResourceUids)
 					if err != nil {
-						_ = conn.WriteJSON(&schemasv1.WsRespSchema{
-							Type:    schemasv1.WsRespTypeError,
-							Message: err.Error(),
-						})
+						writeWsError(conn, err)
 						continue
 					}
 					for _, model := range models {
 						modelRepository, err := services.ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
 						if err != nil {
-							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
-								Type:    schemasv1.WsRespTypeError,
-								Message: err.Error(),
-							})
+							writeWsError(conn, err)
 							continue
 						}
 						if err = services.MemberService.CanView(ctx, &services.OrganizationMemberService, currentUser, modelRepository.OrganizationId); err != nil {
-							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
-								Type:    schemasv1.WsRespTypeError,
-								Message: err.Error(),
-							})
+							writeWsError(conn, err)
 							continue
 						}
 						actualUids = append(actualUids, model.Uid)
@@ -132,26 +111,17 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 				case modelschemas.ResourceTypeDeployment:
 					deployments, err := services.DeploymentService.ListByUids(ctx, req.Payload.ResourceUids)
 					if err != nil {
-						_ = conn.WriteJSON(&schemasv1.WsRespSchema{
-							Type:    schemasv1.WsRespTypeError,
-							Message: err.Error(),
-						})
+						writeWsError(conn, err)
 						continue
 					}
 					for _, deployment := range deployments {
 						cluster, err := services.ClusterService.GetAssociatedCluster(ctx, deployment)
 						if err != nil {
-							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
-								Type:    schemasv1.WsRespTypeError,
-								Message: err.Error(),
-							})
+							writeWsError(conn, err)
 							continue
 						}
 						if err = services.MemberService.CanView(ctx, &services.ClusterMemberService, currentUser, cluster.ID); err != nil {
-							_ = conn.WriteJSON(&schemasv1.WsRespSchema{
-								Type:    schemasv1.WsRespTypeError,
-								Message: err.Error(),
-							})
+							writeWsError(conn, err)
 							continue
 						}
 						actualUids = append(actualUids, deployment.Uid)
@@ -326,10 +296,7 @@ func (c *subscriptionController) SubscribeResource(ctx *gin.Context) error {
 			default:
 				err = send()
 				if err != nil {
-					_ = conn.WriteJSON(&schemasv1.WsRespSchema{
-						Type:    schemasv1.WsRespTypeError,
-						Message: err.Error(),
-					})
+					writeWsError(conn, err)
 				}
 			}
 

@@ -1,6 +1,6 @@
 import { IWsRespSchema } from '@/schemas/websocket'
 import { IKubePodSchema } from '@/schemas/kube_pod'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { toaster } from 'baseui/toast'
 import qs from 'qs'
 import { useOrganization } from './useOrganization'
@@ -32,36 +32,40 @@ export function useFetchDeploymentPods({
         }
     )}`
 
-    const wsRef = useRef(undefined as undefined | WebSocket)
-    const wsHeartbeatTimerRef = useRef(undefined as undefined | number)
-
     useEffect(() => {
         let ws: undefined | WebSocket
         let selfClose = false
+        let wsHeartbeatTimer: undefined | number
         const cancelHeartbeat = () => {
-            if (wsHeartbeatTimerRef.current) {
-                window.clearTimeout(wsHeartbeatTimerRef.current)
+            if (wsHeartbeatTimer) {
+                window.clearTimeout(wsHeartbeatTimer)
             }
-            wsHeartbeatTimerRef.current = undefined
+            wsHeartbeatTimer = undefined
         }
         const connect = () => {
-            if (wsRef.current) {
-                wsRef.current.close()
+            if (!organization?.name) {
+                return
+            }
+            if (selfClose) {
+                return
             }
             setPodsLoading(true)
             ws = new WebSocket(wsUrl)
-            selfClose = false
             const heartbeat = () => {
                 if (ws?.readyState === ws?.OPEN) {
                     ws?.send('')
                 }
-                wsHeartbeatTimerRef.current = window.setTimeout(heartbeat, 20000)
+                wsHeartbeatTimer = window.setTimeout(heartbeat, 20000)
             }
-            wsRef.current = ws
             ws.onopen = () => heartbeat()
-            // eslint-disable-next-line no-console
-            ws.onerror = () => console.log('onerror')
-            ws.onclose = () => {
+            ws.onerror = (ev) => {
+                // eslint-disable-next-line no-console
+                console.log('onerror', ev)
+                cancelHeartbeat()
+            }
+            ws.onclose = (ev) => {
+                // eslint-disable-next-line no-console
+                console.log('onclose', ev)
                 cancelHeartbeat()
                 if (selfClose) {
                     return
@@ -94,5 +98,5 @@ export function useFetchDeploymentPods({
             selfClose = true
             ws?.close()
         }
-    }, [getErr, setPods, setPodsLoading, wsUrl])
+    }, [getErr, organization?.name, setPods, setPodsLoading, wsUrl])
 }

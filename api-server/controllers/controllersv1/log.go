@@ -41,7 +41,7 @@ type logMessage struct {
 type Tail struct {
 	Finished      bool
 	conn          *websocket.Conn
-	closed        chan struct{}
+	closeCh       chan struct{}
 	toClose       chan struct{}
 	err           chan error
 	namespace     string
@@ -73,7 +73,7 @@ func NewTail(conn *websocket.Conn, namespace string, podNames []string, containe
 	return &Tail{
 		Finished:      false,
 		conn:          conn,
-		closed:        make(chan struct{}),
+		closeCh:       make(chan struct{}),
 		toClose:       make(chan struct{}, 1),
 		err:           make(chan error, 1),
 		namespace:     namespace,
@@ -105,12 +105,15 @@ func (t *Tail) doClose(err error) {
 func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error {
 	go func() {
 		<-t.toClose
-		close(t.closed)
+		close(t.closeCh)
 	}()
 
 	go func() {
-		<-ctx.Done()
-		t.doClose(nil)
+		select {
+		case <-t.closeCh:
+		case <-ctx.Done():
+			t.doClose(nil)
+		}
 	}()
 
 	reqCh := make(chan *tailRequest, 1)
@@ -118,7 +121,7 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 	go func() {
 		for {
 			select {
-			case <-t.closed:
+			case <-t.closeCh:
 				return
 			default:
 			}
@@ -148,134 +151,136 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 	go func() {
 		for {
 			select {
-			case <-t.closed:
+			case <-t.closeCh:
 				return
-			default:
-			}
+			case req := <-reqCh:
+				t.currentReqId = req.Id
 
-			req := <-reqCh
-			t.currentReqId = req.Id
-
-			logOptions := &v1.PodLogOptions{
-				Container:  t.containerName,
-				TailLines:  req.TailLines,
-				Timestamps: t.timestamps,
-			}
-
-			if req.ContainerName != nil {
-				logOptions.Container = *req.ContainerName
-			}
-
-			if req.SinceTime != nil {
-				logOptions.SinceTime = &metav1.Time{
-					Time: *req.SinceTime,
-				}
-			}
-
-			now := time.Now()
-
-			for _, podName := range t.podNames {
-				podName := podName
-
-				rs, err := clientset.CoreV1().Pods(t.namespace).GetLogs(podName, logOptions).Stream(ctx)
-				if err != nil {
-					t.doClose(errors.Wrapf(err, "get pod %s log failed", podName))
-					return
+				logOptions := &v1.PodLogOptions{
+					Container:  t.containerName,
+					TailLines:  req.TailLines,
+					Timestamps: t.timestamps,
 				}
 
-				err = func() error {
-					defer rs.Close()
-					buf := new(bytes.Buffer)
-					_, err = io.Copy(buf, rs)
-					if err != nil {
-						return errors.Wrap(err, "error in copy information from podLogs to buf")
+				if req.ContainerName != nil {
+					logOptions.Container = *req.ContainerName
+				}
+
+				if req.SinceTime != nil {
+					logOptions.SinceTime = &metav1.Time{
+						Time: *req.SinceTime,
 					}
-					str := buf.String()
-					lines := strings.Split(str, "\n")
-					res := make([]string, 0, len(lines))
-					for _, line := range lines {
-						if t.enableLogName {
-							line = fmt.Sprintf("[%s] [%s] %s", podName, t.containerName, line)
+				}
+
+				now := time.Now()
+
+				for _, podName := range t.podNames {
+					podName := podName
+
+					rs, err := clientset.CoreV1().Pods(t.namespace).GetLogs(podName, logOptions).Stream(ctx)
+					if err != nil {
+						t.doClose(errors.Wrapf(err, "get pod %s log failed", podName))
+						return
+					}
+
+					err = func() error {
+						defer rs.Close()
+						buf := new(bytes.Buffer)
+						_, err = io.Copy(buf, rs)
+						if err != nil {
+							return errors.Wrap(err, "error in copy information from podLogs to buf")
 						}
-						res = append(res, line)
-					}
-					msg := schemasv1.WsRespSchema{
-						Type:    schemasv1.WsRespTypeSuccess,
-						Message: "",
-						Payload: &logMessage{
-							ReqId: req.Id,
-							Type:  logMessageTypeReplace,
-							Items: res,
-						},
-					}
-					msgStr, err := json.Marshal(&msg)
-					if err != nil {
-						return errors.Wrap(err, "error in marshal log message")
-					}
-					err = t.Write(msgStr)
-					if err != nil {
-						return errors.Wrap(err, "error in write log message")
-					}
-					if req.Follow {
-						go func() {
-							logOptions.Follow = true
-							logOptions.TailLines = nil
-							logOptions.SinceTime = &metav1.Time{
-								Time: now,
+						str := buf.String()
+						lines := strings.Split(str, "\n")
+						res := make([]string, 0, len(lines))
+						for _, line := range lines {
+							if t.enableLogName {
+								line = fmt.Sprintf("[%s] [%s] %s", podName, t.containerName, line)
 							}
-							rs, err := clientset.CoreV1().Pods(t.namespace).GetLogs(podName, logOptions).Stream(ctx)
-							if err != nil {
-								_, _ = fmt.Fprintln(os.Stderr, err)
-								return
-							}
-							defer rs.Close()
-							sc := bufio.NewScanner(rs)
-							for sc.Scan() {
-								select {
-								case <-t.closed:
-									return
-								default:
+							res = append(res, line)
+						}
+						msg := schemasv1.WsRespSchema{
+							Type:    schemasv1.WsRespTypeSuccess,
+							Message: "",
+							Payload: &logMessage{
+								ReqId: req.Id,
+								Type:  logMessageTypeReplace,
+								Items: res,
+							},
+						}
+						msgStr, err := json.Marshal(&msg)
+						if err != nil {
+							return errors.Wrap(err, "error in marshal log message")
+						}
+						err = t.Write(msgStr)
+						if err != nil {
+							return errors.Wrap(err, "error in write log message")
+						}
+						if req.Follow {
+							go func() {
+								logOptions.Follow = true
+								logOptions.TailLines = nil
+								logOptions.SinceTime = &metav1.Time{
+									Time: now,
 								}
-
-								if t.currentReqId != req.Id {
-									break
-								}
-
-								content := sc.Text()
-								if t.enableLogName {
-									content = fmt.Sprintf("[%s] [%s] %s", podName, t.containerName, content)
-								}
-								msg := schemasv1.WsRespSchema{
-									Type:    schemasv1.WsRespTypeSuccess,
-									Message: "",
-									Payload: &logMessage{
-										ReqId: req.Id,
-										Type:  logMessageTypeAppend,
-										Items: []string{
-											content,
-										},
-									},
-								}
-								msgStr, err := json.Marshal(&msg)
+								rs, err := clientset.CoreV1().Pods(t.namespace).GetLogs(podName, logOptions).Stream(ctx)
 								if err != nil {
 									_, _ = fmt.Fprintln(os.Stderr, err)
 									return
 								}
-								_ = t.Write(msgStr)
-							}
-						}()
+								defer rs.Close()
+								sc := bufio.NewScanner(rs)
+								for sc.Scan() {
+									select {
+									case <-t.closeCh:
+										return
+									default:
+									}
+
+									if t.currentReqId != req.Id {
+										break
+									}
+
+									content := sc.Text()
+									if t.enableLogName {
+										content = fmt.Sprintf("[%s] [%s] %s", podName, t.containerName, content)
+									}
+									msg := schemasv1.WsRespSchema{
+										Type:    schemasv1.WsRespTypeSuccess,
+										Message: "",
+										Payload: &logMessage{
+											ReqId: req.Id,
+											Type:  logMessageTypeAppend,
+											Items: []string{
+												content,
+											},
+										},
+									}
+									msgStr, err := json.Marshal(&msg)
+									if err != nil {
+										t.doClose(errors.Wrap(err, "error in marshal log message"))
+										return
+									}
+									err = t.Write(msgStr)
+									if err != nil {
+										t.doClose(errors.Wrap(err, "error in write log message"))
+										return
+									}
+								}
+							}()
+						}
+						return nil
+					}()
+					if err != nil {
+						t.doClose(err)
+						return
 					}
-					return nil
-				}()
-				if err != nil {
-					t.doClose(err)
-					return
 				}
 			}
 		}
 	}()
 
-	<-t.closed
+	<-t.closeCh
 	select {
 	case err := <-t.err:
 		return err
@@ -302,14 +307,7 @@ func (c *logController) TailDeploymentPodLog(ctx *gin.Context, schema *GetDeploy
 	defer conn.Close()
 
 	defer func() {
-		if err != nil {
-			msg := schemasv1.WsRespSchema{
-				Type:    schemasv1.WsRespTypeError,
-				Message: err.Error(),
-				Payload: nil,
-			}
-			_ = conn.WriteJSON(&msg)
-		}
+		writeWsError(conn, err)
 	}()
 
 	deployment, err := schema.GetDeployment(ctx)
@@ -373,17 +371,7 @@ func (c *logController) TailClusterPodLog(ctx *gin.Context, schema *GetClusterSc
 	defer conn.Close()
 
 	defer func() {
-		if err != nil {
-			msg := schemasv1.WsRespSchema{
-				Type:    schemasv1.WsRespTypeError,
-				Message: err.Error(),
-				Payload: nil,
-			}
-			err_ := conn.WriteJSON(&msg)
-			if err_ != nil {
-				logrus.Errorf("ws write error: %q", err_.Error())
-			}
-		}
+		writeWsError(conn, err)
 	}()
 
 	cluster, err := schema.GetCluster(ctx)

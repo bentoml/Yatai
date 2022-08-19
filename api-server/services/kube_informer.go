@@ -134,11 +134,11 @@ func makeGetInformer(ctx context.Context, option *makeGetInformerOption) (interf
 			}
 
 			var factory informers.SharedInformerFactory
+			informerOptions := make([]informers.SharedInformerOption, 0)
 			if option.namespace != nil {
-				factory = informers.NewSharedInformerFactoryWithOptions(clientset, 0, informers.WithNamespace(*option.namespace))
-			} else {
-				factory = informers.NewSharedInformerFactoryWithOptions(clientset, 0)
+				informerOptions = append(informerOptions, informers.WithNamespace(*option.namespace))
 			}
+			factory = informers.NewSharedInformerFactoryWithOptions(clientset, 0, informerOptions...)
 			sthInformer := option.informerGetter(factory)
 
 			stopper := make(chan struct{})

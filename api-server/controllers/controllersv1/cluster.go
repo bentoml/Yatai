@@ -184,6 +184,10 @@ func (c *clusterController) WsPods(ctx *gin.Context, schema *GetClusterSchema) (
 	}
 	defer conn.Close()
 
+	defer func() {
+		writeWsError(conn, err)
+	}()
+
 	cluster, err := schema.GetCluster(ctx)
 	if err != nil {
 		return
@@ -192,24 +196,15 @@ func (c *clusterController) WsPods(ctx *gin.Context, schema *GetClusterSchema) (
 		return
 	}
 
-	defer func() {
-		if err != nil {
-			msg := schemasv1.WsRespSchema{
-				Type:    schemasv1.WsRespTypeError,
-				Message: err.Error(),
-				Payload: make([]*schemasv1.KubePodSchema, 0),
-			}
-			_ = conn.WriteJSON(&msg)
-		}
-	}()
-
 	namespace := ctx.Query("namespace")
 	selectors_ := strings.Split(ctx.Query("selector"), ";")
 	selectors := make([]labels.Selector, 0, len(selectors_))
 	for _, selector_ := range selectors_ {
-		selector, err := labels.Parse(selector_)
+		var selector labels.Selector
+		selector, err = labels.Parse(selector_)
 		if err != nil {
-			return errors.Wrap(err, "parse selector")
+			err = errors.Wrap(err, "parse selector")
+			return
 		}
 		selectors = append(selectors, selector)
 	}
@@ -220,13 +215,23 @@ func (c *clusterController) WsPods(ctx *gin.Context, schema *GetClusterSchema) (
 	}
 
 	pollingCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	go func() {
 		for {
-			mt, _, err := conn.ReadMessage()
+			select {
+			case <-pollingCtx.Done():
+				return
+			default:
+			}
 
-			if err != nil || mt == websocket.CloseMessage || mt == -1 {
+			_, _, err := conn.ReadMessage()
+			if err != nil {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					logrus.Errorf("ws read failed: %q", err.Error())
+				}
 				cancel()
-				break
+				return
 			}
 		}
 	}()
@@ -234,26 +239,38 @@ func (c *clusterController) WsPods(ctx *gin.Context, schema *GetClusterSchema) (
 	failedCount := atomic.NewInt64(0)
 	maxFailed := int64(10)
 
-	fail := func() {
+	failed := func() {
 		failedCount.Inc()
 	}
 
 	send := func() {
+		select {
+		case <-pollingCtx.Done():
+			return
+		default:
+		}
+
 		var err error
 		defer func() {
+			writeWsError(conn, err)
 			if err != nil {
-				fail()
+				failed()
+			} else {
+				failedCount.Store(0)
 			}
 		}()
+
 		pods := make([]*models.KubePodWithStatus, 0)
 		for _, selector := range selectors {
-			pods_, err := services.KubePodService.ListPodsBySelector(ctx, cluster, namespace, podLister, selector)
+			var pods_ []*models.KubePodWithStatus
+			pods_, err = services.KubePodService.ListPodsBySelector(pollingCtx, cluster, namespace, podLister, selector)
 			if err != nil {
 				return
 			}
 			pods = append(pods, pods_...)
 		}
-		podSchemas, err := transformersv1.ToKubePodSchemas(ctx, cluster.ID, pods)
+		var podSchemas []*schemasv1.KubePodSchema
+		podSchemas, err = transformersv1.ToKubePodSchemas(pollingCtx, cluster.ID, pods)
 		if err != nil {
 			return
 		}
@@ -315,8 +332,8 @@ func (c *clusterController) WsPods(ctx *gin.Context, schema *GetClusterSchema) (
 			}
 
 			if failedCount.Load() > maxFailed {
-				logrus.Error("ws pods failed too frequently!")
-				break
+				err = errors.New("ws pods failed too frequently!")
+				return
 			}
 
 			<-ticker.C

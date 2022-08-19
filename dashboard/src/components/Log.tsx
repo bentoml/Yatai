@@ -135,6 +135,10 @@ export default function Log({
                 }
                 setTimeout(connect, 3000)
             }
+            ws.onerror = (ev) => {
+                // eslint-disable-next-line no-console
+                console.log('onerror', ev)
+            }
         }
         connect()
         return () => {

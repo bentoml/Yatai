@@ -13,6 +13,7 @@ import (
 	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/multierr"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	errors2 "k8s.io/apimachinery/pkg/api/errors"
@@ -26,7 +27,6 @@ import (
 	"k8s.io/kubernetes/pkg/util/interrupt"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
-	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/consts"
@@ -57,16 +57,16 @@ type WebTerminal struct {
 
 	timeout   time.Duration
 	readSize  chan int
-	isTimeout bool
+	timeoutCh chan struct{}
 	err       error
 
 	namespace     string
 	podName       string
 	containerName string
 
-	recorder  *models.TerminalRecord
-	closed    bool
-	closeChan chan struct{}
+	recorder *models.TerminalRecord
+	closeCh  chan struct{}
+	toClose  chan struct{}
 }
 
 func NewWebTerminal(ctx context.Context, conn *websocket.Conn, namespace, podName, containerName string, recorder *models.TerminalRecord) (*WebTerminal, error) {
@@ -74,16 +74,32 @@ func NewWebTerminal(ctx context.Context, conn *websocket.Conn, namespace, podNam
 		conn:     conn,
 		sizeChan: make(chan remotecommand.TerminalSize),
 
-		timeout:  time.Minute * 30,
-		readSize: make(chan int, 1),
+		timeout:   time.Minute * 30,
+		readSize:  make(chan int, 1),
+		timeoutCh: make(chan struct{}),
 
 		namespace:     namespace,
 		podName:       podName,
 		containerName: containerName,
 
-		recorder:  recorder,
-		closeChan: make(chan struct{}),
+		recorder: recorder,
+		closeCh:  make(chan struct{}),
+		toClose:  make(chan struct{}, 1),
 	}
+
+	go func() {
+		<-t.toClose
+		close(t.closeCh)
+	}()
+
+	go func() {
+		select {
+		case <-t.closeCh:
+			return
+		case <-ctx.Done():
+			t.doClose()
+		}
+	}()
 
 	go func() {
 		for {
@@ -96,6 +112,13 @@ func NewWebTerminal(ctx context.Context, conn *websocket.Conn, namespace, podNam
 	}()
 
 	return t, nil
+}
+
+func (t *WebTerminal) doClose() {
+	select {
+	case t.toClose <- struct{}{}:
+	default:
+	}
 }
 
 func (t *WebTerminal) ConnRead(buffer []byte, data string) (size int, err error) {
@@ -121,13 +144,13 @@ func (t *WebTerminal) ConnWrite(messageType int, data []byte) error {
 }
 
 func (t *WebTerminal) Read(buffer []byte) (size int, err error) {
-	if t.closed {
+	select {
+	case <-t.closeCh:
 		return
-	}
-
-	if t.isTimeout {
+	case <-t.timeoutCh:
 		_ = t.ConnWrite(websocket.TextMessage, []byte(errorTimeOut))
 		return 0, errors.New(errorTimeOut)
+	default:
 	}
 
 	defer func() {
@@ -135,15 +158,15 @@ func (t *WebTerminal) Read(buffer []byte) (size int, err error) {
 		t.readSize <- size
 	}()
 
-	mt, p, err := t.conn.ReadMessage()
+	_, p, err := t.conn.ReadMessage()
 
 	if err != nil {
-		size, _ = t.Close(buffer)
-		return
-	}
-
-	if mt == websocket.CloseMessage || mt == -1 {
-		size, err = t.Close(buffer)
+		if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+			logrus.Errorf("ws read failed: %q", err.Error())
+		}
+		var err_ error
+		size, err_ = t.Close(buffer)
+		err = multierr.Append(err, err_)
 		return
 	}
 
@@ -151,7 +174,9 @@ func (t *WebTerminal) Read(buffer []byte) (size int, err error) {
 	err = json.Unmarshal(p, &message)
 
 	if err != nil {
-		size, err = t.Close(buffer)
+		var err_ error
+		size, err_ = t.Close(buffer)
+		err = multierr.Append(err, err_)
 		return
 	}
 
@@ -175,7 +200,7 @@ func (t *WebTerminal) watchRead() {
 	tf := time.After(t.timeout)
 	select {
 	case <-tf:
-		t.isTimeout = true
+		close(t.timeoutCh)
 	case <-t.readSize:
 		return
 	}
@@ -197,24 +222,31 @@ func (t *WebTerminal) Next() *remotecommand.TerminalSize {
 			t.recorder.Meta.Height = size.Height
 		}
 		return &size
-	case <-t.closeChan:
+	case <-t.closeCh:
 		return nil
 	}
 }
 
 func (t *WebTerminal) Close(buffer []byte) (size int, err error) {
-	if t.closed {
+	select {
+	case <-t.closeCh:
 		return
+	default:
 	}
-	close(t.closeChan)
-	t.closed = true
-	if t.recorder != nil {
-		err = services.TerminalRecordService.SaveContent(context.Background(), t.recorder)
-		if err != nil {
-			return
+
+	t.doClose()
+	select {
+	case <-t.closeCh:
+		if t.recorder != nil {
+			err = services.TerminalRecordService.SaveContent(context.Background(), t.recorder)
+			if err != nil {
+				return
+			}
 		}
+		size = copy(buffer, END_OF_TRANSMISSION)
+		return
+	default:
 	}
-	size = copy(buffer, END_OF_TRANSMISSION)
 	return
 }
 
@@ -242,7 +274,7 @@ func (t *WebTerminal) HandleDebug(ctx context.Context, cliset *kubernetes.Client
 	return o.Run(ctx)
 }
 
-func (t *WebTerminal) Handle(ctx context.Context, cliset *kubernetes.Clientset, restConfig *rest.Config, cmd []string) error {
+func (t *WebTerminal) Handle(cliset *kubernetes.Clientset, restConfig *rest.Config, cmd []string) error {
 	f := func() error {
 		sshReq := cliset.CoreV1().RESTClient().Post().
 			Resource("pods").
@@ -289,14 +321,7 @@ func (c *terminalController) GetDeploymentPodTerminal(ctx *gin.Context, schema *
 	defer conn.Close()
 
 	defer func() {
-		if err != nil {
-			msg := schemasv1.WsRespSchema{
-				Type:    schemasv1.WsRespTypeError,
-				Message: err.Error(),
-				Payload: nil,
-			}
-			_ = conn.WriteJSON(&msg)
-		}
+		writeWsError(conn, err)
 	}()
 
 	deployment, err := schema.GetDeployment(ctx)
@@ -374,7 +399,7 @@ func (c *terminalController) GetDeploymentPodTerminal(ctx *gin.Context, schema *
 		return err
 	}
 
-	err = t.Handle(ctx, cliset, restConfig, cmd)
+	err = t.Handle(cliset, restConfig, cmd)
 	return err
 }
 
@@ -390,14 +415,7 @@ func (c *terminalController) GetClusterPodTerminal(ctx *gin.Context, schema *Get
 	defer conn.Close()
 
 	defer func() {
-		if err != nil {
-			msg := schemasv1.WsRespSchema{
-				Type:    schemasv1.WsRespTypeError,
-				Message: err.Error(),
-				Payload: nil,
-			}
-			_ = conn.WriteJSON(&msg)
-		}
+		writeWsError(conn, err)
 	}()
 
 	cluster, err := schema.GetCluster(ctx)
@@ -466,7 +484,7 @@ func (c *terminalController) GetClusterPodTerminal(ctx *gin.Context, schema *Get
 		return err
 	}
 
-	err = t.Handle(ctx, cliset, restConfig, cmd)
+	err = t.Handle(cliset, restConfig, cmd)
 	return err
 }
 
