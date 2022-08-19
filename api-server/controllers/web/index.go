@@ -30,6 +30,6 @@ func Index(ctx *gin.Context) {
 }
 
 func Logout(ctx *gin.Context) {
-	_ = scookie.SetUsernameToCookie(ctx, "")
+	_ = scookie.DeleteUsernameFromCookie(ctx)
 	ctx.Redirect(http.StatusFound, "/login")
 }

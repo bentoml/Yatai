@@ -11,6 +11,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/huandu/xstrings"
 	"github.com/loopfz/gadgeto/tonic"
 	"github.com/pkg/errors"
 	"github.com/wI2L/fizz"
@@ -84,8 +85,17 @@ func NewRouter() (*fizz.Fizz, error) {
 	engine := gin.New()
 
 	store := cookie.NewStore([]byte(config.YataiConfig.Server.SessionSecretKey))
+	if config.YataiConfig.SassDomainSuffix != "" {
+		domain, _, _ := xstrings.Partition(config.YataiConfig.SassDomainSuffix, ":")
+		domain = fmt.Sprintf(".%s", domain)
+		store.Options(sessions.Options{
+			Path:   "/",
+			Domain: domain,
+			MaxAge: int(time.Hour * 24 * 30),
+		})
+	}
 	engine.Use(injectCurrentOrganization)
-	engine.Use(sessions.Sessions("yatai-session-v1", store))
+	engine.Use(sessions.Sessions("yatai-session-v2", store))
 
 	engine.GET("/logout", web.Logout)
 

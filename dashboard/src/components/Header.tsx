@@ -252,15 +252,18 @@ export default function Header() {
     const { organization, setOrganization } = useOrganization()
 
     useEffect(() => {
+        if (!infoInfo.isSuccess) {
+            return
+        }
         if (infoInfo.data?.sass_domain_suffix && organization?.name) {
             const hostname = `${organization.name}.${infoInfo.data.sass_domain_suffix}`
-            if (hostname !== window.location.host) {
+            if (hostname !== window.location.hostname) {
                 window.location.hostname = hostname
             }
-        } else {
-            axios.defaults.headers.common[yataiOrgHeader] = organization?.name ?? ''
+        } else if (organization?.name) {
+            axios.defaults.headers.common[yataiOrgHeader] = organization.name
         }
-    }, [infoInfo.data?.sass_domain_suffix, organization?.name])
+    }, [infoInfo.data?.sass_domain_suffix, infoInfo.isSuccess, organization?.name])
 
     const orgsInfo = useFetchOrganizations({
         start: 0,
@@ -277,7 +280,7 @@ export default function Header() {
 
     const showOrgSelector = useMemo(() => {
         return currentUser?.is_super_admin && infoInfo.data?.is_sass
-    }, [currentOrgInfo.data?.name, currentUser?.is_super_admin, infoInfo.data?.is_sass])
+    }, [currentUser?.is_super_admin, infoInfo.data?.is_sass])
 
     const { setCluster } = useCluster()
     useEffect(() => {
