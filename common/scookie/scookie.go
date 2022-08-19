@@ -23,3 +23,9 @@ func GetUsernameFromCookie(ctx *gin.Context) string {
 	}
 	return username
 }
+
+func DeleteUsernameFromCookie(ctx *gin.Context) error {
+	session := sessions.Default(ctx)
+	session.Delete(UserNameKey)
+	return session.Save()
+}

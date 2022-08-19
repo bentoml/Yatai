@@ -12,7 +12,7 @@ import React, { useCallback, useState } from 'react'
 import logo from '@/assets/logo.svg'
 import logoDark from '@/assets/logo-dark.svg'
 import Text from '@/components/Text'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useStyletron } from 'baseui'
 
 const { Form, FormItem } = createForm<ILoginUserSchema>()
@@ -22,7 +22,6 @@ export default function Login() {
     const [, theme] = useStyletron()
     const [t] = useTranslation()
     const location = useLocation()
-    const history = useHistory()
     const [isLoading, setIsLoading] = useState(false)
 
     const handleFinish = useCallback(
@@ -37,12 +36,12 @@ export default function Login() {
                 } else {
                     redirect = '/'
                 }
-                history.push(redirect)
+                window.location.pathname = redirect
             } finally {
                 setIsLoading(false)
             }
         },
-        [history, location.search]
+        [location.search]
     )
 
     return (
