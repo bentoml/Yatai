@@ -64,9 +64,9 @@ build-api-server:
 	mkdir -p ./bin
 	go build -ldflags "$(VERSION_BUILDFLAGS)" -o ./bin/api-server ./api-server/main.go
 
-build-s3-downloader-image:
-	docker build -t quay.io/bentoml/s3-downloader:0.0.1 -f s3-downloader/Dockerfile .
-	docker push quay.io/bentoml/s3-downloader:0.0.1
+build-s3-client-image:
+	docker build -t quay.io/bentoml/s3-client:0.0.1 -f Dockerfile-s3-client .
+	docker push quay.io/bentoml/s3-client:0.0.1
 
 build-builder-image: ## Build builder image
 	docker build -f Dockerfile-builder -t $(BUILDER_IMG) . || exit 1
