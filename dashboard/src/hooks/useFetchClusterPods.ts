@@ -34,7 +34,6 @@ export function useFetchClusterPods({
         }
     )}`
 
-    const wsRef = useRef(undefined as undefined | WebSocket)
     const wsHeartbeatTimerRef = useRef(undefined as undefined | number)
 
     useEffect(() => {
@@ -47,23 +46,26 @@ export function useFetchClusterPods({
             wsHeartbeatTimerRef.current = undefined
         }
         const connect = () => {
-            if (wsRef.current) {
-                wsRef.current.close()
+            if (!organization?.name) {
+                return
+            }
+            if (selfClose) {
+                return
             }
             setPodsLoading(true)
             ws = new WebSocket(wsUrl)
-            selfClose = false
             const heartbeat = () => {
                 if (ws?.readyState === ws?.OPEN) {
                     ws?.send('')
                 }
                 wsHeartbeatTimerRef.current = window.setTimeout(heartbeat, 20000)
             }
-            wsRef.current = ws
             ws.onopen = () => heartbeat()
             // eslint-disable-next-line no-console
-            ws.onerror = () => console.log('onerror')
-            ws.onclose = () => {
+            ws.onerror = (ev) => console.log('onerror', ev)
+            ws.onclose = (ev) => {
+                // eslint-disable-next-line no-console
+                console.log('onclose', ev)
                 cancelHeartbeat()
                 if (selfClose) {
                     return
@@ -96,5 +98,5 @@ export function useFetchClusterPods({
             selfClose = true
             ws?.close()
         }
-    }, [getErr, setPods, setPodsLoading, wsUrl])
+    }, [getErr, organization?.name, setPods, setPodsLoading, wsUrl])
 }

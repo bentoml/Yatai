@@ -4,7 +4,7 @@ import useTranslation from '@/hooks/useTranslation'
 import { IWsRespSchema } from '@/schemas/websocket'
 import { getEventTime, IKubeEventSchema } from '@/schemas/kube_event'
 import qs from 'qs'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toaster } from 'baseui/toast'
 import { useOrganization } from '@/hooks/useOrganization'
 import LazyLog from './LazyLog'
@@ -58,8 +58,6 @@ export default function KubePodEvents({
     const [t] = useTranslation()
 
     const [items, setItems] = useState<string[]>([])
-    const wsRef = useRef(null as null | WebSocket)
-    const wsOpenRef = useRef(false)
 
     useEffect(() => {
         if (!open) {
@@ -67,9 +65,21 @@ export default function KubePodEvents({
         }
         let ws: WebSocket | undefined
         let selfClose = false
+        let wsHeartbeatTimer: number | undefined
+        const cancelHeartbeat = () => {
+            if (wsHeartbeatTimer) {
+                window.clearTimeout(wsHeartbeatTimer)
+            }
+            wsHeartbeatTimer = undefined
+        }
         const connect = () => {
+            if (!organization?.name) {
+                return
+            }
+            if (selfClose) {
+                return
+            }
             ws = new WebSocket(wsUrl)
-            selfClose = false
             ws.onmessage = (e) => {
                 const resp = JSON.parse(e.data) as IWsRespSchema<IKubeEventSchema[]>
                 if (resp.type !== 'success') {
@@ -94,28 +104,35 @@ export default function KubePodEvents({
                     })
                 )
             }
-            ws.onopen = () => {
-                wsOpenRef.current = true
-                if (ws) {
-                    wsRef.current = ws
+            const heartbeat = () => {
+                if (ws?.readyState === ws?.OPEN) {
+                    ws?.send('')
                 }
+                wsHeartbeatTimer = window.setTimeout(heartbeat, 20000)
             }
-            ws.onclose = () => {
-                wsOpenRef.current = false
+            ws.onopen = () => heartbeat()
+            ws.onclose = (ev) => {
+                // eslint-disable-next-line no-console
+                console.log('onclose', ev)
+                cancelHeartbeat()
                 if (selfClose) {
                     return
                 }
                 setTimeout(connect, 3000)
             }
+            ws.onerror = (ev) => {
+                // eslint-disable-next-line no-console
+                console.log('onerror', ev)
+                cancelHeartbeat()
+            }
         }
         connect()
         return () => {
-            ws?.close()
+            cancelHeartbeat()
             selfClose = true
-            wsRef.current = null
+            ws?.close()
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [wsUrl, open])
+    }, [wsUrl, open, organization?.name, t, podName])
 
     return (
         <div style={{ height }}>

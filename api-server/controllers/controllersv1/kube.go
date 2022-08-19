@@ -13,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/bentoml/yatai-common/consts"
@@ -38,14 +39,7 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 	defer conn.Close()
 
 	defer func() {
-		if err != nil {
-			msg := schemasv1.WsRespSchema{
-				Type:    schemasv1.WsRespTypeError,
-				Message: err.Error(),
-				Payload: nil,
-			}
-			_ = conn.WriteJSON(&msg)
-		}
+		writeWsError(conn, err)
 	}()
 
 	cluster, err := schema.GetCluster(ctx)
@@ -62,8 +56,12 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 	toClose := make(chan struct{}, 1)
 
 	go func() {
-		<-toClose
-		close(closeCh)
+		select {
+		case <-ctx.Done():
+			close(closeCh)
+		case <-toClose:
+			close(closeCh)
+		}
 	}()
 
 	doClose := func() {
@@ -72,6 +70,7 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 		default:
 		}
 	}
+	defer doClose()
 
 	go func() {
 		for {
@@ -93,14 +92,16 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 	kubeNs := ctx.Query("namespace")
 	podName := ctx.Query("pod_name")
 	if podName != "" {
-		cliset, _, err := services.ClusterService.GetKubeCliSet(ctx, cluster)
+		var cliset *kubernetes.Clientset
+		cliset, _, err = services.ClusterService.GetKubeCliSet(ctx, cluster)
 		if err != nil {
 			return err
 		}
 
 		podsCli := cliset.CoreV1().Pods(kubeNs)
 
-		pod, err := podsCli.Get(ctx, podName, metav1.GetOptions{})
+		var pod *corev1.Pod
+		pod, err = podsCli.Get(ctx, podName, metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
@@ -131,10 +132,24 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 	}
 
 	send := func() {
-		events, err := eventLister.List(labels.Everything())
+		select {
+		case <-closeCh:
+			return
+		default:
+		}
+
+		var err error
+		defer func() {
+			writeWsError(conn, err)
+			if err != nil {
+				failed()
+			}
+		}()
+
+		var events []*corev1.Event
+		events, err = eventLister.List(labels.Everything())
 		if err != nil {
-			logrus.Errorf("list events failed: %s", err.Error())
-			failed()
+			err = errors.Wrap(err, "list events")
 			return
 		}
 
@@ -154,20 +169,13 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 			return it.Before(&jt)
 		})
 
-		select {
-		case <-closeCh:
-			return
-		default:
-		}
-
 		err = conn.WriteJSON(&schemasv1.WsRespSchema{
 			Type:    schemasv1.WsRespTypeSuccess,
 			Message: "",
 			Payload: _events,
 		})
 		if err != nil {
-			logrus.Errorf("ws write json failed: %s", err.Error())
-			failed()
+			err = errors.Wrap(err, "ws write json")
 			return
 		}
 	}
@@ -213,8 +221,8 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 			}
 
 			if failedCount > maxFailed {
-				logrus.Error("ws pods failed too frequently!")
-				break
+				err = errors.New("ws events failed too frequently!")
+				return
 			}
 
 			<-ticker.C
@@ -236,14 +244,7 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 	defer conn.Close()
 
 	defer func() {
-		if err != nil {
-			msg := schemasv1.WsRespSchema{
-				Type:    schemasv1.WsRespTypeError,
-				Message: err.Error(),
-				Payload: nil,
-			}
-			_ = conn.WriteJSON(&msg)
-		}
+		writeWsError(conn, err)
 	}()
 
 	deployment, err := schema.GetDeployment(ctx)
@@ -260,8 +261,12 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 	toClose := make(chan struct{}, 1)
 
 	go func() {
-		<-toClose
-		close(closeCh)
+		select {
+		case <-ctx.Done():
+			close(closeCh)
+		case <-toClose:
+			close(closeCh)
+		}
 	}()
 
 	doClose := func() {
@@ -270,6 +275,7 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 		default:
 		}
 	}
+	defer doClose()
 
 	go func() {
 		for {
@@ -296,7 +302,8 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 
 	podName := ctx.Query("pod_name")
 	if podName != "" {
-		cliset, _, err := services.ClusterService.GetKubeCliSet(ctx, cluster)
+		var cliset *kubernetes.Clientset
+		cliset, _, err = services.ClusterService.GetKubeCliSet(ctx, cluster)
 		if err != nil {
 			return err
 		}
@@ -304,13 +311,15 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 		kubeNs := services.DeploymentService.GetKubeNamespace(deployment)
 		podsCli := cliset.CoreV1().Pods(kubeNs)
 
-		pod, err := podsCli.Get(ctx, podName, metav1.GetOptions{})
+		var pod *corev1.Pod
+		pod, err = podsCli.Get(ctx, podName, metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
 
 		if pod.Labels[consts.KubeLabelYataiDeployment] != deployment.Name {
-			return errors.Errorf("pod %s not in this deployment", podName)
+			err = errors.Errorf("pod %s not in this deployment", podName)
+			return err
 		}
 
 		eventFilter = func(event *corev1.Event) bool {
@@ -341,10 +350,25 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 	seen := make(map[string]struct{})
 
 	send := func() {
-		events, err := eventLister.List(labels.Everything())
+		select {
+		case <-closeCh:
+			return
+		default:
+		}
+
+		var err error
+		defer func() {
+			writeWsError(conn, err)
+			if err != nil {
+				failed()
+			}
+		}()
+
+		var events []*corev1.Event
+
+		events, err = eventLister.List(labels.Everything())
 		if err != nil {
-			logrus.Errorf("list events failed: %s", err.Error())
-			failed()
+			err = errors.Wrap(err, "list events")
 			return
 		}
 
@@ -398,11 +422,6 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 			Message: "",
 			Payload: _events,
 		})
-		if err != nil {
-			logrus.Errorf("ws write json failed: %s", err.Error())
-			failed()
-			return
-		}
 	}
 
 	send()
@@ -446,8 +465,8 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 			}
 
 			if failedCount > maxFailed {
-				logrus.Error("ws pods failed too frequently!")
-				break
+				err = errors.New("ws events failed too frequently!")
+				return
 			}
 
 			<-ticker.C

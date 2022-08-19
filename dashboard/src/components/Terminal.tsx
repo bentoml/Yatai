@@ -106,9 +106,9 @@ export default function Terminal({
             console.log('onopen')
             resizeHandler()
         }
-        ws.onclose = () => {
+        ws.onclose = (ev) => {
             // eslint-disable-next-line no-console
-            console.log('onclose')
+            console.log('onclose', ev)
             terminal.write('\n!!! websocket closed !!!\n')
         }
         ws.onmessage = (event) => {
@@ -139,9 +139,9 @@ export default function Terminal({
             const data = decode(event.data)
             terminal.write(data)
         }
-        ws.onerror = () => {
+        ws.onerror = (ev) => {
             // eslint-disable-next-line no-console
-            console.log('onerror')
+            console.log('onerror', ev)
         }
 
         terminal.onData((input) => {

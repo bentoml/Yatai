@@ -13,6 +13,7 @@ import (
 	"github.com/huandu/xstrings"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/atomic"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	v1 "k8s.io/client-go/listers/core/v1"
@@ -720,14 +721,7 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 	defer conn.Close()
 
 	defer func() {
-		if err != nil {
-			msg := schemasv1.WsRespSchema{
-				Type:    schemasv1.WsRespTypeError,
-				Message: err.Error(),
-				Payload: nil,
-			}
-			_ = conn.WriteJSON(&msg)
-		}
+		writeWsError(conn, err)
 	}()
 
 	deployment, err := schema.GetDeployment(ctx)
@@ -799,17 +793,18 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 	connW.IsNew = false
 
 	pollingCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	go func() {
 		for {
-			mt, _, err := conn.ReadMessage()
+			_, _, err := conn.ReadMessage()
 
-			if err != nil || mt == websocket.CloseMessage || mt == -1 {
-				if err != nil && strings.Contains(err.Error(), "websocket: close 1005") {
-					err = nil
+			if err != nil {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					logrus.Errorf("ws read failed: %q", err.Error())
 				}
-				connW.IsClosed = true
 				cancel()
-				break
+				return
 			}
 		}
 	}()
@@ -842,12 +837,11 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 	}()
 	rw.Unlock()
 
-	failedCount := 0
-	maxFailed := 10
+	failedCount := atomic.NewInt64(0)
+	maxFailed := int64(10)
 
 	failed := func() {
-		failedCount += 1
-		time.Sleep(time.Second * 10)
+		failedCount.Inc()
 	}
 
 	send := func(podLister v1.PodNamespaceLister) error {
@@ -870,15 +864,13 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 
 		pods, err := services.KubePodService.ListPodsByDeployment(pollingCtx, podLister, deployment)
 		if err != nil {
-			logrus.Errorf("get app pods failed: %q", err.Error())
-			failed()
+			err = errors.Wrap(err, "list pods by deployment")
 			return err
 		}
 
 		newPodSchemas, err := transformersv1.ToKubePodSchemas(pollingCtx, cluster.ID, pods)
 		if err != nil {
-			logrus.Errorf("get app pods failed: %q", err.Error())
-			failed()
+			err = errors.Wrap(err, "to kube pod schemas")
 			return err
 		}
 
@@ -889,6 +881,8 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 				defer cancel()
 				deployment_, err := services.DeploymentService.Get(ctx_, deployment.ID)
 				if err != nil {
+					writeWsError(conn, err)
+					failed()
 					return
 				}
 				_, _ = services.DeploymentService.SyncStatus(ctx_, deployment_)
@@ -930,16 +924,19 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 		}
 		err = eg.Wait()
 		if err != nil {
-			logrus.Errorf("eg wait failed: %q", err.Error())
 			return err
 		}
 		deploymentPodsWsConns.Store(cachedKey, newConns)
-		failedCount = 0
+		failedCount.Store(0)
 		return nil
 	}
 
 	send_ := func() {
-		_ = send(podLister)
+		err = send(podLister)
+		writeWsError(conn, err)
+		if err != nil {
+			failed()
+		}
 	}
 
 	informer := podInformer.Informer()
@@ -988,9 +985,9 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 			default:
 			}
 
-			if failedCount > maxFailed {
-				logrus.Error("ws pods failed too frequently!")
-				break
+			if failedCount.Load() > maxFailed {
+				err = errors.New("ws pods failed too frequently!")
+				return
 			}
 
 			<-ticker.C
