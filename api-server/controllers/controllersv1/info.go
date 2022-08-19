@@ -13,11 +13,13 @@ type infoController struct {
 var InfoController = infoController{}
 
 type InfoSchema struct {
-	IsSass bool `json:"is_sass"`
+	IsSass           bool   `json:"is_sass"`
+	SassDomainSuffix string `json:"sass_domain_suffix"`
 }
 
 func (c *infoController) GetInfo(ctx *gin.Context) (*InfoSchema, error) {
 	return &InfoSchema{
-		IsSass: config.YataiConfig.IsSass,
+		IsSass:           config.YataiConfig.IsSass,
+		SassDomainSuffix: config.YataiConfig.SassDomainSuffix,
 	}, nil
 }
