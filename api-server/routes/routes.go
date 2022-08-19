@@ -49,7 +49,8 @@ func injectCurrentOrganization(c *gin.Context) {
 		orgName = strings.TrimSpace(c.Query("organization_name"))
 	}
 	if orgName == "" {
-		orgName = "default"
+		c.Next()
+		return
 	}
 	org, err := services.OrganizationService.GetByName(c, orgName)
 	if err != nil {
