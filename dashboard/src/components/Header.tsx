@@ -276,7 +276,7 @@ export default function Header() {
     }, [currentOrgInfo.data, currentOrgInfo.isSuccess, organization, setOrganization])
 
     const showOrgSelector = useMemo(() => {
-        return currentUser?.is_super_admin && infoInfo.data?.is_sass && currentOrgInfo.data?.name === 'default'
+        return currentUser?.is_super_admin && infoInfo.data?.is_sass
     }, [currentOrgInfo.data?.name, currentUser?.is_super_admin, infoInfo.data?.is_sass])
 
     const { setCluster } = useCluster()
