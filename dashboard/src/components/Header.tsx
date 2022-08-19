@@ -253,7 +253,10 @@ export default function Header() {
 
     useEffect(() => {
         if (infoInfo.data?.sass_domain_suffix && organization?.name) {
-            window.location.hostname = `${organization.name}.${infoInfo.data.sass_domain_suffix}`
+            const hostname = `${organization.name}.${infoInfo.data.sass_domain_suffix}`
+            if (hostname !== window.location.host) {
+                window.location.hostname = hostname
+            }
         } else {
             axios.defaults.headers.common[yataiOrgHeader] = organization?.name ?? ''
         }
