@@ -237,19 +237,8 @@ func (t *WebTerminal) Next() *remotecommand.TerminalSize {
 }
 
 func (t *WebTerminal) Close(buffer []byte) (size int, err error) {
-	select {
-	case <-t.closeCh:
-		return
-	default:
-	}
-
 	t.doClose()
-	select {
-	case <-t.closeCh:
-		size = copy(buffer, END_OF_TRANSMISSION)
-		return
-	default:
-	}
+	size = copy(buffer, END_OF_TRANSMISSION)
 	return
 }
 
