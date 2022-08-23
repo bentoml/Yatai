@@ -269,7 +269,7 @@ func (s *organizationService) GetMajorCluster(ctx context.Context, org *models.O
 				Count: utils.UintPtr(1),
 			},
 			VisitorId:      nil,
-			OrganizationId: nil,
+			OrganizationId: &org.ID,
 			Ids:            nil,
 			Order:          utils.StringPtr("id ASC"),
 		})
