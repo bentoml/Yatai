@@ -10,6 +10,7 @@ import { createUseStyles } from 'react-jss'
 import Login from '@/pages/Yatai/Login'
 import OrganizationApiTokens from '@/pages/Organization/ApiTokens'
 import OrganizationClusters from '@/pages/Organization/Clusters'
+import OrganizationUsers from '@/pages/Organization/Users'
 import OrganizationMembers from '@/pages/Organization/Members'
 import OrganizationDeployments from '@/pages/Organization/Deployments'
 import OrganizationDeploymentForm from '@/pages/Organization/DeploymentForm'
@@ -232,6 +233,7 @@ const Routes = () => {
                                 <Route exact path='/events' component={OrganizationEvents} />
                                 <Route exact path='/api_tokens' component={OrganizationApiTokens} />
                                 <Route exact path='/clusters' component={OrganizationClusters} />
+                                <Route exact path='/users' component={OrganizationUsers} />
                                 <Route exact path='/members' component={OrganizationMembers} />
                                 <Route exact path='/bento_repositories' component={OrganizationBentoRepositories} />
                                 <Route exact path='/model_repositories' component={OrganizationModelRepositories} />

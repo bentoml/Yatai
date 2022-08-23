@@ -5,6 +5,9 @@ import BaseSidebar, { IComposedSidebarProps, INavItem } from '@/components/BaseS
 import { resourceIconMapping } from '@/consts'
 import { FiActivity } from 'react-icons/fi'
 import { useFetchOrganizationYataiComponents } from '@/hooks/useFetchYataiComponents'
+import { useFetchInfo } from '@/hooks/useFetchInfo'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { AiOutlineSetting } from 'react-icons/ai'
 
 export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
     const { yataiComponentsInfo } = useFetchOrganizationYataiComponents()
@@ -14,6 +17,12 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
     }, [yataiComponentsInfo.data])
 
     const [t] = useTranslation()
+    const infoInfo = useFetchInfo()
+    const { currentUser } = useCurrentUser()
+
+    const showHiddenNavItems = useMemo(() => {
+        return currentUser?.is_super_admin && infoInfo.data?.is_sass
+    }, [currentUser?.is_super_admin, infoInfo.data?.is_sass])
 
     const navItems: INavItem[] = useMemo(
         () => [
@@ -54,8 +63,20 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
                 path: '/events',
                 icon: FiActivity,
             },
+            {
+                title: t('users'),
+                path: '/users',
+                icon: resourceIconMapping.user_group,
+                hidden: !showHiddenNavItems,
+            },
+            {
+                title: t('settings'),
+                path: '/settings',
+                icon: AiOutlineSetting,
+                hidden: !showHiddenNavItems,
+            },
         ],
-        [deploymentDisabled, t]
+        [deploymentDisabled, showHiddenNavItems, t]
     )
     return <BaseSidebar navItems={navItems} style={style} />
 }

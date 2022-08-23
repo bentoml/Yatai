@@ -9,6 +9,9 @@ import { fetchCluster } from '@/services/cluster'
 import { useOrganization } from '@/hooks/useOrganization'
 import { resourceIconMapping } from '@/consts'
 import { AiOutlineSetting } from 'react-icons/ai'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useFetchInfo } from '@/hooks/useFetchInfo'
+import { useFetchOrganizationMembers } from '@/hooks/useFetchOrganizationMembers'
 import BaseSubLayout from './BaseSubLayout'
 
 export interface IClusterLayoutProps {
@@ -21,6 +24,7 @@ export default function ClusterLayout({ children }: IClusterLayoutProps) {
     const { cluster, setCluster } = useCluster()
     const { organization, setOrganization } = useOrganization()
     const { setClusterLoading } = useClusterLoading()
+    const membersInfo = useFetchOrganizationMembers()
     useEffect(() => {
         setClusterLoading(clusterInfo.isLoading)
         if (clusterInfo.isSuccess) {
@@ -61,6 +65,17 @@ export default function ClusterLayout({ children }: IClusterLayoutProps) {
         [clusterName, t]
     )
 
+    const { currentUser } = useCurrentUser()
+    const infoInfo = useFetchInfo()
+    const showHiddenNavItems = useMemo(() => {
+        return (
+            infoInfo.data?.is_sass &&
+            membersInfo.data?.find((m) => {
+                return m.user.uid === currentUser?.uid
+            })?.role === 'admin'
+        )
+    }, [currentUser?.uid, infoInfo.data?.is_sass, membersInfo.data])
+
     const navItems: INavItem[] = useMemo(
         () => [
             {
@@ -79,12 +94,18 @@ export default function ClusterLayout({ children }: IClusterLayoutProps) {
                 icon: resourceIconMapping.deployment,
             },
             {
+                title: t('members'),
+                path: `/clusters/${clusterName}/members`,
+                icon: resourceIconMapping.user_group,
+                hidden: !showHiddenNavItems,
+            },
+            {
                 title: t('settings'),
                 path: `/clusters/${clusterName}/settings`,
                 icon: AiOutlineSetting,
             },
         ],
-        [clusterName, t]
+        [clusterName, showHiddenNavItems, t]
     )
     return (
         <BaseSubLayout breadcrumbItems={breadcrumbItems} navItems={navItems}>

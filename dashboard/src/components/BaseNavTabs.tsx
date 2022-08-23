@@ -36,59 +36,61 @@ export function BaseNavTabs({ navItems }: IBaseNavTabsProps) {
             fill='fixed'
             activateOnFocus
         >
-            {navItems.map((item) => {
-                const Icon = item.icon
-                return (
-                    <Tab
-                        overrides={{
-                            TabPanel: {
-                                style: {
-                                    padding: '0px !important',
+            {navItems
+                .filter((item) => !item.hidden)
+                .map((item) => {
+                    const Icon = item.icon
+                    return (
+                        <Tab
+                            overrides={{
+                                TabPanel: {
+                                    style: {
+                                        padding: '0px !important',
+                                    },
                                 },
-                            },
-                        }}
-                        disabled={item.disabled}
-                        key={item.path}
-                        title={
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 12,
-                                    lineHeight: '24px',
-                                    height: 24,
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                }}
-                            >
-                                {Icon && <Icon size={12} />}
+                            }}
+                            disabled={item.disabled}
+                            key={item.path}
+                            title={
                                 <div
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: 6,
+                                        gap: 12,
+                                        lineHeight: '24px',
+                                        height: 24,
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
                                     }}
                                 >
-                                    <span>{item.title}</span>
-                                    {item.helpMessage && (
-                                        <StatefulTooltip content={item.helpMessage} showArrow>
-                                            <div
-                                                style={{
-                                                    display: 'inline-flex',
-                                                    cursor: 'pointer',
-                                                }}
-                                            >
-                                                <AiOutlineQuestionCircle />
-                                            </div>
-                                        </StatefulTooltip>
-                                    )}
+                                    {Icon && <Icon size={12} />}
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 6,
+                                        }}
+                                    >
+                                        <span>{item.title}</span>
+                                        {item.helpMessage && (
+                                            <StatefulTooltip content={item.helpMessage} showArrow>
+                                                <div
+                                                    style={{
+                                                        display: 'inline-flex',
+                                                        cursor: 'pointer',
+                                                    }}
+                                                >
+                                                    <AiOutlineQuestionCircle />
+                                                </div>
+                                            </StatefulTooltip>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        }
-                    />
-                )
-            })}
+                            }
+                        />
+                    )
+                })}
         </Tabs>
     )
 }
