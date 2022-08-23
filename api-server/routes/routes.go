@@ -18,7 +18,6 @@ import (
 	"github.com/wI2L/fizz/openapi"
 
 	"github.com/bentoml/yatai-common/consts"
-	"github.com/bentoml/yatai-common/utils"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/controllers/controllersv1"
@@ -26,6 +25,7 @@ import (
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/scookie"
+	"github.com/bentoml/yatai/common/utils"
 	"github.com/bentoml/yatai/common/yataicontext"
 )
 
