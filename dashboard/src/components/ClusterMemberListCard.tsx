@@ -35,7 +35,7 @@ export default function ClusterMemberListCard({ clusterName }: IClusterMemberLis
                 titleIcon={resourceIconMapping.user_group}
                 extra={
                     <Button size={ButtonSize.compact} onClick={() => setIsCreateMembersOpen(true)}>
-                        {t('create')}
+                        {t('add')}
                     </Button>
                 }
             >
@@ -56,7 +56,7 @@ export default function ClusterMemberListCard({ clusterName }: IClusterMemberLis
                     animate
                     autoFocus
                 >
-                    <ModalHeader>{t('create sth', [t('member')])}</ModalHeader>
+                    <ModalHeader>{t('add sth', [t('member')])}</ModalHeader>
                     <ModalBody>
                         <MemberForm onSubmit={handleCreateMember} />
                     </ModalBody>

@@ -35,59 +35,62 @@ export interface INavItem {
     helpMessage?: React.ReactNode
     activePathPattern?: RegExp
     isActive?: () => boolean
+    hidden?: boolean
 }
 
 function transformNavItems(navItems: INavItem[], expanded = true): Item[] {
-    return navItems.map((item) => {
-        const { icon: Icon } = item
-        const inner = (
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    lineHeight: '24px',
-                    height: 24,
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                }}
-            >
-                {Icon && <Icon size={12} />}
-                <span>{item.title}</span>
-            </div>
-        )
-        return {
-            disabled: item.disabled,
-            title: expanded ? (
-                item.helpMessage ? (
-                    <StatefulTooltip content={item.helpMessage} showArrow placement='bottomRight'>
-                        {inner}
-                    </StatefulTooltip>
+    return navItems
+        .filter((item) => !item.hidden)
+        .map((item) => {
+            const { icon: Icon } = item
+            const inner = (
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        lineHeight: '24px',
+                        height: 24,
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                    }}
+                >
+                    {Icon && <Icon size={12} />}
+                    <span>{item.title}</span>
+                </div>
+            )
+            return {
+                disabled: item.disabled,
+                title: expanded ? (
+                    item.helpMessage ? (
+                        <StatefulTooltip content={item.helpMessage} showArrow placement='bottomRight'>
+                            {inner}
+                        </StatefulTooltip>
+                    ) : (
+                        inner
+                    )
                 ) : (
-                    inner
-                )
-            ) : (
-                <StatefulTooltip content={item.title} showArrow placement='bottomRight'>
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 12,
-                            lineHeight: '24px',
-                            height: 24,
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                        }}
-                    >
-                        {Icon && <Icon size={12} />}
-                    </div>
-                </StatefulTooltip>
-            ),
-            itemId: item.path,
-        }
-    })
+                    <StatefulTooltip content={item.title} showArrow placement='bottomRight'>
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 12,
+                                lineHeight: '24px',
+                                height: 24,
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            {Icon && <Icon size={12} />}
+                        </div>
+                    </StatefulTooltip>
+                ),
+                itemId: item.path,
+            }
+        })
 }
 
 export interface IBaseSideBarProps extends IComposedSidebarProps {
@@ -125,6 +128,9 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
         let activeItem = items.find((item_) => {
             const item = navItems.find((item__) => item_.itemId === item__.path)
             if (!item) {
+                return false
+            }
+            if (item.hidden) {
                 return false
             }
             if (item.activePathPattern) {
