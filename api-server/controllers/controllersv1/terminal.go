@@ -97,6 +97,7 @@ func NewWebTerminal(ctx context.Context, conn *websocket.Conn, namespace, podNam
 		case <-t.closeCh:
 			return
 		case <-ctx.Done():
+			// nolint: contextcheck
 			t.doClose()
 		}
 	}()
@@ -117,6 +118,14 @@ func NewWebTerminal(ctx context.Context, conn *websocket.Conn, namespace, podNam
 func (t *WebTerminal) doClose() {
 	select {
 	case t.toClose <- struct{}{}:
+		if t.recorder == nil {
+			return
+		}
+		err := services.TerminalRecordService.SaveContent(context.Background(), t.recorder)
+		if err != nil {
+			logrus.Errorf("save terminal record error: %v", err)
+			return
+		}
 	default:
 	}
 }
@@ -237,12 +246,6 @@ func (t *WebTerminal) Close(buffer []byte) (size int, err error) {
 	t.doClose()
 	select {
 	case <-t.closeCh:
-		if t.recorder != nil {
-			err = services.TerminalRecordService.SaveContent(context.Background(), t.recorder)
-			if err != nil {
-				return
-			}
-		}
 		size = copy(buffer, END_OF_TRANSMISSION)
 		return
 	default:
