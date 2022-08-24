@@ -2247,6 +2247,13 @@ const locales0 = {
         ko: '생성됨',
         vi: 'Đã tạo',
     },
+    'no active deployments': {
+        en: 'No active deployments',
+        zh: '没有激活的部署',
+        ja: 'アクティブなデプロイはありません',
+        ko: '아직 아무 배포도 없음',
+        vi: 'Không có bản đồ nào hoạt động',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
