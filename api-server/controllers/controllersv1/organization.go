@@ -70,6 +70,15 @@ func (c *organizationController) Create(ctx *gin.Context, schema *schemasv1.Crea
 	if err != nil {
 		return nil, errors.Wrap(err, "create organization")
 	}
+	_, err = services.OrganizationMemberService.Create(ctx, user.ID, services.CreateOrganizationMemberOption{
+		CreatorId:      user.ID,
+		OrganizationId: organization.ID,
+		UserId:         user.ID,
+		Role:           modelschemas.MemberRoleAdmin,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "create organization member")
+	}
 	return transformersv1.ToOrganizationFullSchema(ctx, organization)
 }
 
