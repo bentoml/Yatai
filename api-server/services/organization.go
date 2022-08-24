@@ -308,6 +308,17 @@ func (c *S3Config) GetMinioClient() (*minio.Client, error) {
 	})
 }
 
+func (c *S3Config) GetMinioCore() (*minio.Core, error) {
+	endpoint := c.Endpoint
+	if config.YataiConfig.InCluster && !config.YataiConfig.IsSass {
+		endpoint = c.EndpointInCluster
+	}
+	return minio.NewCore(endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV2(c.AccessKey, c.SecretKey, ""),
+		Secure: c.Secure,
+	})
+}
+
 func (c *S3Config) MakeSureBucket(ctx context.Context, bucketName string) error {
 	minioClient, err := c.GetMinioClient()
 	if err != nil {
