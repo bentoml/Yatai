@@ -64,12 +64,6 @@ export default function OrganizationSidebar({ style }: IComposedSidebarProps) {
                 icon: FiActivity,
             },
             {
-                title: t('users'),
-                path: '/users',
-                icon: resourceIconMapping.user_group,
-                hidden: !showHiddenNavItems,
-            },
-            {
                 title: t('settings'),
                 path: '/settings',
                 icon: AiOutlineSetting,
