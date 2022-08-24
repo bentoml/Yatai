@@ -113,8 +113,11 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
     const history = useHistory()
 
     const hasOperationPermission = useMemo(
-        () => membersInfo?.data?.find((m) => m.user.uid === currentUser?.uid && m.role === 'admin') !== undefined,
-        [currentUser?.uid, membersInfo?.data]
+        () =>
+            membersInfo?.data?.find((m) => m.user.uid === currentUser?.uid && m.role === 'admin') !== undefined ||
+            currentUser?.uid === organization?.creator?.uid ||
+            currentUser?.is_super_admin,
+        [currentUser?.is_super_admin, currentUser?.uid, membersInfo?.data, organization?.creator?.uid]
     )
 
     return (
