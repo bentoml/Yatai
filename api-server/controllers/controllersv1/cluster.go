@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/cache"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
@@ -98,6 +99,15 @@ func (c *clusterController) Create(ctx *gin.Context, schema *CreateClusterSchema
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "create cluster")
+	}
+	_, err = services.ClusterMemberService.Create(ctx, user.ID, services.CreateClusterMemberOption{
+		CreatorId: user.ID,
+		UserId:    user.ID,
+		ClusterId: cluster.ID,
+		Role:      modelschemas.MemberRoleAdmin,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "create cluster member")
 	}
 	return transformersv1.ToClusterFullSchema(ctx, cluster)
 }

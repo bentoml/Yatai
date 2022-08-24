@@ -70,11 +70,12 @@ export default function ClusterLayout({ children }: IClusterLayoutProps) {
     const showHiddenNavItems = useMemo(() => {
         return (
             infoInfo.data?.is_sass &&
-            membersInfo.data?.find((m) => {
+            (membersInfo.data?.find((m) => {
                 return m.user.uid === currentUser?.uid
-            })?.role === 'admin'
+            })?.role === 'admin' ||
+                currentUser?.uid === cluster?.creator?.uid)
         )
-    }, [currentUser?.uid, infoInfo.data?.is_sass, membersInfo.data])
+    }, [cluster?.creator?.uid, currentUser?.uid, infoInfo.data?.is_sass, membersInfo.data])
 
     const navItems: INavItem[] = useMemo(
         () => [
