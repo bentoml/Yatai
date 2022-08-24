@@ -117,6 +117,7 @@ export default function Home() {
                 <List
                     isLoading={deploymentsInfo.isLoading}
                     items={deploymentsInfo.data?.items ?? []}
+                    emptyText={t('no active deployments')}
                     onRenderItem={(item: IDeploymentSchema) => {
                         return (
                             <div
