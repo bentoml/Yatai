@@ -21,7 +21,7 @@ i18n.use(LanguageDetector)
     .init({
         // we init with resources
         resources: {
-            en: {
+            'en': {
                 translations: Object.entries(locales).reduce((p, [k, v]) => {
                     return {
                         ...p,
@@ -29,15 +29,23 @@ i18n.use(LanguageDetector)
                     }
                 }, {}),
             },
-            zh: {
+            'zh-CN': {
                 translations: Object.entries(locales).reduce((p, [k, v]) => {
                     return {
                         ...p,
-                        [k]: v.zh,
+                        [k]: v['zh-CN'],
                     }
                 }, {}),
             },
-            ja: {
+            'zh-TW': {
+                translations: Object.entries(locales).reduce((p, [k, v]) => {
+                    return {
+                        ...p,
+                        [k]: v['zh-TW'],
+                    }
+                }, {}),
+            },
+            'ja': {
                 translations: Object.entries(locales).reduce((p, [k, v]) => {
                     return {
                         ...p,
@@ -45,7 +53,7 @@ i18n.use(LanguageDetector)
                     }
                 }, {}),
             },
-            ko: {
+            'ko': {
                 translations: Object.entries(locales).reduce((p, [k, v]) => {
                     return {
                         ...p,
@@ -53,7 +61,7 @@ i18n.use(LanguageDetector)
                     }
                 }, {}),
             },
-            vi: {
+            'vi': {
                 translations: Object.entries(locales).reduce((p, [k, v]) => {
                     return {
                         ...p,
