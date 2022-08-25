@@ -6,6 +6,10 @@ echo -e "\033[01;31mWarning: this also means that all resources under the \033[0
 echo -e "\033[01;31mCurrent kubernetes context: \033[00m\033[01;32m$CURRETN_CONTEXT\033[00m"
 read -p "Are you sure to delete Yatai in cluster '$CURRETN_CONTEXT'? [y/n] " -n 1 -r
 echo # move to a new line
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1 # handle exits from shell or function but don't exit interactive shell
+fi
 read -p "(Double check) Are you sure to delete Yatai in cluster '$CURRETN_CONTEXT'? [y/n] " -n 1 -r
 echo # move to a new line
 if [[ ! $REPLY =~ ^[Yy]$ ]]

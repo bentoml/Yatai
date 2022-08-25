@@ -1,5 +1,6 @@
 .DEFAULT_GOAL := help
 
+GIT_ROOT ?= $(shell git rev-parse --show-toplevel)
 GIT_COMMIT := $(shell git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 ifndef VERSION
@@ -116,3 +117,12 @@ fe-build: ## Build frontend for production
 fe-run: ## Run frontend components
 	@cd dashboard && yarn start
 
+install-docs-deps: ## Install documentation dependencies
+	@echo Installing docs dependencies...
+	@pip install -r requirements/docs-requirements.txt
+
+# Docs
+watch-docs: install-docs-deps ## Build and watch documentation
+	sphinx-autobuild docs/source docs/build/html --watch $(GIT_ROOT)/docs/source --host 0.0.0.0
+spellcheck-docs: ## Spell check documentation
+	sphinx-build -b spelling ./docs/source ./docs/build || (echo "Error running spellchecker.. You may need to run 'make install-spellchecker-deps'"; exit 1)

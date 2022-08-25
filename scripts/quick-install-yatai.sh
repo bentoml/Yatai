@@ -138,7 +138,7 @@ for i in $(seq 1 10); do
       --env "AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY" \
       --env "AWS_SECRET_ACCESS_KEY=$S3_SECRET_KEY" \
       --image quay.io/bentoml/s3-client:0.0.1 \
-      --command -- sh -c "s3-client -e http://$S3_ENDPOINT listbuckets && echo successfully" && break || sleep 5
+      --command -- sh -c "s3-client -e http://$S3_ENDPOINT listbuckets 2>/dev/null && echo successfully || echo failed" && break || sleep 5
 done
 echo "✅ MinIO connection is successful"
 
