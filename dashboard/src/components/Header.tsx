@@ -33,7 +33,6 @@ import { IChangePasswordSchema } from '@/schemas/user'
 import { createCluster } from '@/services/cluster'
 import { useCluster } from '@/hooks/useCluster'
 import ClusterForm from '@/components/ClusterForm'
-import ReactCountryFlag from 'react-country-flag'
 import i18n from '@/i18n'
 import { simulationJump } from '@/utils'
 import { FiLogOut } from 'react-icons/fi'
@@ -41,6 +40,7 @@ import { MdPassword } from 'react-icons/md'
 import { useFetchOrganizations } from '@/hooks/useFetchOrganizations'
 import { useFetchInfo } from '@/hooks/useFetchInfo'
 import { Button } from 'baseui/button'
+import { AiOutlineGlobal } from 'react-icons/ai'
 import PasswordForm from './PasswordForm'
 
 const useStyles = createUseStyles({
@@ -296,7 +296,6 @@ export default function Header() {
     const handleRenderLanguageOption = useCallback(({ option }: any) => {
         return (
             <div>
-                {option.flag && <span style={{ marginRight: 8, verticalAlign: 'middle' }}>{option.flag}</span>}
                 <span style={{ verticalAlign: 'middle' }}>{option.text}</span>
             </div>
         )
@@ -330,6 +329,47 @@ export default function Header() {
         },
         [t]
     )
+
+    const languageOptions = useMemo(() => {
+        return [
+            {
+                id: 'en',
+                text: 'English',
+            },
+            {
+                id: 'zh-CN',
+                text: '简体中文',
+            },
+            {
+                id: 'zh-TW',
+                text: '繁體中文',
+            },
+            {
+                id: 'ja',
+                text: '日本語',
+            },
+            {
+                id: 'ko',
+                text: '한국어',
+            },
+            {
+                id: 'vi',
+                text: 'Tiếng Việt',
+            },
+        ]
+    }, [])
+
+    const languageValue = useMemo(() => {
+        const lan = i18n.language
+        const lanPrefix = lan.split('-')[0]
+        return (
+            languageOptions.find((option) => option.id === lan) ||
+            languageOptions.find((option) => option.id === lanPrefix) ||
+            languageOptions.find((option) => option.id.split('-')[0] === lanPrefix) ||
+            languageOptions[0]
+        )
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [i18n.language, languageOptions])
 
     const currentThemeType = useCurrentThemeType()
 
@@ -538,8 +578,15 @@ export default function Header() {
                 <div
                     style={{
                         width: 140,
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
                     }}
                 >
+                    <div>
+                        <AiOutlineGlobal />
+                    </div>
                     <Select
                         overrides={{
                             ControlContainer: {
@@ -556,7 +603,7 @@ export default function Header() {
                         clearable={false}
                         searchable={false}
                         size='mini'
-                        value={[{ id: i18n.language ? i18n.language.split('-')[0] : '' }]}
+                        value={[languageValue]}
                         onChange={(params) => {
                             if (!params.option?.id) {
                                 return
@@ -565,33 +612,7 @@ export default function Header() {
                         }}
                         getOptionLabel={handleRenderLanguageOption}
                         getValueLabel={handleRenderLanguageOption}
-                        options={[
-                            {
-                                id: 'en',
-                                text: 'English',
-                                flag: <ReactCountryFlag countryCode='US' svg />,
-                            },
-                            {
-                                id: 'zh',
-                                text: '中文',
-                                flag: <ReactCountryFlag countryCode='CN' svg />,
-                            },
-                            {
-                                id: 'ja',
-                                text: '日本語',
-                                flag: <ReactCountryFlag countryCode='JP' svg />,
-                            },
-                            {
-                                id: 'ko',
-                                text: '한국어',
-                                flag: <ReactCountryFlag countryCode='KR' svg />,
-                            },
-                            {
-                                id: 'vi',
-                                text: 'Tiếng Việt',
-                                flag: <ReactCountryFlag countryCode='VN' svg />,
-                            },
-                        ]}
+                        options={languageOptions}
                     />
                 </div>
             </div>

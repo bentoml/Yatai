@@ -30,6 +30,7 @@ export default function EventList({ isLoading, events, paginationProps }: IEvent
     return (
         <List
             isLoading={isLoading}
+            emptyText={t('no events')}
             items={events}
             paginationProps={paginationProps}
             onRenderItem={(item: IEventSchema) => {
