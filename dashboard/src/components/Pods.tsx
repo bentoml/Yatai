@@ -20,5 +20,5 @@ export default function Pods({ clusterName, namespace, selector }: IPodsProps) {
         setPodsLoading,
     })
 
-    return <PodList clusterName='default' loading={podsLoading} pods={pods} />
+    return <PodList clusterName={clusterName} loading={podsLoading} pods={pods} />
 }
