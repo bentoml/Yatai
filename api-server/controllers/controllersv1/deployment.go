@@ -152,7 +152,7 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 			createEventOpt.Status = modelschemas.EventStatusFailed
 		}
 
-		if _, err_ := services.EventService.Create(ctx, createEventOpt); err_ != nil {
+		if _, err_ := services.EventService.Create(ctx_, createEventOpt); err_ != nil {
 			logrus.Errorf("create event failed: %v", err_)
 		}
 	}()

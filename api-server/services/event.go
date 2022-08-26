@@ -52,6 +52,10 @@ func (s *eventService) Create(ctx context.Context, opt CreateEventOption) (event
 		return
 	}
 	defer func() { df(err) }()
+	resource, err := ResourceService.Get(ctx, opt.ResourceType, opt.ResourceId)
+	if err != nil {
+		return nil, err
+	}
 	event = &models.Event{
 		BaseModel: models.BaseModel{
 			Model: gorm.Model{
@@ -67,6 +71,9 @@ func (s *eventService) Create(ctx context.Context, opt CreateEventOption) (event
 		},
 		NullableClusterAssociate: models.NullableClusterAssociate{
 			ClusterId: opt.ClusterId,
+		},
+		Info: &modelschemas.EventInfo{
+			ResourceName: resource.GetName(),
 		},
 		Name:          opt.Name,
 		Status:        opt.Status,

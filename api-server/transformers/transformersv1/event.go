@@ -39,7 +39,7 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 		resourceIds = append(resourceIds, event.ResourceId)
 		resourceIdsGroup[event.ResourceType] = resourceIds
 	}
-	resourceSchemasGroup := make(map[modelschemas.ResourceType]map[string]interface{})
+	resourceSchemasGroup := make(map[modelschemas.ResourceType]map[string]schemasv1.IResourceSchema)
 	resourceUidsGroup := make(map[modelschemas.ResourceType]map[uint]string)
 	for resourceType, resourceIds := range resourceIdsGroup {
 		resources, err := services.ResourceService.List(ctx, resourceType, resourceIds)
@@ -62,7 +62,7 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 			}
 			for _, schema := range schemas {
 				if _, ok := resourceSchemasGroup[resourceType]; !ok {
-					resourceSchemasGroup[resourceType] = make(map[string]interface{})
+					resourceSchemasGroup[resourceType] = make(map[string]schemasv1.IResourceSchema)
 				}
 				resourceSchemasGroup[resourceType][schema.Uid] = schema
 			}
@@ -81,7 +81,7 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 			}
 			for _, schema := range schemas {
 				if _, ok := resourceSchemasGroup[resourceType]; !ok {
-					resourceSchemasGroup[resourceType] = make(map[string]interface{})
+					resourceSchemasGroup[resourceType] = make(map[string]schemasv1.IResourceSchema)
 				}
 				resourceSchemasGroup[resourceType][schema.Uid] = schema
 			}
@@ -100,7 +100,7 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 			}
 			for _, schema := range schemas {
 				if _, ok := resourceSchemasGroup[resourceType]; !ok {
-					resourceSchemasGroup[resourceType] = make(map[string]interface{})
+					resourceSchemasGroup[resourceType] = make(map[string]schemasv1.IResourceSchema)
 				}
 				resourceSchemasGroup[resourceType][schema.Uid] = schema
 			}
@@ -119,7 +119,7 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 			}
 			for _, schema := range schemas {
 				if _, ok := resourceSchemasGroup[resourceType]; !ok {
-					resourceSchemasGroup[resourceType] = make(map[string]interface{})
+					resourceSchemasGroup[resourceType] = make(map[string]schemasv1.IResourceSchema)
 				}
 				resourceSchemasGroup[resourceType][schema.Uid] = schema
 			}
@@ -138,7 +138,7 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 			}
 			for _, schema := range schemas {
 				if _, ok := resourceSchemasGroup[resourceType]; !ok {
-					resourceSchemasGroup[resourceType] = make(map[string]interface{})
+					resourceSchemasGroup[resourceType] = make(map[string]schemasv1.IResourceSchema)
 				}
 				resourceSchemasGroup[resourceType][schema.Uid] = schema
 			}
@@ -157,7 +157,7 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 			}
 			for _, schema := range schemas {
 				if _, ok := resourceSchemasGroup[resourceType]; !ok {
-					resourceSchemasGroup[resourceType] = make(map[string]interface{})
+					resourceSchemasGroup[resourceType] = make(map[string]schemasv1.IResourceSchema)
 				}
 				resourceSchemasGroup[resourceType][schema.Uid] = schema
 			}
@@ -176,7 +176,7 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 			}
 			for _, schema := range schemas {
 				if _, ok := resourceSchemasGroup[resourceType]; !ok {
-					resourceSchemasGroup[resourceType] = make(map[string]interface{})
+					resourceSchemasGroup[resourceType] = make(map[string]schemasv1.IResourceSchema)
 				}
 				resourceSchemasGroup[resourceType][schema.Uid] = schema
 			}
@@ -195,7 +195,7 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 			}
 			for _, schema := range schemas {
 				if _, ok := resourceSchemasGroup[resourceType]; !ok {
-					resourceSchemasGroup[resourceType] = make(map[string]interface{})
+					resourceSchemasGroup[resourceType] = make(map[string]schemasv1.IResourceSchema)
 				}
 				resourceSchemasGroup[resourceType][schema.Uid] = schema
 			}
@@ -231,6 +231,17 @@ func ToEventSchemas(ctx context.Context, events []*models.Event) ([]*schemasv1.E
 					eventSchema.Resource = resourceSchema
 				}
 			}
+		}
+		if eventSchema.Resource == nil && event.Info != nil {
+			resourceName := event.Info.ResourceName
+			if resourceName == "" {
+				resourceName = "unknown"
+			}
+			eventSchema.Resource = &schemasv1.ResourceSchema{
+				Name:         resourceName,
+				ResourceType: event.ResourceType,
+			}
+			eventSchema.ResourceDeleted = true
 		}
 		eventSchemas = append(eventSchemas, eventSchema)
 	}

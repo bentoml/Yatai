@@ -10,6 +10,7 @@ type Event struct {
 	Name          string
 	Status        modelschemas.EventStatus
 	ResourceType  modelschemas.ResourceType
+	Info          *modelschemas.EventInfo
 	ResourceId    uint
 	OperationName string
 	ApiTokenName  string

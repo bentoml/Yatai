@@ -11,4 +11,5 @@ export interface IEventSchema {
     resource?: IBentoWithRepositorySchema | IBentoRepositorySchema | IModelWithRepositorySchema | IModelRepositorySchema
     updated_at: string
     creator?: IUserSchema
+    resource_deleted: boolean
 }

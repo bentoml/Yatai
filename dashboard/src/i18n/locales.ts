@@ -2588,6 +2588,14 @@ const locales0 = {
         'ko': '이벤트 없음',
         'vi': 'Không có sự kiện',
     },
+    'deleted': {
+        'en': 'Deleted',
+        'zh-CN': '已删除',
+        'zh-TW': '已刪除',
+        'ja': '削除しました',
+        'ko': '삭제됨',
+        'vi': 'Đã xóa',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

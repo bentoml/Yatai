@@ -94,6 +94,9 @@ export default function EventList({ isLoading, events, paginationProps }: IEvent
                     default:
                         break
                 }
+                if (item.resource_deleted) {
+                    resourceLink = <span>{`${item.resource?.name} <${t('deleted')}>`}</span>
+                }
                 return (
                     <ListItem
                         overrides={{
