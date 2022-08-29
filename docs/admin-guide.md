@@ -128,7 +128,7 @@ minikube addons enable ingress
 2. Install Yatai helm chart
 
     ```bash
-    helm install yatai yatai/yatai -n yatai-system
+    helm install yatai yatai/yatai -n yatai-system --set layers.network.ingressClass=nginx
     ```
 
     See all available helm chart configuration options [here](./helm-configuration.md)
@@ -184,7 +184,7 @@ To install and operate Yatai in production, we generally recommend using a dedic
 2. Install Yatai helm chart
 
     ```bash
-    helm install yatai yatai/yatai -n yatai-system
+    helm install yatai yatai/yatai -n yatai-system --set layers.network.ingressClass=nginx
     ```
 
     See all available helm chart configuration options [here](./helm-configuration.md)
