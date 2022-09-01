@@ -122,7 +122,7 @@ func (c *clusterController) Update(ctx *gin.Context, schema *UpdateClusterSchema
 	if err != nil {
 		return nil, err
 	}
-	if err = c.canUpdate(ctx, cluster); err != nil {
+	if err = c.canOperate(ctx, cluster); err != nil {
 		return nil, err
 	}
 	cluster, err = services.ClusterService.Update(ctx, cluster, services.UpdateClusterOption{

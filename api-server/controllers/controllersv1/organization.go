@@ -92,7 +92,7 @@ func (c *organizationController) Update(ctx *gin.Context, schema *UpdateOrganiza
 	if err != nil {
 		return nil, err
 	}
-	if err = c.canUpdate(ctx, organization); err != nil {
+	if err = c.canOperate(ctx, organization); err != nil {
 		return nil, err
 	}
 	organization, err = services.OrganizationService.Update(ctx, organization, services.UpdateOrganizationOption{
