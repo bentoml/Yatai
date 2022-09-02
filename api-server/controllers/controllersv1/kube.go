@@ -317,7 +317,7 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 			return err
 		}
 
-		if pod.Labels[consts.KubeLabelYataiDeployment] != deployment.Name {
+		if pod.Labels[consts.KubeLabelYataiBentoDeployment] != deployment.Name {
 			err = errors.Errorf("pod %s not in this deployment", podName)
 			return err
 		}

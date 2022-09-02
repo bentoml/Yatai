@@ -198,8 +198,8 @@ github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZx
 github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647 h1:fKWmU8aM6tda4yThxj8SGKWJYCxjLW9gSM6WIIFFgvo=
 github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647/go.mod h1:w8sk7HbPMnOlZislz8Ch3pRw15FNMY6o1Q+53fepnhc=
 github.com/bentoml/yatai-common v0.0.0-20220808163629-fd79fcb6304f/go.mod h1:pox0XYk/bVUwKkadn0XwWHEbJmxSEeN3+HwGA4a8uOQ=
-github.com/bentoml/yatai-common v0.0.0-20220816174924-2358c9d58ee3 h1:ajxC2eLKBNBZYWxD/AmtVZ5patX7zMUtEoJG3W1ZfxA=
-github.com/bentoml/yatai-common v0.0.0-20220816174924-2358c9d58ee3/go.mod h1:pox0XYk/bVUwKkadn0XwWHEbJmxSEeN3+HwGA4a8uOQ=
+github.com/bentoml/yatai-common v0.0.0-20220902095020-08d3ea7f0301 h1:X4UBJgRAsmT/7JhvFLA0C9bpf2EV00S3BWLueRg0UEM=
+github.com/bentoml/yatai-common v0.0.0-20220902095020-08d3ea7f0301/go.mod h1:pox0XYk/bVUwKkadn0XwWHEbJmxSEeN3+HwGA4a8uOQ=
 github.com/bentoml/yatai-deployment v1.0.0-alpha.7 h1:JVZNsDwMTn4+hq0/GK3iirxF+It2h0EaqQoe6ie3Xew=
 github.com/bentoml/yatai-deployment v1.0.0-alpha.7/go.mod h1:cp5i9Y9pJRX89fiqvdPoPt65LmzaRjWVt6eVNb5eiGU=
 github.com/bentoml/yatai-schemas v0.0.0-20220816014402-e1efcc5a8e9f/go.mod h1:q7tt064G8YIiAwQabKyVaKEdSIHYDQA9Oyt+kyCsflU=
