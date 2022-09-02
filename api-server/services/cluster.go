@@ -23,6 +23,7 @@ import (
 
 	"github.com/bentoml/yatai-common/system"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
@@ -253,7 +254,7 @@ func (s *clusterService) GetRESTClientGetter(ctx context.Context, c *models.Clus
 }
 
 func (s *clusterService) GetDeploymentKubeNamespace(c *models.Cluster) string {
-	defaultKubeNamespace := consts.KubeNamespaceYataiDeployment
+	defaultKubeNamespace := commonconsts.KubeNamespaceYataiDeployment
 	if c.Config == nil {
 		return defaultKubeNamespace
 	}
@@ -378,7 +379,7 @@ func (s *clusterService) GetGrafanaRootPath(ctx context.Context, cluster *models
 }
 
 func (s *clusterService) GetGrafana(ctx context.Context, cluster *models.Cluster) (*v1alpha1.Grafana, error) {
-	_, ingLister, err := GetIngressInformer(ctx, cluster, consts.KubeNamespaceYataiComponents)
+	_, ingLister, err := GetIngressInformer(ctx, cluster, commonconsts.KubeNamespaceYataiComponents)
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +389,7 @@ func (s *clusterService) GetGrafana(ctx context.Context, cluster *models.Cluster
 		return nil, err
 	}
 
-	_, secretLister, err := GetSecretInformer(ctx, cluster, consts.KubeNamespaceYataiComponents)
+	_, secretLister, err := GetSecretInformer(ctx, cluster, commonconsts.KubeNamespaceYataiComponents)
 	if err != nil {
 		return nil, err
 	}

@@ -12,9 +12,9 @@ import (
 	v1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/utils/pointer"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/consts"
 )
 
 type kubePodService struct{}
@@ -22,7 +22,7 @@ type kubePodService struct{}
 var KubePodService = kubePodService{}
 
 func (s *kubePodService) ListPodsByDeployment(ctx context.Context, podLister v1.PodNamespaceLister, deployment *models.Deployment) ([]*models.KubePodWithStatus, error) {
-	selector, err := labels.Parse(fmt.Sprintf("%s = %s", consts.KubeLabelYataiDeployment, deployment.Name))
+	selector, err := labels.Parse(fmt.Sprintf("%s = %s", commonconsts.KubeLabelYataiBentoDeployment, deployment.Name))
 	if err != nil {
 		return nil, err
 	}

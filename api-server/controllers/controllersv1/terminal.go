@@ -26,6 +26,7 @@ import (
 	"k8s.io/kubernetes/pkg/client/conditions"
 	"k8s.io/kubernetes/pkg/util/interrupt"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
@@ -348,7 +349,7 @@ func (c *terminalController) GetDeploymentPodTerminal(ctx *gin.Context, schema *
 			return err
 		}
 
-		if pod.Labels[consts.KubeLabelYataiDeployment] != deployment.Name {
+		if pod.Labels[commonconsts.KubeLabelYataiBentoDeployment] != deployment.Name {
 			return errors.Errorf("pod %s not in this deployment %s", podName, deployment.Name)
 		}
 
@@ -551,15 +552,11 @@ func launchKubectlPod(ctx context.Context, cli *kubernetes.Clientset, userName s
 	} else if err != nil {
 		return nil, errors.Wrap(err, "get cluster role binding")
 	}
-	podName := fmt.Sprintf("mcd-kubectl-%s", userName)
+	podName := fmt.Sprintf("yatai-kubectl-%s", userName)
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      podName,
 			Namespace: consts.YataiKubectlNamespace,
-			Labels: map[string]string{
-				consts.KubeLabelMcdKubectl: consts.KubeLabelTrue,
-				consts.KubeLabelMcdUser:    userName,
-			},
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{

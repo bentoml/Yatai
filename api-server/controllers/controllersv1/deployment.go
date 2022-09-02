@@ -19,12 +19,12 @@ import (
 	v1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
-	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/sync/errsgroup"
 	"github.com/bentoml/yatai/common/utils"
 )
@@ -947,7 +947,7 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 		if !ok {
 			return false
 		}
-		if pod.Labels[consts.KubeLabelYataiDeployment] != deployment.Name {
+		if pod.Labels[commonconsts.KubeLabelYataiBentoDeployment] != deployment.Name {
 			return false
 		}
 		return true

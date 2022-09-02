@@ -13,10 +13,10 @@ import (
 
 	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/reqcli"
 )
 
@@ -111,7 +111,7 @@ func (c *grafanaController) Proxy(ctx *gin.Context) {
 		}
 
 		if majorCluster.ID == cluster.ID && config.YataiConfig.InCluster && !config.YataiConfig.IsSass {
-			grafana.Spec.Ingress.Hostname = fmt.Sprintf("yatai-grafana.%s", consts.KubeNamespaceYataiComponents)
+			grafana.Spec.Ingress.Hostname = fmt.Sprintf("yatai-grafana.%s", commonconsts.KubeNamespaceYataiComponents)
 		}
 
 		err = services.CacheService.Set(ctx, grafanaCacheKey, grafana)

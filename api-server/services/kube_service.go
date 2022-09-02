@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 )
@@ -41,7 +42,7 @@ func (s *kubeServiceService) DeploymentTargetToKubeService(ctx context.Context, 
 
 	spec := apiv1.ServiceSpec{
 		Selector: map[string]string{
-			consts.KubeLabelYataiSelector: kubeName,
+			commonconsts.KubeLabelYataiSelector: kubeName,
 		},
 		Ports: []apiv1.ServicePort{
 			{

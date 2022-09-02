@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
@@ -180,9 +181,8 @@ func (s *deploymentRevisionService) MakeSureKubeOwnerReferences(ctx context.Cont
 	}
 	if isNotFound {
 		labels := map[string]string{
-			consts.KubeLabelYataiDeployment:     deployment.Name,
-			consts.KubeLabelYataiDeploymentId:   fmt.Sprintf("%d", deployment.ID),
-			consts.KubeLabelYataiOwnerReference: consts.KubeLabelTrue,
+			commonconsts.KubeLabelYataiBentoDeployment: deployment.Name,
+			commonconsts.KubeLabelYataiOwnerReference:  commonconsts.KubeLabelTrue,
 		}
 		cm = &v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{

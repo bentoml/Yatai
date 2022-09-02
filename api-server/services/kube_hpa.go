@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/utils"
@@ -55,7 +56,7 @@ func (s *kubeHPAService) DeploymentTargetToKubeHPA(ctx context.Context, deployme
 			Type: v2beta2.PodsMetricSourceType,
 			Pods: &v2beta2.PodsMetricSource{
 				Metric: v2beta2.MetricIdentifier{
-					Name: consts.KubeHPAQPSMetric,
+					Name: commonconsts.KubeHPAQPSMetric,
 				},
 				Target: v2beta2.MetricTarget{
 					Type:         v2beta2.UtilizationMetricType,

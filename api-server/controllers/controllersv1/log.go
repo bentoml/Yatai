@@ -20,9 +20,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/common/consts"
 )
 
 type logMessageType string
@@ -344,7 +344,7 @@ func (c *logController) TailDeploymentPodLog(ctx *gin.Context, schema *GetDeploy
 			return err
 		}
 
-		if pod.Labels[consts.KubeLabelYataiDeployment] != deployment.Name {
+		if pod.Labels[commonconsts.KubeLabelYataiBentoDeployment] != deployment.Name {
 			return errors.Errorf("pod %s not in this deployment", podName)
 		}
 

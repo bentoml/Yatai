@@ -33,9 +33,9 @@ import (
 	"k8s.io/kubernetes/pkg/client/conditions"
 	"k8s.io/kubernetes/pkg/util/interrupt"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
-	"github.com/bentoml/yatai/common/consts"
 )
 
 const (
@@ -152,7 +152,7 @@ func NewDebugOptions(terminal *WebTerminal, clientset *kubernetes.Clientset, res
 		ContainerName:           terminal.containerName,
 		AgentLess:               agentLess,
 		Fork:                    fork,
-		ForkPodRetainLabels:     []string{consts.KubeLabelYataiDeployment},
+		ForkPodRetainLabels:     []string{commonconsts.KubeLabelYataiBentoDeployment},
 		Command:                 []string{"bash", "-l"},
 		Image:                   image,
 		RegistrySecretName:      defaultRegistrySecretName,

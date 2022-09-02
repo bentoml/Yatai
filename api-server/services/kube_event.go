@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
 )
@@ -66,23 +67,23 @@ func (s *kubeEventService) filterKubeEventsByPodsUID(events []apiv1.Event, pods 
 
 	for _, pod := range pods {
 		podEventMap[pod.UID] = true
-		if selector, exist := pod.Labels[consts.KubeLabelYataiSelector]; exist {
+		if selector, exist := pod.Labels[commonconsts.KubeLabelYataiSelector]; exist {
 			deploymentEventMap[selector] = true
 		}
 	}
 
 	for _, event := range events {
-		if _, exists := podEventMap[event.InvolvedObject.UID]; exists && event.InvolvedObject.Kind == consts.KubeEventResourceKindPod {
+		if _, exists := podEventMap[event.InvolvedObject.UID]; exists && event.InvolvedObject.Kind == commonconsts.KubeEventResourceKindPod {
 			result = append(result, event)
 			continue
 		}
 
-		if _, exists := deploymentEventMap[event.InvolvedObject.Name]; exists && event.InvolvedObject.Kind == consts.KubeEventResourceKindHPA {
+		if _, exists := deploymentEventMap[event.InvolvedObject.Name]; exists && event.InvolvedObject.Kind == commonconsts.KubeEventResourceKindHPA {
 			result = append(result, event)
 			continue
 		}
 
-		if event.InvolvedObject.Kind == consts.KubeEventResourceKindReplicaSet {
+		if event.InvolvedObject.Kind == commonconsts.KubeEventResourceKindReplicaSet {
 			endIndex := strings.LastIndex(event.InvolvedObject.Name, "-")
 			if endIndex == -1 {
 				continue

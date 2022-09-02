@@ -10,6 +10,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
@@ -177,11 +178,10 @@ func (s *deploymentTargetService) GetKubeLabels(ctx context.Context, deploymentT
 	}
 
 	labels := map[string]string{
-		consts.KubeLabelYataiDeploymentId:         fmt.Sprintf("%d", deployment.ID),
-		consts.KubeLabelYataiDeployment:           deployment.Name,
-		consts.KubeLabelCreator:                   consts.KubeCreator,
-		consts.KubeLabelYataiDeploymentTargetType: string(deploymentTarget.Type),
-		consts.KubeLabelYataiDeployToken:          deployment.KubeDeployToken,
+		commonconsts.KubeLabelYataiBentoDeployment:           deployment.Name,
+		commonconsts.KubeLabelCreator:                        "yatai",
+		commonconsts.KubeLabelYataiBentoDeploymentTargetType: string(deploymentTarget.Type),
+		commonconsts.KubeLabelYataiDeployToken:               deployment.KubeDeployToken,
 	}
 	return labels, nil
 }
@@ -192,7 +192,7 @@ func (s *deploymentTargetService) GetKubeAnnotations(ctx context.Context, deploy
 		return nil, err
 	}
 	return map[string]string{
-		consts.KubeAnnotationBento: bento.Version,
+		commonconsts.KubeAnnotationBentoVersion: bento.Version,
 	}, nil
 }
 

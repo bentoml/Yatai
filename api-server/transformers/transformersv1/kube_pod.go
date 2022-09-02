@@ -7,11 +7,11 @@ import (
 
 	apiv1 "k8s.io/api/core/v1"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
-	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/utils"
 )
 
@@ -47,13 +47,13 @@ func ToKubePodSchemas(ctx context.Context, clusterId uint, pods []*models.KubePo
 	})
 
 	sort.SliceStable(pods, func(i, j int) bool {
-		return pods[i].Pod.Labels[consts.KubeLabelYataiDeploymentTargetType] == string(modelschemas.DeploymentTargetTypeStable)
+		return pods[i].Pod.Labels[commonconsts.KubeLabelYataiBentoDeploymentTargetType] == string(modelschemas.DeploymentTargetTypeStable)
 	})
 
 	var deployment *models.Deployment
 
 	for _, p := range pods {
-		deploymentName, ok := p.Pod.Labels[consts.KubeLabelYataiDeployment]
+		deploymentName, ok := p.Pod.Labels[commonconsts.KubeLabelYataiBentoDeployment]
 		if ok {
 			namespace := p.Pod.Namespace
 			deployment, err = services.DeploymentService.GetByName(ctx, clusterId, namespace, deploymentName)
@@ -99,7 +99,7 @@ func ToKubePodSchemas(ctx context.Context, clusterId uint, pods []*models.KubePo
 				statusReady = c.Status == apiv1.ConditionTrue
 			}
 		}
-		deploymentTargetType, deploymentTargetTypeExists := p.Pod.Labels[consts.KubeLabelYataiDeploymentTargetType]
+		deploymentTargetType, deploymentTargetTypeExists := p.Pod.Labels[commonconsts.KubeLabelYataiBentoDeploymentTargetType]
 		var deploymentTargetSchema *schemasv1.DeploymentTargetSchema
 		if deploymentTargetTypeExists {
 			deploymentTargetSchema = deploymentTargetSchemasMap[modelschemas.DeploymentTargetType(deploymentTargetType)]
@@ -114,7 +114,7 @@ func ToKubePodSchemas(ctx context.Context, clusterId uint, pods []*models.KubePo
 			HostIp:    p.Pod.Status.HostIP,
 		}
 		var runnerName *string
-		runnerName_, runnerNameExists := p.Pod.Labels[consts.KubeLabelYataiBentoRunner]
+		runnerName_, runnerNameExists := p.Pod.Labels[commonconsts.KubeLabelYataiBentoDeploymentRunner]
 		if runnerNameExists {
 			runnerName = &runnerName_
 		}

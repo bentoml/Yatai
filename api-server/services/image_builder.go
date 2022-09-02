@@ -8,9 +8,9 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
-	"github.com/bentoml/yatai/common/consts"
 )
 
 type imageBuilderService struct{}
@@ -18,7 +18,7 @@ type imageBuilderService struct{}
 var ImageBuilderService = &imageBuilderService{}
 
 func (s *imageBuilderService) ListImageBuilderPods(ctx context.Context, cluster *models.Cluster, kubeLabels map[string]string) ([]*models.KubePodWithStatus, error) {
-	_, podLister, err := GetPodInformer(ctx, cluster, consts.KubeNamespaceYataiModelImageBuilder)
+	_, podLister, err := GetPodInformer(ctx, cluster, commonconsts.KubeNamespaceYataiModelImageBuilder)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (s *imageBuilderService) ListImageBuilderPods(ctx context.Context, cluster 
 	if err != nil {
 		return nil, err
 	}
-	_, eventLister, err := GetEventInformer(ctx, cluster, consts.KubeNamespaceYataiModelImageBuilder)
+	_, eventLister, err := GetEventInformer(ctx, cluster, commonconsts.KubeNamespaceYataiModelImageBuilder)
 	if err != nil {
 		return nil, err
 	}

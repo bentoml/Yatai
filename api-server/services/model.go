@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
@@ -599,8 +600,8 @@ func (s *modelService) GetImageBuilderKubeLabels(ctx context.Context, model *mod
 		return nil, err
 	}
 	return map[string]string{
-		consts.KubeLabelYataiModelRepository: modelRepository.Name,
-		consts.KubeLabelYataiModel:           model.Version,
+		commonconsts.KubeLabelYataiModelRepository: modelRepository.Name,
+		commonconsts.KubeLabelYataiModel:           model.Version,
 	}, nil
 }
 

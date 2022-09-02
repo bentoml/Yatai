@@ -11,6 +11,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
@@ -94,7 +95,7 @@ more_set_headers "X-Yatai-Bento: %s";
 			OwnerReferences: deployOption.OwnerReferences,
 		},
 		Spec: v1.IngressSpec{
-			IngressClassName: utils.StringPtr(consts.KubeIngressClassName),
+			IngressClassName: utils.StringPtr(commonconsts.KubeIngressClassName),
 			Rules: []v1.IngressRule{
 				{
 					Host: internalHost,
