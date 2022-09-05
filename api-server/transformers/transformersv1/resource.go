@@ -21,7 +21,9 @@ func ToResourceSchemasMap(ctx context.Context, resourcesItf interface{}) (map[st
 		for i := 0; i < s.Len(); i++ {
 			v := s.Index(i).Interface()
 			if resource, ok := v.(models.IResource); ok {
-				resources = append(resources, resource)
+				if resource != nil {
+					resources = append(resources, resource)
+				}
 			} else {
 				return nil, fmt.Errorf("ToResourceSchemasMap: invalid type %v", reflect.TypeOf(v))
 			}
