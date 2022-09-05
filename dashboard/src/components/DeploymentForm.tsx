@@ -221,6 +221,12 @@ export default function DeploymentForm({
             return runnerTabsActiveKey_
         })
         setValues((vs) => {
+            if (deploymentRevision) {
+                return vs
+            }
+            if (!bento?.manifest?.runners) {
+                return vs
+            }
             if (vs.targets.length === 0) {
                 return vs
             }
@@ -269,7 +275,7 @@ export default function DeploymentForm({
                 ],
             }
         })
-    }, [bento?.manifest?.runners])
+    }, [bento?.manifest?.runners, deploymentRevision])
 
     return (
         <Form
@@ -702,6 +708,7 @@ export default function DeploymentForm({
                                         <Panel title='Runners'>
                                             <Tabs
                                                 activeKey={runnerTabsActiveKey}
+                                                renderAll
                                                 onChange={({ activeKey }) => {
                                                     setRunnerTabsActiveKey(activeKey)
                                                     setValues((values_) => {
