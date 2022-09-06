@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
-	github.com/bentoml/yatai-common v0.0.0-20220902095020-08d3ea7f0301
+	github.com/bentoml/yatai-common v0.0.0-20220906074140-56c8354c44d4
 	github.com/bentoml/yatai-deployment v1.0.0-alpha.7
 	github.com/bentoml/yatai-schemas v0.0.0-20220826102727-d1a4065e9b2a
 	github.com/ghodss/yaml v1.0.0
