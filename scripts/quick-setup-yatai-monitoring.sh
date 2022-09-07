@@ -38,7 +38,7 @@ if ! command -v kubectl >/dev/null 2>&1; then
   exit 1
 fi
 
-KUBE_VERSION=$(kubectl version --output=json | jq '.serverVersion.minor')
+KUBE_VERSION=$(kubectl version --output=json | $jq '.serverVersion.minor')
 if [ ${KUBE_VERSION:1:2} -lt 20 ]; then
   echo "😱 install requires at least Kubernetes 1.20" >&2
   exit 1
