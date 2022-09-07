@@ -50,12 +50,19 @@ if ! command -v helm >/dev/null 2>&1; then
   exit 1
 fi
 
-kubectl create ns yatai-monitoring
+namespace=yatai-monitoring
+
+# check if namespace exists
+if ! kubectl get namespace ${namespace} >/dev/null 2>&1; then
+  echo "📥 creating namespace ${namespace}"
+  kubectl create namespace ${namespace}
+  echo "✅ created namespace ${namespace}"
+fi
 
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update prometheus-community
 echo "🤖 installing prometheus-operator..."
-cat <<EOF | helm install prometheus prometheus-community/kube-prometheus-stack -n yatai-monitoring -f -
+cat <<EOF | helm upgrade --install prometheus prometheus-community/kube-prometheus-stack -n ${namespace} -f -
 grafana:
   enabled: false
   forceDeployDatasources: true
@@ -63,7 +70,7 @@ grafana:
 EOF
 
 echo "⏳ waiting for prometheus-operator to be ready..."
-kubectl -n yatai-monitoring wait --for=condition=ready --timeout=600s pod -l release=prometheus
+kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l release=prometheus
 echo "✅ prometheus-operator is ready"
 
 echo "⏳ waiting for prometheus-operator CRDs to be established..."
@@ -72,17 +79,25 @@ kubectl wait --for condition=established --timeout=120s crd/servicemonitors.moni
 echo "✅ prometheus-operator CRDs are established"
 
 echo "🧪 verify that the Prometheus service is running..."
-kubectl -n yatai-monitoring wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/instance=prometheus-kube-prometheus-prometheus
+kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/instance=prometheus-kube-prometheus-prometheus
 echo "✅ Prometheus service is running"
 
 echo "🧪 verify that the Alertmanager service is running..."
-kubectl -n yatai-monitoring wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/instance=prometheus-kube-prometheus-alertmanager
+kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/instance=prometheus-kube-prometheus-alertmanager
 echo "✅ Alertmanager service is running"
 
-helm repo add grafana https://grafana.github.io/helm-charts
-helm repo update grafana
-echo "🤖 installing Grafana..."
-cat <<EOF | helm install grafana grafana/grafana -n yatai-monitoring -f -
+grafana_namespace=yatai-logging
+
+if [ -z "$(kubectl -n ${grafana_namespace} get deploy -l app.kubernetes.io/name=grafana 2>/dev/null)" ]; then
+  grafana_namespace=${namespace}
+fi
+
+# if grafana namespace is ${namespace} then install grafana
+if [ "${grafana_namespace}" = "${namespace}" ]; then
+  helm repo add grafana https://grafana.github.io/helm-charts
+  helm repo update grafana
+  echo "🤖 installing Grafana..."
+  cat <<EOF | helm upgrade --install grafana grafana/grafana -n ${grafana_namespace} -f -
 adminUser: admin
 adminPassword: $(openssl rand -base64 16)
 persistence:
@@ -90,14 +105,18 @@ persistence:
 sidecar:
   dashboards:
     enabled: true
+    searchNamespace: ALL
   datasources:
     enabled: true
+    searchNamespace: ALL
   notifiers:
     enabled: true
+    searchNamespace: ALL
 EOF
+fi
 
 echo "🧪 verify that the Grafana service is running..."
-kubectl -n yatai-monitoring wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=grafana
+kubectl -n ${grafana_namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=grafana
 echo "✅ Grafana service is running"
 
 echo "🤖 creating PodMonitor for BentoDeployments..."
@@ -109,13 +128,13 @@ curl -L https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/monitorin
 echo "✅ BentoDeployment Grafana dashboard is downloaded"
 
 echo "🤖 importing the BentoDeployment Grafana dashboard..."
-kubectl -n yatai-monitoring create configmap bentodeployment-dashboard --from-file=/tmp/bentodeployment-dashboard.json
-kubectl -n yatai-monitoring label configmap bentodeployment-dashboard grafana_dashboard=1
+kubectl -n ${grafana_namespace} create configmap bentodeployment-dashboard --from-file=/tmp/bentodeployment-dashboard.json
+kubectl -n ${grafana_namespace} label configmap bentodeployment-dashboard grafana_dashboard=1
 echo "✅ BentoDeployment Grafana dashboard is imported"
 
 echo "🌐 port-forwarding Grafana..."
-kubectl -n yatai-monitoring port-forward svc/grafana 8888:80 --address 0.0.0.0 &
+kubectl -n ${grafana_namespace} port-forward svc/grafana 8888:80 --address 0.0.0.0 &
 echo "✅ Grafana dashboard is available at: http://localhost:8888/d/TJ3FhiG4z/bentodeployment?orgId=1"
 
-echo "Grafana username: "$(kubectl -n yatai-monitoring get secret grafana -o jsonpath='{.data.admin-user}' | base64 -d)
-echo "Grafana password: "$(kubectl -n yatai-monitoring get secret grafana -o jsonpath='{.data.admin-password}' | base64 -d)
+echo "Grafana username: "$(kubectl -n ${grafana_namespace} get secret grafana -o jsonpath='{.data.admin-user}' | base64 -d)
+echo "Grafana password: "$(kubectl -n ${grafana_namespace} get secret grafana -o jsonpath='{.data.admin-password}' | base64 -d)

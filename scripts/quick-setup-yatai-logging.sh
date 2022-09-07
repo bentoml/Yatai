@@ -50,13 +50,20 @@ if ! command -v helm >/dev/null 2>&1; then
   exit 1
 fi
 
-# check if yatai-monitoring namespace exists
-if ! kubectl get namespace yatai-monitoring >/dev/null 2>&1; then
-  echo "😱 yatai-monitoring namespace is not found, please setup yatai-monitoring first!" >&2
+# check if yatai-system namespace exists
+if ! kubectl get namespace yatai-system >/dev/null 2>&1; then
+  echo "😱 yatai-system namespace is not found, please install Yatai first!" >&2
   exit 1
 fi
 
-kubectl create ns yatai-logging
+namespace=yatai-logging
+
+# check if ${namespace} namespace exists
+if ! kubectl get namespace ${namespace} >/dev/null 2>&1; then
+  echo "📥 creating namespace ${namespace}"
+  kubectl create namespace ${namespace}
+  echo "✅ created namespace ${namespace}"
+fi
 
 export S3_ACCESS_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
 export S3_SECRET_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
@@ -64,7 +71,7 @@ export S3_SECRET_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
 kubectl create secret generic logging-minio-secret \
   --from-literal=accesskey=$S3_ACCESS_KEY \
   --from-literal=secretkey=$S3_SECRET_KEY \
-  -n yatai-logging
+  -n ${namespace}
 
 echo "🤖 creating MinIO Tenant..."
 cat <<EOF | kubectl apply -f -
@@ -74,7 +81,7 @@ metadata:
   labels:
     app: minio
   name: logging-minio
-  namespace: yatai-logging
+  namespace: ${namespace}
 spec:
   credsSecret:
     name: logging-minio-secret
@@ -102,23 +109,23 @@ EOF
 
 echo "⏳ waiting for minio tenant to be ready..."
 for i in $(seq 1 10); do
-  kubectl -n yatai-logging wait --for=condition=ready --timeout=600s pod -l app=minio && break || sleep 5
+  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app=minio && break || sleep 5
 done
 echo "✅ minio tenant is ready"
 
-S3_ENDPOINT=minio.yatai-logging.svc.cluster.local
+S3_ENDPOINT=minio.${namespace}.svc.cluster.local
 S3_REGION=foo
 S3_BUCKET_NAME=loki-data
 S3_SECURE=false
-S3_ACCESS_KEY=$(kubectl -n yatai-logging get secret logging-minio-secret -o jsonpath='{.data.accesskey}' | base64 -d)
-S3_SECRET_KEY=$(kubectl -n yatai-logging get secret logging-minio-secret -o jsonpath='{.data.secretkey}' | base64 -d)
+S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret logging-minio-secret -o jsonpath='{.data.accesskey}' | base64 -d)
+S3_SECRET_KEY=$(kubectl -n ${namespace} get secret logging-minio-secret -o jsonpath='{.data.secretkey}' | base64 -d)
 
 echo "🧪 testing MinIO connection..."
 for i in $(seq 1 10); do
-  kubectl -n yatai-logging delete pod s3-client 2> /dev/null || true
+  kubectl -n ${namespace} delete pod s3-client 2> /dev/null || true
 
   kubectl run s3-client --rm --tty -i --restart='Never' \
-      --namespace yatai-logging \
+      --namespace ${namespace} \
       --env "AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY" \
       --env "AWS_SECRET_ACCESS_KEY=$S3_SECRET_KEY" \
       --image quay.io/bentoml/s3-client:0.0.1 \
@@ -129,7 +136,7 @@ echo "✅ MinIO connection is successful"
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update grafana
 echo "🤖 installing Loki..."
-cat <<EOF | helm upgrade --install loki grafana/loki-distributed -n yatai-logging -f -
+cat <<EOF | helm upgrade --install loki grafana/loki-distributed -n ${namespace} -f -
 loki:
   image:
     registry: quay.io/bentoml
@@ -167,14 +174,14 @@ EOF
 
 
 echo "⏳ waiting for Loki to be ready..."
-kubectl -n yatai-logging wait --for=condition=ready pod -l app.kubernetes.io/name=loki-distributed
+kubectl -n ${namespace} wait --for=condition=ready pod -l app.kubernetes.io/name=loki-distributed
 echo "✅ Loki is ready"
 
 echo "🤖 installing Promtail..."
-cat <<EOF | helm upgrade --install promtail grafana/promtail -n yatai-logging -f -
+cat <<EOF | helm upgrade --install promtail grafana/promtail -n ${namespace} -f -
 config:
   clients:
-    - url: http://loki-loki-distributed-gateway.yatai-logging.svc.cluster.local/loki/api/v1/push
+    - url: http://loki-loki-distributed-gateway.${namespace}.svc.cluster.local/loki/api/v1/push
       tenant_id: 1
   snippets:
     pipelineStages:
@@ -199,34 +206,70 @@ config:
 EOF
 
 echo "⏳ waiting for Promtail to be ready..."
-kubectl -n yatai-logging wait --for=condition=ready pod -l app.kubernetes.io/name=promtail
+kubectl -n ${namespace} wait --for=condition=ready pod -l app.kubernetes.io/name=promtail
 echo "✅ Promtail is ready"
 
-echo "🤖 importing Grafana datasource..."
-cat <<EOF > /tmp/loki-datasource.yaml
+grafana_namespace=yatai-monitoring
+
+if [ -z "$(kubectl -n ${grafana_namespace} get deploy -l app.kubernetes.io/name=grafana 2>/dev/null)" ]; then
+  grafana_namespace=${namespace}
+fi
+
+# if grafana namespace is ${namespace} then install grafana
+if [ "${grafana_namespace}" = "${namespace}" ]; then
+  helm repo add grafana https://grafana.github.io/helm-charts
+  helm repo update grafana
+  echo "🤖 installing Grafana..."
+  cat <<EOF | helm upgrade --install grafana grafana/grafana -n ${grafana_namespace} -f -
+adminUser: admin
+adminPassword: $(openssl rand -base64 16)
+persistence:
+  enabled: true
+sidecar:
+  dashboards:
+    enabled: true
+    searchNamespace: ALL
+  datasources:
+    enabled: true
+    searchNamespace: ALL
+  notifiers:
+    enabled: true
+    searchNamespace: ALL
+EOF
+fi
+
+echo "🧪 verify that the Grafana service is running..."
+kubectl -n ${grafana_namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=grafana
+echo "✅ Grafana service is running"
+
+if [ "${grafana_namespace}" = "${namespace}" ]; then
+  echo "🤖 importing Grafana datasource..."
+  cat <<EOF > /tmp/loki-datasource.yaml
 apiVersion: 1
 datasources:
 - name: Loki
   type: loki
   access: proxy
-  url: http://loki-loki-distributed-gateway.yatai-logging.svc.cluster.local
+  url: http://loki-loki-distributed-gateway.${namespace}.svc.cluster.local
   version: 1
   editable: false
 EOF
 
-kubectl -n yatai-monitoring create configmap loki-datasource --from-file=/tmp/loki-datasource.yaml
-kubectl -n yatai-monitoring label configmap loki-datasource grafana_datasource=1
+  kubectl -n ${namespace} create configmap loki-datasource --from-file=/tmp/loki-datasource.yaml
+  kubectl -n ${namespace} label configmap loki-datasource grafana_datasource=1
+  echo "✅ Grafana datasource is imported"
+fi
 
 echo "🤖 restarting Grafana..."
-kubectl -n yatai-monitoring rollout restart deployment grafana
+kubectl -n ${grafana_namespace} rollout restart deployment grafana
 
 echo "⏳ waiting for Grafana to be ready..."
-kubectl -n yatai-monitoring wait --for=condition=ready pod -l app.kubernetes.io/name=grafana
+kubectl -n ${grafana_namespace} wait --for=condition=ready pod -l app.kubernetes.io/name=grafana
 echo "✅ Grafana is ready"
 
 echo "🌐 port-forwarding Grafana..."
-kubectl -n yatai-monitoring port-forward svc/grafana 8889:80 --address 0.0.0.0 &
+kubectl -n ${grafana_namespace} port-forward svc/grafana 8889:80 --address 0.0.0.0 &
 echo "✅ Grafana dashboard is available at: http://localhost:8889/explore"
 
-echo "Grafana username: "$(kubectl -n yatai-monitoring get secret grafana -o jsonpath='{.data.admin-user}' | base64 -d)
-echo "Grafana password: "$(kubectl -n yatai-monitoring get secret grafana -o jsonpath='{.data.admin-password}' | base64 -d)
+echo "Grafana username: "$(kubectl -n ${grafana_namespace} get secret grafana -o jsonpath='{.data.admin-user}' | base64 -d)
+echo "Grafana password: "$(kubectl -n ${grafana_namespace} get secret grafana -o jsonpath='{.data.admin-password}' | base64 -d)

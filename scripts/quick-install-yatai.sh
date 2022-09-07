@@ -52,29 +52,36 @@ if ! command -v helm >/dev/null 2>&1; then
   exit 1
 fi
 
-kubectl create namespace yatai-system
+namespace=yatai-system
+
+# check if yatai-system namespace exists
+if ! kubectl get namespace ${namespace} >/dev/null 2>&1; then
+  echo "📥 creating namespace ${namespace}"
+  kubectl create namespace ${namespace}
+  echo "✅ created namespace ${namespace}"
+fi
 
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update bitnami
 echo "🤖 installing PostgreSQL..."
-helm install postgresql-ha bitnami/postgresql-ha -n yatai-system
+helm upgrade --install postgresql-ha bitnami/postgresql-ha -n ${namespace}
 
 echo "⏳ waiting for PostgreSQL to be ready..."
-kubectl -n yatai-system wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=postgresql-ha
+kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=postgresql-ha
 echo "✅ PostgreSQL is ready"
 
-PG_PASSWORD=$(kubectl get secret --namespace yatai-system postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 -d)
-PG_HOST=postgresql-ha-pgpool.yatai-system.svc.cluster.local
+PG_PASSWORD=$(kubectl get secret --namespace ${namespace} postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 -d)
+PG_HOST=postgresql-ha-pgpool.${namespace}.svc.cluster.local
 PG_PORT=5432
 PG_DATABASE=yatai
 PG_USER=postgres
 PG_SSLMODE=disable
 
 echo "🧪 testing PostgreSQL connection..."
-kubectl -n yatai-system delete pod postgresql-ha-client 2> /dev/null || true
+kubectl -n ${namespace} delete pod postgresql-ha-client 2> /dev/null || true
 
 kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
-    --namespace yatai-system \
+    --namespace ${namespace} \
     --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
     --env="PGPASSWORD=$PG_PASSWORD" \
     --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d postgres -c "select 1"
@@ -82,10 +89,10 @@ kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
 echo "✅ PostgreSQL connection is successful"
 
 echo "🤖 creating PostgreSQL database ${PG_DATABASE}..."
-kubectl -n yatai-system delete pod postgresql-ha-client 2> /dev/null || true
+kubectl -n ${namespace} delete pod postgresql-ha-client 2> /dev/null || true
 
 kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
-    --namespace yatai-system \
+    --namespace ${namespace} \
     --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
     --env="PGPASSWORD=$PG_PASSWORD" \
     --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d postgres -c "create database $PG_DATABASE"
@@ -93,10 +100,10 @@ kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
 echo "✅ PostgreSQL database ${PG_DATABASE} is created"
 
 echo "🧪 testing PostgreSQL environment variables..."
-kubectl -n yatai-system delete pod postgresql-ha-client 2> /dev/null || true
+kubectl -n ${namespace} delete pod postgresql-ha-client 2> /dev/null || true
 
 kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
-    --namespace yatai-system \
+    --namespace ${namespace} \
     --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
     --env="PGPASSWORD=$PG_PASSWORD" \
     --command -- psql -h $PG_HOST -p $PG_PORT -U $PG_USER -d $PG_DATABASE -c "select 1"
@@ -109,7 +116,8 @@ helm repo update minio
 S3_ACCESS_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
 S3_SECRET_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
 
-cat <<EOF > /tmp/yatai-minio-values.yaml
+echo "🤖 installing MinIO..."
+cat <<EOF | helm upgrade --install minio-operator minio/minio-operator -n ${namespace} -f -
 tenants:
 - image:
     pullPolicy: IfNotPresent
@@ -120,7 +128,7 @@ tenants:
     port: 9000
   mountPath: /export
   name: yatai-minio
-  namespace: yatai-system
+  namespace: ${namespace}
   pools:
   - servers: 4
     size: 20Gi
@@ -133,32 +141,29 @@ tenants:
   subPath: /data
 EOF
 
-echo "🤖 installing MinIO..."
-helm install minio-operator minio/minio-operator -n yatai-system -f /tmp/yatai-minio-values.yaml
-
 echo "⏳ waiting for minio-operator to be ready..."
-kubectl -n yatai-system wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=minio-operator
+kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=minio-operator
 echo "✅ minio-operator is ready"
 
 echo "⏳ waiting for minio tenant to be ready..."
 for i in $(seq 1 10); do
-  kubectl -n yatai-system wait --for=condition=ready --timeout=600s pod -l app=minio && break || sleep 5
+  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app=minio && break || sleep 5
 done
 echo "✅ minio tenant is ready"
 
-S3_ENDPOINT=minio.yatai-system.svc.cluster.local
+S3_ENDPOINT=minio.${namespace}.svc.cluster.local
 S3_REGION=foo
 S3_BUCKET_NAME=yatai
 S3_SECURE=false
-S3_ACCESS_KEY=$(kubectl -n yatai-system get secret yatai-minio-secret -o jsonpath='{.data.accesskey}' | base64 -d)
-S3_SECRET_KEY=$(kubectl -n yatai-system get secret yatai-minio-secret -o jsonpath='{.data.secretkey}' | base64 -d)
+S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret yatai-minio-secret -o jsonpath='{.data.accesskey}' | base64 -d)
+S3_SECRET_KEY=$(kubectl -n ${namespace} get secret yatai-minio-secret -o jsonpath='{.data.secretkey}' | base64 -d)
 
 echo "🧪 testing MinIO connection..."
 for i in $(seq 1 10); do
-  kubectl -n yatai-system delete pod s3-client 2> /dev/null || true
+  kubectl -n ${namespace} delete pod s3-client 2> /dev/null || true
 
   kubectl run s3-client --rm --tty -i --restart='Never' \
-      --namespace yatai-system \
+      --namespace ${namespace} \
       --env "AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY" \
       --env "AWS_SECRET_ACCESS_KEY=$S3_SECRET_KEY" \
       --image quay.io/bentoml/s3-client:0.0.1 \
@@ -169,7 +174,7 @@ echo "✅ MinIO connection is successful"
 helm repo add bentoml https://bentoml.github.io/charts
 helm repo update bentoml
 echo "🤖 installing yatai..."
-helm install yatai bentoml/yatai -n yatai-system \
+helm upgrade --install yatai bentoml/yatai -n ${namespace} \
     --set postgresql.host=$PG_HOST \
     --set postgresql.port=$PG_PORT \
     --set postgresql.user=$PG_USER \
@@ -185,6 +190,6 @@ helm install yatai bentoml/yatai -n yatai-system \
     --devel=$DEVEL
 
 echo "⏳ waiting for yatai to be ready..."
-kubectl -n yatai-system wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=yatai
+kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=yatai
 echo "✅ yatai is ready"
-helm get notes yatai -n yatai-system
+helm get notes yatai -n ${namespace}
