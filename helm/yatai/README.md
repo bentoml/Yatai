@@ -14,8 +14,9 @@ Advantage of using Yatai Helm chart:
 ## TL;DR:
 
 ```bash
-helm repo add bentoml https://bentoml.github.io/charts
-helm repo update
+helm repo remove bentoml 2> /dev/null || true
+helm repo add bentoml https://bentoml.github.io/helm-charts
+helm repo update bentoml
 kubectl create ns yatai-system
 helm install yatai bentoml/yatai -n yatai-system
 ```

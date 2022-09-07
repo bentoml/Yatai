@@ -418,7 +418,8 @@ You need to configure your DNS in one of the following two options:
 
 .. code:: bash
 
-  helm repo add bentoml https://bentoml.github.io/charts
+  helm repo remove bentoml 2> /dev/null || true
+  helm repo add bentoml https://bentoml.github.io/helm-charts
   helm repo update bentoml
   helm upgrade --install yatai-deployment bentoml/yatai-deployment -n yatai-deployment \
       --set dockerRegistry.server=$DOCKER_REGISTRY_SERVER \

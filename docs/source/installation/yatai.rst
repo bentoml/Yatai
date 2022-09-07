@@ -439,7 +439,8 @@ Expected output:
 
 .. code:: bash
 
-  helm repo add bentoml https://bentoml.github.io/charts
+  helm repo remove bentoml 2> /dev/null || true
+  helm repo add bentoml https://bentoml.github.io/helm-charts
   helm repo update bentoml
   helm upgrade --install yatai bentoml/yatai -n yatai-system \
       --set postgresql.host=$PG_HOST \

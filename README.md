@@ -47,14 +47,12 @@ Yatai is a production-first platform for your machine learning needs. It brings 
      * Install latest Helm: https://helm.sh/docs/intro/install/
    * Start a minikube Kubernetes cluster: `minikube start --cpus 4 --memory 4096`
    * Enable ingress controller: `minikube addons enable ingress`
-   * Install Yatai Helm Chart:
+   * Use the quick installation script to install Yatai:
+     > NOTE: It is only recommended to use the quick install script to install yatai in a development environment or in a test environment.
+
      ```bash
-     helm repo add yatai https://bentoml.github.io/yatai-chart
-     helm repo update
-     helm install yatai yatai/yatai -n yatai-system --create-namespace
+     curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/quick-install-yatai.sh" | DEVEL=true bash
      ```
-   * [Verify installation](./docs/admin-guide.md#verify-installation)
-   * You can access the Yatai Web UI: http://{Yatai URL}/setup?token=<token>. You can find the **Yatai URL** link and the **token** again using `helm get notes yatai -n yatai-system` command.
 </details>
 
     

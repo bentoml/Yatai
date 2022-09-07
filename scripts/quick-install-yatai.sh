@@ -171,7 +171,8 @@ for i in $(seq 1 10); do
 done
 echo "✅ MinIO connection is successful"
 
-helm repo add bentoml https://bentoml.github.io/charts
+helm repo remove bentoml 2> /dev/null || true
+helm repo add bentoml https://bentoml.github.io/helm-charts
 helm repo update bentoml
 echo "🤖 installing yatai..."
 helm upgrade --install yatai bentoml/yatai -n ${namespace} \
