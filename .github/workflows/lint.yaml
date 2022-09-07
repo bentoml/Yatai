@@ -106,7 +106,7 @@ jobs:
         working-directory: ./helm/yatai
         run: make template
 
-  documentation_spelling_check:
+  docslint:
     defaults:
       run:
         shell: bash
