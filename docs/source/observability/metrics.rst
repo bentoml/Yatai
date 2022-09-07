@@ -132,6 +132,8 @@ The output of the command above should look something like this:
   NAME                                                     READY   STATUS    RESTARTS   AGE
   alertmanager-prometheus-kube-prometheus-alertmanager-0   2/2     Running   0          18m
 
+.. _install grafana:
+
 7. Install `Grafana <https://github.com/grafana/helm-charts/tree/main/charts/grafana>`_
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

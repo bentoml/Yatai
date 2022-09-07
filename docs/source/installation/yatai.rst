@@ -38,6 +38,8 @@ This script will automatically install the following dependencies inside the :co
 
   curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/quick-install-yatai.sh" | DEVEL=true bash
 
+.. _yatai-installation-steps:
+
 Installation steps
 ------------------
 

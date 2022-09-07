@@ -14,7 +14,7 @@ Prerequisites
 
 - Yatai
 
-  Because yatai-deployment depends on yatai as the bento registry, you need to `install yatai <yatai.html>`_ first.
+  Because yatai-deployment depends on yatai as the bento registry, you need to check the documentation :doc:`yatai` first.
 
 - Kubernetes
 
@@ -65,6 +65,8 @@ This script will automatically install the following dependencies inside the :co
 .. code:: bash
 
   curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/v1.0.0/scripts/quick-install-yatai-deployment.sh" | DEVEL=true bash
+
+.. _yatai-deployment-installation-steps:
 
 Installation steps
 ------------------

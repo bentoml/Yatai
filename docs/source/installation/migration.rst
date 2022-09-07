@@ -27,7 +27,7 @@ Breaking changes
 
   * No more integration of logging and monitoring
 
-    Because we removed all yatai component operators, yatai now does not automatically integrate logging and monitoring. See the `Observability </observability/index.html>`_ documentation for observability configuration.
+    Because we removed all yatai component operators, yatai now does not automatically integrate logging and monitoring. See the :ref:`Observability <observability>` documentation for observability configuration.
 
 Down time during migration
 --------------------------
@@ -102,7 +102,7 @@ The output should be:
 5. Install Yatai
 """"""""""""""""
 
-Read this documentation to install Yatai: `Installing yatai <yatai.html#installation-steps>`_
+Read this documentation to install Yatai: :ref:`Installing Yatai <yatai-installation-steps>`
 
 .. note::
 
@@ -132,7 +132,7 @@ Read this documentation to install Yatai: `Installing yatai <yatai.html#installa
 7. Install yatai-deployment
 """""""""""""""""""""""""""
 
-Read this documentation to install yatai-deployment: `Installing yatai-deployment <yatai_deployment.html>`_
+Read this documentation to install yatai-deployment: :ref:`Installing yatai-deployment <yatai-deployment-installation-steps>`
 
 .. note:: You need to skip the installation of docker-registry.
 
