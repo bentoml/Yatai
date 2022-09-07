@@ -111,8 +111,8 @@ contributing to the project, helping other users and discuss all things MLOps.
 
 .. |actions_status| image:: https://github.com/bentoml/Yatai/workflows/Lint/badge.svg
    :target: https://github.com/bentoml/Yatai/actions
-.. |documentation_status| image:: https://readthedocs.org/projects/bentoml/badge/?version=latest&style=flat-square
-   :target: https://docs.bentoml.org/
+.. |documentation_status| image:: https://readthedocs.org/projects/yatai/badge/?version=latest&style=flat-square
+   :target: https://docs.bentoml.org/projects/yatai
 .. |join_slack| image:: https://badgen.net/badge/Join/BentoML%20Slack/cyan?icon=slack&style=flat-square
    :target: https://l.linklyhq.com/l/ktOX
 .. |github_stars| image:: https://img.shields.io/github/stars/bentoml/Yatai?color=%23c9378a&label=github&logo=github&style=flat-square
