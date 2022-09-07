@@ -149,3 +149,7 @@ jobs:
       - name: Run spellcheck script
         run: make spellcheck-docs
         shell: bash
+
+      - name: Run linkcheck script
+        run: make linkcheck-docs
+        shell: bash

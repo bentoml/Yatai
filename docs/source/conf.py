@@ -109,3 +109,13 @@ spelling_word_list_filename = ["yatai_wordlist.txt"]
 
 # mock any heavy imports, eg: imports from frameworks library
 autodoc_mock_imports = []
+
+linkcheck_ignore = [
+  "https://github.com/kubernetes-sigs/metrics-server#installation"
+]
+linkcheck_allowed_redirects = {
+  r"http[s]://docs\.aws\.amazon\.com/.*": r"http[s]://docs\.aws\.amazon\.com/.*",
+  r"http[s]://docs\.bentoml\.org/.*": r"http[s]://docs\.bentoml\.org/en/latest/.*",
+  r"http://modelserving\.com(/.*)?": r"https://modelserving\.com/.*",
+  r"https://l\.linklyhq\.com/.*": r"https://bentoml\.slack\.com/.*",
+}

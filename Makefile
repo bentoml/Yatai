@@ -129,4 +129,4 @@ spellcheck-docs: ## Spell check documentation
 	sphinx-build -b spelling -W ./docs/source ./docs/build
 
 linkcheck-docs: ## Check documentation links
-	sphinx-build -b linkcheck ./docs/source ./docs/build
+	sphinx-build -b linkcheck -W ./docs/source ./docs/build
