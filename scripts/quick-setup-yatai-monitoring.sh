@@ -3,9 +3,33 @@
 set -e
 
 # check if jq command exists
-if ! command -v jq >/dev/null 2>&1; then
-  echo "😱 jq command not found, please install it first!" >&2
-  exit 1
+if ! command -v jq &> /dev/null; then
+  # download jq from github by different arch
+  case "$(uname -m)" in
+    x86_64)
+      JQ_ARCH=jq-linux64
+      ;;
+    aarch64)
+      JQ_ARCH=jq-linux64
+      ;;
+    armv7l)
+      JQ_ARCH=jq-linux32
+      ;;
+    Darwin)
+      JQ_ARCH=jq-osx-amd64
+      ;;
+    *)
+      echo "Unsupported architecture $(uname -m)"
+      exit 1
+      ;;
+  esac
+  echo "📥 downloading jq from github"
+  curl -sL -o /tmp/yatai-jq "https://github.com/stedolan/jq/releases/download/jq-1.6/${JQ_ARCH}"
+  echo "✅ downloaded jq to /tmp/yatai-jq"
+  chmod +x /tmp/yatai-jq
+  jq=/tmp/yatai-jq
+else
+  jq=$(which jq)
 fi
 
 # check if kubectl command exists
@@ -15,7 +39,7 @@ if ! command -v kubectl >/dev/null 2>&1; then
 fi
 
 KUBE_VERSION=$(kubectl version --output=json | jq '.serverVersion.minor')
-if [ ${KUBE_VERSION} -lt 20 ]; then
+if [ ${KUBE_VERSION:1:2} -lt 20 ]; then
   echo "😱 install requires at least Kubernetes 1.20" >&2
   exit 1
 fi
