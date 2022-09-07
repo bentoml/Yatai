@@ -54,7 +54,7 @@ namespace=yatai-monitoring
 
 # check if namespace exists
 if ! kubectl get namespace ${namespace} >/dev/null 2>&1; then
-  echo "📥 creating namespace ${namespace}"
+  echo "🤖 creating namespace ${namespace}"
   kubectl create namespace ${namespace}
   echo "✅ created namespace ${namespace}"
 fi
