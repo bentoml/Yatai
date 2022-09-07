@@ -124,5 +124,9 @@ install-docs-deps: ## Install documentation dependencies
 # Docs
 watch-docs: install-docs-deps ## Build and watch documentation
 	sphinx-autobuild docs/source docs/build/html --watch $(GIT_ROOT)/docs/source --host 0.0.0.0
+
 spellcheck-docs: ## Spell check documentation
-	sphinx-build -b spelling ./docs/source ./docs/build || (echo "Error running spellchecker.. You may need to run 'make install-spellchecker-deps'"; exit 1)
+	sphinx-build -b spelling -W ./docs/source ./docs/build
+
+linkcheck-docs: ## Check documentation links
+	sphinx-build -b linkcheck ./docs/source ./docs/build
