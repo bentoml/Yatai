@@ -1,4 +1,4 @@
-import os
+import subprocess
 from datetime import datetime
 
 # -- Project information -----------------------------------------------------
@@ -7,7 +7,7 @@ project = "Yatai"
 copyright = f"2022-{datetime.now().year}, bentoml.com"
 author = "bentoml.com"
 
-version = os.getenv("VERSION")
+version = subprocess.check_output(['sh', '-c', "git describe --tags `git rev-list --tags --max-count=1`"]).decode('utf-8').strip()[1:]
 
 # -- General configuration ---------------------------------------------------
 
