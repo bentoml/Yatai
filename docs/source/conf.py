@@ -32,6 +32,7 @@ extensions = [
     "sphinxcontrib.spelling",
     "myst_parser",
     "sphinx_inline_tabs",
+    "sphinx_lfs_content",
 ]
 
 # Plugin Configurations:
