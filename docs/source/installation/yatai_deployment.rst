@@ -235,7 +235,7 @@ Read its official documentation for `installation <https://github.com/kubernetes
 
           helm repo add twuni https://helm.twun.io
           helm repo update twuni
-          helm install docker-registry twuni/docker-registry -n yatai-deployment
+          helm upgrade --install docker-registry twuni/docker-registry -n yatai-deployment
 
         2. Verify the docker-registry installation
 
@@ -420,7 +420,7 @@ You need to configure your DNS in one of the following two options:
 
   helm repo add bentoml https://bentoml.github.io/charts
   helm repo update bentoml
-  helm install yatai-deployment bentoml/yatai-deployment -n yatai-deployment \
+  helm upgrade --install yatai-deployment bentoml/yatai-deployment -n yatai-deployment \
       --set dockerRegistry.server=$DOCKER_REGISTRY_SERVER \
       --set dockerRegistry.inClusterServer=$DOCKER_REGISTRY_IN_CLUSTER_SERVER \
       --set dockerRegistry.username=$DOCKER_REGISTRY_USERNAME \

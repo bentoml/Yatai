@@ -147,7 +147,7 @@ Installation steps
 
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update bitnami
-          helm install postgresql-ha bitnami/postgresql-ha -n yatai-system
+          helm upgrade --install postgresql-ha bitnami/postgresql-ha -n yatai-system
 
         2. Verify the :code:`postgresql-ha` installation:
 
@@ -336,7 +336,7 @@ Expected output:
           export S3_ACCESS_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
           export S3_SECRET_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
 
-          cat <<EOF > /tmp/minio-values.yaml
+          cat <<EOF | helm upgrade --install minio-operator minio/minio-operator -n yatai-system -f -
           tenants:
           - image:
               pullPolicy: IfNotPresent
@@ -359,8 +359,6 @@ Expected output:
               secretKey: $S3_SECRET_KEY
             subPath: /data
           EOF
-
-          helm install minio-operator minio/minio-operator -n yatai-system -f /tmp/minio-values.yaml
 
         2. Verify the :code:`minio-operator` installation
 
@@ -443,7 +441,7 @@ Expected output:
 
   helm repo add bentoml https://bentoml.github.io/charts
   helm repo update bentoml
-  helm install yatai bentoml/yatai -n yatai-system \
+  helm upgrade --install yatai bentoml/yatai -n yatai-system \
       --set postgresql.host=$PG_HOST \
       --set postgresql.port=$PG_PORT \
       --set postgresql.user=$PG_USER \
