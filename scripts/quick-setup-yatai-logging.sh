@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -277,6 +277,7 @@ kubectl -n ${grafana_namespace} wait --for=condition=ready --timeout=600s pod -l
 echo "✅ Grafana is ready"
 
 echo "🌐 port-forwarding Grafana..."
+lsof -i :8889 | tail -n +2 | awk '{print $2}' | xargs -I{} kill {} 2> /dev/null || true
 kubectl -n ${grafana_namespace} port-forward svc/grafana 8889:80 --address 0.0.0.0 &
 echo "✅ Grafana dashboard is available at: http://localhost:8889/explore"
 

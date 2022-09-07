@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 CURRETN_CONTEXT=$(kubectl config current-context)
 echo -e "\033[01;31mWarning: The MinIO tenant, Loki and Promtail under the yatai-logging namespace will be removed.\033[00m"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 CURRETN_CONTEXT=$(kubectl config current-context)
 echo -e "\033[01;31mWarning: this will permanently delete all Yatai resources, existing model deployments, and in-cluster minio, postgresql DB data. Note that external DB and blob storage will not be deleted.\033[00m"

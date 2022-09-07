@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -138,6 +138,7 @@ kubectl -n ${grafana_namespace} label configmap bentodeployment-dashboard grafan
 echo "✅ BentoDeployment Grafana dashboard is imported"
 
 echo "🌐 port-forwarding Grafana..."
+lsof -i :8888 | tail -n +2 | awk '{print $2}' | xargs -I{} kill {} 2> /dev/null || true
 kubectl -n ${grafana_namespace} port-forward svc/grafana 8888:80 --address 0.0.0.0 &
 echo "✅ Grafana dashboard is available at: http://localhost:8888/d/TJ3FhiG4z/bentodeployment?orgId=1"
 

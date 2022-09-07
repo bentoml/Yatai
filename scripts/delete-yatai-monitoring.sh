@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 CURRETN_CONTEXT=$(kubectl config current-context)
 echo -e "\033[01;31mWarning: The Prometheus, Grafana and Alertmanager under the yatai-monitoring namespace will be removed.\033[00m"
