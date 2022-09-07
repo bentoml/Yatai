@@ -17,7 +17,7 @@ while true; do
   esac
 done
 
-bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/delete-yatai-logging.sh")
-bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/delete-yatai-monitoring.sh")
-bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/v1.0.0/scripts/delete-yatai-deployment.sh")
-bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/delete-yatai.sh")
+yes | bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/delete-yatai-logging.sh")
+yes | bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/delete-yatai-monitoring.sh")
+yes | bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/v1.0.0/scripts/delete-yatai-deployment.sh")
+yes | bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/delete-yatai.sh")
