@@ -65,13 +65,17 @@ if ! kubectl get namespace ${namespace} >/dev/null 2>&1; then
   echo "✅ created namespace ${namespace}"
 fi
 
-export S3_ACCESS_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
-export S3_SECRET_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
+logging_minio_secret_name=yatai-logging-minio
 
-kubectl create secret generic logging-minio-secret \
-  --from-literal=accesskey=$S3_ACCESS_KEY \
-  --from-literal=secretkey=$S3_SECRET_KEY \
-  -n ${namespace}
+# check if logging minio secret not exists
+if ! kubectl get secret ${logging_minio_secret_name} -n ${namespace} >/dev/null 2>&1; then
+  echo "🤖 creating secret ${logging_minio_secret_name}"
+  kubectl create secret generic ${logging_minio_secret_name} \
+    --from-literal=accesskey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
+    --from-literal=secretkey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
+    -n ${namespace}
+  echo "✅ created secret ${logging_minio_secret_name}"
+fi
 
 echo "🤖 creating MinIO Tenant..."
 cat <<EOF | kubectl apply -f -
@@ -84,7 +88,7 @@ metadata:
   namespace: ${namespace}
 spec:
   credsSecret:
-    name: logging-minio-secret
+    name: ${logging_minio_secret_name}
   image: quay.io/bentoml/minio-minio:RELEASE.2021-10-06T23-36-31Z
   imagePullPolicy: IfNotPresent
   mountPath: /export
@@ -117,8 +121,8 @@ S3_ENDPOINT=minio.${namespace}.svc.cluster.local
 S3_REGION=foo
 S3_BUCKET_NAME=loki-data
 S3_SECURE=false
-S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret logging-minio-secret -o jsonpath='{.data.accesskey}' | base64 -d)
-S3_SECRET_KEY=$(kubectl -n ${namespace} get secret logging-minio-secret -o jsonpath='{.data.secretkey}' | base64 -d)
+S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret ${logging_minio_secret_name} -o jsonpath='{.data.accesskey}' | base64 -d)
+S3_SECRET_KEY=$(kubectl -n ${namespace} get secret ${logging_minio_secret_name} -o jsonpath='{.data.secretkey}' | base64 -d)
 
 echo "🧪 testing MinIO connection..."
 for i in $(seq 1 10); do
@@ -220,9 +224,14 @@ if [ "${grafana_namespace}" = "${namespace}" ]; then
   helm repo add grafana https://grafana.github.io/helm-charts
   helm repo update grafana
   echo "🤖 installing Grafana..."
+  if ! kubectl -n ${grafana_namespace} get secret grafana > /dev/null 2>&1; then
+    grafana_admin_password=$(openssl rand -base64 16)
+  else
+    grafana_admin_password=$(kubectl -n ${grafana_namespace} get secret grafana -o jsonpath='{.data.admin-password}' | base64 -d)
+  fi
   cat <<EOF | helm upgrade --install grafana grafana/grafana -n ${grafana_namespace} -f -
 adminUser: admin
-adminPassword: $(openssl rand -base64 16)
+adminPassword: ${grafana_admin_password}
 persistence:
   enabled: true
 sidecar:
@@ -255,8 +264,8 @@ datasources:
   editable: false
 EOF
 
-  kubectl -n ${namespace} create configmap loki-datasource --from-file=/tmp/loki-datasource.yaml
-  kubectl -n ${namespace} label configmap loki-datasource grafana_datasource=1
+  kubectl -n ${namespace} create configmap loki-datasource --from-file=/tmp/loki-datasource.yaml -o yaml --dry-run=client | kubectl apply -f -
+  kubectl -n ${namespace} label configmap loki-datasource grafana_datasource=1 --overwrite
   echo "✅ Grafana datasource is imported"
 fi
 

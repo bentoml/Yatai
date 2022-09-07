@@ -97,9 +97,14 @@ if [ "${grafana_namespace}" = "${namespace}" ]; then
   helm repo add grafana https://grafana.github.io/helm-charts
   helm repo update grafana
   echo "🤖 installing Grafana..."
+  if ! kubectl -n ${grafana_namespace} get secret grafana > /dev/null 2>&1; then
+    grafana_admin_password=$(openssl rand -base64 16)
+  else
+    grafana_admin_password=$(kubectl -n ${grafana_namespace} get secret grafana -o jsonpath='{.data.admin-password}' | base64 -d)
+  fi
   cat <<EOF | helm upgrade --install grafana grafana/grafana -n ${grafana_namespace} -f -
 adminUser: admin
-adminPassword: $(openssl rand -base64 16)
+adminPassword: ${grafana_admin_password}
 persistence:
   enabled: true
 sidecar:
@@ -128,8 +133,8 @@ curl -L https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/monitorin
 echo "✅ BentoDeployment Grafana dashboard is downloaded"
 
 echo "🤖 importing the BentoDeployment Grafana dashboard..."
-kubectl -n ${grafana_namespace} create configmap bentodeployment-dashboard --from-file=/tmp/bentodeployment-dashboard.json
-kubectl -n ${grafana_namespace} label configmap bentodeployment-dashboard grafana_dashboard=1
+kubectl -n ${grafana_namespace} create configmap bentodeployment-dashboard --from-file=/tmp/bentodeployment-dashboard.json -o yaml --dry-run=client | kubectl apply -f -
+kubectl -n ${grafana_namespace} label configmap bentodeployment-dashboard grafana_dashboard=1 --overwrite
 echo "✅ BentoDeployment Grafana dashboard is imported"
 
 echo "🌐 port-forwarding Grafana..."

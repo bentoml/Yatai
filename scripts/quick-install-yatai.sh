@@ -61,16 +61,33 @@ if ! kubectl get namespace ${namespace} >/dev/null 2>&1; then
   echo "✅ created namespace ${namespace}"
 fi
 
+if ! kubectl -n ${namespace} get secret postgresql-ha-postgresql >/dev/null 2>&1; then
+  postgresql_password=$(openssl rand -hex 16)
+  repmgr_password=$(openssl rand -hex 16)
+else
+  postgresql_password=$(kubectl -n ${namespace} get secret postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 -d)
+  repmgr_password=$(kubectl -n ${namespace} get secret postgresql-ha-postgresql -o jsonpath="{.data.repmgr-password}" | base64 -d)
+fi
+
+if ! kubectl -n ${namespace} get secret postgresql-ha-pgpool >/dev/null 2>&1; then
+  pgpool_admin_password=$(openssl rand -hex 16)
+else
+  pgpool_admin_password=$(kubectl -n ${namespace} get secret postgresql-ha-pgpool -o jsonpath="{.data.admin-password}" | base64 -d)
+fi
+
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update bitnami
 echo "🤖 installing PostgreSQL..."
-helm upgrade --install postgresql-ha bitnami/postgresql-ha -n ${namespace}
+helm upgrade --install postgresql-ha bitnami/postgresql-ha -n ${namespace} \
+  --set postgresql.password=${postgresql_password} \
+  --set postgresql.repmgrPassword=${repmgr_password} \
+  --set pgpool.adminPassword=${pgpool_admin_password}
 
 echo "⏳ waiting for PostgreSQL to be ready..."
 kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=postgresql-ha
 echo "✅ PostgreSQL is ready"
 
-PG_PASSWORD=$(kubectl get secret --namespace ${namespace} postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 -d)
+PG_PASSWORD=$(kubectl -n ${namespace} get secret postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 -d)
 PG_HOST=postgresql-ha-pgpool.${namespace}.svc.cluster.local
 PG_PORT=5432
 PG_DATABASE=yatai
