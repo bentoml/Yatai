@@ -174,7 +174,7 @@ EOF
 
 
 echo "⏳ waiting for Loki to be ready..."
-kubectl -n ${namespace} wait --for=condition=ready pod -l app.kubernetes.io/name=loki-distributed
+kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=loki-distributed
 echo "✅ Loki is ready"
 
 echo "🤖 installing Promtail..."
@@ -206,7 +206,7 @@ config:
 EOF
 
 echo "⏳ waiting for Promtail to be ready..."
-kubectl -n ${namespace} wait --for=condition=ready pod -l app.kubernetes.io/name=promtail
+kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=promtail
 echo "✅ Promtail is ready"
 
 grafana_namespace=yatai-monitoring
@@ -264,7 +264,7 @@ echo "🤖 restarting Grafana..."
 kubectl -n ${grafana_namespace} rollout restart deployment grafana
 
 echo "⏳ waiting for Grafana to be ready..."
-kubectl -n ${grafana_namespace} wait --for=condition=ready pod -l app.kubernetes.io/name=grafana
+kubectl -n ${grafana_namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=grafana
 echo "✅ Grafana is ready"
 
 echo "🌐 port-forwarding Grafana..."
