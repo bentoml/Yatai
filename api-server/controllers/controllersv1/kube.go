@@ -1,10 +1,12 @@
 package controllersv1
 
 import (
+	"fmt"
 	"sort"
 	"sync/atomic"
 	"time"
 
+	bloom "github.com/bits-and-blooms/bloom/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
@@ -131,6 +133,9 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 		time.Sleep(time.Second * 10)
 	}
 
+	seen := bloom.NewWithEstimates(1000000, 0.01)
+	is_sent := false
+
 	send := func() {
 		select {
 		case <-closeCh:
@@ -159,24 +164,52 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 			if !filter(event) {
 				continue
 			}
+			timeStr, _ := event.EventTime.MarshalQueryParameter()
+			key := fmt.Sprintf("%s-%s-%s", event.InvolvedObject.UID, timeStr, event.Message)
+			if seen.TestAndAddString(key) {
+				continue
+			}
 			_events = append(_events, event)
 		}
 
 		sort.SliceStable(_events, func(i, j int) bool {
-			it := _events[i].LastTimestamp
-			jt := _events[j].LastTimestamp
+			ie := _events[i]
+			je := _events[j]
 
-			return it.Before(&jt)
+			it := time.Now()
+			// nolint: gocritic
+			if !ie.EventTime.IsZero() {
+				it = ie.EventTime.Time
+			} else if !ie.LastTimestamp.IsZero() {
+				it = ie.LastTimestamp.Time
+			} else if !ie.FirstTimestamp.IsZero() {
+				it = ie.FirstTimestamp.Time
+			}
+
+			jt := time.Now()
+			// nolint: gocritic
+			if !je.EventTime.IsZero() {
+				jt = je.EventTime.Time
+			} else if !je.LastTimestamp.IsZero() {
+				jt = je.LastTimestamp.Time
+			} else if !je.FirstTimestamp.IsZero() {
+				jt = je.FirstTimestamp.Time
+			}
+
+			return it.Before(jt)
 		})
 
-		err = conn.WriteJSON(&schemasv1.WsRespSchema{
-			Type:    schemasv1.WsRespTypeSuccess,
-			Message: "",
-			Payload: _events,
-		})
-		if err != nil {
-			err = errors.Wrap(err, "ws write json")
-			return
+		if len(_events) == 0 || !is_sent {
+			is_sent = true
+			err = conn.WriteJSON(&schemasv1.WsRespSchema{
+				Type:    schemasv1.WsRespTypeSuccess,
+				Message: "",
+				Payload: _events,
+			})
+			if err != nil {
+				err = errors.Wrap(err, "ws write json")
+				return
+			}
 		}
 	}
 
@@ -347,7 +380,8 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 		time.Sleep(time.Second * 10)
 	}
 
-	seen := make(map[string]struct{})
+	seen := bloom.NewWithEstimates(1000000, 0.01)
+	is_sent := false
 
 	send := func() {
 		select {
@@ -378,7 +412,9 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 			if !eventFilter(event) {
 				continue
 			}
-			if _, ok := seen[event.Message]; ok {
+			timeStr, _ := event.EventTime.MarshalQueryParameter()
+			key := fmt.Sprintf("%s-%s-%s", event.InvolvedObject.UID, timeStr, event.Message)
+			if seen.TestAndAddString(key) {
 				continue
 			}
 			_events = append(_events, event)
@@ -417,11 +453,14 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 		default:
 		}
 
-		err = conn.WriteJSON(&schemasv1.WsRespSchema{
-			Type:    schemasv1.WsRespTypeSuccess,
-			Message: "",
-			Payload: _events,
-		})
+		if len(_events) != 0 || !is_sent {
+			is_sent = true
+			err = conn.WriteJSON(&schemasv1.WsRespSchema{
+				Type:    schemasv1.WsRespTypeSuccess,
+				Message: "",
+				Payload: _events,
+			})
+		}
 	}
 
 	send()
