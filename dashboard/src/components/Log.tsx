@@ -1,15 +1,19 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react'
 import qs from 'qs'
-import { ScrollFollow } from 'react-lazylog'
 import useTranslation from '@/hooks/useTranslation'
 import { v4 as uuidv4 } from 'uuid'
 import { IWsReqSchema, IWsRespSchema } from '@/schemas/websocket'
 import { toaster } from 'baseui/toast'
 import { Select } from 'baseui/select'
 import { useOrganization } from '@/hooks/useOrganization'
+import { Terminal as XtermTerminal } from 'xterm'
+import { WebLinksAddon } from 'xterm-addon-web-links'
+import { FitAddon } from 'xterm-addon-fit'
+import { Tomorrow, Tomorrow_Night } from 'xterm-theme'
+import 'xterm/css/xterm.css'
+import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import Card from './Card'
 import Toggle from './Toggle'
-import LazyLog from './LazyLog'
 
 interface ITailRequest {
     id: string
@@ -37,6 +41,15 @@ export default function Log({
     width = 300,
     height = 300,
 }: ILogProps) {
+    const elRef = useRef<null | HTMLDivElement>(null)
+    const fitRef = useRef<null | FitAddon>(null)
+
+    useEffect(() => {
+        if (fitRef.current) {
+            fitRef.current.fit()
+        }
+    }, [width, height])
+
     const [scroll, setScroll] = useState(true)
 
     const [t] = useTranslation()
@@ -58,7 +71,6 @@ export default function Log({
               organization_name: organization?.name,
           })}`
 
-    const [items, setItems] = useState<string[]>([])
     const [tailLines, setTailLines] = useState(50)
     const [follow, setFollow] = useState(true)
 
@@ -88,10 +100,32 @@ export default function Log({
         sendTailReq()
     }, [sendTailReq])
 
+    const themeType = useCurrentThemeType()
+
     useEffect(() => {
-        if (!open) {
+        if (!open || !elRef.current) {
             return undefined
         }
+
+        const terminal = new XtermTerminal({
+            theme: themeType === 'light' ? Tomorrow : Tomorrow_Night,
+            fontFamily: "Consolas, Menlo, 'Bitstream Vera Sans Mono', monospace, 'Powerline Symbols'",
+            fontSize: 13,
+            macOptionIsMeta: true,
+        })
+
+        const fitAddon = new FitAddon()
+        terminal.loadAddon(new WebLinksAddon())
+        terminal.loadAddon(fitAddon)
+        terminal.open(elRef.current)
+        fitAddon.fit()
+        fitRef.current = fitAddon
+        terminal.focus()
+
+        const resizeHandler = () => {
+            fitAddon.fit()
+        }
+
         let ws: WebSocket | undefined
         let selfClose = false
         const connect = () => {
@@ -113,11 +147,12 @@ export default function Log({
                 if (payload.req_id !== reqIdRef.current) {
                     return
                 }
-                if (payload.type === 'append') {
-                    setItems((_items) => [..._items, ...payload.items])
-                } else {
-                    setItems(payload.items)
+                if (payload.type !== 'append') {
+                    terminal.reset()
                 }
+                payload.items.forEach((item) => {
+                    terminal.write(`${item}\r\n`)
+                })
             }
             ws.onopen = () => {
                 wsOpenRef.current = true
@@ -125,6 +160,7 @@ export default function Log({
                     wsRef.current = ws
                 }
                 sendTailReq()
+                resizeHandler()
             }
             ws.onclose = (ev) => {
                 // eslint-disable-next-line no-console
@@ -141,15 +177,17 @@ export default function Log({
             }
         }
         connect()
+        window.addEventListener('resize', resizeHandler)
         return () => {
             // eslint-disable-next-line no-console
             console.log('ws self close')
+            window.removeEventListener('resize', resizeHandler)
             selfClose = true
             ws?.close(1000)
             wsRef.current = null
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [wsUrl, open])
+    }, [wsUrl, open, themeType])
 
     return (
         <Card
@@ -204,18 +242,13 @@ export default function Log({
             }
         >
             <div style={{ height }}>
-                <ScrollFollow
-                    startFollowing={scroll}
-                    render={({ follow: follow_ }) => (
-                        <LazyLog
-                            caseInsensitive
-                            width={width}
-                            enableSearch
-                            selectableLines
-                            text={items.length > 0 ? items.join('\n') : ' '}
-                            follow={follow_}
-                        />
-                    )}
+                <div
+                    ref={elRef}
+                    style={{
+                        flexGrow: 1,
+                        width: '100%',
+                        height: '100%',
+                    }}
                 />
             </div>
         </Card>
