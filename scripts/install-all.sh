@@ -4,3 +4,5 @@ DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.
 DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/v1.0.0/scripts/quick-install-yatai-deployment.sh")
 bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/quick-setup-yatai-monitoring.sh")
 bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/quick-setup-yatai-logging.sh")
+
+helm get notes yatai -n yatai-system
