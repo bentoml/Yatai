@@ -2596,6 +2596,14 @@ const locales0 = {
         'ko': '삭제됨',
         'vi': 'Đã xóa',
     },
+    'loading...': {
+        'en': 'Loading...',
+        'zh-CN': '加载中...',
+        'zh-TW': '加載中...',
+        'ja': '読み込み中...',
+        'ko': '로딩 중...',
+        'vi': 'Đang tải...',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

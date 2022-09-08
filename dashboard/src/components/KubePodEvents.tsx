@@ -145,6 +145,27 @@ export default function KubePodEvents({
                 terminal.scrollToBottom()
             }
         }, 3000)
+        let first = true
+        let spinningTimer: number | undefined
+        const spinner = '◰◳◲◱'.split('')
+        let spinnerIdx = 0
+        const spin = () => {
+            if (selfClose) {
+                return
+            }
+            if (first) {
+                terminal.write(`\r ${t('loading...')} ${spinner[spinnerIdx]}`)
+                spinnerIdx = (spinnerIdx + 1) % spinner.length
+                spinningTimer = window.setTimeout(spin, 100)
+            }
+        }
+        const stopSpin = () => {
+            if (spinningTimer) {
+                window.clearTimeout(spinningTimer)
+                spinningTimer = undefined
+            }
+        }
+        spin()
         const connect = () => {
             if (!organization?.name) {
                 return
@@ -158,6 +179,11 @@ export default function KubePodEvents({
                 if (resp.type !== 'success') {
                     toaster.negative(resp.message, {})
                     return
+                }
+                if (first) {
+                    first = false
+                    stopSpin()
+                    terminal.reset()
                 }
                 const events = resp.payload
                 renderEvents(events)
@@ -190,6 +216,7 @@ export default function KubePodEvents({
         connect()
         window.addEventListener('resize', resizeHandler)
         return () => {
+            stopSpin()
             searchAddonRef.current = null
             window.removeEventListener('resize', resizeHandler)
             terminal.dispose()

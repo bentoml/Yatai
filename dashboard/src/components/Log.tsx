@@ -137,6 +137,27 @@ export default function Log({
 
         let ws: WebSocket | undefined
         let selfClose = false
+        let first = true
+        let spinningTimer: number | undefined
+        const spinner = '◰◳◲◱'.split('')
+        let spinnerIdx = 0
+        const spin = () => {
+            if (selfClose) {
+                return
+            }
+            if (first) {
+                terminal.write(`\r ${t('loading...')} ${spinner[spinnerIdx]}`)
+                spinnerIdx = (spinnerIdx + 1) % spinner.length
+                spinningTimer = window.setTimeout(spin, 100)
+            }
+        }
+        const stopSpin = () => {
+            if (spinningTimer) {
+                window.clearTimeout(spinningTimer)
+                spinningTimer = undefined
+            }
+        }
+        spin()
         const connect = () => {
             if (selfClose) {
                 return
@@ -157,7 +178,12 @@ export default function Log({
                     return
                 }
                 if (payload.type !== 'append') {
-                    terminal.clear()
+                    terminal.reset()
+                }
+                if (first) {
+                    first = false
+                    stopSpin()
+                    terminal.reset()
                 }
                 payload.items.forEach((item) => {
                     terminal.writeln(item)
@@ -190,6 +216,7 @@ export default function Log({
         return () => {
             // eslint-disable-next-line no-console
             console.log('ws self close')
+            stopSpin()
             searchAddonRef.current = null
             terminal.dispose()
             window.removeEventListener('resize', resizeHandler)
