@@ -1,13 +1,20 @@
-import { ScrollFollow } from 'react-lazylog'
 import { formatMoment } from '@/utils/datetime'
 import useTranslation from '@/hooks/useTranslation'
 import { IWsRespSchema } from '@/schemas/websocket'
 import { getEventTime, IKubeEventSchema } from '@/schemas/kube_event'
 import qs from 'qs'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toaster } from 'baseui/toast'
 import { useOrganization } from '@/hooks/useOrganization'
-import LazyLog from './LazyLog'
+import { Terminal as XtermTerminal } from 'xterm'
+import { WebLinksAddon } from 'xterm-addon-web-links'
+import { FitAddon } from 'xterm-addon-fit'
+import { Tomorrow, Tomorrow_Night } from 'xterm-theme'
+import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
+import _ from 'lodash'
+import { SearchAddon } from 'xterm-addon-search'
+import { Input } from 'baseui/input'
+import { colors } from 'baseui/tokens'
 
 interface IKubePodEventsProps {
     clusterName: string
@@ -28,6 +35,15 @@ export default function KubePodEvents({
     width,
     height,
 }: IKubePodEventsProps) {
+    const elRef = useRef<null | HTMLDivElement>(null)
+    const fitRef = useRef<null | FitAddon>(null)
+
+    useEffect(() => {
+        if (fitRef.current) {
+            fitRef.current.fit()
+        }
+    }, [width, height])
+
     const { organization } = useOrganization()
 
     const wsUrl = deploymentName
@@ -57,12 +73,37 @@ export default function KubePodEvents({
 
     const [t] = useTranslation()
 
-    const [items, setItems] = useState<string[]>([])
+    const themeType = useCurrentThemeType()
+    const searchAddonRef = useRef<null | SearchAddon>(null)
 
     useEffect(() => {
-        if (!open) {
+        if (!open || !elRef.current) {
             return undefined
         }
+
+        const terminal = new XtermTerminal({
+            theme: themeType === 'light' ? Tomorrow : Tomorrow_Night,
+            fontFamily: "Consolas, Menlo, 'Bitstream Vera Sans Mono', monospace, 'Powerline Symbols'",
+            fontSize: 13,
+            lineHeight: 1.2,
+            macOptionIsMeta: true,
+            cursorWidth: 1,
+        })
+
+        const searchAddon = new SearchAddon()
+        const fitAddon = new FitAddon()
+        terminal.loadAddon(new WebLinksAddon())
+        terminal.loadAddon(fitAddon)
+        terminal.loadAddon(searchAddon)
+        searchAddonRef.current = searchAddon
+        terminal.open(elRef.current)
+        fitAddon.fit()
+        fitRef.current = fitAddon
+
+        const resizeHandler = () => {
+            fitAddon.fit()
+        }
+
         let ws: WebSocket | undefined
         let selfClose = false
         let wsHeartbeatTimer: number | undefined
@@ -72,6 +113,38 @@ export default function KubePodEvents({
             }
             wsHeartbeatTimer = undefined
         }
+        let scrolling = false
+        terminal.onScroll(() => {
+            scrolling = true
+        })
+        const renderEvents = _.throttle((events: IKubeEventSchema[]) => {
+            if (events.length === 0) {
+                terminal.clear()
+                terminal.writeln(t('no event'))
+                return
+            }
+            events.forEach((event) => {
+                const eventTime = getEventTime(event)
+                const eventTimeStr = eventTime ? formatMoment(eventTime) : '-'
+                let line
+                if (podName) {
+                    line = `[${eventTimeStr}] [${event.reason}] ${event.message}`
+                } else {
+                    line = `[${eventTimeStr}] [${event.involvedObject?.kind ?? '-'}] [${
+                        event.involvedObject?.name ?? '-'
+                    }] [${event.reason}] ${event.message}`
+                }
+                const line_ = line.toLowerCase()
+                const hasError = line_.indexOf('error') !== -1 || line_.indexOf('fail') !== -1
+                if (hasError) {
+                    line = `\u001b[31m${line}\u001b[0m`
+                }
+                terminal.writeln(line)
+            })
+            if (!scrolling) {
+                terminal.scrollToBottom()
+            }
+        }, 3000)
         const connect = () => {
             if (!organization?.name) {
                 return
@@ -87,22 +160,7 @@ export default function KubePodEvents({
                     return
                 }
                 const events = resp.payload
-                if (events.length === 0) {
-                    setItems([t('no event')])
-                    return
-                }
-                setItems(
-                    events.map((event) => {
-                        const eventTime = getEventTime(event)
-                        const eventTimeStr = eventTime ? formatMoment(eventTime) : '-'
-                        if (podName) {
-                            return `[${eventTimeStr}] [${event.reason}] ${event.message}`
-                        }
-                        return `[${eventTimeStr}] [${event.involvedObject?.kind ?? '-'}] [${
-                            event.involvedObject?.name ?? '-'
-                        }] [${event.reason}] ${event.message}`
-                    })
-                )
+                renderEvents(events)
             }
             const heartbeat = () => {
                 if (ws?.readyState === ws?.OPEN) {
@@ -110,7 +168,10 @@ export default function KubePodEvents({
                 }
                 wsHeartbeatTimer = window.setTimeout(heartbeat, 20000)
             }
-            ws.onopen = () => heartbeat()
+            ws.onopen = () => {
+                heartbeat()
+                resizeHandler()
+            }
             ws.onclose = (ev) => {
                 // eslint-disable-next-line no-console
                 console.log('onclose', ev)
@@ -127,28 +188,106 @@ export default function KubePodEvents({
             }
         }
         connect()
+        window.addEventListener('resize', resizeHandler)
         return () => {
+            searchAddonRef.current = null
+            window.removeEventListener('resize', resizeHandler)
+            terminal.dispose()
             cancelHeartbeat()
             selfClose = true
             ws?.close()
         }
-    }, [wsUrl, open, organization?.name, t, podName])
+    }, [wsUrl, open, organization?.name, t, podName, themeType])
+
+    const searchOption = useMemo(
+        () => ({
+            decorations: {
+                matchBackground: colors.yellow200,
+                activeMatchBackground: colors.blue200,
+                matchOverviewRuler: colors.yellow200,
+                activeMatchColorOverviewRuler: colors.yellow200,
+            },
+        }),
+        []
+    )
+
+    const onSearchValue_ = useCallback(
+        (value: string) => {
+            const searchAddon = searchAddonRef.current
+            if (!searchAddon) {
+                return
+            }
+            searchAddon.findNext(value, searchOption)
+        },
+        [searchOption]
+    )
+
+    const onSearchValue = useMemo(() => _.debounce(onSearchValue_, 300), [onSearchValue_])
+
+    const onSearchKeyUp = useCallback(
+        (e) => {
+            if (e.key !== 'Enter') {
+                return
+            }
+            const searchAddon = searchAddonRef.current
+            if (!searchAddon) {
+                return
+            }
+            if (e.shiftKey) {
+                searchAddon.findPrevious(e.target.value, searchOption)
+            } else {
+                searchAddon.findNext(e.target.value, searchOption)
+            }
+        },
+        [searchOption]
+    )
+
+    const [searchValue, setSearchValue] = useState('')
+
+    useEffect(() => {
+        onSearchValue(searchValue)
+    }, [searchValue, onSearchValue])
+
+    const onSearchChange = useCallback((e) => {
+        setSearchValue(e.target.value)
+    }, [])
 
     return (
-        <div style={{ height }}>
-            <ScrollFollow
-                startFollowing
-                render={({ follow }) => (
-                    <LazyLog
-                        caseInsensitive
-                        enableSearch
-                        selectableLines
-                        width={width}
-                        text={items.length > 0 ? items.join('\n') : ' '}
-                        follow={follow}
-                    />
-                )}
-            />
+        <div>
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                }}
+            >
+                <div style={{ flexGrow: 1 }} />
+                <Input
+                    overrides={{
+                        Root: {
+                            style: {
+                                width: '200px',
+                                flexShrink: 0,
+                            },
+                        },
+                    }}
+                    size='mini'
+                    clearable
+                    value={searchValue}
+                    onKeyUp={onSearchKeyUp}
+                    onChange={onSearchChange}
+                    placeholder={t('search')}
+                />
+            </div>
+            <div style={{ height, width, overflow: 'hidden' }}>
+                <div
+                    ref={elRef}
+                    style={{
+                        flexGrow: 1,
+                        width: '100%',
+                        height: '100%',
+                    }}
+                />
+            </div>
         </div>
     )
 }

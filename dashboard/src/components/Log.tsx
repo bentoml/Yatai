@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import qs from 'qs'
 import useTranslation from '@/hooks/useTranslation'
 import { v4 as uuidv4 } from 'uuid'
@@ -12,8 +12,12 @@ import { FitAddon } from 'xterm-addon-fit'
 import { Tomorrow, Tomorrow_Night } from 'xterm-theme'
 import 'xterm/css/xterm.css'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
-import Card from './Card'
+import { colors } from 'baseui/tokens'
+import _ from 'lodash'
+import { Input } from 'baseui/input'
+import { SearchAddon } from 'xterm-addon-search'
 import Toggle from './Toggle'
+import Card from './Card'
 
 interface ITailRequest {
     id: string
@@ -101,6 +105,7 @@ export default function Log({
     }, [sendTailReq])
 
     const themeType = useCurrentThemeType()
+    const searchAddonRef = useRef<null | SearchAddon>(null)
 
     useEffect(() => {
         if (!open || !elRef.current) {
@@ -111,16 +116,20 @@ export default function Log({
             theme: themeType === 'light' ? Tomorrow : Tomorrow_Night,
             fontFamily: "Consolas, Menlo, 'Bitstream Vera Sans Mono', monospace, 'Powerline Symbols'",
             fontSize: 13,
+            lineHeight: 1.2,
             macOptionIsMeta: true,
+            cursorWidth: 1,
         })
 
+        const searchAddon = new SearchAddon()
         const fitAddon = new FitAddon()
         terminal.loadAddon(new WebLinksAddon())
         terminal.loadAddon(fitAddon)
+        terminal.loadAddon(searchAddon)
+        searchAddonRef.current = searchAddon
         terminal.open(elRef.current)
         fitAddon.fit()
         fitRef.current = fitAddon
-        terminal.focus()
 
         const resizeHandler = () => {
             fitAddon.fit()
@@ -148,10 +157,10 @@ export default function Log({
                     return
                 }
                 if (payload.type !== 'append') {
-                    terminal.reset()
+                    terminal.clear()
                 }
                 payload.items.forEach((item) => {
-                    terminal.write(`${item}\r\n`)
+                    terminal.writeln(item)
                 })
             }
             ws.onopen = () => {
@@ -181,6 +190,8 @@ export default function Log({
         return () => {
             // eslint-disable-next-line no-console
             console.log('ws self close')
+            searchAddonRef.current = null
+            terminal.dispose()
             window.removeEventListener('resize', resizeHandler)
             selfClose = true
             ws?.close(1000)
@@ -188,6 +199,59 @@ export default function Log({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [wsUrl, open, themeType])
+
+    const searchOption = useMemo(
+        () => ({
+            decorations: {
+                matchBackground: colors.yellow200,
+                activeMatchBackground: colors.blue200,
+                matchOverviewRuler: colors.yellow200,
+                activeMatchColorOverviewRuler: colors.yellow200,
+            },
+        }),
+        []
+    )
+
+    const onSearchValue_ = useCallback(
+        (value: string) => {
+            const searchAddon = searchAddonRef.current
+            if (!searchAddon) {
+                return
+            }
+            searchAddon.findNext(value, searchOption)
+        },
+        [searchOption]
+    )
+
+    const onSearchValue = useMemo(() => _.debounce(onSearchValue_, 300), [onSearchValue_])
+
+    const onSearchKeyUp = useCallback(
+        (e) => {
+            if (e.key !== 'Enter') {
+                return
+            }
+            const searchAddon = searchAddonRef.current
+            if (!searchAddon) {
+                return
+            }
+            if (e.shiftKey) {
+                searchAddon.findPrevious(e.target.value, searchOption)
+            } else {
+                searchAddon.findNext(e.target.value, searchOption)
+            }
+        },
+        [searchOption]
+    )
+
+    const [searchValue, setSearchValue] = useState('')
+
+    useEffect(() => {
+        onSearchValue(searchValue)
+    }, [searchValue, onSearchValue])
+
+    const onSearchChange = useCallback((e) => {
+        setSearchValue(e.target.value)
+    }, [])
 
     return (
         <Card
@@ -241,7 +305,31 @@ export default function Log({
                 </div>
             }
         >
-            <div style={{ height }}>
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                }}
+            >
+                <div style={{ flexGrow: 1 }} />
+                <Input
+                    overrides={{
+                        Root: {
+                            style: {
+                                width: '200px',
+                                flexShrink: 0,
+                            },
+                        },
+                    }}
+                    size='mini'
+                    clearable
+                    value={searchValue}
+                    onKeyUp={onSearchKeyUp}
+                    onChange={onSearchChange}
+                    placeholder={t('search')}
+                />
+            </div>
+            <div style={{ height, width, overflow: 'hidden' }}>
                 <div
                     ref={elRef}
                     style={{

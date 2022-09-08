@@ -7,6 +7,7 @@ require (
 	github.com/bentoml/yatai-common v0.0.0-20220906074140-56c8354c44d4
 	github.com/bentoml/yatai-deployment v1.0.0-alpha.7
 	github.com/bentoml/yatai-schemas v0.0.0-20220826102727-d1a4065e9b2a
+	github.com/bits-and-blooms/bloom/v3 v3.3.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/sessions v0.0.3
 	github.com/gin-gonic/gin v1.7.3
@@ -50,6 +51,7 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bits-and-blooms/bitset v1.3.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/containerd/containerd v1.6.2 // indirect
