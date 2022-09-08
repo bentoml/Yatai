@@ -26,13 +26,16 @@ Yatai is a production-first platform for your machine learning needs. It brings 
 <img width="785" alt="yatai-overview-page" src="https://user-images.githubusercontent.com/489344/151455964-4fe30eb7-f000-43cc-8a5f-807ee450b8b6.png">
 
 <details>
+
   <summary>See more product screenshots</summary>
+
   <img width="785" alt="yatai-deployment-creation" src="https://user-images.githubusercontent.com/489344/151456002-d4e9f84d-8a71-4bf9-bde7-f94a74abbf3f.png">
   <img width="785" alt="yatai-bento-repos" src="https://user-images.githubusercontent.com/489344/151456379-da255519-274d-41de-a1b9-a347be279230.png">
   <img width="785" alt="yatai-model-detail" src="https://user-images.githubusercontent.com/489344/151456021-360a6d6e-acb8-494b-9f6b-868ef9d13bce.png">
   <img width="785" alt="yatai-cluster-components" src="https://user-images.githubusercontent.com/489344/151456017-abf0c77a-ba8a-43e5-8949-901ef4a8074a.png">
   <img width="785" alt="yatai-deployment-details" src="https://user-images.githubusercontent.com/489344/151456024-151c275d-b33e-480e-be34-dadab5b01915.png">
   <img width="785" alt="yatai-activities" src="https://user-images.githubusercontent.com/489344/151456011-69c283bc-7382-4b30-bfbf-2686e2abdc0f.png">
+
 </details>
 
 ## Getting Started
@@ -43,113 +46,130 @@ Yatai is a production-first platform for your machine learning needs. It brings 
 ## Quick Try
 
 <details>
+
   <summary>1. Install Yatai locally with Minikube</summary>
-    
-   * Prerequisites:
-     * Install latest minikube: https://minikube.sigs.k8s.io/docs/start/
-     * Install latest Helm: https://helm.sh/docs/intro/install/
-   * Start a minikube Kubernetes cluster: `minikube start --cpus 4 --memory 4096`
-   * Enable ingress controller: `minikube addons enable ingress`
-   * Use the quick installation script to install Yatai:
-     > NOTE: It is only recommended to use the quick install script to install yatai in a development environment or in a test environment.
 
-     Quick install Yatai:
+-   Prerequisites:
+    -   Install latest minikube: https://minikube.sigs.k8s.io/docs/start/
+    -   Install latest Helm: https://helm.sh/docs/intro/install/
+-   Start a minikube Kubernetes cluster: `minikube start --cpus 4 --memory 4096`
+-   Enable ingress controller: `minikube addons enable ingress`
+-   Use the quick installation script to install Yatai:
 
-     ```bash
-     DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/quick-install-yatai.sh")
-     ```
+    > NOTE: It is only recommended to use the quick install script to install yatai in a development environment or in a test environment.
 
-     Quick install yatai-deployment:
+    Quick install Yatai:
 
-     ```bash
-     DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/main/scripts/quick-install-yatai-deployment.sh")
-     ```
+    ```bash
+    DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/quick-install-yatai.sh")
+    ```
+
+    Quick install yatai-deployment:
+
+    ```bash
+    DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/main/scripts/quick-install-yatai-deployment.sh")
+    ```
 
 </details>
 
 <details>
+
   <summary>2. Get an API token and login BentoML CLI</summary>
-    
-  * Create a new API token in Yatai web UI: http://${Yatai URL}/api_tokens
-  * Copy login command upon token creation and run as shell command, e.g.: 
+
+-   Create a new API token in Yatai web UI: http://${Yatai URL}/api_tokens
+-   Copy login command upon token creation and run as shell command, e.g.:
     ```bash
     bentoml yatai login --api-token {YOUR_TOKEN_GOES_HERE} --endpoint http://{Yatai URL}
     ```
+
 </details>
 
 <details>
+
   <summary>3. Pushing Bento to Yatai</summary>
-    
-  * Train a sample ML model and build a Bento using code from the [BentoML Quickstart Project](https://github.com/bentoml/BentoML/tree/main/examples/quickstart):
+
+-   Train a sample ML model and build a Bento using code from the [BentoML Quickstart Project](https://github.com/bentoml/BentoML/tree/main/examples/quickstart):
     ```bash
     git clone https://github.com/bentoml/bentoml.git && cd ./examples/quickstart
     pip install -r ./requirements.txt
     python train.py
     bentoml build
     ```
-  * Push your newly built Bento to Yatai:
+-   Push your newly built Bento to Yatai:
     ```bash
     bentoml push iris_classifier:latest
     ```
+
 </details>
 
 <details>
+
   <summary>4. Create your first deployment!</summary>
-    
-  * A Bento Deployment can be created via Web UI or via kubectl command:
 
-    * Deploy via Web UI
-        * Go to deployments page: http://{Yatai URL}/deployments
-        * Click `Create` button and follow instructions on UI
+-   A Bento Deployment can be created via Web UI or via kubectl command:
 
-    * Deploy directly via `kubectl` command:
-        * Define your Bento deployment in a `my_deployment.yaml` file:
-          ```yaml
-          apiVersion: serving.yatai.ai/v1alpha2
-          kind: BentoDeployment
-          metadata:
-            name: my-bento-deployment
-            namespace: yatai
-          spec:
-            bento_tag: iris_classifier:3oevmqfvnkvwvuqj
-            ingress:
-              enabled: true
-            resources:
-              limits:
-                  cpu: "500m"
-                  memory: "512m"
-              requests:
-                  cpu: "250m"
-                  memory: "128m"
-            autoscaling:
-              max_replicas: 10
-              min_replicas: 2
-            runners:
-            - name: iris_clf
-              resources:
-                limits:
-                  cpu: "1000m"
-                  memory: "1Gi"
-                requests:
-                  cpu: "500m"
-                  memory: "512m"
+    -   Deploy via Web UI
+
+        -   Go to deployments page: http://{Yatai URL}/deployments
+        -   Click `Create` button and follow instructions on UI
+
+    -   Deploy directly via `kubectl` command:
+        -   Define your Bento deployment in a `my_deployment.yaml` file:
+            ```yaml
+            apiVersion: serving.yatai.ai/v1alpha2
+            kind: BentoDeployment
+            metadata:
+                name: my-bento-deployment
+                namespace: yatai
+            spec:
+                bento_tag: iris_classifier:3oevmqfvnkvwvuqj
+                ingress:
+                    enabled: true
+                resources:
+                    limits:
+                        cpu: "500m"
+                        memory: "512m"
+                    requests:
+                        cpu: "250m"
+                        memory: "128m"
                 autoscaling:
-                  max_replicas: 4
-                  min_replicas: 1
-          ```
-        * Apply the deployment to your minikube cluster
-          ```bash
-          kubectl apply -f my_deployment.yaml
-          ```
+                    max_replicas: 10
+                    min_replicas: 2
+                runners:
+                    - name: iris_clf
+                      resources:
+                          limits:
+                              cpu: "1000m"
+                              memory: "1Gi"
+                          requests:
+                              cpu: "500m"
+                              memory: "512m"
+                          autoscaling:
+                              max_replicas: 4
+                              min_replicas: 1
+            ```
+        -   Apply the deployment to your minikube cluster
+            ```bash
+            kubectl apply -f my_deployment.yaml
+            ```
 
 -   Monitor deployment process on Web UI and test out endpoint when deployment created
-`bash curl \ -X POST \ -H "content-type: application/json" \ --data "[[5, 4, 3, 2]]" \ https://demo-default-yatai-127-0-0-1.apps.yatai.dev/classify `
+    ```bash
+    curl \
+        -X POST \
+        -H "content-type: application/json" \
+        --data "[[5, 4, 3, 2]]" \
+        https://demo-default-yatai-127-0-0-1.apps.yatai.dev/classify
+    ```
+
 </details>
 
 <details>
+
   <summary>5. Moving to production</summary>
-    
-  * See [Administrator's Guide](https://github.com/bentoml/yatai/blob/main/docs/admin-guide.md) for a comprehensive overview for deploying and configuring Yatai for production use.
+
+-   See [Administrator's Guide](https://github.com/bentoml/yatai/blob/main/docs/admin-guide.md) for a comprehensive overview for deploying and configuring Yatai for production use.
+
 </details>
 
 ## Community
