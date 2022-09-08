@@ -105,7 +105,7 @@ kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
 
 echo "✅ PostgreSQL connection is successful"
 
-echo "🧪 checking if PostgreSQL database ${PG_DATABASE} exists..."
+echo "🧐 checking if PostgreSQL database ${PG_DATABASE} exists..."
 kubectl -n ${namespace} delete pod postgresql-ha-client 2> /dev/null || true
 if ! kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
     --namespace ${namespace} \
@@ -113,7 +113,7 @@ if ! kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
     --env="PGPASSWORD=$PG_PASSWORD" \
     --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d ${PG_DATABASE} -c "SELECT 1" > /dev/null 2&>1; then
 
-  echo "🥹  PostgreSQL database ${PG_DATABASE} does not exist"
+  echo "🥹 PostgreSQL database ${PG_DATABASE} does not exist"
   echo "🤖 creating PostgreSQL database ${PG_DATABASE}..."
   kubectl -n ${namespace} delete pod postgresql-ha-client 2> /dev/null || true
 
@@ -125,7 +125,7 @@ if ! kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
 
   echo "✅ PostgreSQL database ${PG_DATABASE} is created"
 else
-  echo "✅ PostgreSQL database ${PG_DATABASE} already exists"
+  echo "🤩 PostgreSQL database ${PG_DATABASE} already exists"
 fi
 
 echo "🧪 testing PostgreSQL environment variables..."
@@ -142,41 +142,67 @@ echo "✅ PostgreSQL environment variables are correct"
 helm repo add minio https://operator.min.io/
 helm repo update minio
 
-S3_ACCESS_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
-S3_SECRET_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
-
-echo "🤖 installing MinIO..."
-cat <<EOF | helm upgrade --install minio-operator minio/minio-operator -n ${namespace} -f -
-tenants:
-- image:
-    pullPolicy: IfNotPresent
-    repository: quay.io/bentoml/minio-minio
-    tag: RELEASE.2021-10-06T23-36-31Z
-  metrics:
-    enabled: false
-    port: 9000
-  mountPath: /export
-  name: yatai-minio
-  namespace: ${namespace}
-  pools:
-  - servers: 4
-    size: 20Gi
-    volumesPerServer: 4
-  secrets:
-    accessKey: $S3_ACCESS_KEY
-    enabled: true
-    name: yatai-minio-secret
-    secretKey: $S3_SECRET_KEY
-  subPath: /data
-EOF
+echo "🤖 installing minio-operator..."
+helm upgrade --install minio-operator minio/minio-operator -n ${namespace} --set tenants=null
 
 echo "⏳ waiting for minio-operator to be ready..."
 kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=minio-operator
 echo "✅ minio-operator is ready"
 
+minio_secret_name=yatai-minio
+
+# check if logging minio secret not exists
+echo "🧐 checking if secret ${minio_secret_name} exists..."
+if ! kubectl get secret ${minio_secret_name} -n ${namespace} >/dev/null 2>&1; then
+  echo "🥹 secret ${minio_secret_name} not found"
+  echo "🤖 creating secret ${minio_secret_name}"
+  kubectl create secret generic ${minio_secret_name} \
+    --from-literal=accesskey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
+    --from-literal=secretkey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
+    -n ${namespace}
+  echo "✅ created secret ${minio_secret_name}"
+else
+  echo "🤩 secret ${minio_secret_name} already exists"
+fi
+
+echo "🤖 creating MinIO Tenant..."
+cat <<EOF | kubectl apply -f -
+apiVersion: minio.min.io/v2
+kind: Tenant
+metadata:
+  labels:
+    app: yatai-minio
+  name: yatai
+  namespace: ${namespace}
+spec:
+  credsSecret:
+    name: ${minio_secret_name}
+  image: quay.io/bentoml/minio-minio:RELEASE.2021-10-06T23-36-31Z
+  imagePullPolicy: IfNotPresent
+  mountPath: /export
+  podManagementPolicy: Parallel
+  pools:
+  - servers: 4
+    volumeClaimTemplate:
+      metadata:
+        name: data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+    volumesPerServer: 4
+  requestAutoCert: false
+  s3:
+    bucketDNS: false
+  subPath: /data
+EOF
+
 echo "⏳ waiting for minio tenant to be ready..."
+# this retry logic is to avoid kubectl wait errors due to minio tenant resources not being created
 for i in $(seq 1 10); do
-  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app=minio && break || sleep 5
+  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app=yatai-minio && break || sleep 5
 done
 echo "✅ minio tenant is ready"
 
@@ -184,8 +210,14 @@ S3_ENDPOINT=minio.${namespace}.svc.cluster.local
 S3_REGION=foo
 S3_BUCKET_NAME=yatai
 S3_SECURE=false
-S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret yatai-minio-secret -o jsonpath='{.data.accesskey}' | base64 -d)
-S3_SECRET_KEY=$(kubectl -n ${namespace} get secret yatai-minio-secret -o jsonpath='{.data.secretkey}' | base64 -d)
+S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.accesskey}' | base64 -d)
+S3_SECRET_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.secretkey}' | base64 -d)
+
+# check if S3_ACCESS_KEY is empty
+if [ -z "$S3_ACCESS_KEY" ]; then
+  echo "🥹 S3_ACCESS_KEY is empty" >&2
+  exit 1
+fi
 
 echo "🧪 testing MinIO connection..."
 for i in $(seq 1 10); do
@@ -196,7 +228,7 @@ for i in $(seq 1 10); do
       --env "AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY" \
       --env "AWS_SECRET_ACCESS_KEY=$S3_SECRET_KEY" \
       --image quay.io/bentoml/s3-client:0.0.1 \
-      --command -- sh -c "s3-client -e http://$S3_ENDPOINT listbuckets 2>/dev/null && echo successfully || echo failed" && break || sleep 5
+      --command -- sh -c "s3-client -e http://$S3_ENDPOINT listbuckets 2>/dev/null" && break || sleep 5
 done
 echo "✅ MinIO connection is successful"
 

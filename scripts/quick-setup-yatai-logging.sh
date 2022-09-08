@@ -65,16 +65,26 @@ if ! kubectl get namespace ${namespace} >/dev/null 2>&1; then
   echo "✅ created namespace ${namespace}"
 fi
 
-logging_minio_secret_name=yatai-logging-minio
+
+echo "⏳ waiting for minio-operator to be ready..."
+kubectl -n yatai-system wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=minio-operator
+echo "✅ minio-operator is ready"
+
+minio_secret_name=yatai-logging-minio
 
 # check if logging minio secret not exists
-if ! kubectl get secret ${logging_minio_secret_name} -n ${namespace} >/dev/null 2>&1; then
-  echo "🤖 creating secret ${logging_minio_secret_name}"
-  kubectl create secret generic ${logging_minio_secret_name} \
+echo "🧐 checking if secret ${minio_secret_name} exists..."
+if ! kubectl get secret ${minio_secret_name} -n ${namespace} >/dev/null 2>&1; then
+  echo "🥹 secret ${minio_secret_name} not found"
+
+  echo "🤖 creating secret ${minio_secret_name}"
+  kubectl create secret generic ${minio_secret_name} \
     --from-literal=accesskey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
     --from-literal=secretkey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
     -n ${namespace}
-  echo "✅ created secret ${logging_minio_secret_name}"
+  echo "✅ created secret ${minio_secret_name}"
+else
+  echo "🤩 secret ${minio_secret_name} already exists"
 fi
 
 echo "🤖 creating MinIO Tenant..."
@@ -83,12 +93,12 @@ apiVersion: minio.min.io/v2
 kind: Tenant
 metadata:
   labels:
-    app: minio
-  name: logging-minio
+    app: yatai-logging-minio
+  name: yatai-logging
   namespace: ${namespace}
 spec:
   credsSecret:
-    name: ${logging_minio_secret_name}
+    name: ${minio_secret_name}
   image: quay.io/bentoml/minio-minio:RELEASE.2021-10-06T23-36-31Z
   imagePullPolicy: IfNotPresent
   mountPath: /export
@@ -112,8 +122,9 @@ spec:
 EOF
 
 echo "⏳ waiting for minio tenant to be ready..."
+# this retry logic is to avoid kubectl wait errors due to minio tenant resources not being created
 for i in $(seq 1 10); do
-  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app=minio && break || sleep 5
+  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app=yatai-logging-minio && break || sleep 5
 done
 echo "✅ minio tenant is ready"
 
@@ -121,8 +132,8 @@ S3_ENDPOINT=minio.${namespace}.svc.cluster.local
 S3_REGION=foo
 S3_BUCKET_NAME=loki-data
 S3_SECURE=false
-S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret ${logging_minio_secret_name} -o jsonpath='{.data.accesskey}' | base64 -d)
-S3_SECRET_KEY=$(kubectl -n ${namespace} get secret ${logging_minio_secret_name} -o jsonpath='{.data.secretkey}' | base64 -d)
+S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.accesskey}' | base64 -d)
+S3_SECRET_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.secretkey}' | base64 -d)
 
 echo "🧪 testing MinIO connection..."
 for i in $(seq 1 10); do
@@ -133,7 +144,7 @@ for i in $(seq 1 10); do
       --env "AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY" \
       --env "AWS_SECRET_ACCESS_KEY=$S3_SECRET_KEY" \
       --image quay.io/bentoml/s3-client:0.0.1 \
-      --command -- sh -c "s3-client -e http://$S3_ENDPOINT listbuckets 2>/dev/null && echo successfully || echo failed" && break || sleep 5
+      --command -- sh -c "s3-client -e http://$S3_ENDPOINT listbuckets 2>/dev/null" && break || sleep 5
 done
 echo "✅ MinIO connection is successful"
 
