@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 set -e
 
 DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/quick-install-yatai.sh")
