@@ -3,6 +3,8 @@ import React, { useRef, useEffect } from 'react'
 interface ITerminalRecordPlayerProps {
     uid: string
     theme?: string
+    preload?: boolean
+    poster?: string
 }
 
 export default function TerminalRecordPlayer({ uid, ...props_ }: ITerminalRecordPlayerProps) {
@@ -17,6 +19,8 @@ export default function TerminalRecordPlayer({ uid, ...props_ }: ITerminalRecord
         props = {
             ...props,
             theme: 'monokai',
+            preload: true,
+            poster: 'npt:1:23',
         }
     }
     const ref = useRef(null)
