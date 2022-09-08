@@ -41,7 +41,7 @@ This script will automatically install the following dependencies inside the :co
 
 .. code:: bash
 
-  bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/quick-setup-yatai-monitoring.sh")
+  bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/quick-setup-yatai-monitoring.sh")
 
 Setup steps
 -----------
@@ -220,7 +220,7 @@ Then visit the Grafana web UI via :code:`http://localhost:8888`
 
 .. code:: bash
 
-   kubectl -f https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/monitoring/bentodeployment-podmonitor.yaml
+   kubectl -f https://raw.githubusercontent.com/bentoml/yatai/main/scripts/monitoring/bentodeployment-podmonitor.yaml
 
 After some time you can see in the service discovery page in the Prometheus web UI that the bento deployment has been discovered:
 
@@ -246,7 +246,7 @@ Now you can auto-complete to BentoML's metrics in the prometheus expression inpu
 
 .. code:: bash
 
-   curl -L https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/monitoring/bentodeployment-dashboard.json -o /tmp/bentodeployment-dashboard.json
+   curl -L https://raw.githubusercontent.com/bentoml/yatai/main/scripts/monitoring/bentodeployment-dashboard.json -o /tmp/bentodeployment-dashboard.json
 
 2. Create Grafana dashboard configmap
 """""""""""""""""""""""""""""""""""""

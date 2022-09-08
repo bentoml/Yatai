@@ -125,11 +125,11 @@ kubectl -n ${grafana_namespace} wait --for=condition=ready --timeout=600s pod -l
 echo "✅ Grafana service is running"
 
 echo "🤖 creating PodMonitor for BentoDeployments..."
-kubectl apply -f https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/monitoring/bentodeployment-podmonitor.yaml
+kubectl apply -f https://raw.githubusercontent.com/bentoml/yatai/main/scripts/monitoring/bentodeployment-podmonitor.yaml
 echo "✅ PodMonitor for BentoDeployments is created"
 
 echo "🤖 downloading the BentoDeployment Grafana dashboard json file..."
-curl -L https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/monitoring/bentodeployment-dashboard.json -o /tmp/bentodeployment-dashboard.json
+curl -L https://raw.githubusercontent.com/bentoml/yatai/main/scripts/monitoring/bentodeployment-dashboard.json -o /tmp/bentodeployment-dashboard.json
 echo "✅ BentoDeployment Grafana dashboard is downloaded"
 
 echo "🤖 importing the BentoDeployment Grafana dashboard..."

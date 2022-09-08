@@ -57,7 +57,7 @@ Yatai is a production-first platform for your machine learning needs. It brings 
      > NOTE: It is only recommended to use the quick install script to install yatai in a development environment or in a test environment.
 
      ```bash
-     curl -s "https://raw.githubusercontent.com/bentoml/yatai/v1.0.0/scripts/quick-install-yatai.sh" | DEVEL=true bash
+     curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/quick-install-yatai.sh" | DEVEL=true bash
      ```
 </details>
 
