@@ -3,6 +3,7 @@
 set -e
 
 DEVEL=${DEVEL:-false}
+DEVEL_HELM_REPO=${DEVEL_HELM_REPO:-false}
 
 # check if jq command exists
 if ! command -v jq &> /dev/null; then
@@ -232,11 +233,20 @@ for i in $(seq 1 10); do
 done
 echo "✅ MinIO connection is successful"
 
-helm repo remove bentoml 2> /dev/null || true
-helm repo add bentoml https://bentoml.github.io/helm-charts
-helm repo update bentoml
+helm_repo_name=bentoml
+helm_repo_url=https://bentoml.github.io/helm-charts
+
+# check if DEVEL_HELM_REPO is true
+if [ "${DEVEL_HELM_REPO}" = "true" ]; then
+  helm_repo_name=bentoml-devel
+  helm_repo_url=https://bentoml.github.io/helm-charts-devel
+fi
+
+helm repo remove ${helm_repo_name} 2> /dev/null || true
+helm repo add ${helm_repo_name} ${helm_repo_url}
+helm repo update ${helm_repo_name}
 echo "🤖 installing yatai..."
-helm upgrade --install yatai bentoml/yatai -n ${namespace} \
+helm upgrade --install yatai ${helm_repo_name}/yatai -n ${namespace} \
     --set postgresql.host=$PG_HOST \
     --set postgresql.port=$PG_PORT \
     --set postgresql.user=$PG_USER \
