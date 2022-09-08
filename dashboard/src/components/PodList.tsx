@@ -327,7 +327,11 @@ export default function PodList({
                             deploymentName={deployment?.name}
                             namespace={desiredShowTerminalPod.namespace}
                             podName={desiredShowTerminalPod.name}
-                            containerName={desiredShowTerminalPod.raw_status?.containerStatuses?.[0].name ?? ''}
+                            containerName={
+                                desiredShowTerminalPod.raw_status?.containerStatuses?.[
+                                    (desiredShowTerminalPod.raw_status?.containerStatuses?.length ?? 1) - 1
+                                ]?.name ?? ''
+                            }
                         />
                     )}
                 </ModalBody>
