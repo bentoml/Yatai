@@ -28,6 +28,17 @@ release: cleanup
 	cd ${CLONE_DIR}; git add . && git commit --message "release yatai ${VERSION}" && git push -f origin HEAD:gh-pages || exit 1
 	rm -rf ${CLONE_DIR} || true
 
+release-devel: cleanup
+	helm package . --version ${VERSION} --app-version ${VERSION}
+	if [ ${GITHUB_ACTIONS} ]; then git config --global user.name "github-actions[bot]"; fi
+	if [ ${GITHUB_ACTIONS} ]; then git config --global user.email "github-actions[bot]@users.noreply.github.com"; fi
+	if [ ${GITHUB_ACTIONS} ]; then git config --global credential.helper store; fi
+	git clone --single-branch --branch gh-pages "https://x-access-token:${API_TOKEN_GITHUB}@github.com/bentoml/helm-charts-devel.git" "${CLONE_DIR}"
+	cp yatai-${VERSION}.tgz ${CLONE_DIR}/packages/
+	cd ${CLONE_DIR}; helm repo index .
+	cd ${CLONE_DIR}; git add . && git commit --message "release yatai ${VERSION}" && git push -f origin HEAD:gh-pages || exit 1
+	rm -rf ${CLONE_DIR} || true
+
 template:
 	helm template yatai ./ -n yatai-system --debug
 
