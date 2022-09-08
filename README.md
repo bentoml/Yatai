@@ -168,7 +168,7 @@ Yatai is a production-first platform for your machine learning needs. It brings 
 
   <summary>5. Moving to production</summary>
 
--   See [Administrator's Guide](https://github.com/bentoml/yatai/blob/main/docs/admin-guide.md) for a comprehensive overview for deploying and configuring Yatai for production use.
+-   See [Installation Guide](https://docs.bentoml.org/projects/yatai/en/latest/installation/index.html) for a comprehensive overview for deploying and configuring Yatai for production use.
 
 </details>
 
