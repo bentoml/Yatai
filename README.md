@@ -56,8 +56,16 @@ Yatai is a production-first platform for your machine learning needs. It brings 
    * Use the quick installation script to install Yatai:
      > NOTE: It is only recommended to use the quick install script to install yatai in a development environment or in a test environment.
 
+     Quick install Yatai:
+
      ```bash
-     curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/quick-install-yatai.sh" | DEVEL=true bash
+     DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/quick-install-yatai.sh")
+     ```
+
+     Quick install yatai-deployment:
+
+     ```bash
+     DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/main/scripts/quick-install-yatai-deployment.sh")
      ```
 </details>
 
@@ -101,37 +109,37 @@ Yatai is a production-first platform for your machine learning needs. It brings 
     * Deploy directly via `kubectl` command:
         * Define your Bento deployment in a `my_deployment.yaml` file:
           ```yaml
-            apiVersion: serving.yatai.ai/v1alpha2
-            kind: BentoDeployment
-            metadata:
-              name: my-bento-deployment
-              namespace: my-namespace
-            spec:
-              bento_tag: iris_classifier:3oevmqfvnkvwvuqj
-              ingress:
-                enabled: true
+          apiVersion: serving.yatai.ai/v1alpha2
+          kind: BentoDeployment
+          metadata:
+            name: my-bento-deployment
+            namespace: yatai
+          spec:
+            bento_tag: iris_classifier:3oevmqfvnkvwvuqj
+            ingress:
+              enabled: true
+            resources:
+              limits:
+                  cpu: "500m"
+                  memory: "512m"
+              requests:
+                  cpu: "250m"
+                  memory: "128m"
+            autoscaling:
+              max_replicas: 10
+              min_replicas: 2
+            runners:
+            - name: iris_clf
               resources:
                 limits:
-                    cpu: "500m"
-                    memory: "512m"
+                  cpu: "1000m"
+                  memory: "1Gi"
                 requests:
-                    cpu: "250m"
-                    memory: "128m"
-              autoscaling:
-                max_replicas: 10
-                min_replicas: 2
-              runners:
-              - name: iris_clf
-                resources:
-                  limits:
-                    cpu: "1000m"
-                    memory: "1Gi"
-                  requests:
-                    cpu: "500m"
-                    memory: "512m"
-                  autoscaling:
-                    max_replicas: 4
-                    min_replicas: 1
+                  cpu: "500m"
+                  memory: "512m"
+                autoscaling:
+                  max_replicas: 4
+                  min_replicas: 1
           ```
         * Apply the deployment to your minikube cluster
           ```bash
