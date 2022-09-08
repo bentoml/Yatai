@@ -262,9 +262,8 @@ echo "🧪 verify that the Grafana service is running..."
 kubectl -n ${grafana_namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=grafana
 echo "✅ Grafana service is running"
 
-if [ "${grafana_namespace}" = "${namespace}" ]; then
-  echo "🤖 importing Grafana datasource..."
-  cat <<EOF > /tmp/loki-datasource.yaml
+echo "🤖 importing Grafana datasource..."
+cat <<EOF > /tmp/loki-datasource.yaml
 apiVersion: 1
 datasources:
 - name: Loki
@@ -275,10 +274,9 @@ datasources:
   editable: false
 EOF
 
-  kubectl -n ${namespace} create configmap loki-datasource --from-file=/tmp/loki-datasource.yaml -o yaml --dry-run=client | kubectl apply -f -
-  kubectl -n ${namespace} label configmap loki-datasource grafana_datasource=1 --overwrite
-  echo "✅ Grafana datasource is imported"
-fi
+kubectl -n ${namespace} create configmap loki-datasource --from-file=/tmp/loki-datasource.yaml -o yaml --dry-run=client | kubectl apply -f -
+kubectl -n ${namespace} label configmap loki-datasource grafana_datasource=1 --overwrite
+echo "✅ Grafana datasource is imported"
 
 echo "🤖 restarting Grafana..."
 kubectl -n ${grafana_namespace} rollout restart deployment grafana
