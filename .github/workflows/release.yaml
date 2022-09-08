@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    tags: [ v\d+\.\d+\.\d+\-d\.\d+ ]
+    tags: [ v\d+\.\d+\.\d+\-d\d+ ]
   release:
     types: [ published ]
 
