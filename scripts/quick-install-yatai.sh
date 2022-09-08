@@ -101,20 +101,32 @@ kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
     --namespace ${namespace} \
     --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
     --env="PGPASSWORD=$PG_PASSWORD" \
-    --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d postgres -c "select 1"
+    --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d postgres -c "SELECT 1"
 
 echo "✅ PostgreSQL connection is successful"
 
-echo "🤖 creating PostgreSQL database ${PG_DATABASE}..."
+echo "🧪 checking if PostgreSQL database ${PG_DATABASE} exists..."
 kubectl -n ${namespace} delete pod postgresql-ha-client 2> /dev/null || true
-
-kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
+if ! kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
     --namespace ${namespace} \
     --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
     --env="PGPASSWORD=$PG_PASSWORD" \
-    --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d postgres -c "create database $PG_DATABASE"
+    --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d ${PG_DATABASE} -c "SELECT 1" > /dev/null 2&>1; then
 
-echo "✅ PostgreSQL database ${PG_DATABASE} is created"
+  echo "🥹  PostgreSQL database ${PG_DATABASE} does not exist"
+  echo "🤖 creating PostgreSQL database ${PG_DATABASE}..."
+  kubectl -n ${namespace} delete pod postgresql-ha-client 2> /dev/null || true
+
+  kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
+      --namespace ${namespace} \
+      --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
+      --env="PGPASSWORD=$PG_PASSWORD" \
+      --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d postgres -c "CREATE DATABASE $PG_DATABASE"
+
+  echo "✅ PostgreSQL database ${PG_DATABASE} is created"
+else
+  echo "✅ PostgreSQL database ${PG_DATABASE} already exists"
+fi
 
 echo "🧪 testing PostgreSQL environment variables..."
 kubectl -n ${namespace} delete pod postgresql-ha-client 2> /dev/null || true
