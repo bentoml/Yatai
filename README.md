@@ -48,7 +48,7 @@ Yatai is a production-first platform for your machine learning needs. It brings 
 
 Here's a quick tour for trying out Yatai locally. 
 
-#### Prerequisites:
+#### ⚙️ Prerequisites:
   * Install latest minikube: https://minikube.sigs.k8s.io/docs/start/
   * Install latest Helm: https://helm.sh/docs/intro/install/
   * Start a minikube Kubernetes cluster: `minikube start --cpus 4 --memory 4096`
@@ -56,7 +56,7 @@ Here's a quick tour for trying out Yatai locally.
   * Make sure your `kubectl` is configured with `minikube` context: `kubectl config current-context`
   * Enable ingress controller: `minikube addons enable ingress`
 
-#### Install Yatai
+#### 🚧 Install Yatai
 
 Install Yatai with the following script:
 
@@ -86,7 +86,7 @@ echo "Open in browser: http://127.0.0.1:8080/setup?token=$YATAI_INITIALIZATION_T
 Open the URL printed above from your browser to finish admin account setup.
 
 
-#### Push Bento to Yatai
+#### 🍱 Push Bento to Yatai
 
 First, get an API token and login BentoML CLI:
 
@@ -114,7 +114,7 @@ Push your newly built Bento to Yatai:
 bentoml push iris_classifier:latest
 ```
 
-#### Install yatai-deployment componet
+#### 🔧 Install yatai-deployment componet
 
 Yatai's Deployment feature comes as a separate component, you can install it via the following
 script:
@@ -125,19 +125,22 @@ DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deplo
 
 Similiarly, this script is made for development and testing purpose only.
 
-#### Deploy Bento!
+#### 🚢 Deploy Bento!
 
-Once the `yatai-deployment` component was installed, you can new deploy Bentos to your Kubernetes
-cluster via Yatai. A Bento Deployment can be created via Web UI or via kubectl command.
+Once the `yatai-deployment` component was installed, Bentos pushed to Yatai can be deployed to your 
+Kubernetes cluster and exposed via a Service endpoint. 
 
-* Deploy via Web UI
+A Bento Deployment can be created via Web UI or via kubectl command:
 
-  * Go to deployments page: http://127.0.0.1:8080/deployments
-  * Click `Create` button and follow instructions on UI
+##### Simple Deployment via Web UI
 
-* Deploy directly via `kubectl` command:
+* Go to deployments page: http://127.0.0.1:8080/deployments
+* Click `Create` button and follow instructions on UI
+
+##### GitOps Deploy Workflow with `kubectl` and CRD
 
 Define your Bento deployment in a `my_deployment.yaml` file:
+
 ```yaml
 apiVersion: serving.yatai.ai/v1alpha2
 kind: BentoDeployment
