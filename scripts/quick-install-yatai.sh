@@ -158,8 +158,8 @@ if ! kubectl get secret ${minio_secret_name} -n ${namespace} >/dev/null 2>&1; th
   echo "🥹 secret ${minio_secret_name} not found"
   echo "🤖 creating secret ${minio_secret_name}"
   kubectl create secret generic ${minio_secret_name} \
-    --from-literal=accesskey=$(date | md5sum | head -c 20; echo -n) \
-    --from-literal=secretkey=$(date | md5sum | head -c 20; echo -n) \
+    --from-literal=accesskey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
+    --from-literal=secretkey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
     -n ${namespace}
   echo "✅ created secret ${minio_secret_name}"
 else
