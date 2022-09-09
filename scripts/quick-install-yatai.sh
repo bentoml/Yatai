@@ -5,6 +5,10 @@ set -e
 DEVEL=${DEVEL:-false}
 DEVEL_HELM_REPO=${DEVEL_HELM_REPO:-false}
 
+function randstr() {
+  LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 20
+}
+
 # check if jq command exists
 if ! command -v jq &> /dev/null; then
   # download jq from github by different arch
@@ -63,15 +67,15 @@ if ! kubectl get namespace ${namespace} >/dev/null 2>&1; then
 fi
 
 if ! kubectl -n ${namespace} get secret postgresql-ha-postgresql >/dev/null 2>&1; then
-  postgresql_password=$(openssl rand -hex 16)
-  repmgr_password=$(openssl rand -hex 16)
+  postgresql_password=$(randstr)
+  repmgr_password=$(randstr)
 else
   postgresql_password=$(kubectl -n ${namespace} get secret postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 -d)
   repmgr_password=$(kubectl -n ${namespace} get secret postgresql-ha-postgresql -o jsonpath="{.data.repmgr-password}" | base64 -d)
 fi
 
 if ! kubectl -n ${namespace} get secret postgresql-ha-pgpool >/dev/null 2>&1; then
-  pgpool_admin_password=$(openssl rand -hex 16)
+  pgpool_admin_password=$(randstr)
 else
   pgpool_admin_password=$(kubectl -n ${namespace} get secret postgresql-ha-pgpool -o jsonpath="{.data.admin-password}" | base64 -d)
 fi
@@ -158,8 +162,8 @@ if ! kubectl get secret ${minio_secret_name} -n ${namespace} >/dev/null 2>&1; th
   echo "🥹 secret ${minio_secret_name} not found"
   echo "🤖 creating secret ${minio_secret_name}"
   kubectl create secret generic ${minio_secret_name} \
-    --from-literal=accesskey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
-    --from-literal=secretkey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
+    --from-literal=accesskey=$(randstr) \
+    --from-literal=secretkey=$(randstr) \
     -n ${namespace}
   echo "✅ created secret ${minio_secret_name}"
 else
