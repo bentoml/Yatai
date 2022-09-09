@@ -2,7 +2,6 @@
 
 [![actions_status](https://github.com/bentoml/yatai/workflows/CICD/badge.svg)](https://github.com/bentoml/yatai/actions)
 [![docs](https://readthedocs.org/projects/yatai/badge/?version=latest&style=flat-square)](https://docs.bentoml.org/projects/yatai)
-
 [![join_slack](https://badgen.net/badge/Join/BentoML%20Slack/cyan?icon=slack&style=flat-square)](https://join.slack.bentoml.org)
 
 Yatai is a production-first platform for your machine learning needs. It brings collaborative [BentoML](https://github.com/bentoml) workflows to Kubernetes, helps ML teams to run model serving at scale, while simplifying model management and deployment across teams.
