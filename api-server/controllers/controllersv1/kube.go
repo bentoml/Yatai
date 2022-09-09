@@ -3,6 +3,7 @@ package controllersv1
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -176,27 +177,7 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 			ie := _events[i]
 			je := _events[j]
 
-			it := time.Now()
-			// nolint: gocritic
-			if !ie.EventTime.IsZero() {
-				it = ie.EventTime.Time
-			} else if !ie.LastTimestamp.IsZero() {
-				it = ie.LastTimestamp.Time
-			} else if !ie.FirstTimestamp.IsZero() {
-				it = ie.FirstTimestamp.Time
-			}
-
-			jt := time.Now()
-			// nolint: gocritic
-			if !je.EventTime.IsZero() {
-				jt = je.EventTime.Time
-			} else if !je.LastTimestamp.IsZero() {
-				jt = je.LastTimestamp.Time
-			} else if !je.FirstTimestamp.IsZero() {
-				jt = je.FirstTimestamp.Time
-			}
-
-			return it.Before(jt)
+			return strings.Compare(ie.ResourceVersion, je.ResourceVersion) < 0
 		})
 
 		if len(_events) == 0 || !is_sent {
@@ -424,27 +405,7 @@ func (c *kubeController) GetDeploymentKubeEvents(ctx *gin.Context, schema *GetDe
 			ie := _events[i]
 			je := _events[j]
 
-			it := time.Now()
-			// nolint: gocritic
-			if !ie.EventTime.IsZero() {
-				it = ie.EventTime.Time
-			} else if !ie.LastTimestamp.IsZero() {
-				it = ie.LastTimestamp.Time
-			} else if !ie.FirstTimestamp.IsZero() {
-				it = ie.FirstTimestamp.Time
-			}
-
-			jt := time.Now()
-			// nolint: gocritic
-			if !je.EventTime.IsZero() {
-				jt = je.EventTime.Time
-			} else if !je.LastTimestamp.IsZero() {
-				jt = je.LastTimestamp.Time
-			} else if !je.FirstTimestamp.IsZero() {
-				jt = je.FirstTimestamp.Time
-			}
-
-			return it.Before(jt)
+			return strings.Compare(ie.ResourceVersion, je.ResourceVersion) < 0
 		})
 
 		select {
