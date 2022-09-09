@@ -1,144 +1,187 @@
-# Yatai development guide
+# Developer Guide
 
-Yatai uses Golang for its backend and react/typescript for the frontend web UI. Download the source code:
+I'm glad you can see this document and I'm looking forward to your contributions to the Yatai.
 
-```bash
-git clone https://github.com/bentoml/yatai.git
-```
+Yatai does not rely on cloud-native, but it is accessible to cloud-native based yatai-deployment as a RESTful api-server, so how to bridge the network between the Kubernetes cluster and the local development environment is a problem that needs to be solved
 
-# Prerequisites
+As you know, Kubernetes has a complex network environment, so developing cloud-native related products locally can be a challenge. But don't worry, this document will show you how to develop Yatai locally easily, quickly and comfortably.
 
-### Yatai Web UI
+## Prequisites
 
-1. NodeJS version 14.16.1 or above
+- A Yatai installed in the **development environment** for development and debugging
 
-    > For Apple computer with M1 chip, please install nodejs version `>=14.17.1`
-    >
-    - We recommend installing NodeJS using `nvm` which allows developers to quickly install and use different versions of node:
+    > NOTE: Since you are developing, **you must not use the production environment**, so we recommend using the quick install script to install yatai and Yatai in the local minikube
 
-        ```bash
-        # Install NVM
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+    A pre-installed Yatai for development purposes is designed to provide an infrastructure that you can use directly
 
-        nvm install 14.17.1
-        nvm alias default 14.17.1
-        ```
+    You can start by reading this [installation document](https://docs.bentoml.org/projects/yatai/en/latest/installation/yatai.html) to install Yatai. It is highly recommended to use the [quick install script](https://docs.bentoml.org/projects/yatai/en/latest/installation/yatai.html#quick-install) to install Yatai
 
-2. Yarn package manager (optional)
+    Remember, **never use infrastructure from the production environment**, only use newly installed infrastructure in the cluster, such as SQL databases, blob storage, docker registry, etc. The [quick install script](https://docs.bentoml.org/projects/yatai/en/latest/installation/yatai.html#quick-install) mentioned above will prevent you from using the infrastructure in the production environment, this script will help you to install all the infrastructure from scratch, you can use it without any worries.
 
-    Yatai uses `yarn` package manager to run varies of Web UI related ops in the Makefile.
+    If you have already installed it, please verify that your kubectl context is correct with the following command:
+
+    ```bash
+    kubectl config current-context
+    ```
+
+- [jq](https://stedolan.github.io/jq/)
+
+    Used to parse json from the command line
+
+- [Go language compiler](https://go.dev/)
+
+    Yatai api-server is implemented by Go Programming Language
+
+- [Node.js](https://nodejs.org/en/)
+
+    Yatai Web UI is implemented by TypeScript + React
+
+    * We recommend installing NodeJS using `nvm` which allows developers to quickly install and use different versions of node:
+
+    ```bash
+    # Install NVM
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+
+    nvm install 14.17.1
+    nvm alias default 14.17.1
+    ```
+
+- [Yarn Package Manager](https://yarnpkg.com/)
+
+    Yatai Web UI uses `yarn` to manage dependencies.
 
     ```bash
     npm install -g yarn
     ```
 
-### Yatai Server
+- [Telepresence](https://www.telepresence.io/)
 
-1. PostgreSQL
+    The most critical dependency in this document for bridging the local network and the Kubernetes cluster network
 
-    A local PostgreSQL database is required to set up a local development environment. Follow the official installation guide for your system here: [https://www.postgresql.org/download/](https://www.postgresql.org/download/)
+## Start Developing
 
-    For mac users, install Postgres with homebrew:
+<details>
 
-    ```bash
-    brew install postgresql
-    ```
+1. Fork the Yatai project on [GitHub](https://github.com/bentoml/Yatai)
 
-    After installation, create a database for Yatai
+2. Clone the source code from your fork of Yatai's GitHub repository:
 
     ```bash
-    createdb yatai
+    git clone git@github.com:${your github username}/Yatai.git && cd Yatai
     ```
 
-2. Golang
-
-    Yatai uses golang for its backend. Install Golang for your system following the official installation guide here: [https://go.dev/doc/install](https://go.dev/doc/install)
-
-    For Mac users, install Golang with homebrew:
+3. Add the Yatai upstream remote to your local Yatai clone:
 
     ```bash
-    brew install go
+    git remote add upstream git@github.com:bentoml/Yatai.git
     ```
 
-
-### Install dependencies
-
-#### Yatai WebUI
-
-Yatai uses yarn to manage its front-end dependencies.  Run the make command:
-
-```bash
-make fe-deps
-```
-
-Alternatively navigate to the `dashboard` directory and run `yarn` command:
-
-```bash
-cd dasboard
-yarn
-```
-
-#### Yatai server
-
-Yatai uses go command to download the dependency packages.  Run the make command:
-
-```bash
-make be-deps
-```
-
-Alternatively to run the download command directly:
-
-```bash
-go mod download
-```
-
-## Nix
-
-There is a [nix](./nix) folder which enable developers the ability to use nix to
-startup Yatai development workflow.
-However, this is for advanced user only. Use with precaution!
-
-## Run development server
-
-1. Generate Yatai config file
-
-    Create `yatai-config.dev.yaml` file that bases on the `yatai-config.sample.yaml` template and update the `postgrsql` section in the configuration file.
-
-    An example for a local `yatai-config.dev.yaml` (nix-shell compatible):
-
-    ```yaml
-        in_cluster: false
-
-        server:
-        enable_https: false
-        port: 7777
-        session_secret_key:
-        migration_dir: ./api-server/db/migrations
-
-        postgresql:
-        host: localhost
-        port: 5432
-        user: postgres
-        password: ''
-        database: yatai
-
-        initialization_token: 12345
-    ```
-
-2. Spin up `minikube`:
-```bash
-minikube start --cpus 4 --memory 4096
-```
-
-3. Run make command that start the development server for both Yatai UI and Yatai server.
+4. Installing Go dependencies
 
     ```bash
-    make yatai-dev
+    go mod download
+    ```
+</details>
+
+## Making Changes
+
+<details>
+1. Make sure you're on the main branch.
+
+   ```bash
+   git checkout main
+   ```
+
+2. Use the git pull command to retrieve content from the BentoML Github repository.
+
+   ```bash
+   git pull upstream main -r
+   ```
+
+3. Create a new branch and switch to it.
+
+   ```bash
+   git checkout -b your-new-branch-name
+   ```
+
+4. Make your changes!
+
+5. Use the git add command to save the state of files you have changed.
+
+   ```bash
+   git add <names of the files you have changed>
+   ```
+
+6. Commit your changes.
+
+   ```bash
+   git commit -m 'your commit message'
+   ```
+
+7. Synchronize upstream changes
+
+    ```bash
+    git pull upstream main -r
     ```
 
-    Visit http://localhost:7777 to view the Yatai Web UI
+8. Push all changes to your forked repo on GitHub.
 
-    Visit http://localhost:7777/swagger to view Yatai server’s API definitions.
+   ```bash
+   git push origin your-new-branch-name
+   ```
+</details>
 
-    Visit http://localhost:3000/setup?token=12345 to initially setup a dev
-    credentials.
+## Run Yatai api-server
+
+1. Connect to the Kubernetes cluster network
+
+    ```bash
+    telepresence connect
+    ```
+
+2. Run Yatai
+
+    > NOTE: The following command uses the infrastructure of the Kubernetes environment in the current kubectl context and replaces the behavior of Yatai in the current Kubernetes environment, so please proceed with caution
+
+    ```bash
+    env $(kubectl -n yatai-system get secret env -o jsonpath='{.data}' | jq 'to_entries|map("\(.key)=\(.value|@base64d)")|.[]' | xargs) make be-run
+    ```
+
+    If you want to access the front-end pages, you need to compile the front-end static files in advance using the following command, or [Run Yatai Web UI](#run-yatai-web-ui)
+
+    ```bash
+    cd dashboard
+    yarn
+    yarn build
+    cd -
+    ```
+
+3. Intercept traffic from the Kubernetes cluster sent to the yatai service to the locally running yatai process
+
+    ```bash
+    telepresence leave yatai-yatai-system || true
+    telepresence intercept yatai -n yatai-system -p 7777:http
+    ```
+
+    > NOTE: After development, unblock the traffic with the following command: `telepresence leave yatai-yatai-system`
+
+4. ✨ Enjoy it!
+
+## Run Yatai Web UI
+
+1. Install dependencies
+
+    ```bash
+    cd dashboard
+    yarn
+    cd -
+    ```
+
+2. Run frontend proxy server
+
+    ```bash
+    cd dashboard
+    yarn start
+    ```
+
+3. ✨ Enjoy it!
