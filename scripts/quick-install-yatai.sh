@@ -112,7 +112,7 @@ if ! kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
     --namespace ${namespace} \
     --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
     --env="PGPASSWORD=$PG_PASSWORD" \
-    --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d ${PG_DATABASE} -c "SELECT 1" > /dev/null 2&>1; then
+    --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d ${PG_DATABASE} -c "SELECT 1" > /dev/null 2>&1; then
 
   echo "🥹 PostgreSQL database ${PG_DATABASE} does not exist"
   echo "🤖 creating PostgreSQL database ${PG_DATABASE}..."
