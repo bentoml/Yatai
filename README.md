@@ -123,21 +123,22 @@ script:
 DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/main/scripts/quick-install-yatai-deployment.sh")
 ```
 
-Similiarly, this script is made for development and testing purpose only.
+This will install the `BentoDeployment` CRD([Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/))
+in your cluster and enable the deployment UI on Yatai. Similiarly, this script is made for development and testing purpose only.
 
 #### 🚢 Deploy Bento!
 
 Once the `yatai-deployment` component was installed, Bentos pushed to Yatai can be deployed to your 
 Kubernetes cluster and exposed via a Service endpoint. 
 
-A Bento Deployment can be created via Web UI or via kubectl command:
+A Bento Deployment can be created either via Web UI or via a Kubernetes CRD config:
 
-##### Simple Deployment via Web UI
+##### Option 1. Simple Deployment via Web UI
 
 * Go to deployments page: http://127.0.0.1:8080/deployments
 * Click `Create` button and follow instructions on UI
 
-##### GitOps Deploy Workflow with `kubectl` and CRD
+##### Option 2. Deploy with kubectl & CRD
 
 Define your Bento deployment in a `my_deployment.yaml` file:
 
