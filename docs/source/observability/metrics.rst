@@ -144,7 +144,7 @@ The output of the command above should look something like this:
 
   cat <<EOF | helm install grafana grafana/grafana -n yatai-monitoring -f -
   adminUser: admin
-  adminPassword: $(openssl rand -base64 16)
+  adminPassword: $(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 20)
   persistence:
     enabled: true
   sidecar:

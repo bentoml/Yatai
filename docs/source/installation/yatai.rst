@@ -95,7 +95,7 @@ Installation steps
 
         .. code:: bash
 
-          export PG_PASSWORD=$(echo $RANDOM | md5sum | head -c 20; echo -n)
+          export PG_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 20)
           export PG_USER=yatai
           export PG_DATABASE=yatai
           export PG_SSLMODE=disable
@@ -335,8 +335,8 @@ Expected output:
           helm repo add minio https://operator.min.io/
           helm repo update minio
 
-          export S3_ACCESS_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
-          export S3_SECRET_KEY=$(echo $RANDOM | md5sum | head -c 20; echo -n)
+          export S3_ACCESS_KEY=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 20)
+          export S3_SECRET_KEY=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 20)
 
           cat <<EOF | helm upgrade --install minio-operator minio/minio-operator -n yatai-system -f -
           tenants:

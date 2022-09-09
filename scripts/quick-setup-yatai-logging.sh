@@ -2,6 +2,10 @@
 
 set -e
 
+function randstr() {
+  LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 20
+}
+
 # check if jq command exists
 if ! command -v jq &> /dev/null; then
   # download jq from github by different arch
@@ -79,8 +83,8 @@ if ! kubectl get secret ${minio_secret_name} -n ${namespace} >/dev/null 2>&1; th
 
   echo "🤖 creating secret ${minio_secret_name}"
   kubectl create secret generic ${minio_secret_name} \
-    --from-literal=accesskey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
-    --from-literal=secretkey=$(echo $RANDOM | md5sum | head -c 20; echo -n) \
+    --from-literal=accesskey=$(randstr) \
+    --from-literal=secretkey=$(randstr) \
     -n ${namespace}
   echo "✅ created secret ${minio_secret_name}"
 else
@@ -236,7 +240,7 @@ if [ "${grafana_namespace}" = "${namespace}" ]; then
   helm repo update grafana
   echo "🤖 installing Grafana..."
   if ! kubectl -n ${grafana_namespace} get secret grafana > /dev/null 2>&1; then
-    grafana_admin_password=$(openssl rand -base64 16)
+    grafana_admin_password=$(randstr)
   else
     grafana_admin_password=$(kubectl -n ${grafana_namespace} get secret grafana -o jsonpath='{.data.admin-password}' | base64 -d)
   fi
