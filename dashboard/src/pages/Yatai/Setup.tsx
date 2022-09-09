@@ -51,7 +51,8 @@ export default function Setup() {
         setValues(newValues)
     }, [])
     const getTokenCommand =
-        "kubectl -n yatai-system get secret yatai -o jsonpath='{.data.initialization_token}' | base64 -d"
+        "kubectl get secret env --namespace yatai-system -o jsonpath="{.data.YATAI_INITIALIZATION_TOKEN}" | base64 --decode"
+    
 
     return (
         <YataiLayout
