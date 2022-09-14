@@ -98,7 +98,7 @@ kind: Tenant
 metadata:
   labels:
     app: yatai-logging-minio
-  name: yatai-logging
+  name: yatai-logging-minio
   namespace: ${namespace}
 spec:
   credsSecret:

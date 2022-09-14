@@ -357,7 +357,7 @@ Expected output:
             secrets:
               accessKey: $S3_ACCESS_KEY
               enabled: true
-              name: yatai-minio-secret
+              name: yatai-minio
               secretKey: $S3_SECRET_KEY
             subPath: /data
           EOF
@@ -408,8 +408,8 @@ Expected output:
           export S3_REGION=foo
           export S3_BUCKET_NAME=yatai
           export S3_SECURE=false
-          export S3_ACCESS_KEY=$(kubectl -n yatai-system get secret yatai-minio-secret -o jsonpath='{.data.accesskey}' | base64 -d)
-          export S3_SECRET_KEY=$(kubectl -n yatai-system get secret yatai-minio-secret -o jsonpath='{.data.secretkey}' | base64 -d)
+          export S3_ACCESS_KEY=$(kubectl -n yatai-system get secret yatai-minio -o jsonpath='{.data.accesskey}' | base64 -d)
+          export S3_SECRET_KEY=$(kubectl -n yatai-system get secret yatai-minio -o jsonpath='{.data.secretkey}' | base64 -d)
 
         5. Test S3 connection
 

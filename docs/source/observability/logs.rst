@@ -70,7 +70,7 @@ Setup steps
         export S3_ACCESS_KEY=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 20)
         export S3_SECRET_KEY=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 20)
 
-        kubectl create secret generic logging-minio-secret \
+        kubectl create secret generic yatai-logging-minio \
           --from-literal=accesskey=$S3_ACCESS_KEY \
           --from-literal=secretkey=$S3_SECRET_KEY \
           -n yatai-logging
@@ -81,11 +81,11 @@ Setup steps
         metadata:
           labels:
             app: minio
-          name: logging-minio
+          name: yatai-logging-minio
           namespace: yatai-logging
         spec:
           credsSecret:
-            name: logging-minio-secret
+            name: yatai-logging-minio
           image: quay.io/bentoml/minio-minio:RELEASE.2021-10-06T23-36-31Z
           imagePullPolicy: IfNotPresent
           mountPath: /export
@@ -139,7 +139,7 @@ Setup steps
           secrets:
             accessKey: $S3_ACCESS_KEY
             enabled: true
-            name: logging-minio-secret
+            name: yatai-logging-minio
             secretKey: $S3_SECRET_KEY
           subPath: /data
         EOF
@@ -179,11 +179,11 @@ Expected output:
 
 .. code:: bash
 
-  NAME                 READY   STATUS    RESTARTS   AGE
-  logging-minio-ss-0-0   1/1     Running   0          143m
-  logging-minio-ss-0-1   1/1     Running   0          143m
-  logging-minio-ss-0-2   1/1     Running   0          143m
-  logging-minio-ss-0-3   1/1     Running   0          143m
+  NAME                         READY   STATUS    RESTARTS   AGE
+  yatai-logging-minio-ss-0-0   1/1     Running   0          143m
+  yatai-logging-minio-ss-0-1   1/1     Running   0          143m
+  yatai-logging-minio-ss-0-2   1/1     Running   0          143m
+  yatai-logging-minio-ss-0-3   1/1     Running   0          143m
 
 3. Prepare S3 connection params
 """""""""""""""""""""""""""""""
@@ -194,8 +194,8 @@ Expected output:
   export S3_REGION=foo
   export S3_BUCKET_NAME=loki-data
   export S3_SECURE=false
-  export S3_ACCESS_KEY=$(kubectl -n yatai-logging get secret logging-minio-secret -o jsonpath='{.data.accesskey}' | base64 -d)
-  export S3_SECRET_KEY=$(kubectl -n yatai-logging get secret logging-minio-secret -o jsonpath='{.data.secretkey}' | base64 -d)
+  export S3_ACCESS_KEY=$(kubectl -n yatai-logging get secret yatai-logging-minio -o jsonpath='{.data.accesskey}' | base64 -d)
+  export S3_SECRET_KEY=$(kubectl -n yatai-logging get secret yatai-logging-minio -o jsonpath='{.data.secretkey}' | base64 -d)
 
 4. Test S3 connection
 """""""""""""""""""""
