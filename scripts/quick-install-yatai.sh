@@ -177,7 +177,7 @@ kind: Tenant
 metadata:
   labels:
     app: yatai-minio
-  name: yatai
+  name: yatai-minio
   namespace: ${namespace}
 spec:
   credsSecret:
