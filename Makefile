@@ -130,3 +130,9 @@ spellcheck-docs: ## Spell check documentation
 
 linkcheck-docs: ## Check documentation links
 	sphinx-build -b linkcheck -W ./docs/source ./docs/build
+
+start-dev:
+	./scripts/start-dev.sh
+
+stop-dev:
+	telepresence leave yatai-yatai-system
