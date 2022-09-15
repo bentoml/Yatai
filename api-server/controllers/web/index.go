@@ -1,8 +1,8 @@
 package web
 
 import (
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"sync"
 
@@ -21,7 +21,7 @@ var (
 func Index(ctx *gin.Context) {
 	indexLoadOnce.Do(func() {
 		var err error
-		indexContent, err = ioutil.ReadFile(path.Join(config.GetUIDistDir(), "index.html"))
+		indexContent, err = os.ReadFile(path.Join(config.GetUIDistDir(), "index.html"))
 		if err != nil {
 			logrus.Panicf("failed to read index.html:%s", err.Error())
 		}
