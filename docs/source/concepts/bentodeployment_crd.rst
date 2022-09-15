@@ -15,7 +15,7 @@ BentoDeployment is a Kubernetes `CRD <https://kubernetes.io/docs/concepts/extend
 
     * - :code:`apiVersion`
       - :code:`string`
-      - The version of the schema. Current version is `v1alpha2`
+      - The version of the schema. Current version is `v1alpha3`
 
     * - :code:`kind`
       - :code:`string`
@@ -139,7 +139,7 @@ Example of a BentoDeployment
 
 .. code:: yaml
 
-  apiVersion: serving.yatai.ai/v1alpha2
+  apiVersion: serving.yatai.ai/v1alpha3
   kind: BentoDeployment
   metadata:
     name: my-bento-deployment
