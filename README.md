@@ -141,7 +141,7 @@ A Bento Deployment can be created either via Web UI or via a Kubernetes CRD conf
 Define your Bento deployment in a `my_deployment.yaml` file:
 
 ```yaml
-apiVersion: serving.yatai.ai/v1alpha2
+apiVersion: serving.yatai.ai/v1alpha3
 kind: BentoDeployment
 metadata:
     name: my-bento-deployment
