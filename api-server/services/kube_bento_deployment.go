@@ -144,6 +144,31 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 		}
 	} else {
 		kubeBentoDeployment.SetResourceVersion(oldKubeBentoDeployment.GetResourceVersion())
+		for k, v := range oldKubeBentoDeployment.Annotations {
+			if _, ok := kubeBentoDeployment.Annotations[k]; !ok {
+				kubeBentoDeployment.Annotations[k] = v
+			}
+		}
+		for k, v := range oldKubeBentoDeployment.Labels {
+			if _, ok := kubeBentoDeployment.Labels[k]; !ok {
+				kubeBentoDeployment.Labels[k] = v
+			}
+		}
+		kubeBentoDeployment.Spec.Annotations = oldKubeBentoDeployment.Spec.Annotations
+		kubeBentoDeployment.Spec.Labels = oldKubeBentoDeployment.Spec.Labels
+		kubeBentoDeployment.Spec.ExtraPodSpec = oldKubeBentoDeployment.Spec.ExtraPodSpec
+		kubeBentoDeployment.Spec.Ingress.Annotations = oldKubeBentoDeployment.Spec.Ingress.Annotations
+		kubeBentoDeployment.Spec.Ingress.Labels = oldKubeBentoDeployment.Spec.Ingress.Labels
+		kubeBentoDeployment.Spec.Ingress.TLS = oldKubeBentoDeployment.Spec.Ingress.TLS
+		for idx, runner := range kubeBentoDeployment.Spec.Runners {
+			for _, oldRunner := range oldKubeBentoDeployment.Spec.Runners {
+				if runner.Name == oldRunner.Name {
+					kubeBentoDeployment.Spec.Runners[idx].Annotations = oldRunner.Annotations
+					kubeBentoDeployment.Spec.Runners[idx].Labels = oldRunner.Labels
+					kubeBentoDeployment.Spec.Runners[idx].ExtraPodSpec = oldRunner.ExtraPodSpec
+				}
+			}
+		}
 		kubeBentoDeployment, err = cli.Update(ctx, kubeBentoDeployment, metav1.UpdateOptions{})
 		if err != nil {
 			err = errors.Wrapf(err, "failed to update kube bento deployment %s", kubeBentoDeployment.Name)
