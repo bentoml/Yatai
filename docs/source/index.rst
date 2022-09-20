@@ -1,28 +1,35 @@
-==========================================
-Production-first ML platform on Kubernetes
-==========================================
+=======================================
+Model Deployment at scale on Kubernetes
+=======================================
 
 |github_stars| |actions_status| |documentation_status| |join_slack|
 
 ----
 
-What is Yatai?
-----------------
-`Yatai <https://github.com/bentoml/Yatai>`_ is a production-first platform for your machine learning needs. It brings collaborative `BentoML <https://github.com/bentoml/BentoML>`_ workflows to Kubernetes, helps ML teams to run model serving at scale, while simplifying model management and deployment across teams.
+`Yatai(屋台, food cart) <https://github.com/bentoml/Yatai>`_ lets you deploy, operate and scale Machine Learning services on Kubernetes.
+
+It supports deploying any ML models via `BentoML <https://github.com/bentoml/BentoML>`_, the unified model serving framework.
+
 
 Why Yatai?
-----------------
+----------
 
-* Yatai accelerates the process of taking ML models from training stage to production and reduces the operational overhead of running a reliable model serving system.
+🍱 Made for BentoML, deploy at scale
 
-* Yatai simplifies collaboration between Data Science and Engineering teams. It is designed to leverage the BentoML standard and streamline production ML workflows.
+- Scale `BentoML <https://github.com/bentoml/BentoML>`_ to its full potential on a distributed system, optimized for cost saving and performance.
+- Manage deployment lifecycles to deploy, update, or roll back via API or Web UI.
+- Centralized registry providing the **foundation for CI/CD** via artifact management APIs, labeling, and WebHooks for custom integration.
 
-* Yatai is a cloud native platform with a wide range of integrations to best fit your infrastructure needs, and it is easily customizable for your CI/CD needs.
+🚅 Cloud native & DevOps friendly
 
+- Kubernetes-native workflow via :doc:`BentoDeployment CRD <concepts/bentodeployment_crd>` (Custom Resource Definition), which can easily fit into an existing GitOps workflow.
+- Native :doc:`integration with Grafana <observability/metrics>` stack for observability.
+- Support for traffic control with Istio.
+- Compatible with all major cloud platforms (AWS, Azure, and GCP).
 
 
 Learn Yatai
--------------
+-----------
 
 .. grid:: 1 2 2 2
     :gutter: 3
@@ -53,26 +60,6 @@ Learn Yatai
 
         Join us in our Slack community where hundreds of ML practitioners are contributing to the project, helping other users, and discuss all things MLOps.
 
-
-Beyond Yatai
---------------------
-
-.. grid:: 1 2 2 2
-    :gutter: 3
-    :margin: 0
-    :padding: 3 4 0 0
-
-    .. grid-item-card:: `🍱 BentoML <https://github.com/bentoml/BentoML>`_
-        :link: https://github.com/bentoml/BentoML
-        :link-type: url
-
-        Unified Model Serving Framework.
-
-    .. grid-item-card:: `🚀 bentoctl <https://github.com/bentoml/bentoctl>`_
-        :link: https://github.com/bentoml/bentoctl
-        :link-type: url
-
-        Fast model deployment on any cloud platform.
 
 
 Staying Informed

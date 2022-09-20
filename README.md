@@ -1,27 +1,12 @@
-# 🦄️ Yatai: Production-first ML platform on Kubernetes
+# 🦄️ Yatai: Model Deployment at scale on Kubernetes
 
 [![actions_status](https://github.com/bentoml/yatai/workflows/CICD/badge.svg)](https://github.com/bentoml/yatai/actions)
 [![docs](https://readthedocs.org/projects/yatai/badge/?version=latest&style=flat-square)](https://docs.bentoml.org/projects/yatai)
-[![join_slack](https://badgen.net/badge/Join/BentoML%20Slack/cyan?icon=slack&style=flat-square)](https://join.slack.bentoml.org)
+[![join_slack](https://badgen.net/badge/Join/Community%20Slack/cyan?icon=slack&style=flat-square)](https://join.slack.bentoml.org)
 
-Yatai is a production-first platform for your machine learning needs. It brings collaborative [BentoML](https://github.com/bentoml) workflows to Kubernetes, helps ML teams to run model serving at scale, while simplifying model management and deployment across teams.
+Yatai (屋台, food cart) lets you deploy, operate and scale Machine Learning services on Kubernetes. 
 
-👉 [Pop into our Slack community!](https://l.linklyhq.com/l/ktPW) We're happy to help with any issue you face or even just to meet you and hear what you're working on :)
-
-## Why Yatai?
-
--   Yatai accelerates the process of taking ML models from training stage to production and reduces the operational overhead of running a reliable model serving system.
-
--   Yatai simplifies collaboration between Data Science and Engineering teams. It is designed to leverage the BentoML standard and streamline production ML workflows.
-
--   Yatai is a cloud native platform with a wide range of integrations to best fit your infrastructure needs, and it is easily customizable for your CI/CD needs.
-
-## Core features:
-
--   **Bento Registry** - manage all your team's ML models via simple Web UI and API, and store ML assets on cloud blob storage
--   **Deployment Automation** - deploy Bentos as auto-scaling API endpoints on Kubernetes and easily rollout new versions
--   **Observability** - monitoring dashboard and logging integration helping users to identify model performance issues
--   **CI/CD** - flexible APIs for integrating with your training and CI pipelines
+It supports deploying any ML models via [BentoML](https://github.com/bentoml/bentoml), the unified model serving framework.
 
 <img width="785" alt="yatai-overview-page" src="https://user-images.githubusercontent.com/489344/151455964-4fe30eb7-f000-43cc-8a5f-807ee450b8b6.png">
 
@@ -38,10 +23,30 @@ Yatai is a production-first platform for your machine learning needs. It brings 
 
 </details>
 
+---
+
+## Why Yatai?
+
+🍱 Made for BentoML, deploy at scale
+
+- Scale [BentoML](https://github.com/bentoml) to its full potential on a distributed system, optimized for cost saving and performance.
+- Manage deployment lifecycles to deploy, update, or roll back via API or Web UI.
+- Centralized registry providing the **foundation for CI/CD** via artifact management APIs, labeling, and WebHooks for custom integration.
+
+🚅 Cloud native & DevOps friendly
+
+- Kubernetes-native workflow via [BentoDeployment CRD](https://docs.bentoml.org/projects/yatai/en/latest/concepts/bentodeployment_crd.html) (Custom Resource Definition), which can easily fit into an existing GitOps workflow.
+- Native [integration with Grafana](https://docs.bentoml.org/projects/yatai/en/latest/observability/metrics.html) stack for observability.
+- Support for traffic control with Istio.
+- Compatible with all major cloud platforms (AWS, Azure, and GCP).
+
+
 ## Getting Started
 
--   [Documentation](https://docs.bentoml.org/projects/yatai/) - Overview of the Yatai docs and related resources
--   [Installation](https://docs.bentoml.org/projects/yatai/en/latest/installation/index.html) - Hands-on instruction on how to install Yatai for production use
+- 📖 [Documentation](https://docs.bentoml.org/projects/yatai/) - Overview of the Yatai docs and related resources
+- ⚙️ [Installation](https://docs.bentoml.org/projects/yatai/en/latest/installation/index.html) - Hands-on instruction on how to install Yatai for production use
+- 👉 [Join our Slack community](https://l.linklyhq.com/l/ktPW) - Get help from our community and maintainers
+
 
 ## Quick Tour
 
