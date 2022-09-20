@@ -433,9 +433,7 @@ You need to configure your DNS in one of the following two options:
       --set layers.network.ingressClass=$INGRESS_CLASS \
       --devel
 
-.. note::
-
-  The `--devel` option is needed until yatai-deployment 1.0.0 is released. Without the option, helm will not be able to find the latest version of yatai-deployment.
+.. note:: The `--devel` option is needed until yatai-deployment 1.0.0 is released. Without the option, helm will not be able to find the latest version of yatai-deployment.
 
 2. Verify the yatai-deployment installation
 """""""""""""""""""""""""""""""""""""""""""
