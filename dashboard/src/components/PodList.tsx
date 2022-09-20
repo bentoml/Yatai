@@ -2,7 +2,6 @@ import { useCluster } from '@/hooks/useCluster'
 import { useOrganization } from '@/hooks/useOrganization'
 import useTranslation from '@/hooks/useTranslation'
 import { IKubePodSchema } from '@/schemas/kube_pod'
-import { formatDateTime } from '@/utils/datetime'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import { IoMdList } from 'react-icons/io'
 import { GoTerminal } from 'react-icons/go'
@@ -26,6 +25,7 @@ import Terminal from './Terminal'
 import KubePodEvents from './KubePodEvents'
 import Label from './Label'
 import PodMonitor from './PodMonitor'
+import Time from './Time'
 
 export interface IPodListProps {
     loading?: boolean
@@ -100,7 +100,9 @@ export default function PodList({
                         {pod.deployment_target ? t(pod.deployment_target.type) : '-'}
                     </StyledTableBodyCell>
                     <StyledTableBodyCell>{pod.node_name}</StyledTableBodyCell>
-                    <StyledTableBodyCell>{formatDateTime(pod.status.start_time)}</StyledTableBodyCell>
+                    <StyledTableBodyCell>
+                        <Time time={pod.status.start_time} />
+                    </StyledTableBodyCell>
                     <StyledTableBodyCell>
                         <div
                             key={pod.name}
