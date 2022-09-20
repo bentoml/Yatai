@@ -2620,6 +2620,14 @@ const locales0 = {
         'ko': '사용자 정의 자원 제한',
         'vi': 'Giới hạn tài nguyên tùy chỉnh',
     },
+    'bentoml configuration': {
+        'zh-CN': 'BentoML 配置',
+        'zh-TW': 'BentoML 配置',
+        'en': 'BentoML Configuration',
+        'ja': 'BentoML Configuration',
+        'ko': 'BentoML Configuration',
+        'vi': 'BentoML Configuration',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

@@ -17,6 +17,8 @@ export const dateWithZeroTimeFormat = 'YYYY-MM-DD 00:00:00'
 export const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss'
 export const yataiOrgHeader = 'X-Yatai-Organization'
 
+export const bentomlConfigsEnvKey = 'BENTOML_CONFIG_OPTIONS'
+
 export const resourceIconMapping: Record<ResourceType, IconType> = {
     user: GrUser,
     user_group: HiOutlineUserGroup,
