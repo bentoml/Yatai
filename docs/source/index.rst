@@ -17,7 +17,7 @@ Why Yatai?
 🍱 Made for BentoML, deploy at scale
 
 - Scale `BentoML <https://github.com/bentoml/BentoML>`_ to its full potential on a distributed system, optimized for cost saving and performance.
-- Manage deployment lifecycles to deploy, update, or roll back via API or Web UI.
+- Manage deployment lifecycle to deploy, update, or roll back via API or Web UI.
 - Centralized registry providing the **foundation for CI/CD** via artifact management APIs, labeling, and WebHooks for custom integration.
 
 🚅 Cloud native & DevOps friendly

@@ -29,4 +29,4 @@ kubectl
 postgresql-ha
 postgresql
 namespaces
-asuming
+Istio
