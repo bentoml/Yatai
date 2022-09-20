@@ -2604,6 +2604,22 @@ const locales0 = {
         'ko': '로딩 중...',
         'vi': 'Đang tải...',
     },
+    'custom resources requests': {
+        'en': 'Custom Resources Requests',
+        'zh-CN': '自定义资源请求',
+        'zh-TW': '自定義資源請求',
+        'ja': 'カスタムリソースのリクエスト',
+        'ko': '사용자 정의 자원 요청',
+        'vi': 'Yêu cầu tài nguyên tùy chỉnh',
+    },
+    'custom resources limits': {
+        'en': 'Custom Resources Limits',
+        'zh-CN': '自定义资源限制',
+        'zh-TW': '自定義資源限制',
+        'ja': 'カスタムリソースの制限',
+        'ko': '사용자 정의 자원 제한',
+        'vi': 'Giới hạn tài nguyên tùy chỉnh',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
