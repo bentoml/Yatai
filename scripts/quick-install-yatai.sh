@@ -10,31 +10,35 @@ function randstr() {
 }
 
 # check if jq command exists
-if ! command -v jq &>/dev/null; then
+if ! command -v jq &> /dev/null; then
+  arch=$(uname -m)
   # download jq from github by different arch
-  case "$(uname -m)" in
-  x86_64)
-    JQ_ARCH="jq-linux64"
-    ;;
-  aarch64)
-    JQ_ARCH="jq-linux64"
-    ;;
-  armv7l)
-    JQ_ARCH="jq-linux32"
-    ;;
-  Darwin)
-    JQ_ARCH="jq-osx-amd64"
-    ;;
-  *)
-    echo "Unsupported architecture $(uname -m)"
+  if [[ $arch == "x86_64" && $OSTYPE == 'darwin'* ]]; then
+    jq_archived_name="gojq_v0.12.9_darwin_amd64"
+  elif [[ $arch == "arm64" && $OSTYPE == 'darwin'* ]]; then
+    jq_archived_name="gojq_v0.12.9_darwin_arm64"
+  elif [[ $arch == "x86_64" && $OSTYPE == 'linux'* ]]; then
+    jq_archived_name="gojq_v0.12.9_linux_amd64"
+  elif [[ $arch == "aarch64" && $OSTYPE == 'linux'* ]]; then
+    jq_archived_name="gojq_v0.12.9_linux_arm64"
+  else
+    echo "jq command not found, please install it first"
     exit 1
-    ;;
-  esac
+  fi
   echo "📥 downloading jq from github"
-  curl -sL -o /tmp/yatai-jq "https://github.com/stedolan/jq/releases/download/jq-1.6/${JQ_ARCH}"
-  echo "✅ downloaded jq to /tmp/yatai-jq"
-  chmod +x /tmp/yatai-jq
-  jq=/tmp/yatai-jq
+  if [[ $OSTYPE == 'darwin'* ]]; then
+    curl -sL -o /tmp/yatai-jq.zip "https://github.com/itchyny/gojq/releases/download/v0.12.9/${jq_archived_name}.zip"
+    echo "✅ downloaded jq to /tmp/yatai-jq.zip"
+    echo "📦 extracting yatai-jq.zip"
+    unzip -q /tmp/yatai-jq.zip -d /tmp
+  else
+    curl -sL -o /tmp/yatai-jq.tar.gz "https://github.com/itchyny/gojq/releases/download/v0.12.9/${jq_archived_name}.tar.gz"
+    echo "✅ downloaded jq to /tmp/yatai-jq.tar.gz"
+    echo "📦 extracting yatai-jq.tar.gz"
+    tar zxf /tmp/yatai-jq.tar.gz -C /tmp
+  fi
+  echo "✅ extracted jq to /tmp/${jq_archived_name}"
+  jq="/tmp/${jq_archived_name}/gojq"
 else
   jq=$(which jq)
 fi
