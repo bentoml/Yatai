@@ -30,3 +30,4 @@ postgresql-ha
 postgresql
 namespaces
 Istio
+lifecycle
