@@ -29,6 +29,7 @@ import { IBentoWithRepositorySchema } from '@/schemas/bento'
 import { StatefulTooltip } from 'baseui/tooltip'
 import { Block } from 'baseui/block'
 import _ from 'lodash'
+import { BiCustomize } from 'react-icons/bi'
 import DeploymentTargetTypeSelector from './DeploymentTargetTypeSelector'
 import BentoRepositorySelector from './BentoRepositorySelector'
 import BentoSelector from './BentoSelector'
@@ -42,6 +43,7 @@ import LabelList from './LabelList'
 import NumberInput from './NumberInput'
 import Toggle from './Toggle'
 import CopyableText from './CopyableText'
+import MapInput from './MapInput'
 
 const useStyles = createUseStyles({
     wrapper: () => {
@@ -659,6 +661,28 @@ export default function DeploymentForm({
                                                     />
                                                 </FormItem>
                                             </FormGroup>
+                                            <FormGroup icon={BiCustomize}>
+                                                <FormItem
+                                                    name={['targets', idx, 'config', 'resources', 'requests', 'custom']}
+                                                    label={t('custom resources requests')}
+                                                >
+                                                    <MapInput
+                                                        style={{
+                                                            width: '600px',
+                                                        }}
+                                                    />
+                                                </FormItem>
+                                                <FormItem
+                                                    name={['targets', idx, 'config', 'resources', 'limits', 'custom']}
+                                                    label={t('custom resources limits')}
+                                                >
+                                                    <MapInput
+                                                        style={{
+                                                            width: '600px',
+                                                        }}
+                                                    />
+                                                </FormItem>
+                                            </FormGroup>
                                         </div>
                                     </div>
                                     <Accordion
@@ -950,6 +974,46 @@ export default function DeploymentForm({
                                                                                         width: '130px',
                                                                                     },
                                                                                 },
+                                                                            }}
+                                                                        />
+                                                                    </FormItem>
+                                                                </FormGroup>
+                                                                <FormGroup icon={BiCustomize}>
+                                                                    <FormItem
+                                                                        name={[
+                                                                            'targets',
+                                                                            idx,
+                                                                            'config',
+                                                                            'runners',
+                                                                            runner.name,
+                                                                            'resources',
+                                                                            'requests',
+                                                                            'custom',
+                                                                        ]}
+                                                                        label={t('custom resources requests')}
+                                                                    >
+                                                                        <MapInput
+                                                                            style={{
+                                                                                width: '600px',
+                                                                            }}
+                                                                        />
+                                                                    </FormItem>
+                                                                    <FormItem
+                                                                        name={[
+                                                                            'targets',
+                                                                            idx,
+                                                                            'config',
+                                                                            'runners',
+                                                                            runner.name,
+                                                                            'resources',
+                                                                            'limits',
+                                                                            'custom',
+                                                                        ]}
+                                                                        label={t('custom resources limits')}
+                                                                    >
+                                                                        <MapInput
+                                                                            style={{
+                                                                                width: '600px',
                                                                             }}
                                                                         />
                                                                     </FormItem>
