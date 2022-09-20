@@ -45,7 +45,7 @@ It supports deploying any ML models via [BentoML](https://github.com/bentoml/ben
 
 - 📖 [Documentation](https://docs.bentoml.org/projects/yatai/) - Overview of the Yatai docs and related resources
 - ⚙️ [Installation](https://docs.bentoml.org/projects/yatai/en/latest/installation/index.html) - Hands-on instruction on how to install Yatai for production use
-- 👉 [Join our Slack community](https://l.linklyhq.com/l/ktPW) - Get help from our community and maintainers
+- 👉 [Join Community Slack](https://l.linklyhq.com/l/ktPW) - Get help from our community and maintainers
 
 
 ## Quick Tour
