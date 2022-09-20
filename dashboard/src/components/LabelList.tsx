@@ -11,6 +11,7 @@ import _ from 'lodash'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
 import { useStyletron } from 'baseui'
+import { IoMdAdd } from 'react-icons/io'
 
 const useStyles = createUseStyles({
     root: {},
@@ -205,7 +206,7 @@ export default function LabelList({ value = [], onChange, style }: ILabelListPro
             >
                 <div
                     style={{
-                        display: 'flex',
+                        display: !showAddInputs ? 'none' : 'flex',
                         alignItems: 'center',
                     }}
                 >
@@ -272,7 +273,7 @@ export default function LabelList({ value = [], onChange, style }: ILabelListPro
                 </div>
                 <div
                     style={{
-                        display: 'flex',
+                        display: !showAddInputs ? 'none' : 'flex',
                         flexShrink: 0,
                         alignItems: 'center',
                         gap: 10,
@@ -298,17 +299,40 @@ export default function LabelList({ value = [], onChange, style }: ILabelListPro
                     </Button>
                     <Button
                         isLoading={addLoading}
+                        overrides={{
+                            Root: {
+                                style: {
+                                    display: !showAddInputs ? 'none' : 'flex',
+                                },
+                            },
+                        }}
                         onClick={(e) => {
                             e.preventDefault()
-                            if (showAddInputs) {
-                                handleAddSubmit()
-                            } else {
-                                setShowAddInputs(true)
-                            }
+                            handleAddSubmit()
                         }}
                         size='mini'
                     >
-                        {t(showAddInputs ? 'ok' : 'add')}
+                        {t('ok')}
+                    </Button>
+                </div>
+                <div
+                    style={{
+                        display: showAddInputs ? 'none' : 'flex',
+                        flexShrink: 0,
+                        alignItems: 'center',
+                        gap: 10,
+                    }}
+                >
+                    <Button
+                        isLoading={addLoading}
+                        onClick={(e) => {
+                            e.preventDefault()
+                            setShowAddInputs(true)
+                        }}
+                        size='mini'
+                        startEnhancer={() => <IoMdAdd size={12} />}
+                    >
+                        {t('add')}
                     </Button>
                 </div>
             </div>

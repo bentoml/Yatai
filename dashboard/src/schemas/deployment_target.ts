@@ -40,6 +40,8 @@ export interface IKubeResourceItem {
     cpu: string
     memory: string
     gpu: string
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    custom?: object
 }
 
 export interface IKubeResources {

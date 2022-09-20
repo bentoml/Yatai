@@ -114,9 +114,8 @@ func ToKubePodSchemas(ctx context.Context, clusterId uint, pods []*models.KubePo
 			HostIp:    p.Pod.Status.HostIP,
 		}
 		var runnerName *string
-		runnerName_, runnerNameExists := p.Pod.Labels[commonconsts.KubeLabelYataiBentoDeploymentRunner]
-		if runnerNameExists {
-			runnerName = &runnerName_
+		if p.Pod.Labels[commonconsts.KubeLabelYataiBentoDeploymentComponentType] == commonconsts.YataiBentoDeploymentComponentRunner {
+			runnerName = utils.StringPtr(p.Pod.Labels[commonconsts.KubeLabelYataiBentoDeploymentComponentName])
 		}
 		vs = append(vs, &schemasv1.KubePodSchema{
 			Name:             p.Pod.Name,
