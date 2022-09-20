@@ -47,9 +47,10 @@ interface ILabelListProps {
     value?: ILabelItemSchema[]
     onChange?: (value: ILabelItemSchema[]) => Promise<void>
     style?: React.CSSProperties
+    ignoreKeys?: string[]
 }
 
-export default function LabelList({ value = [], onChange, style }: ILabelListProps) {
+export default function LabelList({ value = [], ignoreKeys = [], onChange, style }: ILabelListProps) {
     const themeType = useCurrentThemeType()
     const [, theme] = useStyletron()
     const styles = useStyles({ theme, themeType })
@@ -124,7 +125,13 @@ export default function LabelList({ value = [], onChange, style }: ILabelListPro
         <div className={styles.root} style={style}>
             <div className={styles.items}>
                 {value.map((label) => (
-                    <div className={styles.item} key={label.key}>
+                    <div
+                        className={styles.item}
+                        key={label.key}
+                        style={{
+                            display: ignoreKeys.includes(label.key) ? 'none' : 'flex',
+                        }}
+                    >
                         <div className={styles.itemContent}>
                             <div className={styles.key}>{label.key}:</div>
                             <div className={styles.value}>
