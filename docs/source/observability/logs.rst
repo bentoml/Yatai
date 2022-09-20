@@ -340,7 +340,7 @@ Expected output:
 
 .. note::
 
-   The following steps are asuming you have already have :ref:`Grafana <install grafana>` installed in your cluster and :code:`sidecar.datasources.enabled` turned on.
+   The following steps are assuming you have already have :ref:`Grafana <install grafana>` installed in your cluster and :code:`sidecar.datasources.enabled` turned on.
 
 1. Create the Grafana datasource configmap
 """"""""""""""""""""""""""""""""""""""""""
