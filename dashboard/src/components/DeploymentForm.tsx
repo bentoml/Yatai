@@ -44,6 +44,7 @@ import NumberInput from './NumberInput'
 import Toggle from './Toggle'
 import CopyableText from './CopyableText'
 import MapInput from './MapInput'
+import MonacoEditor from './MonacoEditor'
 
 const useStyles = createUseStyles({
     wrapper: () => {
@@ -582,36 +583,30 @@ export default function DeploymentForm({
                                         </div>
                                         <div
                                             style={{
-                                                paddingLeft,
+                                                paddingLeft: paddingLeft + 5,
                                                 marginTop: 10,
                                                 width: 400,
                                             }}
                                         >
-                                            <Textarea
+                                            <MonacoEditor
                                                 value={bentomlConfs[idx] ?? ''}
-                                                size='mini'
-                                                overrides={{
-                                                    Input: {
-                                                        style: {
-                                                            maxHeight: '300px',
-                                                            minHeight: '100px',
-                                                            minWidth: '300px',
-                                                            width: '100vw', // fill all available space up to parent max-width
-                                                            resize: 'both',
-                                                        },
+                                                height='200px'
+                                                theme={themeType === 'dark' ? 'vs-dark' : 'Dawn'}
+                                                defaultLanguage='yaml'
+                                                options={{
+                                                    minimap: {
+                                                        enabled: false,
                                                     },
-                                                    InputContainer: {
-                                                        style: {
-                                                            maxWidth: '100%',
-                                                            width: 'min-content',
-                                                        },
-                                                    },
+                                                    lineNumbers: 'off',
+                                                    lineDecorationsWidth: 0,
                                                 }}
-                                                onChange={(e) => {
-                                                    const newBentomlConfs = bentomlConfs.slice()
-                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                    newBentomlConfs[idx] = (e.target as any)?.value
-                                                    setBentomlConfs(newBentomlConfs)
+                                                onChange={(value) => {
+                                                    setBentomlConfs((bentomlConfs_) => {
+                                                        const newBentomlConfs = bentomlConfs_.slice()
+                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                        newBentomlConfs[idx] = value ?? ''
+                                                        return newBentomlConfs
+                                                    })
                                                 }}
                                             />
                                         </div>
