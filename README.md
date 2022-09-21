@@ -6,22 +6,9 @@
 
 Yatai (屋台, food cart) lets you deploy, operate and scale Machine Learning services on Kubernetes. 
 
-It supports deploying any ML models via [BentoML](https://github.com/bentoml/bentoml), the unified model serving framework.
+It supports deploying any ML models via [BentoML: the unified model serving framework](https://github.com/bentoml/bentoml).
 
 <img width="785" alt="yatai-overview-page" src="https://user-images.githubusercontent.com/489344/151455964-4fe30eb7-f000-43cc-8a5f-807ee450b8b6.png">
-
-<details>
-
-  <summary>See more product screenshots</summary>
-
-  <img width="785" alt="yatai-deployment-creation" src="https://user-images.githubusercontent.com/489344/151456002-d4e9f84d-8a71-4bf9-bde7-f94a74abbf3f.png">
-  <img width="785" alt="yatai-bento-repos" src="https://user-images.githubusercontent.com/489344/151456379-da255519-274d-41de-a1b9-a347be279230.png">
-  <img width="785" alt="yatai-model-detail" src="https://user-images.githubusercontent.com/489344/151456021-360a6d6e-acb8-494b-9f6b-868ef9d13bce.png">
-  <img width="785" alt="yatai-cluster-components" src="https://user-images.githubusercontent.com/489344/151456017-abf0c77a-ba8a-43e5-8949-901ef4a8074a.png">
-  <img width="785" alt="yatai-deployment-details" src="https://user-images.githubusercontent.com/489344/151456024-151c275d-b33e-480e-be34-dadab5b01915.png">
-  <img width="785" alt="yatai-activities" src="https://user-images.githubusercontent.com/489344/151456011-69c283bc-7382-4b30-bfbf-2686e2abdc0f.png">
-
-</details>
 
 ---
 
@@ -30,7 +17,7 @@ It supports deploying any ML models via [BentoML](https://github.com/bentoml/ben
 🍱 Made for BentoML, deploy at scale
 
 - Scale [BentoML](https://github.com/bentoml) to its full potential on a distributed system, optimized for cost saving and performance.
-- Manage deployment lifecycle to deploy, update, or roll back via API or Web UI.
+- Manage deployment lifecycle to deploy, update, or rollback via API or Web UI.
 - Centralized registry providing the **foundation for CI/CD** via artifact management APIs, labeling, and WebHooks for custom integration.
 
 🚅 Cloud native & DevOps friendly
@@ -118,6 +105,11 @@ Push your newly built Bento to Yatai:
 bentoml push iris_classifier:latest
 ```
 
+Now you can view and manage models and bentos from the web UI:
+
+<img width="785" alt="yatai-bento-repos" src="https://user-images.githubusercontent.com/489344/151456379-da255519-274d-41de-a1b9-a347be279230.png">
+<img width="785" alt="yatai-model-detail" src="https://user-images.githubusercontent.com/489344/151456021-360a6d6e-acb8-494b-9f6b-868ef9d13bce.png">
+
 ### 🔧 Install yatai-deployment componet
 
 Yatai's Deployment feature comes as a separate component, you can install it via the following
@@ -141,6 +133,8 @@ A Bento Deployment can be created either via Web UI or via a Kubernetes CRD conf
 
 * Go to deployments page: http://127.0.0.1:8080/deployments
 * Click `Create` button and follow instructions on UI
+
+<img width="785" alt="yatai-deployment-creation" src="https://user-images.githubusercontent.com/489344/151456002-d4e9f84d-8a71-4bf9-bde7-f94a74abbf3f.png">
 
 #### Option 2. Deploy with kubectl & CRD
 
@@ -187,6 +181,9 @@ kubectl apply -f my_deployment.yaml
 
 Now you can see the deployment process from the Yatai Web UI and find the endpoint URL for accessing
 the deployed Bento.
+
+<img width="785" alt="yatai-deployment-details" src="https://user-images.githubusercontent.com/489344/151456024-151c275d-b33e-480e-be34-dadab5b01915.png">
+
 
 
 
