@@ -9,6 +9,7 @@ import useTranslation from '@/hooks/useTranslation'
 import { useOrganization } from '@/hooks/useOrganization'
 import { useDeployment } from '@/hooks/useDeployment'
 import { useCluster } from '@/hooks/useCluster'
+import { AiFillCheckCircle } from 'react-icons/ai'
 import Log from './Log'
 
 export const useStyles = createUseStyles({
@@ -32,51 +33,114 @@ export const useStyles = createUseStyles({
         display: 'flex',
     },
     'ball': {
-        borderRadius: '50%',
-        width: 12,
-        height: 12,
-        display: 'flex',
-        marginRight: 4,
-        cursor: 'pointer',
+        'cursor': 'pointer',
+        '& > *': {
+            display: 'flex',
+            marginRight: 4,
+        },
+        '& > div': {
+            borderRadius: '50%',
+            width: 12,
+            height: 12,
+        },
     },
     'canaryGreen': {
-        background: '#9be2be',
+        '& > div': {
+            background: '#9be2be',
+        },
+        '& > svg': {
+            color: '#9be2be',
+        },
     },
     'green': {
-        background: '#00ad56',
+        '& > div': {
+            background: '#00ad56',
+        },
+        '& > svg': {
+            color: '#00ad56',
+        },
     },
     'canaryRed': {
-        background: '#ec7e81',
+        '& > div': {
+            background: '#ec7e81',
+        },
+        '& > svg': {
+            color: '#ec7e81',
+        },
     },
     'red': {
-        background: '#d13438',
+        '& > div': {
+            background: '#d13438',
+        },
+        '& > svg': {
+            color: '#d13438',
+        },
     },
     'yellow': {
-        background: '#ffaa44',
+        '& > div': {
+            background: '#ffaa44',
+        },
+        '& > svg': {
+            color: '#ffaa44',
+        },
     },
     'grey': {
-        background: '#a0aeb2',
+        '& > div': {
+            background: '#a0aeb2',
+        },
+        '& > svg': {
+            color: '#a0aeb2',
+        },
     },
     'black': {
-        background: '#000',
+        '& > div': {
+            background: '#000',
+        },
+        '& > svg': {
+            color: '#000',
+        },
     },
     'phantomGreen': {
-        background:
-            'linear-gradient(45deg, #ace8ca 25%, #00ad56 25%, #00ad56 50%, #ace8ca 50%, #ace8ca 75%, #00ad56 75%, #00ad56 100%)',
+        '& > div': {
+            background:
+                'linear-gradient(45deg, #ace8ca 25%, #00ad56 25%, #00ad56 50%, #ace8ca 50%, #ace8ca 75%, #00ad56 75%, #00ad56 100%)',
+        },
+        '& > svg': {
+            color: 'linear-gradient(45deg, #ace8ca 25%, #00ad56 25%, #00ad56 50%, #ace8ca 50%, #ace8ca 75%, #00ad56 75%, #00ad56 100%)',
+        },
     },
     'phantomRed': {
-        background:
-            'linear-gradient(45deg, #e08f91 25%, #d13438 25%, #d13438 50%, #e08f91 50%, #e08f91 75%, #d13438 75%, #d13438 100%)',
+        '& > div': {
+            background:
+                'linear-gradient(45deg, #e08f91 25%, #d13438 25%, #d13438 50%, #e08f91 50%, #e08f91 75%, #d13438 75%, #d13438 100%)',
+        },
+        '& > svg': {
+            color: 'linear-gradient(45deg, #e08f91 25%, #d13438 25%, #d13438 50%, #e08f91 50%, #e08f91 75%, #d13438 75%, #d13438 100%)',
+        },
     },
     'creating': {
-        animationName: '$creating',
-        animationIterationCount: 'infinite',
-        animationDuration: '1s',
+        '& > div': {
+            animationName: '$creating',
+            animationIterationCount: 'infinite',
+            animationDuration: '1s',
+        },
+        '& > svg': {
+            animationName: '$creating',
+            animationIterationCount: 'infinite',
+            animationDuration: '1s',
+        },
     },
     'terminating': {
-        animationName: '$terminating',
-        animationIterationCount: 'infinite',
-        animationDuration: '1s',
+        '& > div': {
+            animationName: '$terminating',
+            animationIterationCount: 'infinite',
+            animationDuration: '1s',
+        },
+        '& > svg': {
+            animationName: '$terminating',
+            animationIterationCount: 'infinite',
+            animationDuration: '1s',
+        },
     },
 })
 
@@ -145,7 +209,9 @@ export const PodStatus = React.memo(
                             [styles.terminating]: isTerminating,
                             [redClassName]: isRed,
                         })}
-                    />
+                    >
+                        {pod.pod_status.status === 'Succeeded' ? <AiFillCheckCircle /> : <div />}
+                    </div>
                 </StatefulTooltip>
                 <Modal
                     overrides={{
