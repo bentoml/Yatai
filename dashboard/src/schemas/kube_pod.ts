@@ -18,6 +18,35 @@ export interface IKubePodStatusSchema {
     status: KubePodStatusPhase
 }
 
+export interface IContainerState {
+    waiting?: {
+        message: string
+        reason: string
+    }
+    running?: {
+        startedAt: string
+    }
+    terminated?: {
+        reason: 'Completed' | 'Running' | 'unknown'
+        message: string
+        startedAt: string
+        finishedAt: string
+        exitCode: number
+    }
+}
+
+export interface IContainerStatus {
+    name: string
+    image: string
+    imageID: string
+    started: boolean
+    ready: boolean
+    lastState: IContainerState
+    state: IContainerState
+    restartCount: number
+    containerID: string
+}
+
 export interface IKubePodSchema {
     name: string
     namespace: string
@@ -30,37 +59,9 @@ export interface IKubePodSchema {
     warnings?: IKubeEventSchema[]
     deployment_target?: IDeploymentTargetSchema
     raw_status?: {
-        podIP?: string
-        containerStatuses?: {
-            name: string
-            image: string
-            started: boolean
-            ready: boolean
-            lastState: {
-                terminated?: {
-                    reason: string
-                    message: string
-                    startedAt: string
-                    finishedAt: string
-                    exitCode: number
-                }
-            }
-            state: {
-                waiting?: {
-                    message: string
-                    reason: string
-                }
-                running?: {
-                    startedAt: string
-                }
-                terminated?: {
-                    reason: 'Completed' | 'Running' | 'unknown'
-                    message: string
-                    startedAt: string
-                    finishedAt: string
-                    exitCode: number
-                }
-            }
-        }[]
+        podIP: string
+        startTime?: string
+        initContainerStatuses?: IContainerStatus[]
+        containerStatuses?: IContainerStatus[]
     }
 }
