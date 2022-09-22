@@ -18,10 +18,12 @@ import { Input } from 'baseui/input'
 import { SearchAddon } from 'xterm-addon-search'
 import { IContainerStatus, IKubePodSchema } from '@/schemas/kube_pod'
 import { TbBrandDocker } from 'react-icons/tb'
-import { IoMdList } from 'react-icons/io'
+import { IoMdList, IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 import { FaScroll } from 'react-icons/fa'
 import { RiTimer2Line } from 'react-icons/ri'
 import { ImListNumbered } from 'react-icons/im'
+import { Spinner } from 'baseui/spinner'
+import { useStyletron } from 'baseui'
 import Toggle from './Toggle'
 import Card from './Card'
 
@@ -57,6 +59,8 @@ export default function Log({ clusterName, deploymentName, pod, open, width = 30
 
     const { organization } = useOrganization()
 
+    const [, theme] = useStyletron()
+
     const wsUrl = deploymentName
         ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
               window.location.host
@@ -77,18 +81,52 @@ export default function Log({ clusterName, deploymentName, pod, open, width = 30
     const containerOptions = useMemo(() => {
         const options: Option[] = []
         const appendOption = (item: IContainerStatus, prefix?: string) => {
+            let icon: React.ReactNode | undefined
+            let reason: string | undefined
+            if (item.state.running) {
+                icon = <Spinner $size={8} />
+            }
+            if (item.state.terminated) {
+                if (item.state.terminated.exitCode === 0) {
+                    icon = <IoMdCheckmarkCircle size={12} color={theme.colors.positive300} />
+                } else {
+                    reason = item.state.terminated.reason
+                    icon = <IoMdCloseCircle size={12} color={theme.colors.negative300} />
+                }
+            }
+            if (item.state.waiting) {
+                reason = item.state.waiting.reason
+                icon = <IoMdList size={12} color={theme.colors.mono300} />
+            }
             options.push({
                 id: item.name,
-                label: `${prefix ? `[${prefix}] ` : ''}${
-                    item.state.waiting !== undefined ? `${item.name} (${item.state.waiting.reason})` : item.name
-                }`,
+                label: (
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                        }}
+                    >
+                        {icon}
+                        <div>{`${prefix ? `[${prefix}] ` : ''}${
+                            reason !== undefined ? `${item.name} (${reason})` : item.name
+                        }`}</div>
+                    </div>
+                ),
                 disabled: item.state.waiting !== undefined,
             })
         }
         pod.raw_status?.initContainerStatuses?.forEach((item) => appendOption(item, 'init'))
         pod.raw_status?.containerStatuses?.forEach((item) => appendOption(item))
         return options
-    }, [pod.raw_status?.containerStatuses, pod.raw_status?.initContainerStatuses])
+    }, [
+        pod.raw_status?.containerStatuses,
+        pod.raw_status?.initContainerStatuses,
+        theme.colors.mono300,
+        theme.colors.negative300,
+        theme.colors.positive300,
+    ])
 
     const [container, setContainer] = useState<string | undefined>(() => {
         const enabledOptions = containerOptions.filter((item) => !item.disabled)
@@ -341,7 +379,7 @@ export default function Log({ clusterName, deploymentName, pod, open, width = 30
                         overrides={{
                             Root: {
                                 style: {
-                                    minWidth: '220px',
+                                    minWidth: '240px',
                                 },
                             },
                         }}
