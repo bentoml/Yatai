@@ -49,7 +49,7 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 		if err != nil {
 			return
 		}
-		status := modelschemas.DeploymentStatusDeploying
+		status := modelschemas.DeploymentStatusImageBuilding
 		_, _ = DeploymentService.UpdateStatus(ctx, deployment, UpdateDeploymentStatusOption{
 			Status: &status,
 		})

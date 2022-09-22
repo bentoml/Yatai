@@ -14,6 +14,9 @@ export type DeploymentStatus =
     | 'deploying'
     | 'terminating'
     | 'terminated'
+    | 'image-building'
+    | 'image-build-failed'
+    | 'image-build-succeeded'
 
 export interface IDeploymentSchema extends IResourceSchema {
     description: string
