@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/client-go/kubernetes"
 	appstypev1 "k8s.io/client-go/kubernetes/typed/apps/v1"
@@ -20,6 +21,8 @@ import (
 	apitypev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	networkingtypev1 "k8s.io/client-go/kubernetes/typed/networking/v1"
 	"k8s.io/client-go/rest"
+
+	commonconsts "github.com/bentoml/yatai-common/consts"
 
 	"github.com/bentoml/yatai-common/system"
 	"github.com/bentoml/yatai-schemas/modelschemas"
@@ -484,6 +487,75 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 	_, podLister, err := GetPodInformer(ctx, cluster, namespace)
 	if err != nil {
 		return defaultStatus, err
+	}
+
+	_, imageBuilderPodLister, err := GetPodInformer(ctx, cluster, commonconsts.KubeNamespaceYataiBentoImageBuilder)
+	if err != nil {
+		return defaultStatus, err
+	}
+
+	imageBuilderPods := make([]*models.KubePodWithStatus, 0)
+
+	status_ := modelschemas.DeploymentRevisionStatusActive
+	deploymentRevisions, _, err := DeploymentRevisionService.List(ctx, ListDeploymentRevisionOption{
+		DeploymentId: utils.UintPtr(d.ID),
+		Status:       &status_,
+	})
+	if err != nil {
+		return defaultStatus, err
+	}
+
+	deploymentRevisionIds := make([]uint, 0, len(deploymentRevisions))
+	for _, deploymentRevision := range deploymentRevisions {
+		deploymentRevisionIds = append(deploymentRevisionIds, deploymentRevision.ID)
+	}
+
+	deploymentTargets, _, err := DeploymentTargetService.List(ctx, ListDeploymentTargetOption{
+		DeploymentRevisionIds: &deploymentRevisionIds,
+	})
+	if err != nil {
+		return defaultStatus, err
+	}
+
+	for _, deploymentTarget := range deploymentTargets {
+		var bento *models.Bento
+		bento, err = BentoService.GetAssociatedBento(ctx, deploymentTarget)
+		if err != nil {
+			return defaultStatus, err
+		}
+		var bentoRepository *models.BentoRepository
+		bentoRepository, err = BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+		if err != nil {
+			return defaultStatus, err
+		}
+		var imageBuilderPodsSelector labels.Selector
+		imageBuilderPodsSelector, err = labels.Parse(fmt.Sprintf("%s=%s,%s=%s", commonconsts.KubeLabelYataiBentoRepository, bentoRepository.Name, commonconsts.KubeLabelYataiBento, bento.Version))
+		if err != nil {
+			return defaultStatus, err
+		}
+		var pods_ []*models.KubePodWithStatus
+		pods_, err = KubePodService.ListPodsBySelector(ctx, cluster, commonconsts.KubeNamespaceYataiBentoImageBuilder, imageBuilderPodLister, imageBuilderPodsSelector)
+		if err != nil {
+			return defaultStatus, err
+		}
+		imageBuilderPods = append(imageBuilderPods, pods_...)
+	}
+
+	if len(imageBuilderPods) != 0 {
+		for _, imageBuilderPod := range imageBuilderPods {
+			if imageBuilderPod.Status.Status == modelschemas.KubePodActualStatusPending || imageBuilderPod.Status.Status == modelschemas.KubePodActualStatusRunning {
+				return modelschemas.DeploymentStatusImageBuilding, nil
+			}
+			if imageBuilderPod.Status.Status == modelschemas.KubePodActualStatusFailed {
+				return modelschemas.DeploymentStatusImageBuildFailed, nil
+			}
+			if imageBuilderPod.Status.Status == modelschemas.KubePodActualStatusUnknown {
+				return modelschemas.DeploymentStatusImageBuildFailed, nil
+			}
+			if imageBuilderPod.Status.Status == modelschemas.KubePodActualStatusTerminating {
+				return modelschemas.DeploymentStatusImageBuildFailed, nil
+			}
+		}
 	}
 
 	pods, err := KubePodService.ListPodsByDeployment(ctx, podLister, d)
