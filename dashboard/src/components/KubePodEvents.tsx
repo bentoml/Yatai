@@ -285,6 +285,7 @@ export default function KubePodEvents({
                 style={{
                     display: 'flex',
                     flexDirection: 'row',
+                    marginBottom: 10,
                 }}
             >
                 <div style={{ flexGrow: 1 }} />
