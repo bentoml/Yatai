@@ -234,9 +234,8 @@ export const PodStatus = React.memo(
                             <Log
                                 open={showLogModal}
                                 clusterName={cluster.name}
-                                namespace={pod.namespace}
                                 deploymentName={deployment.name}
-                                podName={pod.name}
+                                pod={pod}
                                 width='auto'
                                 height='calc(80vh - 200px)'
                             />
