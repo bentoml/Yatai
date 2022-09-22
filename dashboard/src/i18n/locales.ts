@@ -2628,6 +2628,14 @@ const locales0 = {
         'ko': 'BentoML Configuration',
         'vi': 'BentoML Configuration',
     },
+    'pod {{0}} is not exists': {
+        'en': 'Pod {{0}} is not exists',
+        'zh-CN': 'Pod {{0}} 不存在',
+        'zh-TW': 'Pod {{0}} 不存在',
+        'ja': 'Pod {{0}} は存在しません',
+        'ko': 'Pod {{0}} 이 존재하지 않습니다',
+        'vi': 'Pod {{0}} không tồn tại',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

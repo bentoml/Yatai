@@ -4,7 +4,7 @@ import useTranslation from '@/hooks/useTranslation'
 import { v4 as uuidv4 } from 'uuid'
 import { IWsReqSchema, IWsRespSchema } from '@/schemas/websocket'
 import { toaster } from 'baseui/toast'
-import { Select } from 'baseui/select'
+import { Select, Option } from 'baseui/select'
 import { useOrganization } from '@/hooks/useOrganization'
 import { Terminal as XtermTerminal } from 'xterm'
 import { WebLinksAddon } from 'xterm-addon-web-links'
@@ -16,6 +16,12 @@ import { colors } from 'baseui/tokens'
 import _ from 'lodash'
 import { Input } from 'baseui/input'
 import { SearchAddon } from 'xterm-addon-search'
+import { IContainerStatus, IKubePodSchema } from '@/schemas/kube_pod'
+import { TbBrandDocker } from 'react-icons/tb'
+import { IoMdList } from 'react-icons/io'
+import { FaScroll } from 'react-icons/fa'
+import { RiTimer2Line } from 'react-icons/ri'
+import { ImListNumbered } from 'react-icons/im'
 import Toggle from './Toggle'
 import Card from './Card'
 
@@ -29,22 +35,13 @@ interface ITailRequest {
 interface ILogProps {
     clusterName: string
     deploymentName?: string
-    namespace: string
-    podName: string
+    pod: IKubePodSchema
     open?: boolean
     width?: number | 'auto'
     height?: number | string
 }
 
-export default function Log({
-    clusterName,
-    deploymentName,
-    namespace,
-    podName,
-    open,
-    width = 300,
-    height = 300,
-}: ILogProps) {
+export default function Log({ clusterName, deploymentName, pod, open, width = 300, height = 300 }: ILogProps) {
     const elRef = useRef<null | HTMLDivElement>(null)
     const fitRef = useRef<null | FitAddon>(null)
 
@@ -63,17 +60,43 @@ export default function Log({
     const wsUrl = deploymentName
         ? `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
               window.location.host
-          }/ws/v1/clusters/${clusterName}/namespaces/${namespace}/deployments/${deploymentName}/tail?${qs.stringify({
-              pod_name: podName,
-              organization_name: organization?.name,
-          })}`
+          }/ws/v1/clusters/${clusterName}/namespaces/${pod.namespace}/deployments/${deploymentName}/tail?${qs.stringify(
+              {
+                  pod_name: pod.name,
+                  organization_name: organization?.name,
+              }
+          )}`
         : `${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${
               window.location.host
           }/ws/v1/clusters/${clusterName}/tail?${qs.stringify({
-              namespace,
-              pod_name: podName,
+              namespace: pod.namespace,
+              pod_name: pod.name,
               organization_name: organization?.name,
           })}`
+
+    const containerOptions = useMemo(() => {
+        const options: Option[] = []
+        const appendOption = (item: IContainerStatus, prefix?: string) => {
+            options.push({
+                id: item.name,
+                label: `${prefix ? `[${prefix}] ` : ''}${
+                    item.state.waiting !== undefined ? `${item.name} (${item.state.waiting.reason})` : item.name
+                }`,
+                disabled: item.state.waiting !== undefined,
+            })
+        }
+        pod.raw_status?.initContainerStatuses?.forEach((item) => appendOption(item, 'init'))
+        pod.raw_status?.containerStatuses?.forEach((item) => appendOption(item))
+        return options
+    }, [pod.raw_status?.containerStatuses, pod.raw_status?.initContainerStatuses])
+
+    const [container, setContainer] = useState<string | undefined>(() => {
+        const enabledOptions = containerOptions.filter((item) => !item.disabled)
+        if (enabledOptions.length > 0) {
+            return enabledOptions[enabledOptions.length - 1].id as string
+        }
+        return undefined
+    })
 
     const [tailLines, setTailLines] = useState(50)
     const [follow, setFollow] = useState(true)
@@ -94,11 +117,12 @@ export default function Log({
                 payload: {
                     id,
                     tail_lines: tailLines,
+                    container_name: container,
                     follow,
                 },
             } as IWsReqSchema<ITailRequest>)
         )
-    }, [follow, tailLines])
+    }, [container, follow, tailLines])
 
     useEffect(() => {
         sendTailReq()
@@ -282,7 +306,18 @@ export default function Log({
 
     return (
         <Card
-            title={t('view log')}
+            title={
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                    }}
+                >
+                    <IoMdList />
+                    {t('view log')}
+                </div>
+            }
             extra={
                 <div
                     style={{
@@ -292,12 +327,79 @@ export default function Log({
                         gap: 4,
                     }}
                 >
-                    <div>{t('scroll')}</div>
-                    <Toggle value={scroll} onChange={setScroll} />
-                    <div style={{ marginLeft: 12 }}>{t('realtime')}</div>
-                    <Toggle value={follow} onChange={setFollow} />
-                    <div style={{ marginLeft: 12 }}>{t('lines')}</div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                        }}
+                    >
+                        <TbBrandDocker size={14} />
+                        <div>Container</div>
+                    </div>
                     <Select
+                        overrides={{
+                            Root: {
+                                style: {
+                                    minWidth: '220px',
+                                },
+                            },
+                        }}
+                        size='mini'
+                        clearable={false}
+                        searchable={false}
+                        options={containerOptions}
+                        value={[{ id: container }]}
+                        onChange={(v) => {
+                            setContainer(v.option?.id as string)
+                        }}
+                    />
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            marginLeft: 12,
+                        }}
+                    >
+                        <FaScroll size={14} />
+                        <div>{t('scroll')}</div>
+                    </div>
+                    <Toggle value={scroll} onChange={setScroll} />
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            marginLeft: 12,
+                        }}
+                    >
+                        <RiTimer2Line size={14} />
+                        <div>{t('realtime')}</div>
+                    </div>
+                    <Toggle value={follow} onChange={setFollow} />
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            marginLeft: 12,
+                        }}
+                    >
+                        <ImListNumbered size={14} />
+                        <div>{t('lines')}</div>
+                    </div>
+                    <Select
+                        size='mini'
+                        overrides={{
+                            Root: {
+                                style: {
+                                    minWidth: '80px',
+                                },
+                            },
+                        }}
+                        clearable={false}
+                        searchable={false}
                         options={[
                             {
                                 label: '50',
@@ -336,6 +438,7 @@ export default function Log({
                 style={{
                     display: 'flex',
                     flexDirection: 'row',
+                    marginBottom: 10,
                 }}
             >
                 <div style={{ flexGrow: 1 }} />
