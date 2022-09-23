@@ -147,8 +147,8 @@ github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647 h1:fKWm
 github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647/go.mod h1:w8sk7HbPMnOlZislz8Ch3pRw15FNMY6o1Q+53fepnhc=
 github.com/bentoml/yatai-common v0.0.0-20220913011805-6c642712fde7 h1:nDk2A4ItL1XYf8WZBgGqYtyisUacQ65sEsN36FA9zpI=
 github.com/bentoml/yatai-common v0.0.0-20220913011805-6c642712fde7/go.mod h1:pox0XYk/bVUwKkadn0XwWHEbJmxSEeN3+HwGA4a8uOQ=
-github.com/bentoml/yatai-deployment v1.0.0-d4 h1:gKT9gbzxLkxbsBiuBME9nrPJYbZ2NjSsAQHAF7u4T4E=
-github.com/bentoml/yatai-deployment v1.0.0-d4/go.mod h1:+fyWDdbq4NrI2+beyWJI1dt9EBfuUpcNFrdOmikC3j4=
+github.com/bentoml/yatai-deployment v1.0.0-d7 h1:9brFbL+As98xL1mgkjHb0RD8m6Wr2u/f1/qQtq+qo9I=
+github.com/bentoml/yatai-deployment v1.0.0-d7/go.mod h1:jzMR5TOP71Q+Fg/ZPXfFMTO3yuwC7HAoa9z3SA0iFvY=
 github.com/bentoml/yatai-schemas v0.0.0-20220922110747-857c86720f51 h1:G98X/5+DyZAx4SvsbajGBcbQy+U9Wop/pGapZjLPWrU=
 github.com/bentoml/yatai-schemas v0.0.0-20220922110747-857c86720f51/go.mod h1:q7tt064G8YIiAwQabKyVaKEdSIHYDQA9Oyt+kyCsflU=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
@@ -1579,8 +1579,8 @@ golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914/go.mod h1:KelEdhl1UZF7XfJ
 golang.org/x/oauth2 v0.0.0-20210805134026-6f1e6394065a/go.mod h1:KelEdhl1UZF7XfJ4dDtk6s++YSgaE7mD/BuKKDLBl4A=
 golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f/go.mod h1:KelEdhl1UZF7XfJ4dDtk6s++YSgaE7mD/BuKKDLBl4A=
 golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b/go.mod h1:DAh4E804XQdzx2j+YRIaUnCqCV2RuMz24cGBJ5QYIrc=
-golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1 h1:lxqLZaMad/dJHMFZH0NiNpiEZI/nhgWhe4wgzpE+MuA=
-golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1/go.mod h1:h4gKUeWbJ4rQPri7E0u6Gs4e9Ri2zaLxzw5DI5XGrYg=
+golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2 h1:+jnHzr9VPj32ykQVai5DNahi9+NSp7yYuCsl5eAQtL0=
+golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2/go.mod h1:jaDAt6Dkxork7LmZnYtzbRWj0W47D86a3TGe0YHBvmE=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181108010431-42b317875d0f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=

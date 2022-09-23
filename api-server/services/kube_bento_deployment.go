@@ -156,6 +156,7 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 		}
 		kubeBentoDeployment.Spec.Annotations = oldKubeBentoDeployment.Spec.Annotations
 		kubeBentoDeployment.Spec.Labels = oldKubeBentoDeployment.Spec.Labels
+		kubeBentoDeployment.Spec.ExtraPodMetadata = oldKubeBentoDeployment.Spec.ExtraPodMetadata
 		kubeBentoDeployment.Spec.ExtraPodSpec = oldKubeBentoDeployment.Spec.ExtraPodSpec
 		kubeBentoDeployment.Spec.Ingress.Annotations = oldKubeBentoDeployment.Spec.Ingress.Annotations
 		kubeBentoDeployment.Spec.Ingress.Labels = oldKubeBentoDeployment.Spec.Ingress.Labels
@@ -165,6 +166,7 @@ func (s *kubeBentoDeploymentService) Deploy(ctx context.Context, deploymentTarge
 				if runner.Name == oldRunner.Name {
 					kubeBentoDeployment.Spec.Runners[idx].Annotations = oldRunner.Annotations
 					kubeBentoDeployment.Spec.Runners[idx].Labels = oldRunner.Labels
+					kubeBentoDeployment.Spec.Runners[idx].ExtraPodMetadata = oldRunner.ExtraPodMetadata
 					kubeBentoDeployment.Spec.Runners[idx].ExtraPodSpec = oldRunner.ExtraPodSpec
 				}
 			}
