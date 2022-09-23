@@ -46,7 +46,9 @@ func getSharedInformerFactory(ctx context.Context, option *getSharedInformerFact
 		cacheKey = CacheKey(fmt.Sprintf("%s:%s", org.Name, option.cluster.Name))
 	}
 
-	informerFactoryCacheRW.Lock()
+	if locked := informerFactoryCacheRW.TryLockWithContext(ctx); !locked {
+		return nil, errors.New("failed to get informer factory cache lock")
+	}
 	defer informerFactoryCacheRW.Unlock()
 
 	var factory informers.SharedInformerFactory

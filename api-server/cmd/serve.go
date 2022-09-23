@@ -127,6 +127,7 @@ func (opt *ServeOption) Run(ctx context.Context, args []string) error {
 
 	addCron(ctx)
 
+	// nolint: contextcheck
 	router, err := routes.NewRouter()
 	if err != nil {
 		return err
