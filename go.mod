@@ -6,7 +6,7 @@ require (
 	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
 	github.com/bentoml/yatai-common v0.0.0-20220913011805-6c642712fde7
 	github.com/bentoml/yatai-deployment v1.0.0-d7
-	github.com/bentoml/yatai-schemas v0.0.0-20220922110747-857c86720f51
+	github.com/bentoml/yatai-schemas v0.0.0-20220926112514-76dae9331a28
 	github.com/bits-and-blooms/bloom/v3 v3.3.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/sessions v0.0.3
@@ -49,6 +49,8 @@ require (
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
+	github.com/aquasecurity/go-pep440-version v0.0.0-20210121094942-22b2f8951d46 // indirect
+	github.com/aquasecurity/go-version v0.0.0-20210121072130-637058cfe492 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.3.1 // indirect
@@ -147,6 +149,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	golang.org/x/tools v0.1.12 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220915135415-7fd63a7952de // indirect

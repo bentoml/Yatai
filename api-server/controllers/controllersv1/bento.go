@@ -7,8 +7,10 @@ import (
 	"strings"
 	"time"
 
+	pep440version "github.com/aquasecurity/go-pep440-version"
 	"github.com/gin-gonic/gin"
 	"github.com/huandu/xstrings"
+	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
@@ -229,8 +231,107 @@ func (c *bentoController) Upload(ctx *gin.Context) {
 	}
 }
 
-func isNewBentomlCli(ctx *gin.Context) bool {
-	return ctx.GetHeader("X-Bentoml-Version") != ""
+const BentomlVersionHeader = "X-Bentoml-Version"
+
+func getBentomlVersion(ctx *gin.Context) string {
+	return ctx.GetHeader(BentomlVersionHeader)
+}
+
+func clientSupportProxyTransmission(ctx *gin.Context) bool {
+	return getBentomlVersion(ctx) != ""
+}
+
+func clientSupportTransmissionStrategy(ctx *gin.Context) (bool, error) {
+	ver := getBentomlVersion(ctx)
+	if ver == "" {
+		return false, nil
+	}
+	currentVersion, err := pep440version.Parse(ver)
+	if err != nil {
+		err = errors.Wrapf(err, "parse bentoml version %s from request header", ver)
+		return false, err
+	}
+	minVersion := pep440version.MustParse("1.0.5")
+	return currentVersion.GreaterThan(minVersion), nil
+}
+
+func (c *bentoController) StartMultipartUpload(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, bento); err != nil {
+		return nil, err
+	}
+	bentoSchema, err := transformersv1.ToBentoSchema(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	uploadId, err := services.BentoService.StartMultipartUpload(ctx, bento)
+	if err != nil {
+		err = errors.Wrap(err, "failed to start multipart upload")
+		return nil, err
+	}
+	bentoSchema.UploadId = uploadId
+	return bentoSchema, nil
+}
+
+type PreSignBentoMultipartUploadUrl struct {
+	GetBentoSchema
+	schemasv1.PreSignMultipartUploadSchema
+}
+
+func (c *bentoController) PreSignMultipartUploadUrl(ctx *gin.Context, schema *PreSignBentoMultipartUploadUrl) (*schemasv1.BentoSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, bento); err != nil {
+		return nil, err
+	}
+	bentoSchema, err := transformersv1.ToBentoSchema(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	url_, err := services.BentoService.PreSignMultipartUploadUrl(ctx, bento, schema.UploadId, schema.PartNumber)
+	if err != nil {
+		err = errors.Wrap(err, "failed to pre sign multipart upload url")
+		return nil, err
+	}
+	bentoSchema.PresignedUploadUrl = url_.String()
+	return bentoSchema, nil
+}
+
+type CompleteBentoMultipartUpload struct {
+	GetBentoSchema
+	schemasv1.CompleteMultipartUploadSchema
+}
+
+func (c *bentoController) CompleteMultipartUpload(ctx *gin.Context, schema *CompleteBentoMultipartUpload) (*schemasv1.BentoSchema, error) {
+	bento, err := schema.GetBento(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.canUpdate(ctx, bento); err != nil {
+		return nil, err
+	}
+	bentoSchema, err := transformersv1.ToBentoSchema(ctx, bento)
+	if err != nil {
+		return nil, err
+	}
+	parts := make([]minio.CompletePart, 0, len(schema.Parts))
+	for _, part := range schema.Parts {
+		parts = append(parts, minio.CompletePart{
+			ETag:       part.ETag,
+			PartNumber: part.PartNumber,
+		})
+	}
+	err = services.BentoService.CompleteMultipartUpload(ctx, bento, schema.UploadId, parts)
+	if err != nil {
+		err = errors.Wrap(err, "failed to complete multipart upload")
+		return nil, err
+	}
+	return bentoSchema, nil
 }
 
 func (c *bentoController) PreSignUploadUrl(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
@@ -245,14 +346,28 @@ func (c *bentoController) PreSignUploadUrl(ctx *gin.Context, schema *GetBentoSch
 	if err != nil {
 		return nil, err
 	}
-	if !isNewBentomlCli(ctx) {
+	supportTransmissionStrategy, err := clientSupportTransmissionStrategy(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if supportTransmissionStrategy {
 		url_, err := services.BentoService.PreSignUploadUrl(ctx, bento)
 		if err != nil {
 			return nil, errors.Wrap(err, "pre sign upload url")
 		}
 		bentoSchema.PresignedUploadUrl = url_.String()
+		return bentoSchema, nil
 	}
-	bentoSchema.PresignedUrlsDeprecated = true
+	supportProxy := clientSupportProxyTransmission(ctx)
+	if !supportProxy || bentoSchema.TransmissionStrategy == modelschemas.TransmissionStrategyPresignedURL {
+		url_, err := services.BentoService.PreSignUploadUrl(ctx, bento)
+		if err != nil {
+			return nil, errors.Wrap(err, "pre sign upload url")
+		}
+		bentoSchema.PresignedUploadUrl = url_.String()
+	} else {
+		bentoSchema.PresignedUrlsDeprecated = true
+	}
 	return bentoSchema, nil
 }
 
@@ -291,14 +406,28 @@ func (c *bentoController) PreSignDownloadUrl(ctx *gin.Context, schema *GetBentoS
 	if err != nil {
 		return nil, err
 	}
-	if !isNewBentomlCli(ctx) {
+	supportTransmissionStrategy, err := clientSupportTransmissionStrategy(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if supportTransmissionStrategy {
+		url_, err := services.BentoService.PreSignDownloadUrl(ctx, bento)
+		if err != nil {
+			return nil, errors.Wrap(err, "pre sign download url")
+		}
+		bentoSchema.PresignedUploadUrl = url_.String()
+		return bentoSchema, nil
+	}
+	supportProxy := clientSupportProxyTransmission(ctx)
+	if !supportProxy || bentoSchema.TransmissionStrategy == modelschemas.TransmissionStrategyPresignedURL {
 		url_, err := services.BentoService.PreSignDownloadUrl(ctx, bento)
 		if err != nil {
 			return nil, errors.Wrap(err, "pre sign download url")
 		}
 		bentoSchema.PresignedDownloadUrl = url_.String()
+	} else {
+		bentoSchema.PresignedUrlsDeprecated = true
 	}
-	bentoSchema.PresignedUrlsDeprecated = true
 	return bentoSchema, nil
 }
 

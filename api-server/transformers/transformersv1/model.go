@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
@@ -36,6 +37,14 @@ func ToModelSchemas(ctx context.Context, models_ []*models.Model) ([]*schemasv1.
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedModelRepository")
 		}
+		org, err := services.OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+		if err != nil {
+			return nil, errors.Wrap(err, "GetAssociatedOrganization")
+		}
+		transmissionStrategy := modelschemas.TransmissionStrategyProxy
+		if org.Config != nil && org.Config.TransmissionStrategy != nil {
+			transmissionStrategy = *org.Config.TransmissionStrategy
+		}
 		resourceSchema, ok := resourceSchemasMap[model.GetUid()]
 		if !ok {
 			return nil, errors.Errorf("resourceSchema not found for model %s", model.GetUid())
@@ -51,6 +60,7 @@ func ToModelSchemas(ctx context.Context, models_ []*models.Model) ([]*schemasv1.
 			UploadStartedAt:      model.UploadStartedAt,
 			UploadFinishedAt:     model.UploadFinishedAt,
 			UploadFinishedReason: model.UploadFinishedReason,
+			TransmissionStrategy: transmissionStrategy,
 			Manifest:             model.Manifest,
 			BuildAt:              model.BuildAt,
 		})
