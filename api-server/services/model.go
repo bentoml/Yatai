@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -108,6 +110,139 @@ func (s *modelService) Create(ctx context.Context, opt CreateModelOption) (model
 		return
 	}
 	err = LabelService.CreateOrUpdateLabelsFromLabelItemsSchema(ctx, opt.Labels, user.ID, org.ID, model)
+	return
+}
+
+func (s *modelService) StartMultipartUpload(ctx context.Context, model *models.Model) (uploadId string, err error) {
+	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
+		return
+	}
+	minioCore, err := s3Config.GetMinioCore()
+	if err != nil {
+		err = errors.Wrap(err, "create s3 client")
+		return
+	}
+
+	bucketName, err := s.GetS3BucketName(ctx, model)
+	if err != nil {
+		return
+	}
+
+	err = s3Config.MakeSureBucket(ctx, bucketName)
+	if err != nil {
+		return
+	}
+
+	objectName, err := s.getS3ObjectName(ctx, model)
+	if err != nil {
+		return
+	}
+
+	uploadId, err = minioCore.NewMultipartUpload(ctx, bucketName, objectName, minio.PutObjectOptions{})
+	if err != nil {
+		err = errors.Wrap(err, "new multipart upload")
+		return
+	}
+	return
+}
+
+func (s *modelService) PreSignMultipartUploadUrl(ctx context.Context, model *models.Model, partNumber int, uploadId string) (url_ *url.URL, err error) {
+	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
+		return
+	}
+	minioCore, err := s3Config.GetMinioCore()
+	if err != nil {
+		err = errors.Wrap(err, "create s3 client")
+		return
+	}
+
+	bucketName, err := s.GetS3BucketName(ctx, model)
+	if err != nil {
+		return
+	}
+
+	err = s3Config.MakeSureBucket(ctx, bucketName)
+	if err != nil {
+		return
+	}
+
+	objectName, err := s.getS3ObjectName(ctx, model)
+	if err != nil {
+		return
+	}
+
+	queryValues := make(url.Values)
+	queryValues.Set("partNumber", strconv.Itoa(partNumber))
+	queryValues.Set("uploadId", uploadId)
+
+	url_, err = minioCore.Presign(ctx, http.MethodPut, bucketName, objectName, time.Hour, queryValues)
+	if err != nil {
+		err = errors.Wrap(err, "presigned put object")
+		return
+	}
+	if s3Config.Endpoint != s3Config.EndpointInCluster {
+		url_.Host = s3Config.Endpoint
+	}
+	return
+}
+
+func (s *modelService) CompleteMultipartUpload(ctx context.Context, model *models.Model, uploadId string, parts []minio.CompletePart) (err error) {
+	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
+	if err != nil {
+		return
+	}
+	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	if err != nil {
+		return
+	}
+	s3Config, err := OrganizationService.GetS3Config(ctx, org)
+	if err != nil {
+		return
+	}
+	minioCore, err := s3Config.GetMinioCore()
+	if err != nil {
+		err = errors.Wrap(err, "create s3 client")
+		return
+	}
+
+	bucketName, err := s.GetS3BucketName(ctx, model)
+	if err != nil {
+		return
+	}
+
+	err = s3Config.MakeSureBucket(ctx, bucketName)
+	if err != nil {
+		return
+	}
+
+	objectName, err := s.getS3ObjectName(ctx, model)
+	if err != nil {
+		return
+	}
+
+	_, err = minioCore.CompleteMultipartUpload(ctx, bucketName, objectName, uploadId, parts, minio.PutObjectOptions{})
+	if err != nil {
+		err = errors.Wrap(err, "new multipart upload")
+		return
+	}
 	return
 }
 
