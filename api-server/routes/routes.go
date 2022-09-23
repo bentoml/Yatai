@@ -627,6 +627,21 @@ func bentoRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("List bento deployments"),
 	}, tonic.Handler(controllersv1.BentoController.ListDeployment, 200))
 
+	resourceGrp.PATCH("/start_multipart_upload", []fizz.OperationOption{
+		fizz.ID("Start a bento multipart upload"),
+		fizz.Summary("Start a bento multipart upload"),
+	}, tonic.Handler(controllersv1.BentoController.StartMultipartUpload, 200))
+
+	resourceGrp.PATCH("/presign_multipart_upload_url", []fizz.OperationOption{
+		fizz.ID("Presign a bento multipart upload url"),
+		fizz.Summary("Presign a bento multipart upload url"),
+	}, tonic.Handler(controllersv1.BentoController.PreSignMultipartUploadUrl, 200))
+
+	resourceGrp.PATCH("/complete_multipart_upload", []fizz.OperationOption{
+		fizz.ID("Complete a bento multipart upload"),
+		fizz.Summary("Complete a bento multipart upload"),
+	}, tonic.Handler(controllersv1.BentoController.CompleteMultipartUpload, 200))
+
 	resourceGrp.PATCH("/presign_upload_url", []fizz.OperationOption{
 		fizz.ID("Pre sign bento upload URL"),
 		fizz.Summary("Pre sign bento upload URL"),
@@ -810,6 +825,21 @@ func modelRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("List model deployments"),
 		fizz.Summary("List model deployments"),
 	}, tonic.Handler(controllersv1.ModelController.ListDeployment, 200))
+
+	resourceGrp.PATCH("/start_multipart_upload", []fizz.OperationOption{
+		fizz.ID("Start a model multipart upload"),
+		fizz.Summary("Start a model multipart upload"),
+	}, tonic.Handler(controllersv1.ModelController.StartMultipartUpload, 200))
+
+	resourceGrp.PATCH("/presign_multipart_upload_url", []fizz.OperationOption{
+		fizz.ID("Presign a model multipart upload url"),
+		fizz.Summary("Presign a model multipart upload url"),
+	}, tonic.Handler(controllersv1.ModelController.PreSignMultipartUploadUrl, 200))
+
+	resourceGrp.PATCH("/complete_multipart_upload", []fizz.OperationOption{
+		fizz.ID("Complete a model multipart upload"),
+		fizz.Summary("Complete a model multipart upload"),
+	}, tonic.Handler(controllersv1.ModelController.CompleteMultipartUpload, 200))
 
 	resourceGrp.PATCH("/presign_upload_url", []fizz.OperationOption{
 		fizz.ID("Pre sign model upload URL"),
