@@ -155,7 +155,7 @@ func (s *modelService) StartMultipartUpload(ctx context.Context, model *models.M
 	return
 }
 
-func (s *modelService) PreSignMultipartUploadUrl(ctx context.Context, model *models.Model, partNumber int, uploadId string) (url_ *url.URL, err error) {
+func (s *modelService) PreSignMultipartUploadUrl(ctx context.Context, model *models.Model, uploadId string, partNumber int) (url_ *url.URL, err error) {
 	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
 	if err != nil {
 		return

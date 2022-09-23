@@ -218,7 +218,7 @@ func (s *bentoService) StartMultipartUpload(ctx context.Context, bento *models.B
 	return
 }
 
-func (s *bentoService) PreSignMultipartUploadUrl(ctx context.Context, bento *models.Bento, partNumber int, uploadId string) (url_ *url.URL, err error) {
+func (s *bentoService) PreSignMultipartUploadUrl(ctx context.Context, bento *models.Bento, uploadId string, partNumber int) (url_ *url.URL, err error) {
 	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 	if err != nil {
 		return
