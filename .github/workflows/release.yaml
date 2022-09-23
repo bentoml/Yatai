@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     tags: [ v\d+\.\d+\.\d+\-d\d+ ]
+
   release:
     types: [ published ]
 
@@ -12,24 +13,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - name: Set vars
+        id: vars
+        run: |
+          echo "::set-output name=dashboard_hash::${{ hashFiles('./dashboard/**') }}"
+
+      - uses: tuler/s3-check-action@master
+        id: check-s3
+        env:
+          FILE: dashboard/${{ steps.vars.outputs.dashboard_hash }}/index.html
+          AWS_REGION: ap-northeast-1
+          AWS_S3_BUCKET: yatai-github-artifacts
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+        if: steps.check-s3.outputs.exists == 'false'
 
       - uses: actions/cache@v2
         with:
           path: '**/dashboard/node_modules'
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/dashboard/yarn.lock') }}
+        if: steps.check-s3.outputs.exists == 'false'
 
       - name: Install packages
         run: cd dashboard; yarn
+        if: steps.check-s3.outputs.exists == 'false'
 
       - name: Build dashboard
         run: cd dashboard; NODE_OPTIONS="--max_old_space_size=4096" yarn build
+        if: steps.check-s3.outputs.exists == 'false'
         env:
           CI: false
-
-      - name: Set git sha_short outputs
-        id: vars
-        run: echo "::set-output name=sha_short::$(git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)"
 
       - name: Upload dashboard artifacts
         uses: prewk/s3-cp-action@v2
@@ -38,48 +57,52 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ap-northeast-1
           source: './dashboard/build/'
-          dest: 's3://yatai-github-artifacts/dashboard-artifacts/${{ steps.vars.outputs.sha_short }}'
+          dest: 's3://yatai-github-artifacts/dashboard/${{ steps.vars.outputs.dashboard_hash }}'
           flags: --recursive
+        if: steps.check-s3.outputs.exists == 'false'
 
   build-api-server:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '^1.17.3' # The Go version to download (if necessary) and use.
-
-      - run: go version
-
-      - id: go-cache-paths
+      - name: Set vars
+        id: vars
         run: |
-          echo "::set-output name=go-build::$(go env GOCACHE)"
-          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+          echo "::set-output name=api_server_hash::${{ hashFiles('./api-server/**', './common/**', '**/go.sum', '**go.mod') }}"
 
-      # Cache go build cache, used to speedup go test
-      - name: Go Build Cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.go-cache-paths.outputs.go-build }}
-          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+      - uses: tuler/s3-check-action@master
+        id: check-s3
+        env:
+          FILE: api-server/${{ steps.vars.outputs.api_server_hash }}/api-server
+          AWS_REGION: ap-northeast-1
+          AWS_S3_BUCKET: yatai-github-artifacts
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # Cache go mod cache, used to speedup builds
-      - name: Go Mod Cache
-        uses: actions/cache@v2
+      - name: Buildx Cache
+        uses: actions/cache@v3
         with:
-          path: ${{ steps.go-cache-paths.outputs.go-mod }}
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+          path: /tmp/buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('**/go.sum') }}
+        if: steps.check-s3.outputs.exists == 'false'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        if: steps.check-s3.outputs.exists == 'false'
 
       - name: Build api-server
-        run: make build-api-server
+        run: make docker-build-api-server
+        if: steps.check-s3.outputs.exists == 'false'
 
-      - name: Set git sha_short outputs
-        id: vars
-        run: echo "::set-output name=sha_short::$(git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)"
+      - name: Move cache
+        run: |
+          rm -rf /tmp/buildx-cache
+          mv /tmp/buildx-cache-new /tmp/buildx-cache
+        if: steps.check-s3.outputs.exists == 'false'
 
       - name: Upload api-server artifacts
         uses: prewk/s3-cp-action@v2
@@ -88,8 +111,9 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ap-northeast-1
           source: './bin/'
-          dest: 's3://yatai-github-artifacts/api-server-artifacts/${{ steps.vars.outputs.sha_short }}'
+          dest: 's3://yatai-github-artifacts/api-server/${{ steps.vars.outputs.api_server_hash }}'
           flags: --recursive
+        if: steps.check-s3.outputs.exists == 'false'
 
   release-image:
     runs-on: ubuntu-latest
@@ -99,18 +123,13 @@ jobs:
       - build-api-server
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Login to Quay.io
-        uses: docker/login-action@v1
-        with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
-
-      - name: Set git sha_short outputs
+      - name: Set vars
         id: vars
-        run: echo "::set-output name=sha_short::$(git describe --match=NeVeRmAtCh --tags --always --dirty | cut -c 1-7)"
+        run: |
+          echo "::set-output name=dashboard_hash::${{ hashFiles('./dashboard/**') }}"
+          echo "::set-output name=api_server_hash::${{ hashFiles('./api-server/**', './common/**', '**/go.sum', '**go.mod') }}"
 
       - name: Download dashboard artifacts
         uses: prewk/s3-cp-action@v2
@@ -119,7 +138,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ap-northeast-1
           dest: './dashboard/build/'
-          source: 's3://yatai-github-artifacts/dashboard-artifacts/${{ steps.vars.outputs.sha_short }}'
+          source: 's3://yatai-github-artifacts/dashboard/${{ steps.vars.outputs.dashboard_hash }}'
           flags: --recursive
 
       - name: Download api-server artifacts
@@ -129,8 +148,15 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ap-northeast-1
           dest: './bin/'
-          source: 's3://yatai-github-artifacts/api-server-artifacts/${{ steps.vars.outputs.sha_short }}'
+          source: 's3://yatai-github-artifacts/api-server/${{ steps.vars.outputs.api_server_hash }}'
           flags: --recursive
+
+      - name: Login to Quay.io
+        uses: docker/login-action@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
       - name: Build yatai image
         run: make build-image
