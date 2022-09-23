@@ -57,9 +57,10 @@ docker-eslint: pull-ui-builder-image ## Docker eslint
 docker-ui-typecheck: pull-ui-builder-image ## Docker typecheck
 	$(UI_BUILDER_CNTR_CMD) sh -c "cd dashboard; ln -s /cache/node_modules ./node_modules; yarn typecheck"
 
-docker-build-api-server: pull-builder-image ## Build api-server binary
-	mkdir -p ./bin
-	$(BUILDER_CNTR_CMD) go build -ldflags "$(VERSION_BUILDFLAGS)" -o ./bin/api-server ./api-server/main.go
+docker-build-api-server: ## Build api-server binary
+	@mkdir -p ./bin
+	@mkdir -p /tmp/buildx-cache/
+	@docker buildx build -f Dockerfile-builder --build-arg VERSION_BUILDFLAGS="$(VERSION_BUILDFLAGS)" --output bin --cache-from type=local,src=/tmp/buildx-cache --cache-to type=local,mode=max,dest=/tmp/buildx-cache-new .
 
 build-api-server:
 	mkdir -p ./bin
