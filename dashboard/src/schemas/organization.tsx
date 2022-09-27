@@ -1,6 +1,8 @@
 import { IResourceSchema } from './resource'
 import { IUserSchema } from './user'
 
+export type TransmissionStrategy = 'presigned_url' | 'proxy'
+
 export interface IAwsS3Schema {
     bentos_bucket_name: string
     models_bucket_name: string
@@ -45,6 +47,7 @@ export interface IOrganizationConfigSchema {
     major_cluster_uid?: string
     aws?: IOrganizationAwsConfigSchema
     s3?: IOrganizationS3Schema
+    transmission_strategy?: TransmissionStrategy
 }
 
 export interface IOrganizationSchema extends IResourceSchema {

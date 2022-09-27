@@ -5,7 +5,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
@@ -41,10 +40,7 @@ func ToBentoSchemas(ctx context.Context, bentos []*models.Bento) ([]*schemasv1.B
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedOrganization")
 		}
-		transmissionStrategy := modelschemas.TransmissionStrategyProxy
-		if org.Config != nil && org.Config.TransmissionStrategy != nil {
-			transmissionStrategy = *org.Config.TransmissionStrategy
-		}
+		transmissionStrategy := services.OrganizationService.GetTransmissionStrategy(org)
 		resourceSchema, ok := resourceSchemasMap[bento.GetUid()]
 		if !ok {
 			return nil, errors.Errorf("resourceSchema not found for bento %s", bento.GetUid())

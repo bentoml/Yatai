@@ -118,7 +118,7 @@ func (opt *ServeOption) Run(ctx context.Context, args []string) error {
 		return errors.Wrap(err, "migrate up db")
 	}
 
-	if !config.YataiConfig.IsSass {
+	if !config.YataiConfig.IsSaaS {
 		err = initSelfHost(ctx)
 		if err != nil {
 			return errors.Wrap(err, "init self host")

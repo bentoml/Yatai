@@ -415,7 +415,7 @@ func (c *bentoController) PreSignDownloadUrl(ctx *gin.Context, schema *GetBentoS
 		if err != nil {
 			return nil, errors.Wrap(err, "pre sign download url")
 		}
-		bentoSchema.PresignedUploadUrl = url_.String()
+		bentoSchema.PresignedDownloadUrl = url_.String()
 		return bentoSchema, nil
 	}
 	supportProxy := clientSupportProxyTransmission(ctx)

@@ -10,11 +10,12 @@ import (
 )
 
 type YataiServerConfigYaml struct {
-	EnableHTTPS       bool   `yaml:"enable_https"`
-	Port              uint   `yaml:"port"`
-	SessionSecretKey  string `yaml:"session_secret_key"`
-	MigrationDir      string `yaml:"migration_dir"`
-	ReadHeaderTimeout int    `yaml:"read_header_timeout"`
+	EnableHTTPS          bool   `yaml:"enable_https"`
+	Port                 uint   `yaml:"port"`
+	SessionSecretKey     string `yaml:"session_secret_key"`
+	MigrationDir         string `yaml:"migration_dir"`
+	ReadHeaderTimeout    int    `yaml:"read_header_timeout"`
+	TransmissionStrategy string `yaml:"transmission_strategy"`
 }
 
 type YataiPostgresqlConfigYaml struct {
@@ -49,7 +50,7 @@ type YataiDockerImageBuilderConfigYaml struct {
 }
 
 type YataiConfigYaml struct {
-	IsSass              bool                      `yaml:"is_sass"`
+	IsSaaS              bool                      `yaml:"is_saas"`
 	SassDomainSuffix    string                    `yaml:"sass_domain_suffix"`
 	InCluster           bool                      `yaml:"in_cluster"`
 	Server              YataiServerConfigYaml     `yaml:"server"`
@@ -62,9 +63,9 @@ type YataiConfigYaml struct {
 var YataiConfig = &YataiConfigYaml{}
 
 func PopulateYataiConfig() error {
-	isSass, ok := os.LookupEnv(consts.EnvIsSass)
+	isSaaS, ok := os.LookupEnv(consts.EnvIsSaaS)
 	if ok {
-		YataiConfig.IsSass = isSass == "true"
+		YataiConfig.IsSaaS = isSaaS == "true"
 	}
 
 	sassDomainSuffix, ok := os.LookupEnv(consts.EnvSassDomainSuffix)
@@ -119,6 +120,11 @@ func PopulateYataiConfig() error {
 			return errors.Wrapf(err, "convert %s from env to int", consts.EnvReadHeaderTimeout)
 		}
 		YataiConfig.Server.ReadHeaderTimeout = readHeaderTimeout_
+	}
+
+	transmissionStrategy, ok := os.LookupEnv(consts.EnvTransmissionStrategy)
+	if ok {
+		YataiConfig.Server.TransmissionStrategy = transmissionStrategy
 	}
 
 	initializationToken, ok := os.LookupEnv(consts.EnvInitializationToken)

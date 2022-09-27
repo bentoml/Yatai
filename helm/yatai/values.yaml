@@ -104,4 +104,6 @@ s3:
   secretKeyExistingSecretName: ''
   secretKeyExistingSecretKey: 'secret_key'
 
-enableHostTimeZone: false 
+enableHostTimeZone: false
+
+transmissionStrategy: proxy

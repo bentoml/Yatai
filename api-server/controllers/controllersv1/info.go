@@ -19,7 +19,7 @@ type InfoSchema struct {
 
 func (c *infoController) GetInfo(ctx *gin.Context) (*InfoSchema, error) {
 	return &InfoSchema{
-		IsSass:           config.YataiConfig.IsSass,
+		IsSass:           config.YataiConfig.IsSaaS,
 		SassDomainSuffix: config.YataiConfig.SassDomainSuffix,
 	}, nil
 }

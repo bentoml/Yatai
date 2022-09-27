@@ -1,12 +1,50 @@
-import { ICreateOrganizationSchema, IOrganizationFullSchema } from '@/schemas/organization'
-import React, { useCallback, useEffect, useState } from 'react'
+import { ICreateOrganizationSchema, IOrganizationFullSchema, TransmissionStrategy } from '@/schemas/organization'
+import { useCallback, useEffect, useState } from 'react'
 import { createForm } from '@/components/Form'
 import { Input } from 'baseui/input'
 import { Textarea } from 'baseui/textarea'
 import useTranslation from '@/hooks/useTranslation'
 import { Button, SIZE as ButtonSize } from 'baseui/button'
 import { isModified } from '@/utils'
+import { Select } from 'baseui/select'
 import Toggle from './Toggle'
+
+interface ITransmissionStrategySelectorProps {
+    value?: TransmissionStrategy
+    onChange?: (value: TransmissionStrategy) => void
+}
+
+function TransmissionStrategySelector(props: ITransmissionStrategySelectorProps) {
+    const { value, onChange } = props
+    return (
+        <Select
+            clearable={false}
+            searchable={false}
+            value={
+                value
+                    ? [
+                          {
+                              id: value,
+                          },
+                      ]
+                    : []
+            }
+            onChange={(params) => {
+                onChange?.(params.option?.id as TransmissionStrategy)
+            }}
+            options={[
+                {
+                    label: 'proxy',
+                    id: 'proxy',
+                },
+                {
+                    label: 'presigned_url',
+                    id: 'presigned_url',
+                },
+            ]}
+        />
+    )
+}
 
 const { Form, FormItem, useForm } = createForm<ICreateOrganizationSchema>()
 
@@ -84,6 +122,9 @@ export default function OrganizationForm({ organization, onSubmit }: IOrganizati
             </FormItem>
             <FormItem name={['config', 's3', 'secure']} label='S3 Secure'>
                 <Toggle />
+            </FormItem>
+            <FormItem name={['config', 'transmission_strategy']} label='Transmission Strategy'>
+                <TransmissionStrategySelector />
             </FormItem>
             <FormItem>
                 <div style={{ display: 'flex' }}>
