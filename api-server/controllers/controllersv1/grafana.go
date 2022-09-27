@@ -110,7 +110,7 @@ func (c *grafanaController) Proxy(ctx *gin.Context) {
 			return
 		}
 
-		if majorCluster.ID == cluster.ID && config.YataiConfig.InCluster && !config.YataiConfig.IsSass {
+		if majorCluster.ID == cluster.ID && config.YataiConfig.InCluster && !config.YataiConfig.IsSaaS {
 			grafana.Spec.Ingress.Hostname = fmt.Sprintf("yatai-grafana.%s", commonconsts.KubeNamespaceYataiComponents)
 		}
 

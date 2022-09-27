@@ -299,7 +299,7 @@ type S3Config struct {
 
 func (c *S3Config) GetMinioClient() (*minio.Client, error) {
 	endpoint := c.Endpoint
-	if config.YataiConfig.InCluster && !config.YataiConfig.IsSass {
+	if config.YataiConfig.InCluster && !config.YataiConfig.IsSaaS {
 		endpoint = c.EndpointInCluster
 	}
 	return minio.New(endpoint, &minio.Options{
@@ -310,7 +310,7 @@ func (c *S3Config) GetMinioClient() (*minio.Client, error) {
 
 func (c *S3Config) GetMinioCore() (*minio.Core, error) {
 	endpoint := c.Endpoint
-	if config.YataiConfig.InCluster && !config.YataiConfig.IsSass {
+	if config.YataiConfig.InCluster && !config.YataiConfig.IsSaaS {
 		endpoint = c.EndpointInCluster
 	}
 	return minio.NewCore(endpoint, &minio.Options{
@@ -342,6 +342,20 @@ func (c *S3Config) MakeSureBucket(ctx context.Context, bucketName string) error 
 		}
 	}
 	return nil
+}
+
+func (s *organizationService) GetTransmissionStrategy(org *models.Organization) (transmissionStrategy modelschemas.TransmissionStrategy) {
+	transmissionStrategy = modelschemas.TransmissionStrategyProxy
+	if !config.YataiConfig.IsSaaS {
+		if config.YataiConfig.Server.TransmissionStrategy != "" {
+			transmissionStrategy = modelschemas.TransmissionStrategy(config.YataiConfig.Server.TransmissionStrategy)
+		}
+		return
+	}
+	if org.Config != nil && org.Config.TransmissionStrategy != nil && *org.Config.TransmissionStrategy != "" {
+		transmissionStrategy = *org.Config.TransmissionStrategy
+	}
+	return
 }
 
 func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organization) (conf *S3Config, err error) {

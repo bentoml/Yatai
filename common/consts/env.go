@@ -1,7 +1,7 @@
 package consts
 
 const (
-	EnvIsSass           = "IS_SASS"
+	EnvIsSaaS           = "IS_SAAS"
 	EnvSassDomainSuffix = "SASS_DOMAIN_SUFFIX"
 
 	EnvPgHost     = "PG_HOST"
@@ -38,4 +38,6 @@ const (
 	EnvDockerImageBuilderPrivileged = "DOCKER_IMAGE_BUILDER_PRIVILEGED"
 
 	EnvReadHeaderTimeout = "READ_HEADER_TIMEOUT"
+
+	EnvTransmissionStrategy = "TRANSMISSION_STRATEGY"
 )
