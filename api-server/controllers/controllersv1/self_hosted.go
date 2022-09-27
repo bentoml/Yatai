@@ -41,7 +41,7 @@ func (*selfHostedController) Setup(ctx *gin.Context, schema *SetupSchema) (*sche
 	* 3. create a cluster, and add the org to the cluster,
 	 */
 
-	if config.YataiConfig.IsSass {
+	if config.YataiConfig.IsSaaS {
 		return nil, errors.New("admin user registration is not allowed in sass mode")
 	}
 	if config.YataiConfig.InitializationToken == "" {

@@ -359,7 +359,7 @@ func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelS
 		if err != nil {
 			return nil, errors.Wrap(err, "pre sign download url")
 		}
-		modelSchema.PresignedUploadUrl = url_.String()
+		modelSchema.PresignedDownloadUrl = url_.String()
 		return modelSchema, nil
 	}
 	supportProxy := clientSupportProxyTransmission(ctx)
