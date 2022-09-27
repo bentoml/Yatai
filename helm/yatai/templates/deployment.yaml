@@ -93,9 +93,11 @@ spec:
             - mountPath: /conf
               name: config
               readOnly: true
+            {{- if .Values.enableHostTimeZone }}
             - mountPath: /etc/localtime
               name: host-timezone
               readOnly: true
+            {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -109,10 +111,12 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        {{- if .Values.enableHostTimeZone }}
         - hostPath:
             path: /etc/localtime
             type: ""
           name: host-timezone
+        {{- end }}
         - name: config
           secret:
             secretName: {{ include "yatai.fullname" . }}
