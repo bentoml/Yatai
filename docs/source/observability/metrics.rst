@@ -220,7 +220,7 @@ Then visit the Grafana web UI via :code:`http://localhost:8888`
 
 .. code:: bash
 
-   kubectl -f https://raw.githubusercontent.com/bentoml/yatai/main/scripts/monitoring/bentodeployment-podmonitor.yaml
+   kubectl apply -f https://raw.githubusercontent.com/bentoml/yatai/main/scripts/monitoring/bentodeployment-podmonitor.yaml
 
 After some time you can see in the service discovery page in the Prometheus web UI that the bento deployment has been discovered:
 
