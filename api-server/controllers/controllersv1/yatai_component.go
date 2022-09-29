@@ -96,6 +96,13 @@ func (c *yataiComponentController) Register(ctx *gin.Context, schema *RegisterYa
 		return nil, errors.Wrap(err, "get yataiComponent")
 	}
 
+	manifest := &modelschemas.YataiComponentManifestSchema{
+		SelectorLabels: schema.SelectorLabels,
+	}
+	if schema.Manifest != nil {
+		manifest = schema.Manifest
+	}
+
 	if isNotFound {
 		yataiComponent, err = services.YataiComponentService.Create(ctx_, services.CreateYataiComponentOption{
 			CreatorId:      user.ID,
@@ -104,23 +111,18 @@ func (c *yataiComponentController) Register(ctx *gin.Context, schema *RegisterYa
 			Name:           string(schema.Name),
 			KubeNamespace:  kubeNamespace,
 			Version:        schema.Version,
-			Manifest: &modelschemas.YataiComponentManifestSchema{
-				SelectorLabels: schema.SelectorLabels,
-			},
+			Manifest:       manifest,
 		})
 	} else {
-		manifest := &modelschemas.YataiComponentManifestSchema{
-			SelectorLabels: schema.SelectorLabels,
-		}
 		now := time.Now()
 		now_ := &now
 		opt := services.UpdateYataiComponentOption{
 			LatestHeartbeatAt: &now_,
+			Version:           &schema.Version,
+			Manifest:          &manifest,
 		}
 		if yataiComponent.Version != schema.Version {
-			opt.Version = &schema.Version
 			opt.LatestInstalledAt = &now_
-			opt.Manifest = &manifest
 		}
 		yataiComponent, err = services.YataiComponentService.Update(ctx_, yataiComponent, opt)
 	}

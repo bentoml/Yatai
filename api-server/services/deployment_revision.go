@@ -241,9 +241,27 @@ func (s *deploymentRevisionService) GetDeployOption(ctx context.Context, deploym
 func (s *deploymentRevisionService) Terminate(ctx context.Context, deploymentRevision *models.DeploymentRevision) (err error) {
 	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentRevision)
 	if err != nil {
+		err = errors.Wrap(err, "get associated deployment")
 		return err
 	}
-	cli, err := DeploymentService.GetKubeBentoDeploymentCli(ctx, deployment)
+	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
+	if err != nil {
+		err = errors.Wrap(err, "get associated cluster")
+		return err
+	}
+	yataiDeploymentComp, err := YataiComponentService.GetByName(ctx, cluster.ID, string(modelschemas.YataiComponentNameDeployment))
+	if err != nil {
+		err = errors.Wrap(err, "get yatai deployment component")
+		return err
+	}
+	if yataiDeploymentComp.Manifest == nil && yataiDeploymentComp.Manifest.LatestCRDVersion == "v1alpha3" {
+		cli, err := DeploymentService.GetKubeBentoDeploymentV1alpha3Cli(ctx, deployment)
+		if err != nil {
+			return err
+		}
+		return cli.Delete(ctx, deployment.Name, metav1.DeleteOptions{})
+	}
+	cli, err := DeploymentService.GetKubeBentoDeploymentV1alpha2Cli(ctx, deployment)
 	if err != nil {
 		return err
 	}

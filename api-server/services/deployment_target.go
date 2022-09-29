@@ -221,7 +221,28 @@ func (s *deploymentTargetService) Update(ctx context.Context, b *models.Deployme
 func (s *deploymentTargetService) Deploy(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (deploymentTarget_ *models.DeploymentTarget, err error) {
 	deploymentTarget_ = deploymentTarget
 
-	_, err = KubeBentoDeploymentService.Deploy(ctx, deploymentTarget, deployOption)
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get associated deployment")
+		return
+	}
+
+	cluster, err := ClusterService.GetAssociatedCluster(ctx, deployment)
+	if err != nil {
+		err = errors.Wrap(err, "get associated cluster")
+		return
+	}
+	yataiDeploymentComp, err := YataiComponentService.GetByName(ctx, cluster.ID, string(modelschemas.YataiComponentNameDeployment))
+	if err != nil {
+		err = errors.Wrap(err, "get yatai deployment component")
+		return
+	}
+	if yataiDeploymentComp.Manifest == nil && yataiDeploymentComp.Manifest.LatestCRDVersion == "v1alpha3" {
+		_, err = KubeBentoDeploymentService.DeployV1alpha3(ctx, deploymentTarget, deployOption)
+	} else {
+		_, err = KubeBentoDeploymentService.DeployV1alpha2(ctx, deploymentTarget, deployOption)
+	}
+
 	if err != nil {
 		err = errors.Wrap(err, "failed to deploy kube bento deployment")
 		return
