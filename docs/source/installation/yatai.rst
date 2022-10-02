@@ -459,7 +459,7 @@ Expected output:
       --set s3.secretKey=$S3_SECRET_KEY \
       --devel
 
-.. note:: The `--devel` option is needed until yatai-deployment 1.0.0 is released. Without the option, helm will not be able to find the latest version of yatai.
+.. note:: The `--devel` option is needed until yatai 1.0.0 is released. Without the option, helm will not be able to find the latest version of yatai.
 
 2. Verify the Yatai installation
 """"""""""""""""""""""""""""""""
