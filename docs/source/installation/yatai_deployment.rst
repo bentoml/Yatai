@@ -343,11 +343,49 @@ Store your ingress class in environment var:
 
 .. note:: If no value returned, it means you do not have any ingress class, please install a ingress controller first!
 
-After the yatai-deployment helm chart has been installed you can configure it in this way:
+**After the yatai-deployment helm chart has been installed** you can configure it in this way:
 
 .. code:: bash
 
   kubectl -n yatai-deployment patch cm/network --type merge --patch '{"data":{"ingress-class":"$INGRESS_CLASS"}}'
+
+Verify that this ingress class is working properly
+**************************************************
+
+.. note::
+
+   You should make sure that the :code:`$INGRESS_CLASS` environment variable is not empty and contains the correct value, otherwise the following command will not work.
+
+.. code:: bash
+
+  cat <<EOF | kubectl apply -f -
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: test-ingress
+  spec:
+    ingressClassName: ${INGRESS_CLASS}
+    rules:
+    - http:
+        paths:
+        - path: /testpath
+          pathType: Prefix
+          backend:
+            service:
+              name: test
+              port:
+                number: 80
+  EOF
+
+Wait for ingress to be successfully assigned address:
+
+.. note:: The following command will wait 5 minutes for the above ingress to be assigned address
+
+.. code:: bash
+
+  timeout 5m bash -c "until kubectl get ing test-ingress -o yaml -o jsonpath='{.status.loadBalancer}' | grep ingress; do : ; done" && echo 'successfully' || echo 'failed'
+
+If the above command returns :code:`successfully`, it means that the ingress class is working properly. Otherwise, you need to check the ingress controller logs to see what went wrong.
 
 2. Ingress Annotations
 """"""""""""""""""""""
