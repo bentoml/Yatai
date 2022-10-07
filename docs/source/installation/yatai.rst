@@ -265,11 +265,11 @@ Expected output:
 
       .. code:: bash
 
-        export S3_ENDPOINT=xxx
-        export S3_REGION=xxx
-        export S3_BUCKET_NAME=xxx
-        export S3_ACCESS_KEY=xxx
-        export S3_SECRET_KEY=xxx
+        export S3_REGION=ap-northeast-3
+        export S3_ENDPOINT="s3.${S3_REGION}.amazonaws.com"
+        export S3_BUCKET_NAME=yatai-registry
+        export S3_ACCESS_KEY=$(aws configure get default.aws_access_key_id)
+        export S3_SECRET_KEY=$(aws configure get default.aws_secret_access_key)
         export S3_SECURE=true
 
     .. tab-item:: Create a new AWS S3
@@ -456,9 +456,10 @@ Expected output:
       --set s3.bucketName=$S3_BUCKET_NAME \
       --set s3.secure=$S3_SECURE \
       --set s3.accessKey=$S3_ACCESS_KEY \
-      --set s3.secretKey=$S3_SECRET_KEY
+      --set s3.secretKey=$S3_SECRET_KEY \
+      --devel
 
-.. note:: Since yatai 1.0.0 is not yet officially released, helm cannot find the latest version and the installation may fail, so the command may need to be followed by the :code:`--devel` option
+.. note:: The `--devel` option is needed until yatai 1.0.0 is released. Without the option, helm will not be able to find the latest version of yatai.
 
 2. Verify the Yatai installation
 """"""""""""""""""""""""""""""""
