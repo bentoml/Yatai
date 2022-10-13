@@ -2,7 +2,7 @@
 Installing Yatai Deployment
 ===========================
 
-Welcome to Yatai deployment! You will learn the system requirements, software dependencies, instructions for installing this Yatai add-on. Before you begin, ensure that you have already installed :ref:`Yatai <installation/yatai:Installing Yatai>``. See :ref:`Yatai Deployment architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai-deployment`` componenet.
+Welcome to Yatai deployment! You will learn the system requirements, software dependencies, instructions for installing this Yatai add-on. Before you begin, ensure that you have already installed :ref:`Yatai <installation/yatai:Installing Yatai>`. See :ref:`Yatai Deployment architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai-deployment`` componenet.
 
 Prerequisites
 -------------
@@ -17,11 +17,11 @@ Prerequisites
 
   .. note::
 
-    If you do not have a production Kubernetes cluster and want to install yatai for development and testing purposes. You can use `minikube <https://minikube.sigs.k8s.io/docs/start/>`_ to set up a local Kubernetes cluster for testing.
+    If you do not have a production Kubernetes cluster and want to install ``yatai-deployment`` for development and testing purposes. You can use `minikube <https://minikube.sigs.k8s.io/docs/start/>`_ to set up a local Kubernetes cluster for testing.
 
 - Helm
 
-  Yatai uses `Helm <https://helm.sh/docs/intro/using_helm/>`_ to install yatai-deployment.
+  Yatai uses `Helm <https://helm.sh/docs/intro/using_helm/>`_ to install ``yatai-deployment``.
 
 - Ingress Controller
 
@@ -393,7 +393,7 @@ For example, if you want to set ingress annotation: `"foo": "bar"`, you should a
 
   --set layers.network.ingressAnnotations.foo=bar
 
-After the yatai-deployment helm chart has been installed you can configure it in this way:
+After the ``yatai-deployment`` helm chart has been installed you can configure it in this way:
 
 .. code:: bash
 
@@ -438,7 +438,7 @@ You need to configure your DNS in one of the following two options:
 
           export DOMAIN_SUFFIX=yatai.example.com
 
-        After the yatai-deployment helm chart has been installed you can configure it in this way:
+        After the ``yatai-deployment`` helm chart has been installed you can configure it in this way:
 
         .. code:: bash
 
@@ -484,10 +484,7 @@ The output of the command above should look something like this:
       --set dockerRegistry.secure=$DOCKER_REGISTRY_SECURE \
       --set dockerRegistry.bentoRepositoryName=$DOCKER_REGISTRY_BENTO_REPOSITORY_NAME \
       --set layers.network.ingressClass=$INGRESS_CLASS \
-      --skip-crds \
-      --devel
-
-.. note:: The `--devel` option is needed until yatai-deployment 1.0.0 is released. Without the option, helm will not be able to find the latest version of yatai-deployment.
+      --skip-crds
 
 2. Verify the yatai-deployment installation
 """""""""""""""""""""""""""""""""""""""""""
