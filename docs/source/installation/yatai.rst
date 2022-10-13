@@ -254,7 +254,7 @@ Expected output:
 
 .. tab-set::
 
-    .. tab-item:: Already have a AWS S3
+    .. tab-item:: Use Existing AWS S3
 
       1. Prepare S3 connection params
 
@@ -267,7 +267,7 @@ Expected output:
         export S3_SECRET_KEY=$(aws configure get default.aws_secret_access_key)
         export S3_SECURE=true
 
-    .. tab-item:: Create a new AWS S3
+    .. tab-item:: Create New AWS S3
 
         Prerequisites:
 
