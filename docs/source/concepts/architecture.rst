@@ -2,6 +2,10 @@
 Architecture
 ============
 
+.. image:: /_static/img/architecture.png
+   :width: 100%
+   :alt: Architecture Diagram
+
 Yatai
 #####
 
