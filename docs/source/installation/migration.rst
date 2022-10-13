@@ -2,7 +2,7 @@
 Migration
 =========
 
-Starting from version 1.0 of BentoML, components of Yatai are installed separately for more standard integration with the Kubernetes ecosystem. Components such as deployment, logging, and monitoring features are now add-ons that you must install separately from the Yatai cluster. The new installation method allows you to choose which features of Yatai you would like, and have an easier time managing them as separate components.
+Starting from version 1.0 of BentoML, components of Yatai are installed separately for more standard integration with the Kubernetes ecosystem. Components such as deployment, logging, and monitoring features are now add-ons that you must install separately, see the :ref:`observability <observability>` section. The new installation method allows you to choose which features of Yatai you would like, and have an easier time managing them as separate components.
 
 .. note:: Migrating data to Yatai 1.0 requires you to have Yatai version 0.46.
 
@@ -11,13 +11,8 @@ Breaking Changes
 
 * Split Yatai into two components for better modularization and separation of concerns.
 
-  * yatai
-
-    Dashboard and bento registry
-
-  * yatai-deployment
-
-    Deploy bento to Kubernetes
+  * :ref:`Yatai <concepts/architecture:Yatai>`
+  * :ref:`Yatai Deployment <concepts/architecture:Yatai Deployment>`
 
 * Removed all Yatai component operators for more standard integration with the ecosystem.
 
@@ -34,13 +29,13 @@ Down Time and Data Backup
 
 Your data and model files will not be affected if they are stored in a stable, external platform. If your storage is on the same cluster as Yatai, you must back up and recover the data manually. This document will walk you through on how to back up your data. BentoML deployments will be completely unaffected and remain online.
 
-* Yatai system
+* Yatai System
 
   Yatai will be down during migration until you reinstall and recover the data.
 
-* BentoDeployment
+* Bento Deployment CRD
 
-  Won't go offline.
+  The ``BentoDeployment`` CRD will stay online.
 
 Migration steps
 ---------------

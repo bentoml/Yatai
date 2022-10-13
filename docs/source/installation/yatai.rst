@@ -2,7 +2,7 @@
 Installing Yatai
 ================
 
-Welcome to Yatai! You will learn the system requirements, software dependencies, instructions for installation. See :ref:`Yatai architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai-deployment`` componenet.
+Welcome to Yatai! You will learn the system requirements, software dependencies, instructions for installation. See :ref:`Yatai architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai`` componenet.
 
 Prerequisites
 -------------
