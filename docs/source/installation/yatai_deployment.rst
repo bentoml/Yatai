@@ -1,20 +1,15 @@
 ===========================
-Installing yatai-deployment
+Installing Yatai Deployment
 ===========================
 
-yatai-deployment provides two functions:
-
-1. Build bento docker image
-2. Deploy bento in Kubernetes
-
-So it relies on the Kubernetes and docker registry
+Welcome to Yatai deployment! You will learn the system requirements, software dependencies, instructions for installing this Yatai add-on. Before you begin, ensure that you have already installed :ref:`Yatai <installation/yatai:Installing Yatai>`. See :ref:`Yatai Deployment architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai-deployment`` componenet.
 
 Prerequisites
 -------------
 
 - Yatai
 
-  Because yatai-deployment depends on yatai as the bento registry, you need to check the documentation :doc:`yatai` first.
+  ``yatai-deployment`` depends on ``yatai`` as the bento registry, you need to check the documentation :doc:`yatai` first.
 
 - Kubernetes
 
@@ -22,11 +17,11 @@ Prerequisites
 
   .. note::
 
-    If you do not have a production Kubernetes cluster and want to install yatai for development and testing purposes. You can use `minikube <https://minikube.sigs.k8s.io/docs/start/>`_ to set up a local Kubernetes cluster for testing.
+    If you do not have a production Kubernetes cluster and want to install ``yatai-deployment`` for development and testing purposes. You can use `minikube <https://minikube.sigs.k8s.io/docs/start/>`_ to set up a local Kubernetes cluster for testing.
 
 - Helm
 
-  Yatai uses `Helm <https://helm.sh/docs/intro/using_helm/>`_ to install yatai-deployment.
+  Yatai uses `Helm <https://helm.sh/docs/intro/using_helm/>`_ to install ``yatai-deployment``.
 
 - Ingress Controller
 
@@ -51,10 +46,10 @@ Prerequisites
 
     minikube addons enable ingress
 
-Quick install
-------------------
+Quick Install
+-------------
 
-.. note:: This quick installation script can only be used for **development** and **testing** purposes
+.. note:: This quick installation script can only be used for **development** and **testing** purposes.
 
 This script will automatically install the following dependencies inside the :code:`yatai-deployment` namespace of the Kubernetes cluster:
 
@@ -68,14 +63,14 @@ This script will automatically install the following dependencies inside the :co
 
 .. _yatai-deployment-installation-steps:
 
-Installation steps
+Installation Steps
 ------------------
 
 .. note::
 
   If you don't have :code:`kubectl` installed and you are using :code:`minikube`, you can use :code:`minikube kubectl --` instead of :code:`kubectl`, for more details on using it, please check: `minikube kubectl <https://minikube.sigs.k8s.io/docs/commands/kubectl/>`_
 
-1. Create namespaces
+1. Create Namespaces
 ^^^^^^^^^^^^^^^^^^^^
 
 .. code:: bash
@@ -87,8 +82,8 @@ Installation steps
   # for bento deployment resources
   kubectl create ns yatai
 
-2. Install cert-manager
-^^^^^^^^^^^^^^^^^^^^^^^
+2. Install Certificate Manager
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. tab-set::
 
@@ -112,7 +107,7 @@ Installation steps
 
       The output should look like this:
 
-      .. note:: You need to be patient for a while until the status of all pods becomes :code:`Running`
+      .. note:: Wait until the status of all pods becomes :code:`Running` before proceeding.
 
       .. code:: bash
 
@@ -197,7 +192,7 @@ Installation steps
 
       If all the above steps have been completed without error, you're good to go!
 
-3. Install metrics-server
+3. Install Metrics Server
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Read its official documentation for `installation <https://github.com/kubernetes-sigs/metrics-server#installation>`_
@@ -210,12 +205,12 @@ Read its official documentation for `installation <https://github.com/kubernetes
 
     minikube addons enable metrics-server
 
-4. Prepare docker registry
+4. Prepare Docker Registry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. tab-set::
 
-    .. tab-item:: Already have a docker registry
+    .. tab-item:: Use Existing Docker Registry
 
         Prepare docker registry connection params
 
@@ -227,9 +222,9 @@ Read its official documentation for `installation <https://github.com/kubernetes
           export DOCKER_REGISTRY_SECURE=false
           export DOCKER_REGISTRY_BENTO_REPOSITORY_NAME=yatai-bentos
 
-    .. tab-item:: Install docker registry
+    .. tab-item:: Install New Docker Registry
 
-        .. note:: Do not recommend for production
+        .. note:: Do not recommend for production because this installation does not guarantee high availability.
 
         1. Install the docker-registry helm chart
 
@@ -247,7 +242,7 @@ Read its official documentation for `installation <https://github.com/kubernetes
 
         The output should look like this:
 
-        .. note:: You need to be patient for a while until the status of all pods becomes :code:`Running`
+        .. note:: Wait until the status of all pods becomes :code:`Running` before proceeding.
 
         .. code:: bash
 
@@ -306,7 +301,7 @@ Read its official documentation for `installation <https://github.com/kubernetes
 
         The output should look like this:
 
-        .. note:: You need to be patient for a while until the status of all pods becomes :code:`Running`, the number of pods depends on how many nodes you have
+        .. note:: Wait until the status of all pods becomes :code:`Running` before proceeding. The number of pods depends on how many nodes you have.
 
         .. code:: bash
 
@@ -398,7 +393,7 @@ For example, if you want to set ingress annotation: `"foo": "bar"`, you should a
 
   --set layers.network.ingressAnnotations.foo=bar
 
-After the yatai-deployment helm chart has been installed you can configure it in this way:
+After the ``yatai-deployment`` helm chart has been installed you can configure it in this way:
 
 .. code:: bash
 
@@ -443,7 +438,7 @@ You need to configure your DNS in one of the following two options:
 
           export DOMAIN_SUFFIX=yatai.example.com
 
-        After the yatai-deployment helm chart has been installed you can configure it in this way:
+        After the ``yatai-deployment`` helm chart has been installed you can configure it in this way:
 
         .. code:: bash
 
@@ -489,10 +484,7 @@ The output of the command above should look something like this:
       --set dockerRegistry.secure=$DOCKER_REGISTRY_SECURE \
       --set dockerRegistry.bentoRepositoryName=$DOCKER_REGISTRY_BENTO_REPOSITORY_NAME \
       --set layers.network.ingressClass=$INGRESS_CLASS \
-      --skip-crds \
-      --devel
-
-.. note:: The `--devel` option is needed until yatai-deployment 1.0.0 is released. Without the option, helm will not be able to find the latest version of yatai-deployment.
+      --skip-crds
 
 2. Verify the yatai-deployment installation
 """""""""""""""""""""""""""""""""""""""""""
@@ -503,7 +495,7 @@ The output of the command above should look something like this:
 
 The output should look like this:
 
-.. note:: You need to be patient for a while until the status of all pods becomes :code:`Running` or :code:`Completed`
+.. note:: Wait until the status of all pods becomes :code:`Running` or :code:`Completed` before proceeding.
 
 .. code:: bash
 
@@ -519,7 +511,7 @@ View the logs of :code:`yatai-deployment-default-domain`:
 
 The logs of :code:`yatai-deployment-default-domain` should be like this:
 
-.. note:: Automatic domain-suffix generation will consume some time, you need to be patient for a while, about 1 minute
+.. note:: Automatic domain-suffix generation will take about 1 minute.
 
 .. code:: bash
 

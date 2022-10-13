@@ -1,13 +1,8 @@
 ================
-Installing yatai
+Installing Yatai
 ================
 
-Yatai provides two functions:
-
-1. Dashboard for all yatai components
-2. Bento registry
-
-So it relies on the database and s3 storage
+Welcome to Yatai! You will learn the system requirements, software dependencies, instructions for installation. See :ref:`Yatai Deployment architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai`` componenet.
 
 Prerequisites
 -------------
@@ -24,10 +19,10 @@ Prerequisites
 
   Yatai uses `Helm <https://helm.sh/docs/intro/using_helm/>`_ to install yatai.
 
-Quick install
+Quick Installation
 ------------------
 
-.. note:: This quick installation script can only be used for **development** and **testing** purposes
+.. note:: This quick installation script should only be used for **development** and **testing** purposes.
 
 This script will automatically install the following dependencies inside the :code:`yatai-system` namespace of the Kubernetes cluster:
 
@@ -40,14 +35,14 @@ This script will automatically install the following dependencies inside the :co
 
 .. _yatai-installation-steps:
 
-Installation steps
+Installation Steps
 ------------------
 
 .. note::
 
   If you don't have :code:`kubectl` installed and you are using :code:`minikube`, you can use :code:`minikube kubectl --` instead of :code:`kubectl`, for more details on using it, please check: `minikube kubectl <https://minikube.sigs.k8s.io/docs/commands/kubectl/>`_
 
-1. Create namespace
+1. Create Namespace
 ^^^^^^^^^^^^^^^^^^^
 
 .. code:: bash
@@ -59,7 +54,7 @@ Installation steps
 
 .. tab-set::
 
-    .. tab-item:: Already have one
+    .. tab-item:: Use Existing PostgreSQL
 
         1. Prepare PostgreSQL connection params
 
@@ -83,13 +78,13 @@ Installation steps
               -d postgres \
               -c "create database $PG_DATABASE"
 
-    .. tab-item:: Create AWS RDS instance
+    .. tab-item:: Create AWS RDS
 
         Prerequisites:
 
-        - :code:`jq` command line tool. Follow the `official installation guide <https://stedolan.github.io/jq/download/>`__ to install :code:`jq`
+        - :code:`jq` command line tool. Follow the `official installation guide <https://stedolan.github.io/jq/download/>`_ to install :code:`jq`.
 
-        - AWS CLI with RDS permission. Follow the `official installation guide <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`__ to install AWS CLI
+        - AWS CLI with RDS permission. Follow the `official installation guide <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`_ to install AWS CLI.
 
         1. Prepare params
 
@@ -139,9 +134,9 @@ Installation steps
 
           pod "postgresql-ha-client" deleted
 
-    .. tab-item:: Install a new PostgreSQL
+    .. tab-item:: Install New PostgreSQL
 
-        .. note:: Do not recommend for production
+        .. note:: Do not recommend for production because this installation of PostgreSQL does not provide high availability and data replication.
 
         1. Install the :code:`postgresql-ha` helm chart:
 
@@ -252,14 +247,14 @@ Expected output:
 
   pod "postgresql-ha-client" deleted
 
-3. Prepare blob storage
-^^^^^^^^^^^^^^^^^^^^^^^
+3. Prepare Object Storage
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. note:: Now Yatai only support S3 protocol
 
 .. tab-set::
 
-    .. tab-item:: Already have a AWS S3
+    .. tab-item:: Use Existing AWS S3
 
       1. Prepare S3 connection params
 
@@ -272,11 +267,11 @@ Expected output:
         export S3_SECRET_KEY=$(aws configure get default.aws_secret_access_key)
         export S3_SECURE=true
 
-    .. tab-item:: Create a new AWS S3
+    .. tab-item:: Create New AWS S3
 
         Prerequisites:
 
-        - AWS CLI with AWS S3 permission. Follow the `official installation guide <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`__ to install AWS CLI
+        - AWS CLI with AWS S3 permission. Follow the `official installation guide <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`_ to install AWS CLI
 
         1. Prepare params
 
@@ -372,7 +367,7 @@ Expected output:
 
         Expected output:
 
-        .. note:: You need to be patient for a while until the status of all pods becomes :code:`Running`
+        .. note:: Wait until the status of all pods becomes :code:`Running` before proceeding
 
         .. code:: bash
 
@@ -390,7 +385,7 @@ Expected output:
 
         Expected output:
 
-        .. note:: Since the pods are created by the :code:`minio-operator`, it may take a minute for these pods to be created. You need to be patient for a while until the status of all pods becomes :code:`Running`
+        .. note:: Since the pods are created by the :code:`minio-operator`, it may take a minute for these pods to be created. Wait until the status of all pods becomes :code:`Running` before proceeding.
 
         .. code:: bash
 
@@ -456,21 +451,18 @@ Expected output:
       --set s3.bucketName=$S3_BUCKET_NAME \
       --set s3.secure=$S3_SECURE \
       --set s3.accessKey=$S3_ACCESS_KEY \
-      --set s3.secretKey=$S3_SECRET_KEY \
-      --devel
+      --set s3.secretKey=$S3_SECRET_KEY
 
-.. note:: The `--devel` option is needed until yatai 1.0.0 is released. Without the option, helm will not be able to find the latest version of yatai.
-
-2. Verify the Yatai installation
+2. Verify the Yatai Installation
 """"""""""""""""""""""""""""""""
 
 .. code:: bash
 
   kubectl -n yatai-system get pod -l app.kubernetes.io/name=yatai
 
-The output should look like this:
+The output should look like the following:
 
-.. note:: You need to be patient for a while until the status of all pods becomes :code:`Running`
+.. note:: Wait until the status of all pods becomes :code:`Running`.
 
 .. code:: bash
 

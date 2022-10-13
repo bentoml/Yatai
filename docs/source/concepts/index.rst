@@ -9,29 +9,17 @@ This is a step-by-step tour that help you dive into the main concepts in BentoML
     :margin: 0
     :padding: 3 4 0 0
 
-    .. grid-item-card:: :doc:`/concepts/model`
-        :link: /concepts/model
+    .. grid-item-card:: :doc:`/concepts/architecture`
+        :link: /concepts/architecture
         :link-type: doc
 
-        Save and version your trained ML model with BentoML's model store
+        Architecture of Yatai components
 
-    .. grid-item-card:: :doc:`/concepts/model_registry`
-        :link: /concepts/model_registry
+    .. grid-item-card:: :doc:`/concepts/terminology`
+        :link: /concepts/terminology
         :link-type: doc
 
-        Storage, sharing and versioning Model
-
-    .. grid-item-card:: :doc:`/concepts/bento`
-        :link: /concepts/bento
-        :link-type: doc
-
-        Build and customize Bento for production deployment
-
-    .. grid-item-card:: :doc:`/concepts/bento_registry`
-        :link: /concepts/bento_registry
-        :link-type: doc
-
-        Storage, sharing and versioning Bento
+        Common terminology used in Yatai
 
     .. grid-item-card:: :doc:`/concepts/bentodeployment_crd`
         :link: /concepts/bentodeployment_crd
@@ -46,9 +34,7 @@ This is a step-by-step tour that help you dive into the main concepts in BentoML
     :titlesonly:
     :hidden:
 
-    model
-    model_registry
-    bento
-    bento_registry
+    architecture
+    terminology
     bentodeployment_crd
 
