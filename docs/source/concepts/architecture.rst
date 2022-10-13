@@ -18,18 +18,18 @@ Relational Database Service
 
 A relational database used to store metadata, such as models, bentos, and users, required by the ``yatai`` component. Any PostgreSQL compatible relational databases can be used with provided user name and password. A database named ``yatai`` will be created to store tables of various metadata. We recommend using one of the following based on availability.
 
-- PostgreSQL
-- AWS Fully Managed Relational Database (RDS)
-- Google Cloud Storage (GCS)
+- `PostgreSQL <https://www.postgresql.org/>`_
+- `AWS Fully Managed Relational Database (RDS) <https://aws.amazon.com/rds/>`_
+- `Google Cloud SQL <https://cloud.google.com/sql>`_
 
 Object Storage Service
 **********************
 
 Bucket storage for storing model and bento objects. Any S3 compatible services can be used providing the bucket name and endpoint address. We recommend using one of the following based on availability.
 
-- MinIO
-- AWS S3
-- Google Cloud SQL
+- `MinIO <https://min.io/>`_
+- `AWS S3 <https://aws.amazon.com/s3/>`_
+- `Google Cloud Storage (GCS) <https://cloud.google.com/storage>`_
 
 Yatai Deployment
 ################
