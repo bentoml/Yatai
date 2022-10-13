@@ -2,7 +2,7 @@
 Bento Deployment CRD
 ====================
 
-:code:`BentoDeployment`` is a Kubernetes `CRD <https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/>`_ defined by :code:`yatai-deployment` that is primarily used to describe bento deployments.
+:code:`BentoDeployment` is a Kubernetes `CRD <https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/>`_ defined by :code:`yatai-deployment` that is primarily used to describe bento deployments.
 
 .. list-table:: Specification
     :widths: 25 25 50
