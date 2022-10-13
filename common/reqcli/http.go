@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"sync"
@@ -182,7 +181,7 @@ func (b *JsonRequestBuilder) Do(ctx context.Context) (statusCode int, err error)
 	statusCode = resp.StatusCode
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logrus.Errorf("resp.Body error, %s", err)
 		return

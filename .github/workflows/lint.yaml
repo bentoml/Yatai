@@ -77,7 +77,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: 'v1.47.2'
+          version: 'v1.49'
 
   helmchartslint:
     runs-on: ubuntu-latest

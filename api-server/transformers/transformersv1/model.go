@@ -36,6 +36,11 @@ func ToModelSchemas(ctx context.Context, models_ []*models.Model) ([]*schemasv1.
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedModelRepository")
 		}
+		org, err := services.OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+		if err != nil {
+			return nil, errors.Wrap(err, "GetAssociatedOrganization")
+		}
+		transmissionStrategy := services.OrganizationService.GetTransmissionStrategy(org)
 		resourceSchema, ok := resourceSchemasMap[model.GetUid()]
 		if !ok {
 			return nil, errors.Errorf("resourceSchema not found for model %s", model.GetUid())
@@ -51,6 +56,7 @@ func ToModelSchemas(ctx context.Context, models_ []*models.Model) ([]*schemasv1.
 			UploadStartedAt:      model.UploadStartedAt,
 			UploadFinishedAt:     model.UploadFinishedAt,
 			UploadFinishedReason: model.UploadFinishedReason,
+			TransmissionStrategy: transmissionStrategy,
 			Manifest:             model.Manifest,
 			BuildAt:              model.BuildAt,
 		})

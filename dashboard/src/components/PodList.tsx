@@ -2,12 +2,11 @@ import { useCluster } from '@/hooks/useCluster'
 import { useOrganization } from '@/hooks/useOrganization'
 import useTranslation from '@/hooks/useTranslation'
 import { IKubePodSchema } from '@/schemas/kube_pod'
-import { formatDateTime } from '@/utils/datetime'
 import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import { IoMdList } from 'react-icons/io'
 import { GoTerminal } from 'react-icons/go'
 import { MdEventNote } from 'react-icons/md'
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { StatefulTooltip } from 'baseui/tooltip'
 import { Button } from 'baseui/button'
 import {
@@ -24,8 +23,8 @@ import Log from './Log'
 import { PodStatus } from './PodStatuses'
 import Terminal from './Terminal'
 import KubePodEvents from './KubePodEvents'
-import Label from './Label'
 import PodMonitor from './PodMonitor'
+import Time from './Time'
 
 export interface IPodListProps {
     loading?: boolean
@@ -45,7 +44,11 @@ export default function PodList({
     const [t] = useTranslation()
     const { organization } = useOrganization()
     const { cluster } = useCluster()
-    const [desiredShowLogsPod, setDesiredShowLogsPod] = useState<IKubePodSchema>()
+    const [desiredShowLogsPodName, setDesiredShowLogsPodName] = useState<string>()
+    const desiredShowLogsPod = useMemo(
+        () => pods.find((pod) => pod.name === desiredShowLogsPodName),
+        [desiredShowLogsPodName, pods]
+    )
     const [desiredShowKubeEventsPod, setDesiredShowKubeEventsPod] = useState<IKubePodSchema>()
     const [desiredShowMonitorPod, setDesiredShowMonitorPod] = useState<IKubePodSchema>()
     const [desiredShowTerminalPod, setDesiredShowTerminalPod] = useState<IKubePodSchema>()
@@ -100,7 +103,9 @@ export default function PodList({
                         {pod.deployment_target ? t(pod.deployment_target.type) : '-'}
                     </StyledTableBodyCell>
                     <StyledTableBodyCell>{pod.node_name}</StyledTableBodyCell>
-                    <StyledTableBodyCell>{formatDateTime(pod.status.start_time)}</StyledTableBodyCell>
+                    <StyledTableBodyCell>
+                        <Time time={pod.status.start_time} />
+                    </StyledTableBodyCell>
                     <StyledTableBodyCell>
                         <div
                             key={pod.name}
@@ -111,7 +116,7 @@ export default function PodList({
                             }}
                         >
                             <StatefulTooltip content={t('view log')} showArrow>
-                                <Button size='mini' shape='circle' onClick={() => setDesiredShowLogsPod(pod)}>
+                                <Button size='mini' shape='circle' onClick={() => setDesiredShowLogsPodName(pod.name)}>
                                     <IoMdList />
                                 </Button>
                             </StatefulTooltip>
@@ -214,8 +219,8 @@ export default function PodList({
                         },
                     },
                 }}
-                isOpen={desiredShowLogsPod !== undefined}
-                onClose={() => setDesiredShowLogsPod(undefined)}
+                isOpen={desiredShowLogsPodName !== undefined}
+                onClose={() => setDesiredShowLogsPodName(undefined)}
                 closeable
                 animate
                 autoFocus
@@ -228,26 +233,20 @@ export default function PodList({
                         }}
                     >
                         <div style={{ marginRight: 40 }}>{t('view log')}</div>
-                        <Label
-                            style={{
-                                fontSize: 12,
-                            }}
-                        >
-                            {t('advanced')}
-                        </Label>
                     </div>
                 </ModalHeader>
                 <ModalBody>
-                    {organization && clusterName && desiredShowLogsPod && (
+                    {organization && clusterName && desiredShowLogsPod ? (
                         <Log
                             open={desiredShowLogsPod !== undefined}
                             clusterName={clusterName}
                             deploymentName={deployment?.name}
-                            namespace={desiredShowLogsPod.namespace}
-                            podName={desiredShowLogsPod.name}
+                            pod={desiredShowLogsPod}
                             width='auto'
                             height='calc(80vh - 200px)'
                         />
+                    ) : (
+                        t('pod {{0}} is not exists', [desiredShowLogsPodName])
                     )}
                 </ModalBody>
             </Modal>

@@ -453,7 +453,27 @@ You need to configure your DNS in one of the following two options:
 6. Install Yatai Deployment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. Install the yatai-deployment helm chart
+1. Install yatai-deployment CRDs
+""""""""""""""""""""""""""""""""
+
+.. code:: bash
+
+  kubectl apply -f https://raw.githubusercontent.com/bentoml/yatai-deployment/main/helm/yatai-deployment/crds/bentodeployment.yaml
+
+2. Verify that the CRDs of yatai-deployment has been established
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+.. code:: bash
+
+  kubectl wait --for condition=established --timeout=120s crd/bentodeployments.serving.yatai.ai
+
+The output of the command above should look something like this:
+
+.. code:: bash
+
+  customresourcedefinition.apiextensions.k8s.io/bentodeployments.serving.yatai.ai condition met
+
+3. Install the yatai-deployment helm chart
 """"""""""""""""""""""""""""""""""""""""""
 
 .. code:: bash
@@ -469,6 +489,7 @@ You need to configure your DNS in one of the following two options:
       --set dockerRegistry.secure=$DOCKER_REGISTRY_SECURE \
       --set dockerRegistry.bentoRepositoryName=$DOCKER_REGISTRY_BENTO_REPOSITORY_NAME \
       --set layers.network.ingressClass=$INGRESS_CLASS \
+      --skip-crds \
       --devel
 
 .. note:: The `--devel` option is needed until yatai-deployment 1.0.0 is released. Without the option, helm will not be able to find the latest version of yatai-deployment.

@@ -57,9 +57,10 @@ docker-eslint: pull-ui-builder-image ## Docker eslint
 docker-ui-typecheck: pull-ui-builder-image ## Docker typecheck
 	$(UI_BUILDER_CNTR_CMD) sh -c "cd dashboard; ln -s /cache/node_modules ./node_modules; yarn typecheck"
 
-docker-build-api-server: pull-builder-image ## Build api-server binary
-	mkdir -p ./bin
-	$(BUILDER_CNTR_CMD) go build -ldflags "$(VERSION_BUILDFLAGS)" -o ./bin/api-server ./api-server/main.go
+docker-build-api-server: ## Build api-server binary
+	@mkdir -p ./bin
+	@mkdir -p /tmp/buildx-cache/
+	@docker buildx build -f Dockerfile-builder --build-arg VERSION_BUILDFLAGS="$(VERSION_BUILDFLAGS)" --output bin --cache-from type=local,src=/tmp/buildx-cache --cache-to type=local,mode=max,dest=/tmp/buildx-cache-new .
 
 build-api-server:
 	mkdir -p ./bin
@@ -99,16 +100,15 @@ yatai-dev: ## Run yatai(be and fe) in development mode
 be-deps: ## Fetch Golang deps
 	@echo "Downloading go modules..."
 	@go mod download
-be-run:
-	@echo "Make sure to install postgresql and create yatai DB with 'createdb yatai'"
-	@if [[ ! -f ./yatai-config.dev.yaml ]]; then \
-		echo "yatai-config.dev.yaml not found. Creating one with postgresql user: " $$(whoami); \
-		cp ./yatai-config.sample.yaml ./yatai-config.dev.yaml; \
-		sed -i 's/user: .*/user: '$$(whoami)'/' ./yatai-config.dev.yaml; \
-	fi;
+
+build-api-server-dev: ## Build api-server binary in development mode
 	@go build -gcflags="all=-N -l" -ldflags "$(VERSION_BUILDFLAGS)" -o ./bin/api-server ./api-server/main.go
+
+show-api-server-version:
 	@./bin/api-server version
-	@./bin/api-server serve -c ./yatai-config.dev.yaml
+
+run-api-server: build-api-server-dev show-api-server-version ## Run api-server in development mode
+	@./bin/api-server serve
 
 fe-deps: ## Fetch frontend deps
 	@cd dashboard && yarn

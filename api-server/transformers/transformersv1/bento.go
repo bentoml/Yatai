@@ -36,6 +36,11 @@ func ToBentoSchemas(ctx context.Context, bentos []*models.Bento) ([]*schemasv1.B
 		if err != nil {
 			return nil, errors.Wrap(err, "GetAssociatedBentoRepository")
 		}
+		org, err := services.OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
+		if err != nil {
+			return nil, errors.Wrap(err, "GetAssociatedOrganization")
+		}
+		transmissionStrategy := services.OrganizationService.GetTransmissionStrategy(org)
 		resourceSchema, ok := resourceSchemasMap[bento.GetUid()]
 		if !ok {
 			return nil, errors.Errorf("resourceSchema not found for bento %s", bento.GetUid())
@@ -51,6 +56,7 @@ func ToBentoSchemas(ctx context.Context, bentos []*models.Bento) ([]*schemasv1.B
 			UploadStartedAt:      bento.UploadStartedAt,
 			UploadFinishedAt:     bento.UploadFinishedAt,
 			UploadFinishedReason: bento.UploadFinishedReason,
+			TransmissionStrategy: transmissionStrategy,
 			Manifest:             bento.Manifest,
 			BuildAt:              bento.BuildAt,
 		})

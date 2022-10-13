@@ -14,7 +14,7 @@ import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
 import { useCurrentThemeType } from '@/hooks/useCurrentThemeType'
-import { resourceIconMapping, sidebarExpandedWidth, sidebarFoldedWidth } from '@/consts'
+import { bentomlConfigsEnvKey, resourceIconMapping, sidebarExpandedWidth, sidebarFoldedWidth } from '@/consts'
 import { SidebarContext } from '@/contexts/SidebarContext'
 import color from 'color'
 import { LabelMedium, LabelSmall } from 'baseui/typography'
@@ -29,6 +29,7 @@ import { IBentoWithRepositorySchema } from '@/schemas/bento'
 import { StatefulTooltip } from 'baseui/tooltip'
 import { Block } from 'baseui/block'
 import _ from 'lodash'
+import { BiCustomize } from 'react-icons/bi'
 import DeploymentTargetTypeSelector from './DeploymentTargetTypeSelector'
 import BentoRepositorySelector from './BentoRepositorySelector'
 import BentoSelector from './BentoSelector'
@@ -42,6 +43,8 @@ import LabelList from './LabelList'
 import NumberInput from './NumberInput'
 import Toggle from './Toggle'
 import CopyableText from './CopyableText'
+import MapInput from './MapInput'
+import MonacoEditor from './MonacoEditor'
 
 const useStyles = createUseStyles({
     wrapper: () => {
@@ -144,6 +147,8 @@ export default function DeploymentForm({
         form.setFieldsValue(values)
     }, [form, values])
 
+    const [bentomlConfs, setBentomlConfs] = useState<string[]>([])
+
     useEffect(() => {
         if (!deploymentRevision || !deployment) {
             return
@@ -152,6 +157,11 @@ export default function DeploymentForm({
             return
         }
         previousDeploymentRevisionUid.current = deploymentRevision.uid
+        setBentomlConfs(
+            deploymentRevision.targets.map(
+                (target) => target.config?.envs?.find((env) => env.key === bentomlConfigsEnvKey)?.value ?? ''
+            )
+        )
         const values0 = {
             name: deployment.name,
             description: deployment.description,
@@ -176,6 +186,53 @@ export default function DeploymentForm({
         if (!values) {
             return
         }
+        values.targets.forEach((target, idx) => {
+            if (!target.config) {
+                return
+            }
+            if (!target.config.envs) {
+                // eslint-disable-next-line no-param-reassign
+                target.config.envs = []
+            }
+            const confItem = {
+                key: bentomlConfigsEnvKey,
+                value: bentomlConfs[idx] ?? '',
+            }
+            if (confItem.value) {
+                const configsIdx = target.config.envs.findIndex((env) => env.key === bentomlConfigsEnvKey)
+                if (configsIdx >= 0) {
+                    // eslint-disable-next-line no-param-reassign
+                    target.config.envs[configsIdx] = confItem
+                } else {
+                    target.config.envs.push(confItem)
+                }
+            } else {
+                // eslint-disable-next-line no-param-reassign
+                target.config.envs = target.config.envs.filter((env) => env.key !== bentomlConfigsEnvKey)
+            }
+            if (!target.config.runners) {
+                return
+            }
+            Object.keys(target.config.runners).forEach((key) => {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                const runner = target.config!.runners![key]
+                if (!runner.envs) {
+                    runner.envs = []
+                }
+                if (confItem.value) {
+                    const configsIdx_ = runner.envs.findIndex((env) => env.key === bentomlConfigsEnvKey)
+                    if (configsIdx_ >= 0) {
+                        // eslint-disable-next-line no-param-reassign
+                        runner.envs[configsIdx_] = confItem
+                    } else {
+                        runner.envs.push(confItem)
+                    }
+                } else {
+                    // eslint-disable-next-line no-param-reassign
+                    runner.envs = runner.envs.filter((env) => env.key !== bentomlConfigsEnvKey)
+                }
+            })
+        })
         setLoading(true)
         try {
             await onSubmit({
@@ -187,7 +244,7 @@ export default function DeploymentForm({
         } finally {
             setLoading(false)
         }
-    }, [history, onSubmit, values])
+    }, [bentomlConfs, history, onSubmit, values])
 
     const handleChange = useCallback((_changes, values_) => {
         setValues(values_)
@@ -522,6 +579,46 @@ export default function DeploymentForm({
                                             }}
                                         >
                                             <VscServerProcess />
+                                            <LabelSmall>{t('bentoml configuration')}</LabelSmall>
+                                        </div>
+                                        <div
+                                            style={{
+                                                paddingLeft: paddingLeft + 5,
+                                                marginTop: 10,
+                                                width: 400,
+                                            }}
+                                        >
+                                            <MonacoEditor
+                                                value={bentomlConfs[idx] ?? ''}
+                                                height='200px'
+                                                theme={themeType === 'dark' ? 'vs-dark' : 'Dawn'}
+                                                defaultLanguage='yaml'
+                                                options={{
+                                                    minimap: {
+                                                        enabled: false,
+                                                    },
+                                                    lineNumbers: 'off',
+                                                    lineDecorationsWidth: 0,
+                                                }}
+                                                onChange={(value) => {
+                                                    setBentomlConfs((bentomlConfs_) => {
+                                                        const newBentomlConfs = bentomlConfs_.slice()
+                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                        newBentomlConfs[idx] = value ?? ''
+                                                        return newBentomlConfs
+                                                    })
+                                                }}
+                                            />
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 10,
+                                                marginTop: 20,
+                                            }}
+                                        >
+                                            <VscServerProcess />
                                             <LabelSmall>{t('number of replicas')}</LabelSmall>
                                         </div>
                                         <div
@@ -659,6 +756,28 @@ export default function DeploymentForm({
                                                     />
                                                 </FormItem>
                                             </FormGroup>
+                                            <FormGroup icon={BiCustomize}>
+                                                <FormItem
+                                                    name={['targets', idx, 'config', 'resources', 'requests', 'custom']}
+                                                    label={t('custom resources requests')}
+                                                >
+                                                    <MapInput
+                                                        style={{
+                                                            width: '600px',
+                                                        }}
+                                                    />
+                                                </FormItem>
+                                                <FormItem
+                                                    name={['targets', idx, 'config', 'resources', 'limits', 'custom']}
+                                                    label={t('custom resources limits')}
+                                                >
+                                                    <MapInput
+                                                        style={{
+                                                            width: '600px',
+                                                        }}
+                                                    />
+                                                </FormItem>
+                                            </FormGroup>
                                         </div>
                                     </div>
                                     <Accordion
@@ -688,6 +807,7 @@ export default function DeploymentForm({
                                                 }
                                             >
                                                 <LabelList
+                                                    ignoreKeys={[bentomlConfigsEnvKey]}
                                                     style={{
                                                         width: 440,
                                                     }}
@@ -954,6 +1074,46 @@ export default function DeploymentForm({
                                                                         />
                                                                     </FormItem>
                                                                 </FormGroup>
+                                                                <FormGroup icon={BiCustomize}>
+                                                                    <FormItem
+                                                                        name={[
+                                                                            'targets',
+                                                                            idx,
+                                                                            'config',
+                                                                            'runners',
+                                                                            runner.name,
+                                                                            'resources',
+                                                                            'requests',
+                                                                            'custom',
+                                                                        ]}
+                                                                        label={t('custom resources requests')}
+                                                                    >
+                                                                        <MapInput
+                                                                            style={{
+                                                                                width: '600px',
+                                                                            }}
+                                                                        />
+                                                                    </FormItem>
+                                                                    <FormItem
+                                                                        name={[
+                                                                            'targets',
+                                                                            idx,
+                                                                            'config',
+                                                                            'runners',
+                                                                            runner.name,
+                                                                            'resources',
+                                                                            'limits',
+                                                                            'custom',
+                                                                        ]}
+                                                                        label={t('custom resources limits')}
+                                                                    >
+                                                                        <MapInput
+                                                                            style={{
+                                                                                width: '600px',
+                                                                            }}
+                                                                        />
+                                                                    </FormItem>
+                                                                </FormGroup>
                                                             </div>
                                                             <Accordion
                                                                 overrides={{
@@ -989,6 +1149,7 @@ export default function DeploymentForm({
                                                                         }
                                                                     >
                                                                         <LabelList
+                                                                            ignoreKeys={[bentomlConfigsEnvKey]}
                                                                             style={{
                                                                                 width: 440,
                                                                             }}
