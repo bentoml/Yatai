@@ -52,10 +52,10 @@ Metrics Server
 
 `Metrics server <https://github.com/kubernetes-sigs/metrics-server>`_ collects resource metrics from Kubelets and exposes them in Kubernetes apiserver `horizontal pod autoscaling <https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#how-does-a-horizontalpodautoscaler-work>`_.
 
-Image Registry
-**************
+Docker Registry
+***************
 
-The image registry stores the OCI images built from bentos. Yatai Deployment fetches images from the registry during deployment.
+The Docker registry stores the OCI images built from bentos. Yatai Deployment fetches images from the registry during deployment.
 
 Ingress Controller
 ******************

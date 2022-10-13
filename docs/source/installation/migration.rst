@@ -2,11 +2,11 @@
 Migration
 =========
 
-Since v1.0.0 has many breaking changes, we need to do some preparation to migrate your existing v0.4.x version of yatai.
+Starting from version 1.0 of BentoML, components of Yatai are installed separately for more standard integration with the Kubernetes ecosystem. Components such as deployment, logging, and monitoring features are now add-ons that you must install separately from the Yatai cluster. The new installation method allows you to choose which features of Yatai you would like, and have an easier time managing them as separate components.
 
-.. note:: If your yatai is below v0.4.6, you must upgrade it to v0.4.6 first.
+.. note:: Migrating data to Yatai 1.0 requires you to have Yatai version 0.46.
 
-Breaking changes
+Breaking Changes
 ----------------
 
 * Split Yatai into two components for better modularization and separation of concerns.
@@ -29,24 +29,28 @@ Breaking changes
 
     Because we removed all yatai component operators, yatai now does not automatically integrate logging and monitoring. See the :ref:`Observability <observability>` documentation for observability configuration.
 
-Down time during migration
---------------------------
+Down Time and Data Backup
+-------------------------
+
+Your data and model files will not be affected if they are stored in a stable, external platform. If your storage is on the same cluster as Yatai, you must back up and recover the data manually. This document will walk you through on how to back up your data. BentoML deployments will be completely unaffected and remain online.
 
 * Yatai system
 
-  Depending on how quickly you reinstall yatai and recover data
+  Yatai will be down during migration until you reinstall and recover the data.
 
 * BentoDeployment
 
-  Won't go offline
+  Won't go offline.
 
 Migration steps
 ---------------
 
-1. Backup PostgreSQL data
-"""""""""""""""""""""""""
+1. Backup Your Data
+"""""""""""""""""""
 
-.. note:: If you use the external PostgreSQL, you need to skip this step.
+This step guides you on backing up your database and object storage data. If you stored your data in an external relational database and/or object storage, you do not have to backup PostgreSQL data and/or export object storage environment variables.
+
+.. note:: Back up PostgreSQL data with the following commands. This step must be skipped if you stored your data in an external relational database.
 
 .. code:: bash
 
@@ -55,10 +59,10 @@ Migration steps
   sleep 6
   PGPASSWORD=$(kubectl -n yatai-system get secret yatai-postgresql -o jsonpath='{.data.postgresql-password}' | base64 -d) pg_dump -h localhost -p 5433 -U postgres -F t yatai > /tmp/yatai.tar
 
-2. Get object store environment variables
+2. Get Object Store Environment Variables
 """""""""""""""""""""""""""""""""""""""""
 
-.. note:: If you use the external S3, you need to skip this step.
+.. note:: Get object storage environment variables with the following commands. This step can be skipped if you are using an external S3 bucket.
 
 .. code:: bash
 
@@ -69,7 +73,7 @@ Migration steps
   export S3_BUCKET_NAME=yatai
   export S3_REGION=i-dont-known
 
-3. Test object store connection
+3. Test Object Store Connection
 """""""""""""""""""""""""""""""
 
 .. code:: bash
@@ -89,7 +93,7 @@ The output should be:
   successfully
   pod "s3-client" deleted
 
-4. Uninstall yatai and yatai component operators
+4. Uninstall Yatai and Yatai Component Operators
 """"""""""""""""""""""""""""""""""""""""""""""""
 
 .. code:: bash
@@ -115,7 +119,7 @@ Read this documentation to install Yatai: :ref:`Installing Yatai <yatai-installa
     sleep 6
     PGPASSWORD=$(kubectl -n yatai-system get secret postgresql-ha-postgresql -o jsonpath='{.data.postgresql-password}' | base64 -d) pg_restore -h localhost -p 5433 -U postgres -d yatai /tmp/yatai.tar
 
-6. Get docker registry environment variables
+6. Get Docker Registry Environment Variables
 """"""""""""""""""""""""""""""""""""""""""""
 
 .. note:: If you use the external docker registry, you need to skip this step.
@@ -129,10 +133,9 @@ Read this documentation to install Yatai: :ref:`Installing Yatai <yatai-installa
   export DOCKER_REGISTRY_SECURE=false
   export DOCKER_REGISTRY_BENTO_REPOSITORY_NAME=bentos
 
-7. Install yatai-deployment
+7. Install Yatai Deployment
 """""""""""""""""""""""""""
 
 Read this documentation to install yatai-deployment: :ref:`Installing yatai-deployment <yatai-deployment-installation-steps>`
 
-.. note:: You need to skip the installation of docker-registry.
-
+.. note:: You should skip the step of Docker Registry installation because it has already been done as a part of the migration.
