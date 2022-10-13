@@ -65,4 +65,24 @@ Ingress Controller
 Observability
 #############
 
-- Stores and visualize metrics and logs from bento deployment in Grafana.
+Yatai uses a group of tools to source and visualize metrics that helps pod observability and narrow down root causes when issues occur.
+
+Prometheus
+**********
+
+`Prometheus <https://prometheus.io/>`_ is a monitoring system and time series database. It collects metrics exposed by ``BentoDeployment`` such as request count, duration, and in-progress.
+
+Grafana
+*******
+
+`Grafana <https://grafana.com/>`_ is used for visualizing metrics and collecting logs. Grafana works with the Prometheus stack to turn pod metrics into time series graphs to provide analytic insight. Grafana offers the user a customizable dashboard with clean, organized graphs.
+
+Promtail
+********
+
+`Promtail <https://grafana.com/docs/loki/latest/clients/promtail/>`_ is a Grafana agent that acquires logs, turns logs into streams, and pushes the streams to Loki through an HTTP API. Promtail can be deployed as a DaemonSet on every Kubernetes node to collect logs from the node.
+
+Loki
+****
+
+`Loki <https://grafana.com/oss/loki/>`_ is a stack that is used for log aggregation. It receives logs and streams and indexes them for efficient querying. Along with its highly efficient memory usage and scalability, Loki is designed to integrate seamlessly with Grafana for effective log storage and retreival.
