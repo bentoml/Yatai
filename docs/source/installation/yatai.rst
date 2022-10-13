@@ -1,13 +1,8 @@
 ================
-Installing yatai
+Installing Yatai
 ================
 
-Yatai provides two functions:
-
-1. Dashboard for all yatai components
-2. Bento registry
-
-So it relies on the database and s3 storage
+Welcome to Yatai! You will learn the system requirements, software dependencies, instructions for installation and how to migrate Yatai from a previous version. See :ref:`Yatai architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai-deployment`` componenet.
 
 Prerequisites
 -------------
@@ -24,10 +19,10 @@ Prerequisites
 
   Yatai uses `Helm <https://helm.sh/docs/intro/using_helm/>`_ to install yatai.
 
-Quick install
+Quick Installation
 ------------------
 
-.. note:: This quick installation script can only be used for **development** and **testing** purposes
+.. note:: This quick installation script should only be used for **development** and **testing** purposes.
 
 This script will automatically install the following dependencies inside the :code:`yatai-system` namespace of the Kubernetes cluster:
 
@@ -40,14 +35,14 @@ This script will automatically install the following dependencies inside the :co
 
 .. _yatai-installation-steps:
 
-Installation steps
+Installation Steps
 ------------------
 
 .. note::
 
   If you don't have :code:`kubectl` installed and you are using :code:`minikube`, you can use :code:`minikube kubectl --` instead of :code:`kubectl`, for more details on using it, please check: `minikube kubectl <https://minikube.sigs.k8s.io/docs/commands/kubectl/>`_
 
-1. Create namespace
+1. Create Namespace
 ^^^^^^^^^^^^^^^^^^^
 
 .. code:: bash
@@ -87,9 +82,9 @@ Installation steps
 
         Prerequisites:
 
-        - :code:`jq` command line tool. Follow the `official installation guide <https://stedolan.github.io/jq/download/>`__ to install :code:`jq`
+        - :code:`jq` command line tool. Follow the `official installation guide <https://stedolan.github.io/jq/download/>`_ to install :code:`jq`.
 
-        - AWS CLI with RDS permission. Follow the `official installation guide <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`__ to install AWS CLI
+        - AWS CLI with RDS permission. Follow the `official installation guide <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`_ to install AWS CLI.
 
         1. Prepare params
 

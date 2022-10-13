@@ -25,4 +25,4 @@ The bento registry is a hub for storing, versioning, and sharing :doc:`bento` fo
 Bento Deployment Custom Resource Definition
 ###########################################
 
-:code:`BentoDeployment`` is a `Kubernetes Custom Resource Definition (CRD) <https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/>`_ used by Yatai deployment. The CRD describes Bento deployments with a yaml file that can be queried. For a full list of the possible descriptive fields and an example CRD, see BentoDeployment CRD.
+:code:`BentoDeployment`` is a `Kubernetes Custom Resource Definition (CRD) <https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/>`_ added to the Kubernetes cluster by Yatai Deployment. The CRD describes Bento deployments with a yaml file that can be queried. For a full list of the possible descriptive fields and an example CRD, see BentoDeployment CRD.
