@@ -2,7 +2,7 @@
 Installing Yatai
 ================
 
-Welcome to Yatai! You will learn the system requirements, software dependencies, instructions for installation and how to migrate Yatai from a previous version. See :ref:`Yatai architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai-deployment`` componenet.
+Welcome to Yatai! You will learn the system requirements, software dependencies, instructions for installation. See :ref:`Yatai architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai-deployment`` componenet.
 
 Prerequisites
 -------------
@@ -54,7 +54,7 @@ Installation Steps
 
 .. tab-set::
 
-    .. tab-item:: Already have one
+    .. tab-item:: Use Existing PostgreSQL
 
         1. Prepare PostgreSQL connection params
 
@@ -78,7 +78,7 @@ Installation Steps
               -d postgres \
               -c "create database $PG_DATABASE"
 
-    .. tab-item:: Create AWS RDS instance
+    .. tab-item:: Create AWS RDS
 
         Prerequisites:
 
@@ -134,9 +134,9 @@ Installation Steps
 
           pod "postgresql-ha-client" deleted
 
-    .. tab-item:: Install a new PostgreSQL
+    .. tab-item:: Install New PostgreSQL
 
-        .. note:: Do not recommend for production
+        .. note:: Do not recommend for production because this installation of PostgreSQL does not provide high availability and data replication.
 
         1. Install the :code:`postgresql-ha` helm chart:
 
@@ -247,8 +247,8 @@ Expected output:
 
   pod "postgresql-ha-client" deleted
 
-3. Prepare blob storage
-^^^^^^^^^^^^^^^^^^^^^^^
+3. Prepare Object Storage
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. note:: Now Yatai only support S3 protocol
 
@@ -367,7 +367,7 @@ Expected output:
 
         Expected output:
 
-        .. note:: You need to be patient for a while until the status of all pods becomes :code:`Running`
+        .. note:: Wait until the status of all pods becomes :code:`Running` before proceeding
 
         .. code:: bash
 
@@ -385,7 +385,7 @@ Expected output:
 
         Expected output:
 
-        .. note:: Since the pods are created by the :code:`minio-operator`, it may take a minute for these pods to be created. You need to be patient for a while until the status of all pods becomes :code:`Running`
+        .. note:: Since the pods are created by the :code:`minio-operator`, it may take a minute for these pods to be created. Wait until the status of all pods becomes :code:`Running` before proceeding.
 
         .. code:: bash
 
@@ -451,21 +451,18 @@ Expected output:
       --set s3.bucketName=$S3_BUCKET_NAME \
       --set s3.secure=$S3_SECURE \
       --set s3.accessKey=$S3_ACCESS_KEY \
-      --set s3.secretKey=$S3_SECRET_KEY \
-      --devel
+      --set s3.secretKey=$S3_SECRET_KEY
 
-.. note:: The `--devel` option is needed until yatai 1.0.0 is released. Without the option, helm will not be able to find the latest version of yatai.
-
-2. Verify the Yatai installation
+2. Verify the Yatai Installation
 """"""""""""""""""""""""""""""""
 
 .. code:: bash
 
   kubectl -n yatai-system get pod -l app.kubernetes.io/name=yatai
 
-The output should look like this:
+The output should look like the following:
 
-.. note:: You need to be patient for a while until the status of all pods becomes :code:`Running`
+.. note:: Wait until the status of all pods becomes :code:`Running`.
 
 .. code:: bash
 
