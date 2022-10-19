@@ -342,7 +342,7 @@ Store your ingress class in environment var:
 
 .. code:: bash
 
-  kubectl -n yatai-deployment patch cm/network --type merge --patch '{"data":{"ingress-class":"$INGRESS_CLASS"}}'
+  kubectl -n yatai-deployment patch cm/network --type merge --patch '{"data":{"ingress-class":"'${INGRESS_CLASS}'"}}'
 
 Verify that this ingress class is working properly
 **************************************************
@@ -443,7 +443,7 @@ You need to configure your DNS in one of the following two options:
         .. code:: bash
 
           # Replace yatai.example.com with your domain suffix
-          kubectl -n yatai-deployment patch cm/network --type merge --patch '{"data":{"domain-suffix":"yatai.example.com"}}'
+          kubectl -n yatai-deployment patch cm/network --type merge --patch '{"data":{"domain-suffix":"'${DOMAIN_PREFIX}'"}}'
 
 6. Install Yatai Deployment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
