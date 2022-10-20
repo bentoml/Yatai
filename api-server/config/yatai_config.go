@@ -51,7 +51,7 @@ type YataiDockerImageBuilderConfigYaml struct {
 
 type YataiConfigYaml struct {
 	IsSaaS              bool                      `yaml:"is_saas"`
-	SassDomainSuffix    string                    `yaml:"sass_domain_suffix"`
+	SaasDomainSuffix    string                    `yaml:"saas_domain_suffix"`
 	InCluster           bool                      `yaml:"in_cluster"`
 	Server              YataiServerConfigYaml     `yaml:"server"`
 	Postgresql          YataiPostgresqlConfigYaml `yaml:"postgresql"`
@@ -68,9 +68,9 @@ func PopulateYataiConfig() error {
 		YataiConfig.IsSaaS = isSaaS == "true"
 	}
 
-	sassDomainSuffix, ok := os.LookupEnv(consts.EnvSassDomainSuffix)
+	saasDomainSuffix, ok := os.LookupEnv(consts.EnvSaasDomainSuffix)
 	if ok {
-		YataiConfig.SassDomainSuffix = sassDomainSuffix
+		YataiConfig.SaasDomainSuffix = saasDomainSuffix
 	}
 
 	pgHost, ok := os.LookupEnv(consts.EnvPgHost)

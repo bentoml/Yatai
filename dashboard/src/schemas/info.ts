@@ -1,4 +1,4 @@
 export interface IInfoSchema {
-    is_sass: boolean
-    sass_domain_suffix: string
+    is_saas: boolean
+    saas_domain_suffix: string
 }

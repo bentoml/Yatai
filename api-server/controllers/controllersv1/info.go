@@ -13,13 +13,13 @@ type infoController struct {
 var InfoController = infoController{}
 
 type InfoSchema struct {
-	IsSass           bool   `json:"is_sass"`
-	SassDomainSuffix string `json:"sass_domain_suffix"`
+	IsSaas           bool   `json:"is_saas"`
+	SaasDomainSuffix string `json:"saas_domain_suffix"`
 }
 
 func (c *infoController) GetInfo(ctx *gin.Context) (*InfoSchema, error) {
 	return &InfoSchema{
-		IsSass:           config.YataiConfig.IsSaaS,
-		SassDomainSuffix: config.YataiConfig.SassDomainSuffix,
+		IsSaas:           config.YataiConfig.IsSaaS,
+		SaasDomainSuffix: config.YataiConfig.SaasDomainSuffix,
 	}, nil
 }
