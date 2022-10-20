@@ -2,7 +2,7 @@ package consts
 
 const (
 	EnvIsSaaS           = "IS_SAAS"
-	EnvSassDomainSuffix = "SASS_DOMAIN_SUFFIX"
+	EnvSaasDomainSuffix = "SAAS_DOMAIN_SUFFIX"
 
 	EnvPgHost     = "PG_HOST"
 	EnvPgPort     = "PG_PORT"

@@ -90,8 +90,8 @@ func NewRouter() (*fizz.Fizz, error) {
 	engine := gin.New()
 
 	store := cookie.NewStore([]byte(config.YataiConfig.Server.SessionSecretKey))
-	if config.YataiConfig.SassDomainSuffix != "" {
-		domain, _, _ := xstrings.Partition(config.YataiConfig.SassDomainSuffix, ":")
+	if config.YataiConfig.SaasDomainSuffix != "" {
+		domain, _, _ := xstrings.Partition(config.YataiConfig.SaasDomainSuffix, ":")
 		domain = fmt.Sprintf(".%s", domain)
 		store.Options(sessions.Options{
 			Path:   "/",
