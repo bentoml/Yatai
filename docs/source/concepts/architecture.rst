@@ -54,7 +54,7 @@ Certificate Manager
 Metrics Server
 **************
 
-`Metrics server <https://github.com/kubernetes-sigs/metrics-server>`_ collects resource metrics from Kubelets and exposes them in Kubernetes apiserver `horizontal pod autoscaling <https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#how-does-a-horizontalpodautoscaler-work>`_.
+`Metrics server <https://github.com/kubernetes-sigs/metrics-server>`_ collects resource metrics from kubelet and exposes them in Kubernetes apiserver `horizontal pod autoscaling <https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#how-does-a-horizontalpodautoscaler-work>`_.
 
 Docker Registry
 ***************
@@ -64,7 +64,7 @@ The Docker registry stores the OCI images built from bentos. Yatai Deployment fe
 Ingress Controller
 ******************
 
-`Ingress controller <https://kubernetes.io/docs/concepts/services-networking/ingress/>`_ provides access and load balances external requests to the ``BentoDeployment`` . Yatai Deployment is agnostic about the `Ingress Class <https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class) or the ingress controller [implementations](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/>`_.
+`Ingress controller <https://kubernetes.io/docs/concepts/services-networking/ingress/>`_ provides access and load balances external requests to the ``BentoDeployment`` . Yatai Deployment is agnostic about the `Ingress Class <https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class>`_ or the ingress controller `implementations <https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/>`_.
 
 Observability
 #############
@@ -89,4 +89,4 @@ Promtail
 Loki
 ****
 
-`Loki <https://grafana.com/oss/loki/>`_ is a stack that is used for log aggregation. It receives logs and streams and indexes them for efficient querying. Along with its highly efficient memory usage and scalability, Loki is designed to integrate seamlessly with Grafana for effective log storage and retreival.
+`Loki <https://grafana.com/oss/loki/>`_ is a stack that is used for log aggregation. It receives logs and streams and indexes them for efficient querying. Along with its highly efficient memory usage and scalability, Loki is designed to integrate seamlessly with Grafana for effective log storage and retrieval.

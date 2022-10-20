@@ -2,7 +2,7 @@
 Migration
 =========
 
-Starting from version 1.0 of BentoML, components of Yatai are installed separately for more standard integration with the Kubernetes ecosystem. Components such as deployment, logging, and monitoring features are now add-ons that you must install separately, see the :ref:`observability <observability>` section. The new installation method allows you to choose which features of Yatai you would like, and have an easier time managing them as separate components.
+Starting from version 1.0 of BentoML, components of Yatai are installed separately for more standard integration with the Kubernetes ecosystem. Components such as deployment, logging, and monitoring features are now addons that you must install separately, see the :ref:`observability <observability>` section. The new installation method allows you to choose which features of Yatai you would like, and have an easier time managing them as separate components.
 
 .. note:: Migrating data to Yatai 1.0 requires you to have Yatai version 0.46.
 
