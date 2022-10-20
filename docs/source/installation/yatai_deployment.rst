@@ -2,7 +2,7 @@
 Installing Yatai Deployment
 ===========================
 
-Welcome to Yatai deployment! You will learn the system requirements, software dependencies, instructions for installing this Yatai add-on. Before you begin, ensure that you have already installed :ref:`Yatai <installation/yatai:Installing Yatai>`. See :ref:`Yatai Deployment architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai-deployment`` componenet.
+Welcome to Yatai deployment! You will learn the system requirements, software dependencies, instructions for installing this Yatai add-on. Before you begin, ensure that you have already installed :ref:`Yatai <installation/yatai:Installing Yatai>`. See :ref:`Yatai Deployment architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai-deployment`` component.
 
 Prerequisites
 -------------

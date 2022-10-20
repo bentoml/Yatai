@@ -20,7 +20,7 @@ Bento 🍱 is a file archive with all the source code, models, data files and de
 Bento Registry
 ##############
 
-The bento registry is a hub for storing, versioning, and sharing :doc:`bento` for collaboration. The relationship between :code:`Bento registry` and :code:`Bentos` is analogous to :code:`Docker registry` and :code:`Docker images`.
+The bento registry is a hub for storing, versioning, and sharing :code:`Bento` for collaboration. The relationship between :code:`Bento registry` and :code:`Bentos` is analogous to :code:`Docker registry` and :code:`Docker images`.
 
 Bento Deployment
 ################

@@ -1,6 +1,8 @@
 BentoML
+bentoml
 BentoService
 bento
+bentos
 yaml
 yatai
 autoscaling
@@ -31,3 +33,7 @@ postgresql
 namespaces
 Istio
 lifecycle
+kubelet
+apiserver
+scalability
+addons

@@ -2,7 +2,7 @@
 Installing Yatai
 ================
 
-Welcome to Yatai! You will learn the system requirements, software dependencies, instructions for installation. See :ref:`Yatai Deployment architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai`` componenet.
+Welcome to Yatai! You will learn the system requirements, software dependencies, instructions for installation. See :ref:`Yatai Deployment architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai`` component.
 
 Prerequisites
 -------------
@@ -82,9 +82,9 @@ Installation Steps
 
         Prerequisites:
 
-        - :code:`jq` command line tool. Follow the `official installation guide <https://stedolan.github.io/jq/download/>`_ to install :code:`jq`.
+        - :code:`jq` command line tool. Follow the `official installation guide <https://stedolan.github.io/jq/download/>`__ to install :code:`jq`.
 
-        - AWS CLI with RDS permission. Follow the `official installation guide <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`_ to install AWS CLI.
+        - AWS CLI with RDS permission. Follow the `official installation guide <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`__ to install AWS CLI.
 
         1. Prepare params
 
@@ -271,7 +271,7 @@ Expected output:
 
         Prerequisites:
 
-        - AWS CLI with AWS S3 permission. Follow the `official installation guide <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`_ to install AWS CLI
+        - AWS CLI with AWS S3 permission. Follow the `official installation guide <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`__ to install AWS CLI
 
         1. Prepare params
 
