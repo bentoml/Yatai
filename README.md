@@ -10,6 +10,12 @@ It supports deploying any ML models via [BentoML: the unified model serving fram
 
 <img width="785" alt="yatai-overview-page" src="https://user-images.githubusercontent.com/489344/151455964-4fe30eb7-f000-43cc-8a5f-807ee450b8b6.png">
 
+
+👉 [Join our Slack community today!](https://l.bentoml.com/join-slack)
+
+✨ Looking for the fastest way to give Yatai a try? Checkout [BentoML Cloud](https://www.bentoml.com/bentoml-cloud/) to get started today.
+
+
 ---
 
 ## Why Yatai?
