@@ -172,9 +172,9 @@ Example of a BentoDeployment
         requests:
           cpu: 1000m
           memory: "2Gi"
-        autoscaling:
-          max_replicas: 2
-          min_replicas: 1
+      autoscaling:
+        max_replicas: 2
+        min_replicas: 1
     - name: runner2
       resources:
         limits:
