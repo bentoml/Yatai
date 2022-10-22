@@ -13,13 +13,13 @@ This is a handy tutorial that shows you how to install and upgrade various compo
         :link: /installation/yatai
         :link-type: doc
 
-        How to installation Yatai
+        How to install Yatai
 
     .. grid-item-card:: :doc:`/installation/yatai_deployment`
         :link: /installation/yatai_deployment
         :link-type: doc
 
-        How to installation Yatai Deployment
+        How to install Yatai Deployment
 
     .. grid-item-card:: :doc:`/installation/migration`
         :link: /installation/migration
