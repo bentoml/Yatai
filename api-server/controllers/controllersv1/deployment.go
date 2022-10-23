@@ -26,6 +26,7 @@ import (
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
 	"github.com/bentoml/yatai/common/sync/errsgroup"
+	"github.com/bentoml/yatai/common/tracking"
 	"github.com/bentoml/yatai/common/utils"
 )
 
@@ -159,6 +160,7 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 
 	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
 
+	go tracking.TrackDeploymentSchema(deploymentSchema)
 	return deploymentSchema, err
 }
 
