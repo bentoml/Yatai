@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	migratepostgresql "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -78,11 +78,15 @@ func getPgHost() string {
 	return config.YataiConfig.Postgresql.Host
 }
 
+func getPgDatabase() string {
+	return url.QueryEscape(config.YataiConfig.Postgresql.Database)
+}
+
 // nolint: unparam
 func getDBURI() (string, error) {
 	user := url.QueryEscape(config.YataiConfig.Postgresql.User)
 	password := url.QueryEscape(config.YataiConfig.Postgresql.Password)
-	database := url.QueryEscape(config.YataiConfig.Postgresql.Database)
+	database := getPgDatabase()
 	sslMode := "disable"
 	if config.YataiConfig.Postgresql.SSLMode != "" {
 		sslMode = config.YataiConfig.Postgresql.SSLMode
@@ -233,6 +237,12 @@ func MigrateUp() error {
 	}
 
 	logrus.Debugf("db uri: %s", uri)
+
+	db, err := sql.Open("postgres", uri)
+	if err != nil {
+		return errors.Wrap(err, "open db")
+	}
+
 	migrationDir := config.YataiConfig.Server.MigrationDir
 
 	exists, err := utils.PathExists(migrationDir)
@@ -244,10 +254,19 @@ func MigrateUp() error {
 	}
 
 	logrus.Debugf("migration dir: %s", migrationDir)
-	m, err := migrate.New(
-		fmt.Sprintf("file://%s", migrationDir),
-		uri,
-	)
+
+	driver, err := migratepostgresql.WithInstance(db, &migratepostgresql.Config{
+		MultiStatementEnabled: true,
+	})
+	if err != nil {
+		return errors.Wrap(err, "create postgresql driver")
+	}
+
+	sourceURL := fmt.Sprintf("file://%s", migrationDir)
+
+	databaseName := getPgDatabase()
+
+	m, err := migrate.NewWithDatabaseInstance(sourceURL, databaseName, driver)
 	if err != nil {
 		return errors.Wrap(err, "cannot create migrate")
 	}
