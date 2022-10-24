@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	migratepostgresql "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -233,6 +233,13 @@ func MigrateUp() error {
 	}
 
 	logrus.Debugf("db uri: %s", uri)
+
+	logrus.Infof("opening db...")
+	db, err := sql.Open("postgres", uri)
+	if err != nil {
+		return errors.Wrap(err, "open db")
+	}
+
 	migrationDir := config.YataiConfig.Server.MigrationDir
 
 	exists, err := utils.PathExists(migrationDir)
@@ -244,10 +251,17 @@ func MigrateUp() error {
 	}
 
 	logrus.Debugf("migration dir: %s", migrationDir)
-	m, err := migrate.New(
-		fmt.Sprintf("file://%s", migrationDir),
-		uri,
-	)
+
+	driver, err := migratepostgresql.WithInstance(db, &migratepostgresql.Config{
+		MultiStatementEnabled: true,
+	})
+	if err != nil {
+		return errors.Wrap(err, "create postgresql driver")
+	}
+
+	sourceURL := fmt.Sprintf("file://%s", migrationDir)
+
+	m, err := migrate.NewWithDatabaseInstance(sourceURL, "postgres", driver)
 	if err != nil {
 		return errors.Wrap(err, "cannot create migrate")
 	}

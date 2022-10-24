@@ -113,6 +113,7 @@ func (opt *ServeOption) Run(ctx context.Context, args []string) error {
 		return errors.Wrapf(err, "populate config file: %s", opt.ConfigPath)
 	}
 
+	// nolint: contextcheck
 	err = services.MigrateUp()
 	if err != nil {
 		return errors.Wrap(err, "migrate up db")
