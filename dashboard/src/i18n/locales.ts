@@ -333,7 +333,7 @@ const locales0 = {
         'zh-TW': '正式',
         'en': 'Production',
         'ja': '製品',
-        'ko': '생산',
+        'ko': '상용',
         'vi': 'Sản phẩm',
     },
     'stable': {
@@ -349,7 +349,7 @@ const locales0 = {
         'zh-TW': '金丝雀',
         'en': 'Canary',
         'ja': 'キャニー',
-        'ko': '캐나다',
+        'ko': '카나리아',
         'vi': 'Canary',
     },
     'canary rules': {
@@ -357,7 +357,7 @@ const locales0 = {
         'zh-TW': '金丝雀規則',
         'en': 'Canary Rules',
         'ja': 'キャニールール',
-        'ko': '캐나다 규칙',
+        'ko': '카나리아 규칙',
         'vi': 'Quy tắc Canary',
     },
     'weight': {
@@ -365,7 +365,7 @@ const locales0 = {
         'zh-TW': '權重',
         'en': 'Weight',
         'ja': 'ウェイト',
-        'ko': '무게',
+        'ko': 'Weight',
         'vi': 'Trọng lượng',
     },
     'header': {
@@ -517,7 +517,7 @@ const locales0 = {
         'zh-TW': '副本',
         'en': 'Replicas',
         'ja': '副本',
-        'ko': '복제',
+        'ko': '레플리카',
         'vi': 'Phiên bản',
     },
     'type': {
@@ -1981,7 +1981,7 @@ const locales0 = {
         'zh-CN': '最早创建',
         'zh-TW': '最早創建',
         'ja': '最初に作成',
-        'ko': '최초 만들기',
+        'ko': '최초 생성',
         'vi': 'Tạo nhất',
     },
     'newest create': {
@@ -1989,7 +1989,7 @@ const locales0 = {
         'zh-CN': '最新创建',
         'zh-TW': '最新創建',
         'ja': '最新に作成',
-        'ko': '최신 만들기',
+        'ko': '최신 생성',
         'vi': 'Tạo mới nhất',
     },
     'resource type': {
@@ -2045,7 +2045,7 @@ const locales0 = {
         'zh-CN': '选择 Bento',
         'zh-TW': '選擇 Bento',
         'ja': 'ベントを選択',
-        'ko': '베토를 선택하십시오',
+        'ko': 'bento를 선택하십시오',
         'vi': 'Chọn Bento',
     },
     'configurations': {
@@ -2053,7 +2053,7 @@ const locales0 = {
         'zh-CN': '配置',
         'zh-TW': '配置',
         'ja': '設定',
-        'ko': '구성',
+        'ko': '설정값',
         'vi': 'Cấu hình',
     },
     'min': {
@@ -2077,7 +2077,7 @@ const locales0 = {
         'zh-CN': '副本数',
         'zh-TW': '副本數',
         'ja': 'レプリカ数',
-        'ko': '복제 수',
+        'ko': '레플리카 수',
         'vi': 'Số lượng bản sao',
     },
     'resource per replicas': {
@@ -2085,7 +2085,7 @@ const locales0 = {
         'zh-CN': '副本资源',
         'zh-TW': '副本資源',
         'ja': 'レプリカ資源',
-        'ko': '복제 자원',
+        'ko': 'Resource per replicas',
         'vi': 'Tài nguyên cho mỗi bản sao',
     },
     'environment variables': {
@@ -2149,7 +2149,7 @@ const locales0 = {
         'zh-CN': ' 创建你的第一个 Bento。',
         'zh-TW': ' 創建你的第一個 Bento。',
         'ja': ' を参照して、あなたの最初のベントを作成します。',
-        'ko': '를 따라서 첫 번째 베토를 만듭니다.',
+        'ko': '를 따라서 첫 번째 bento를 만듭니다.',
         'vi': ' để tạo ra bản gốc của bạn đầu tiên.',
     },
     'Create an [API-token] and login your BentoML CLI. prefix': {
@@ -2173,7 +2173,7 @@ const locales0 = {
         'zh-CN': ' 并登录你的 BentoML CLI。',
         'zh-TW': ' 和登錄你的 BentoML CLI。',
         'ja': ' とログインします。',
-        'ko': ' 및 베토ML CLI를 로그인합니다.',
+        'ko': ' 및 BentoML CLI로 로그인합니다.',
         'vi': ' và đăng nhập vào CLI của BentoML.',
     },
     'Push new Bento to Yatai with the `bentoml push` CLI command. prefix': {
@@ -2189,7 +2189,7 @@ const locales0 = {
         'zh-CN': ' 命令将新的 Bento 推送到 Yatai。',
         'zh-TW': ' 命令將新的 Bento 推送到 Yatai。',
         'ja': ' コマンドで新しいベントを Yatai にプッシュします。',
-        'ko': ' 명령어로 새 베토를 Yatai에 밀어 넣습니다.',
+        'ko': ' 명령어로 새 Bento를 Yatai에 Push 합니다.',
         'vi': '.',
     },
     'Follow to [BentoML quickstart guide] to create your first Model. prefix': {
@@ -2221,7 +2221,7 @@ const locales0 = {
         'zh-CN': ' 命令将新的模型推送到 Yatai。',
         'zh-TW': ' 命令將新的模型推送到 Yatai。',
         'ja': ' コマンドで新しいモデルを Yatai にプッシュします。',
-        'ko': ' 명령어로 새 모델을 Yatai에 밀어 넣습니다.',
+        'ko': ' 명령어로 새 모델을 Yatai에 Push 합니다.',
         'vi': '.',
     },
     'kube namespace': {
@@ -2389,7 +2389,7 @@ const locales0 = {
         'zh-CN': '从命令中获取初始化令牌',
         'zh-TW': '從命令中獲取初始化令牌',
         'ja': 'コマンドから初期化トークンを取得する',
-        'ko': '명령어에서 초기화 토큰 가져오기',
+        'ko': '명령어로 초기화 토큰 가져오기',
         'vi': 'Lấy mã token khởi tạo từ lệnh',
     },
     'already the latest version': {
@@ -2421,7 +2421,7 @@ const locales0 = {
         'zh-CN': '端点公开访问',
         'zh-TW': '端點公開訪問',
         'ja': 'エンドポイントの公開アクセス',
-        'ko': '엔드포인트 공개 접근',
+        'ko': '공개된(public access) 엔드포인트',
         'vi': 'Truy cập công khai',
     },
     'cluster internal url': {
@@ -2509,7 +2509,7 @@ const locales0 = {
         'zh-CN': '公共端点访问已启用。',
         'zh-TW': '公共端點訪問已啟用。',
         'ja': '公共端点アクセスが有効になりました。',
-        'ko': '공용 엔드 포인트 접근이 사용 중입니다.',
+        'ko': '공용 엔드 포인트 접근이 가능합니다',
         'vi': 'Truy cập của đầu vào đã được kích hoạt.',
     },
     'warning': {
@@ -2537,7 +2537,7 @@ const locales0 = {
         'zh-TW':
             '公共端點訪問已禁用。Yatai 會創建一個 Kubernetes 服務來訪問部署端點，該端點將在集群內部可訪問。如果您有直接訪問集群的權限，您可以使用',
         'ja': '公共端点アクセスが無効になりました。Yatai は、クラスタ内部からアクセス可能な公共端点を作成します。',
-        'ko': 'Yatai 는 배포 엔드 포인트에 접근할 유니크한 URL을 만듭니다. 이 URL은 클러스터 안에서만 접근 가능합니다. 만약 클러스터 안에서 접근할 수 있다면',
+        'ko': '공용 엔드포인트 접근이 불가합니다. Yatai는 대상 클러스터(target cluster)에서만 접근 가능한 Kubernetes Deployment를 생성합니다. 단 클러스터에 직접 접근이 가능하다면, 사용가능합니다',
         'vi': 'Truy cập đầu vào đã bị tắt. Yatai sẽ tạo một dịch vụ Kubernetes để truy cập đầu vào, đó sẽ được truy cập từ bên trong của hệ thống. Nếu bạn có truy cập trực tiếp đến hệ thống, bạn có thể sử dụng',
     },
     'endpoint public access disable piece 2': {
@@ -2553,7 +2553,7 @@ const locales0 = {
         'zh-CN': '只有管理员有权创建部署，请联系管理员',
         'zh-TW': '只有管理員有權創建部署，請聯繫管理員',
         'ja': '管理者のみがデプロイを作成することができます。管理者にお問い合わせください。',
-        'ko': '오nly the administrator has permission to create deployments, please contact the administrator',
+        'ko': 'Only the administrator has permission to create deployments, please contact the administrator',
         'vi': 'Chỉ có quyền quản trị viên mới có thể tạo bản đồ, vui lòng liên hệ quản trị viên',
     },
     'Only the administrator has permission to operate deployments, please contact the administrator': {
@@ -2561,7 +2561,7 @@ const locales0 = {
         'zh-CN': '只有管理员有权操作部署，请联系管理员',
         'zh-TW': '只有管理員有權操作部署，請聯繫管理員',
         'ja': '管理者のみがデプロイを操作することができます。管理者にお問い合わせください。',
-        'ko': '오nly the administrator has permission to operate deployments, please contact the administrator',
+        'ko': '관리지만이 배포 수행 권한을 가지고 있습니다. 관리자에게 문의하십시오',
         'vi': 'Chỉ có quyền quản trị viên mới có thể thao tác bản đồ, vui lòng liên hệ quản trị viên',
     },
     'resource config': {
@@ -2577,7 +2577,7 @@ const locales0 = {
         'zh-CN': 'Docker 镜像构建 Pod',
         'zh-TW': 'Docker 鏡像構建 Pod',
         'ja': 'Docker イメージビルダーのポッド',
-        'ko': 'Docker 이미지 빌더 Pods',
+        'ko': 'Docker Image Builder Pods',
         'vi': 'Pods của Docker Image Builder',
     },
     'you need to install yatai-deployment component to enable deployment function': {
@@ -2601,7 +2601,7 @@ const locales0 = {
         'zh-CN': '没有激活的部署',
         'zh-TW': '沒有激活的部署',
         'ja': 'アクティブなデプロイはありません',
-        'ko': '아직 아무 배포도 없음',
+        'ko': '아직 배포된 적이 없음',
         'vi': 'Không có bản đồ nào hoạt động',
     },
     'no events': {
