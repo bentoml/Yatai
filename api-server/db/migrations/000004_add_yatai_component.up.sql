@@ -1,5 +1,8 @@
+BEGIN;
 ALTER TYPE "resource_type" ADD VALUE 'yatai_component';
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "yatai_component" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -17,5 +20,8 @@ CREATE TABLE IF NOT EXISTS "yatai_component" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_yataiComponent_clusterId_name" ON "yatai_component" ("cluster_id", "name");
+COMMIT;

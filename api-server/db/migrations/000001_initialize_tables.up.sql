@@ -23,9 +23,15 @@ BEGIN
 END;
 $$ LANGUAGE PLPGSQL;
 
+BEGIN;
 CREATE TYPE "user_perm" AS ENUM ('default', 'admin');
-CREATE TYPE "member_role" AS ENUM ('guest', 'developer', 'admin');
+COMMIT;
 
+BEGIN;
+CREATE TYPE "member_role" AS ENUM ('guest', 'developer', 'admin');
+COMMIT;
+
+BEGIN;
 CREATE TABLE IF NOT EXISTS "user" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -42,7 +48,9 @@ CREATE TABLE IF NOT EXISTS "user" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "organization" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -54,7 +62,9 @@ CREATE TABLE IF NOT EXISTS "organization" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "api_token" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -70,9 +80,13 @@ CREATE TABLE IF NOT EXISTS "api_token" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_apiToken_organizationId_userId_name" ON "api_token" ("organization_id", "user_id", "name");
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "user_group" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -83,9 +97,13 @@ CREATE TABLE IF NOT EXISTS "user_group" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_userGroup_orgId_name" ON "user_group" ("organization_id", "name");
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "organization_member" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -98,9 +116,13 @@ CREATE TABLE IF NOT EXISTS "organization_member" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_orgMember_orgId_userGroupId_userId" ON "organization_member" ("organization_id", "user_group_id", "user_id");
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "user_group_user_relation" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -111,7 +133,9 @@ CREATE TABLE IF NOT EXISTS "user_group_user_relation" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "cluster" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -125,9 +149,13 @@ CREATE TABLE IF NOT EXISTS "cluster" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_cluster_orgId_name" ON "cluster" ("organization_id", "name");
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "cluster_member" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -140,9 +168,13 @@ CREATE TABLE IF NOT EXISTS "cluster_member" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_clusterMember_userGroupId_userId" ON "cluster_member" ("cluster_id", "user_group_id", "user_id");
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "bento_repository" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -155,12 +187,21 @@ CREATE TABLE IF NOT EXISTS "bento_repository" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_bentoRepository_orgId_name" ON "bento_repository" ("organization_id", "name");
+COMMIT;
 
+BEGIN;
 CREATE TYPE "bento_upload_status" AS ENUM ('pending', 'uploading', 'success', 'failed');
-CREATE TYPE "bento_image_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
+COMMIT;
 
+BEGIN;
+CREATE TYPE "bento_image_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
+COMMIT;
+
+BEGIN;
 CREATE TABLE IF NOT EXISTS "bento" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -182,9 +223,13 @@ CREATE TABLE IF NOT EXISTS "bento" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_bento_bentoRepositoryId_version" ON "bento" ("bento_repository_id", "version");
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "model_repository" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -197,12 +242,21 @@ CREATE TABLE IF NOT EXISTS "model_repository" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_modelRepository_orgId_name" ON "model_repository" ("organization_id", "name");
+COMMIT;
 
+BEGIN;
 CREATE TYPE "model_upload_status" AS ENUM ('pending', 'uploading', 'success', 'failed');
-CREATE TYPE "model_image_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
+COMMIT;
 
+BEGIN;
+CREATE TYPE "model_image_build_status" AS ENUM ('pending', 'building', 'success', 'failed');
+COMMIT;
+
+BEGIN;
 CREATE TABLE IF NOT EXISTS "model" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -223,9 +277,13 @@ CREATE TABLE IF NOT EXISTS "model" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_model_modelRepositoryId_version" ON "model" ("model_repository_id", "version");
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "bento_model_rel" (
     id SERIAL PRIMARY KEY,
     bento_id INTEGER NOT NULL REFERENCES "bento"("id") ON DELETE CASCADE,
@@ -234,11 +292,17 @@ CREATE TABLE IF NOT EXISTS "bento_model_rel" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_bentoModelRel_bentoId_modelId" ON "bento_model_rel" ("bento_id", "model_id");
+COMMIT;
 
+BEGIN;
 CREATE TYPE "deployment_status" AS ENUM ('unknown', 'non-deployed', 'failed', 'unhealthy', 'deploying', 'running', 'terminating', 'terminated');
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "deployment" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -255,11 +319,17 @@ CREATE TABLE IF NOT EXISTS "deployment" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_deployment_clusterId_name" ON "deployment" ("cluster_id", "name");
+COMMIT;
 
+BEGIN;
 CREATE TYPE "deployment_revision_status" AS ENUM ('active', 'inactive');
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS deployment_revision (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -271,9 +341,13 @@ CREATE TABLE IF NOT EXISTS deployment_revision (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE TYPE "deployment_target_type" AS ENUM ('stable', 'canary');
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "deployment_target" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -288,11 +362,17 @@ CREATE TABLE IF NOT EXISTS "deployment_target" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE TYPE "resource_type" AS ENUM ('user', 'organization', 'cluster', 'bento_repository', 'bento', 'deployment', 'deployment_revision', 'model_repository', 'model', 'api_token', 'terminal_record');
+COMMIT;
 
+BEGIN;
 CREATE TYPE "event_status" AS ENUM ('pending', 'success', 'failed');
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "event" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -310,7 +390,9 @@ CREATE TABLE IF NOT EXISTS "event" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "terminal_record" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -328,7 +410,9 @@ CREATE TABLE IF NOT EXISTS "terminal_record" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "cache" (
     id SERIAL PRIMARY KEY,
     key VARCHAR(512) UNIQUE NOT NULL,
@@ -337,7 +421,9 @@ CREATE TABLE IF NOT EXISTS "cache" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE TABLE IF NOT EXISTS "label" (
     id SERIAL PRIMARY KEY,
     uid VARCHAR(32) UNIQUE NOT NULL DEFAULT generate_object_id(),
@@ -351,5 +437,8 @@ CREATE TABLE IF NOT EXISTS "label" (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
+COMMIT;
 
+BEGIN;
 CREATE UNIQUE INDEX "uk_label_orgId_resourceType_resourceId_key" on "label" ("organization_id", "resource_type", "resource_id", "key");
+COMMIT;
