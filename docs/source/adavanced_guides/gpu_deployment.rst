@@ -5,8 +5,8 @@ GPU deployment
 * All deployment features of Yatai will requires ``yatai-deployment`` component installed.
 
 
-GPU Deployment
-##############
+GPU Deployment with Kubernetes
+##############################
 
 Yatai allows you to deploy bentos on Nvidia GPUs on demand.
 You should make sure there is Nvidia GPU available in the cluster, see your cluster provider for more details, or https://github.com/NVIDIA/k8s-device-plugin if you are using Yatai in your own Cluster.
