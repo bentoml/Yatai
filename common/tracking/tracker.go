@@ -41,7 +41,6 @@ func donot_track() bool {
 	}
 }
 func TrackDeploymentSchema(deploymentSchema *schemasv1.DeploymentSchema, deploymentType DeploymentEventType) {
-
 	deploymentSchemaParsed := DeploymentEvent{
 		TriggerEvent: TriggerEvent{
 			UserUID: deploymentSchema.Creator.Uid,
@@ -88,19 +87,25 @@ func TrackDeploymentSchema(deploymentSchema *schemasv1.DeploymentSchema, deploym
 	track(deploymentSchemaParsed, "deployment")
 }
 
-// Sent the marshalled data to tracking server
+// Sent the marshaled data to tracking server
 func track(data interface{}, eventType string) {
+	if donot_track() {
+		return
+	}
 	trackerLog := log.WithField("eventType", eventType)
 
 	jsonData, err := json.Marshal(data)
-	if err != nil && is_debug_mode() {
-		trackerLog.Error(err, "Failed to marshal data")
+	if err != nil {
+		if is_debug_mode() {
+			trackerLog.Error(err, "Failed to marshal data")
+		}
+		return
 	}
 
 	if is_debug_mode() {
 		var prettyJSON bytes.Buffer
-		err = json.Indent(&prettyJSON, jsonData, "", " ")
-		trackerLog.Info("Tracking Payload: ", string(prettyJSON.Bytes()))
+		_ = json.Indent(&prettyJSON, jsonData, "", " ")
+		trackerLog.Info("Tracking Payload: ", prettyJSON.String())
 	}
 
 	//TODO: change to t.bentoml.com
