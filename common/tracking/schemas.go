@@ -25,7 +25,6 @@ type DeploymentEventType string
 
 const (
 	DeploymentEventTypeCreate    DeploymentEventType = "create"
-	DeploymentEventTypeStart     DeploymentEventType = "start"
 	DeploymentEventTypeUpdate    DeploymentEventType = "update"
 	DeploymentEventTypeTerminate DeploymentEventType = "terminate"
 	DeploymentEventTypeDelete    DeploymentEventType = "delete"

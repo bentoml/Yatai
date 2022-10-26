@@ -160,7 +160,7 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 
 	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
 
-	go tracking.TrackDeploymentSchema(deploymentSchema)
+	go tracking.TrackDeploymentSchema(deploymentSchema, tracking.DeploymentEventTypeCreate)
 	return deploymentSchema, err
 }
 
@@ -217,6 +217,7 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	}
 
 	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
+	go tracking.TrackDeploymentSchema(deploymentSchema, tracking.DeploymentEventTypeUpdate)
 	return deploymentSchema, err
 }
 
@@ -408,7 +409,9 @@ func (c *deploymentController) Terminate(ctx *gin.Context, schema *GetDeployment
 	if err != nil {
 		return nil, err
 	}
-	return transformersv1.ToDeploymentSchema(ctx, deployment)
+	deploymentSchema, err := transformersv1.ToDeploymentSchema(ctx, deployment)
+	go tracking.TrackDeploymentSchema(deploymentSchema, tracking.DeploymentEventTypeTerminate)
+	return deploymentSchema, err
 }
 
 func (c *deploymentController) Delete(ctx *gin.Context, schema *GetDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
@@ -423,7 +426,9 @@ func (c *deploymentController) Delete(ctx *gin.Context, schema *GetDeploymentSch
 	if err != nil {
 		return nil, err
 	}
-	return transformersv1.ToDeploymentSchema(ctx, deployment)
+	deploymentSchema, err := transformersv1.ToDeploymentSchema(ctx, deployment)
+	go tracking.TrackDeploymentSchema(deploymentSchema, tracking.DeploymentEventTypeDelete)
+	return deploymentSchema, err
 }
 
 type ListClusterDeploymentSchema struct {
