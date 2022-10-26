@@ -62,7 +62,8 @@ Apply the following yaml for a BentoDeployment CR:
           requests:
             cpu: 1000m
             memory: "2Gi"
-            nvidia.com/gpu: 1
+            custom:
+              nvidia.com/gpu: 1
         autoscaling:
           max_replicas: 2
           min_replicas: 1
