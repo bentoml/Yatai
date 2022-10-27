@@ -7,7 +7,7 @@ Prerequisites
 
 - yatai-deployment
 
-Because the metrics collected are related to BentotDeployment, it relies on yatai-deployment
+Because GPU support is related to the BentotDeployment CRD, it relies on yatai-deployment
 
 
 GPU Deployment with Kubernetes
