@@ -54,6 +54,12 @@ Learn Yatai
 
         Explain the main concepts of Yatai
 
+    .. grid-item-card:: :doc:`✨ Advanced Guides <advanced_guides/index>`
+        :link: advanced_guides/index
+        :link-type: doc
+
+        Learn more about Yatai
+
     .. grid-item-card:: `💬 BentoML Community <https://l.linklyhq.com/l/ktOX>`_
         :link: https://l.linklyhq.com/l/ktOX
         :link-type: url
@@ -89,6 +95,7 @@ contributing to the project, helping other users and discuss all things MLOps.
    installation/index
    observability/index
    concepts/index
+   advanced_guides/index
    Community <https://l.linklyhq.com/l/ktOX>
    GitHub <https://github.com/bentoml/Yatai>
    Blog <https://modelserving.com>
