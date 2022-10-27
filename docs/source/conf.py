@@ -52,7 +52,7 @@ ogp_image = "https://docs.bentoml.org/en/latest/_images/bentoml-banner.png"
 ogp_site_name = "BentoML Documentation"
 ogp_use_first_image = True
 
-issues_default_group_project = "bentoml/bentoml"
+issues_default_group_project = "bentoml/Yatai"
 
 todo_include_todos = True
 
@@ -83,7 +83,7 @@ html_theme_options = {
         "color-brand-primary": "#c9378a ",
         "color-brand-content": "#c9378a ",
     },
-    "source_repository": "https://github.com/bentoml/bentoml/",
+    "source_repository": "https://github.com/bentoml/Yatai/",
     "source_branch": "main",
     "source_directory": "docs/source/",
     "footer_icons": [
