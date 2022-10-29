@@ -34,7 +34,7 @@ func donot_track() bool {
 }
 
 // track a DeploymentEvent(create/update/terminate/delete)
-func TrackDeploymentSchema(deploymentSchema *schemasv1.DeploymentSchema, deploymentType DeploymentEventType) {
+func TrackDeploymentEvent(deploymentSchema *schemasv1.DeploymentSchema, deploymentType DeploymentEventType) {
 	deploymentSchemaParsed := DeploymentEvent{
 		TriggerEvent: TriggerEvent{
 			UserUID: deploymentSchema.Creator.Uid,
@@ -78,7 +78,7 @@ func TrackDeploymentSchema(deploymentSchema *schemasv1.DeploymentSchema, deploym
 		deploymentSchemaParsed.DeploymentRevisionID = deploymentSchema.LatestRevision.Uid
 	}
 
-	track(deploymentSchemaParsed, "deployment")
+	track(deploymentSchemaParsed, "deploymentEvents")
 }
 
 // Marshal the data and sent to tracking server
