@@ -25,21 +25,15 @@ const (
 
 func is_debug_mode() bool {
 	out := os.Getenv(YATAI_TRACKING_DEBUG_MODE)
-	if strings.ToLower(out) == "true" {
-		return true
-	} else {
-		return false
-	}
+	return strings.ToLower(out) == "true"
 }
 
 func donot_track() bool {
 	out := os.Getenv(YATAI_DONOT_TRACK)
-	if strings.ToLower(out) == "true" {
-		return true
-	} else {
-		return false
-	}
+	return strings.ToLower(out) == "true"
 }
+
+// track a DeploymentEvent(create/update/terminate/delete)
 func TrackDeploymentSchema(deploymentSchema *schemasv1.DeploymentSchema, deploymentType DeploymentEventType) {
 	deploymentSchemaParsed := DeploymentEvent{
 		TriggerEvent: TriggerEvent{
@@ -48,7 +42,7 @@ func TrackDeploymentSchema(deploymentSchema *schemasv1.DeploymentSchema, deploym
 		CommonProperties: CommonProperties{
 			YataiVersion:    version.Version,
 			Timestamp:       time.Now(),
-			OrganisationUID: deploymentSchema.Cluster.Organization.Uid,
+			OrganizationUID: deploymentSchema.Cluster.Organization.Uid,
 		},
 		ClusterUID:          deploymentSchema.Cluster.Uid,
 		DeploymentUID:       deploymentSchema.Uid,
@@ -87,11 +81,8 @@ func TrackDeploymentSchema(deploymentSchema *schemasv1.DeploymentSchema, deploym
 	track(deploymentSchemaParsed, "deployment")
 }
 
-// Sent the marshaled data to tracking server
+// Marshal the data and sent to tracking server
 func track(data interface{}, eventType string) {
-	if donot_track() {
-		return
-	}
 	trackerLog := log.WithField("eventType", eventType)
 
 	jsonData, err := json.Marshal(data)
@@ -108,22 +99,24 @@ func track(data interface{}, eventType string) {
 		trackerLog.Info("Tracking Payload: ", prettyJSON.String())
 	}
 
-	//TODO: change to t.bentoml.com
-	request_url := fmt.Sprintf("%s?token=%s", JITSU_SERVER, JITSUE_KEY)
-	resp, err := http.Post(request_url, "application/json", bytes.NewBuffer(jsonData))
-	if err != nil && is_debug_mode() {
-		trackerLog.Error(err, "failed to send data to tracking server.")
-	}
-	defer resp.Body.Close()
+	if !donot_track() {
+		//TODO: change to t.bentoml.com
+		request_url := fmt.Sprintf("%s?token=%s", JITSU_SERVER, JITSUE_KEY)
+		resp, err := http.Post(request_url, "application/json", bytes.NewBuffer(jsonData))
+		if err != nil && is_debug_mode() {
+			trackerLog.Error(err, "failed to send data to tracking server.")
+		}
+		defer resp.Body.Close()
 
-	if is_debug_mode() {
-		if resp.StatusCode == 200 {
-			trackerLog.Info("Tracking Request sent.")
-		} else {
-			trackerLog.Errorf("Tracking Request failed. Status [%s]", resp.Status)
-			bodyBytes, _ := io.ReadAll(resp.Body)
-			bodyString := string(bodyBytes)
-			trackerLog.Error(bodyString)
+		if is_debug_mode() {
+			if resp.StatusCode == 200 {
+				trackerLog.Info("Tracking Request sent.")
+			} else {
+				trackerLog.Errorf("Tracking Request failed. Status [%s]", resp.Status)
+				bodyBytes, _ := io.ReadAll(resp.Body)
+				bodyString := string(bodyBytes)
+				trackerLog.Error(bodyString)
+			}
 		}
 	}
 }
