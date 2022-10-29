@@ -45,3 +45,23 @@ type DeploymentEvent struct {
 	RunnerResourcesList []map[string]modelschemas.DeploymentTargetResources `json:"runner_resources_list,omitempty"`
 	RunnerHPAConfigList []map[string]modelschemas.DeploymentTargetHPAConf   `json:"runner_hpa_config_list,omitempty"`
 }
+
+type BentoEventType string
+
+const (
+	BentoEventTypeBentoPull BentoEventType = "bento_pull"
+	BentoEventTypeBentoPush BentoEventType = "bento_push"
+)
+
+type BentoEvent struct {
+	CommonProperties
+	TriggerEvent
+	BentoEventType       BentoEventType                 `json:"bento_eventtype"`
+	BentoRepositoryUID   string                         `json:"bentorepository_uid"`
+	BentoVersion         string                         `json:"bento_version"`
+	UploadStatus         modelschemas.BentoUploadStatus `json:"upload_status"`
+	UploadFinishedReason string                         `json:"upload_finished_reason"`
+	BentoSizeBytes       uint                           `json:"bento_size_bytes"`
+	NumModels            int                            `json:"num_models"`
+	NumRunners           int                            `json:"num_runners"`
+}
