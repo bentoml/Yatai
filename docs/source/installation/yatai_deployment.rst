@@ -206,7 +206,7 @@ Read its official documentation for `installation <https://github.com/kubernetes
     minikube addons enable metrics-server
 
 4. Prepare Container Registry
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. tab-set::
 
