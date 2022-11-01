@@ -210,7 +210,7 @@ Read its official documentation for `installation <https://github.com/kubernetes
 
 .. tab-set::
 
-    .. tab-item:: Use Existing Docker Registry
+    .. tab-item:: Use Existing Container Registry
 
         `docker.io <https://docs.docker.com/engine/reference/commandline/login/>`_, `GCR <https://cloud.google.com/container-registry/docs/advanced-authentication#json-key>`_, `ECR <https://docs.aws.amazon.com/AmazonECR/latest/userguide/registry_auth.html#registry-auth-token>`_, `GHCR <https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry>`_, `quay.io <https://docs.quay.io/guides/login.html>`_ are all standard container registries, just get their connection parameters and set them to the following environment variables:
 
@@ -226,7 +226,7 @@ Read its official documentation for `installation <https://github.com/kubernetes
           export DOCKER_REGISTRY_SECURE=false
           export DOCKER_REGISTRY_BENTO_REPOSITORY_NAME=yatai-bentos
 
-    .. tab-item:: Install Private Docker Registry
+    .. tab-item:: Install Private Container Registry
 
         .. note:: Do not recommend for production because this installation does not guarantee high availability.
 
