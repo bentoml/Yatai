@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-CURRETN_CONTEXT=$(kubectl config current-context)
+CURRENT_CONTEXT=$(kubectl config current-context)
 echo -e "\033[01;31mWarning: this will permanently delete all Yatai resources, existing model deployments, and in-cluster minio, postgresql DB data. Note that external DB and blob storage will not be deleted.\033[00m"
 echo -e "\033[01;31mWarning: this also means that all resources under the \033[00m\033[01;32myatai\033[00m, \033[00m\033[01;32myatai-system\033[00m, \033[00m\033[01;32myatai-operators\033[00m, and \033[00m\033[01;32myatai-components\033[00m \033[01;31mnamespaces will be permanently deleted.\033[00m"
-echo -e "\033[01;31mCurrent kubernetes context: \033[00m\033[01;32m$CURRETN_CONTEXT\033[00m"
-read -p "Are you sure to delete Yatai in cluster '$CURRETN_CONTEXT'? [y/n] " -n 1 -r
+echo -e "\033[01;31mCurrent kubernetes context: \033[00m\033[01;32m$CURRENT_CONTEXT\033[00m"
+read -p "Are you sure to delete Yatai in cluster '$CURRENT_CONTEXT'? [y/n] " -n 1 -r
 echo # move to a new line
-read -p "(Double check) Are you sure to delete Yatai in cluster '$CURRETN_CONTEXT'? [y/n] " -n 1 -r
+read -p "(Double check) Are you sure to delete Yatai in cluster '$CURRENT_CONTEXT'? [y/n] " -n 1 -r
 echo # move to a new line
 if [[ ! $REPLY =~ ^[Yy]$ ]]
 then
