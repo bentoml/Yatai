@@ -205,14 +205,18 @@ Read its official documentation for `installation <https://github.com/kubernetes
 
     minikube addons enable metrics-server
 
-4. Prepare Docker Registry
+4. Prepare Container Registry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. tab-set::
 
     .. tab-item:: Use Existing Docker Registry
 
-        Prepare docker registry connection params
+        `docker.io <https://docs.docker.com/engine/reference/commandline/login/>`_, `GCR <https://cloud.google.com/container-registry/docs/advanced-authentication#json-key>`_, `ECR <https://docs.aws.amazon.com/AmazonECR/latest/userguide/registry_auth.html#registry-auth-token>`_, `GHCR <https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry>`_, `quay.io <https://docs.quay.io/guides/login.html>`_ are all standard container registries, just get their connection parameters and set them to the following environment variables:
+
+        .. note::
+
+          Since the ECR password will expire regularly, you need to retrieve the ECR password regularly, see this article for details: `Kubernetes - pull an image from private ECR registry. Auto refresh ECR token. <https://skryvets.com/blog/2021/03/15/kubernetes-pull-image-from-private-ecr-registry/>`_
 
         .. code:: bash
 
@@ -222,7 +226,7 @@ Read its official documentation for `installation <https://github.com/kubernetes
           export DOCKER_REGISTRY_SECURE=false
           export DOCKER_REGISTRY_BENTO_REPOSITORY_NAME=yatai-bentos
 
-    .. tab-item:: Install New Docker Registry
+    .. tab-item:: Install Private Docker Registry
 
         .. note:: Do not recommend for production because this installation does not guarantee high availability.
 
