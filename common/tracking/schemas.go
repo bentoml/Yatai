@@ -71,7 +71,6 @@ type BentoEvent struct {
 	NumRunners                int                               `json:"num_runners"`
 }
 
-
 type ModelEvent struct {
 	CommonProperties
 	UserUID                   string                            `json:"user_uid"`
@@ -84,6 +83,13 @@ type ModelEvent struct {
 
 type LifeCycleEvent struct {
 	CommonProperties
-	Uptime time.Duration
-	YataiEventType
+	Uptime                time.Duration
+	NumBentoRepositories  uint
+	NumTotalBentos        uint
+	NumModelRepositories  uint
+	NumTotalModels        uint
+	NumUsers              uint
+	NumClusters           uint
+	NumRunningDeployments uint
+	NumDeployments        uint
 }

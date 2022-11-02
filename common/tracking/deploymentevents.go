@@ -44,5 +44,5 @@ func TrackDeploymentEvent(deploymentSchema *schemasv1.DeploymentSchema, eventTyp
 		deploymentSchemaParsed.DeploymentRevisionID = deploymentSchema.LatestRevision.Uid
 	}
 
-	track(deploymentSchemaParsed, string(eventType))
+	track(deploymentSchemaParsed, eventType)
 }

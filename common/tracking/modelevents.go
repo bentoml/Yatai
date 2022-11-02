@@ -23,7 +23,7 @@ func TrackModelEvent(modelschema schemasv1.ModelSchema, eventType YataiEventType
 	if modelschema.Manifest != nil {
 		modelEvent.ModelSizeBytes = modelschema.Manifest.SizeBytes
 	}
-	track(modelEvent, string(eventType))
+	track(modelEvent, eventType)
 }
 
 func TrackModelEventModel(ctx context.Context, modelModel *models.Model, eventType YataiEventType) {

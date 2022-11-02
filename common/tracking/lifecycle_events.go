@@ -1,0 +1,81 @@
+package tracking
+
+import (
+	"context"
+
+	"github.com/bentoml/yatai-schemas/modelschemas"
+	"github.com/bentoml/yatai/api-server/services"
+	"github.com/bentoml/yatai/api-server/version"
+	"github.com/tianweidut/cron"
+)
+
+func AddLifeCycleTrackingCron(ctx context.Context) {
+	TrackLifeCycle(ctx, YataiLifeCycleStartup)
+
+	c := cron.New()
+	err := c.AddFunc("@every 1m", func() {
+		TrackLifeCycle(ctx, YataiLifeCyclePeriodic)
+	})
+
+	if err != nil {
+		trackerLog.Errorf("cron add func failed: %s", err.Error())
+	}
+
+	c.Start()
+}
+
+func TrackLifeCycle(ctx context.Context, event YataiEventType) {
+	trackerLog := trackerLog.WithField("eventType", event)
+
+	orgs, _, err := services.OrganizationService.List(ctx, services.ListOrganizationOption{})
+
+	if err != nil {
+		trackerLog.Error("unable to get OrganizationService.List. ", err.Error())
+	}
+
+	// sent tracking info for each organization
+	for _, org := range orgs {
+		// bento
+		bentoRepos, numBentoRepos, _ := services.BentoRepositoryService.List(ctx, services.ListBentoRepositoryOption{OrganizationId: &org.ID})
+		var numTotalBentos uint
+		for _, bentoRepo := range bentoRepos {
+			_, numBentos, _ := services.BentoService.List(ctx, services.ListBentoOption{BentoRepositoryId: &bentoRepo.ID})
+			numTotalBentos += numBentos
+		}
+
+		// model
+		modelRepos, numModelRepos, _ := services.ModelRepositoryService.List(ctx, services.ListModelRepositoryOption{OrganizationId: &org.ID})
+		var numTotalModels uint
+		for _, modelRepo := range modelRepos {
+			_, numModels, _ := services.ModelService.List(ctx, services.ListModelOption{ModelRepositoryId: &modelRepo.ID})
+			numTotalModels += numModels
+		}
+
+		// users
+		members, _ := services.OrganizationMemberService.List(ctx, services.ListOrganizationMemberOption{OrganizationId: &org.ID})
+		// clusters
+		_, numClusters, _ := services.ClusterService.List(ctx, services.ListClusterOption{OrganizationId: &org.ID})
+
+		// deployments
+		deployments, numDeployments, _ := services.DeploymentService.List(ctx, services.ListDeploymentOption{OrganizationId: &org.ID})
+		var numRunningDeployments uint
+		for _, deployment := range deployments {
+			if deployment.Status == modelschemas.DeploymentStatusRunning {
+				numRunningDeployments++
+			}
+		}
+
+		lifecycleEvent := LifeCycleEvent{
+			CommonProperties:     NewCommonProperties("", org.Uid, version.Version),
+			NumBentoRepositories: numBentoRepos,
+			NumTotalBentos:       numTotalBentos,
+			NumModelRepositories: numModelRepos,
+			NumTotalModels:       numTotalModels,
+			NumUsers:             uint(len(members)),
+			NumClusters:          numClusters,
+			NumDeployments:       numDeployments,
+		}
+
+		track(lifecycleEvent, event)
+	}
+}

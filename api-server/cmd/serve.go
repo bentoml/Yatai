@@ -19,6 +19,7 @@ import (
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/command"
 	"github.com/bentoml/yatai/common/sync/errsgroup"
+	"github.com/bentoml/yatai/common/tracking"
 )
 
 func addCron(ctx context.Context) {
@@ -126,6 +127,7 @@ func (opt *ServeOption) Run(ctx context.Context, args []string) error {
 	}
 
 	addCron(ctx)
+	tracking.AddLifeCycleTrackingCron(ctx)
 
 	// nolint: contextcheck
 	router, err := routes.NewRouter()
