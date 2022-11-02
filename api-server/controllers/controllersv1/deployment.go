@@ -160,7 +160,7 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 
 	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
 
-	go tracking.TrackDeploymentEvent(deploymentSchema, tracking.DeploymentEventTypeCreate)
+	go tracking.TrackDeploymentEvent(deploymentSchema, tracking.YataiDeploymentCreate)
 	return deploymentSchema, err
 }
 
@@ -217,7 +217,7 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	}
 
 	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
-	go tracking.TrackDeploymentEvent(deploymentSchema, tracking.DeploymentEventTypeUpdate)
+	go tracking.TrackDeploymentEvent(deploymentSchema, tracking.YataiDeploymentUpdate)
 	return deploymentSchema, err
 }
 
@@ -410,7 +410,7 @@ func (c *deploymentController) Terminate(ctx *gin.Context, schema *GetDeployment
 		return nil, err
 	}
 	deploymentSchema, err := transformersv1.ToDeploymentSchema(ctx, deployment)
-	go tracking.TrackDeploymentEvent(deploymentSchema, tracking.DeploymentEventTypeTerminate)
+	go tracking.TrackDeploymentEvent(deploymentSchema, tracking.YataiDeploymentTerminate)
 	return deploymentSchema, err
 }
 
@@ -427,7 +427,7 @@ func (c *deploymentController) Delete(ctx *gin.Context, schema *GetDeploymentSch
 		return nil, err
 	}
 	deploymentSchema, err := transformersv1.ToDeploymentSchema(ctx, deployment)
-	go tracking.TrackDeploymentEvent(deploymentSchema, tracking.DeploymentEventTypeDelete)
+	go tracking.TrackDeploymentEvent(deploymentSchema, tracking.YataiDeploymentDelete)
 	return deploymentSchema, err
 }
 

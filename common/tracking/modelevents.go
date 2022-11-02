@@ -9,12 +9,11 @@ import (
 	"github.com/bentoml/yatai/api-server/version"
 )
 
-func TrackModelEvent(modelschema schemasv1.ModelSchema, eventType ModelEventType) {
+func TrackModelEvent(modelschema schemasv1.ModelSchema, eventType YataiEventType) {
 	modelEvent := ModelEvent{
 		UserUID: modelschema.Creator.Uid,
 		//TODO get org ID
-		CommonProperties:          NewCommonProperties(YataiModelEvent, "", version.Version),
-		ModelEventType:            eventType,
+		CommonProperties:          NewCommonProperties(eventType, "", version.Version),
 		ModelUID:                  modelschema.ModelUid,
 		ModelUploadStatus:         modelschema.UploadStatus,
 		ModelUploadFinishedReason: modelschema.UploadFinishedReason,
@@ -24,10 +23,10 @@ func TrackModelEvent(modelschema schemasv1.ModelSchema, eventType ModelEventType
 	if modelschema.Manifest != nil {
 		modelEvent.ModelSizeBytes = modelschema.Manifest.SizeBytes
 	}
-	track(modelEvent, string(YataiModelEvent))
+	track(modelEvent, string(eventType))
 }
 
-func TrackModelEventModel(ctx context.Context, modelModel *models.Model, eventType ModelEventType) {
+func TrackModelEventModel(ctx context.Context, modelModel *models.Model, eventType YataiEventType) {
 	b, _ := transformersv1.ToModelSchema(ctx, modelModel)
 	TrackModelEvent(*b, eventType)
 }

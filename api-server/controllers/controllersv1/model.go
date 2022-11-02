@@ -198,7 +198,7 @@ func (c *modelController) Upload(ctx *gin.Context) {
 		abortWithError(ctx, err)
 		return
 	}
-	go tracking.TrackModelEventModel(ctx, model, tracking.ModelEventTypeModelPush)
+	go tracking.TrackModelEventModel(ctx, model, tracking.YataiModelPush)
 }
 
 func (c *modelController) StartMultipartUpload(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
@@ -339,7 +339,7 @@ func (c *modelController) Download(ctx *gin.Context) {
 		return
 	}
 
-	go tracking.TrackModelEventModel(ctx, model, tracking.ModelEventTypeModelPull)
+	go tracking.TrackModelEventModel(ctx, model, tracking.YataiModelPull)
 }
 
 func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
@@ -377,7 +377,7 @@ func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelS
 		modelSchema.PresignedUrlsDeprecated = true
 	}
 
-	go tracking.TrackModelEvent(*modelSchema, tracking.ModelEventTypeModelPull)
+	go tracking.TrackModelEvent(*modelSchema, tracking.YataiModelPull)
 	return modelSchema, nil
 }
 
@@ -481,7 +481,7 @@ func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadMod
 		}
 	}
 	modelSchema, err := transformersv1.ToModelSchema(ctx, model)
-	go tracking.TrackModelEvent(*modelSchema, tracking.ModelEventTypeModelPush)
+	go tracking.TrackModelEvent(*modelSchema, tracking.YataiModelPush)
 	return modelSchema, err
 }
 

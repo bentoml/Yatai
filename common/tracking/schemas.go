@@ -9,10 +9,17 @@ import (
 type YataiEventType string
 
 const (
-	YataiDeploymentEvent YataiEventType = "yatai_deployment_event"
-	YataiBentoEvent      YataiEventType = "yatai_bento_event"
-	YataiModelEvent      YataiEventType = "yatai_model_event"
-	YataiLifeCycleEvent  YataiEventType = "yatai_lifecycle_event"
+	YataiDeploymentCreate    YataiEventType = "yatai_deployment_create"
+	YataiDeploymentUpdate    YataiEventType = "yatai_deployment_update"
+	YataiDeploymentTerminate YataiEventType = "yatai_deployment_terminate"
+	YataiDeploymentDelete    YataiEventType = "yatai_deployment_delete"
+	YataiBentoPull           YataiEventType = "yatai_bento_pull"
+	YataiBentoPush           YataiEventType = "yatai_bento_pull"
+	YataiModelPull           YataiEventType = "yatai_model_pull"
+	YataiModelPush           YataiEventType = "yatai_model_push"
+	YataiLifeCycleStartup    YataiEventType = "yatai_lifecycle_startup"
+	YataiLifeCycleShutdown   YataiEventType = "yatai_lifecycle_shutdown"
+	YataiLifeCyclePeriodic   YataiEventType = "yatai_lifecycle_periodic"
 )
 
 type CommonProperties struct {
@@ -36,21 +43,11 @@ func NewCommonProperties(eventType YataiEventType, organizationUID string, yatai
 // 	Uptime             time.Duration `json:"uptime"`
 // }
 
-type DeploymentEventType string
-
-const (
-	DeploymentEventTypeCreate    DeploymentEventType = "create"
-	DeploymentEventTypeUpdate    DeploymentEventType = "update"
-	DeploymentEventTypeTerminate DeploymentEventType = "terminate"
-	DeploymentEventTypeDelete    DeploymentEventType = "delete"
-)
-
 type DeploymentEvent struct {
 	CommonProperties
 	UserUID               string                                              `json:"user_uid"`
 	ClusterUID            string                                              `json:"cluster_uid"`
 	DeploymentUID         string                                              `json:"deployment_uid"`
-	DeploymentEventType   DeploymentEventType                                 `json:"deployment_eventtype"`
 	DeploymentStatus      modelschemas.DeploymentStatus                       `json:"deployment_status"`
 	DeploymentRevisionID  string                                              `json:"deployment_revision_id,omitempty"`
 	DeploymentTargetTypes []modelschemas.DeploymentTargetType                 `json:"deployment_target_types,omitempty"`
@@ -61,17 +58,9 @@ type DeploymentEvent struct {
 	// DeploymentTargetCanaryRuleTypes [][]modelschemas.DeploymentTargetCanaryRuleType
 }
 
-type BentoEventType string
-
-const (
-	BentoEventTypeBentoPull BentoEventType = "bento_pull"
-	BentoEventTypeBentoPush BentoEventType = "bento_push"
-)
-
 type BentoEvent struct {
 	CommonProperties
 	UserUID                   string                            `json:"user_uid"`
-	BentoEventType            BentoEventType                    `json:"bento_eventtype"`
 	BentoRepositoryUID        string                            `json:"bentorepository_uid"`
 	BentoVersion              string                            `json:"bento_version"`
 	BentoUploadStatus         modelschemas.BentoUploadStatus    `json:"bento_upload_status"`
@@ -82,20 +71,19 @@ type BentoEvent struct {
 	NumRunners                int                               `json:"num_runners"`
 }
 
-type ModelEventType string
-
-const (
-	ModelEventTypeModelPull ModelEventType = "model_pull"
-	ModelEventTypeModelPush ModelEventType = "model_push"
-)
 
 type ModelEvent struct {
 	CommonProperties
 	UserUID                   string                            `json:"user_uid"`
-	ModelEventType            ModelEventType                    `json:"model_eventtype"`
 	ModelUID                  string                            `json:"model_uid"`
 	ModelUploadStatus         modelschemas.ModelUploadStatus    `json:"model_upload_status"`
 	ModelUploadFinishedReason string                            `json:"model_upload_finished_reason"`
 	ModelTransmissionStrategy modelschemas.TransmissionStrategy `json:"model_transmission_strategy"`
 	ModelSizeBytes            uint                              `json:"model_size_bytes"`
+}
+
+type LifeCycleEvent struct {
+	CommonProperties
+	Uptime time.Duration
+	YataiEventType
 }

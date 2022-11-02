@@ -7,14 +7,13 @@ import (
 )
 
 // track a DeploymentEvent(create/update/terminate/delete)
-func TrackDeploymentEvent(deploymentSchema *schemasv1.DeploymentSchema, deploymentType DeploymentEventType) {
+func TrackDeploymentEvent(deploymentSchema *schemasv1.DeploymentSchema, eventType YataiEventType) {
 	deploymentSchemaParsed := DeploymentEvent{
-		UserUID:             deploymentSchema.Creator.Uid,
-		CommonProperties:    NewCommonProperties(YataiDeploymentEvent, deploymentSchema.Cluster.Organization.Uid, version.Version),
-		ClusterUID:          deploymentSchema.Cluster.Uid,
-		DeploymentUID:       deploymentSchema.Uid,
-		DeploymentEventType: deploymentType,
-		DeploymentStatus:    deploymentSchema.Status,
+		UserUID:          deploymentSchema.Creator.Uid,
+		CommonProperties: NewCommonProperties(eventType, deploymentSchema.Cluster.Organization.Uid, version.Version),
+		ClusterUID:       deploymentSchema.Cluster.Uid,
+		DeploymentUID:    deploymentSchema.Uid,
+		DeploymentStatus: deploymentSchema.Status,
 	}
 
 	// ignore DeploymentTarget information if *LatestRevision is nil
@@ -45,5 +44,5 @@ func TrackDeploymentEvent(deploymentSchema *schemasv1.DeploymentSchema, deployme
 		deploymentSchemaParsed.DeploymentRevisionID = deploymentSchema.LatestRevision.Uid
 	}
 
-	track(deploymentSchemaParsed, string(YataiDeploymentEvent))
+	track(deploymentSchemaParsed, string(eventType))
 }
