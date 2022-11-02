@@ -4,20 +4,13 @@ import (
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/version"
-	"time"
 )
 
 // track a DeploymentEvent(create/update/terminate/delete)
 func TrackDeploymentEvent(deploymentSchema *schemasv1.DeploymentSchema, deploymentType DeploymentEventType) {
 	deploymentSchemaParsed := DeploymentEvent{
-		TriggerEvent: TriggerEvent{
-			UserUID: deploymentSchema.Creator.Uid,
-		},
-		CommonProperties: CommonProperties{
-			YataiVersion:    version.Version,
-			Timestamp:       time.Now(),
-			OrganizationUID: deploymentSchema.Cluster.Organization.Uid,
-		},
+		UserUID:             deploymentSchema.Creator.Uid,
+		CommonProperties:    NewCommonProperties(YataiDeploymentEvent, deploymentSchema.Cluster.Organization.Uid, version.Version),
 		ClusterUID:          deploymentSchema.Cluster.Uid,
 		DeploymentUID:       deploymentSchema.Uid,
 		DeploymentEventType: deploymentType,
@@ -52,5 +45,5 @@ func TrackDeploymentEvent(deploymentSchema *schemasv1.DeploymentSchema, deployme
 		deploymentSchemaParsed.DeploymentRevisionID = deploymentSchema.LatestRevision.Uid
 	}
 
-	track(deploymentSchemaParsed, "deploymentEvents")
+	track(deploymentSchemaParsed, string(YataiDeploymentEvent))
 }

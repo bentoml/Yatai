@@ -231,7 +231,7 @@ func (c *bentoController) Upload(ctx *gin.Context) {
 		return
 	}
 
-    go tracking.TrackBentoEventModel(ctx, bento, tracking.BentoEventTypeBentoPush)
+	go tracking.TrackBentoEventModel(ctx, bento, tracking.BentoEventTypeBentoPush)
 }
 
 const BentomlVersionHeader = "X-Bentoml-Version"
