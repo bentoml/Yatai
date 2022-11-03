@@ -2,6 +2,7 @@ package tracking
 
 import (
 	"context"
+	"time"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/services"
@@ -11,10 +12,11 @@ import (
 
 func AddLifeCycleTrackingCron(ctx context.Context) {
 	TrackLifeCycle(ctx, YataiLifeCycleStartup)
+	ctx = context.WithValue(ctx, "uptimeStamp", time.Now())
 
 	c := cron.New()
 	err := c.AddFunc("@every 1m", func() {
-		TrackLifeCycle(ctx, YataiLifeCyclePeriodic)
+		TrackLifeCycle(ctx, YataiLifeCycleUpdate)
 	})
 
 	if err != nil {
@@ -65,15 +67,23 @@ func TrackLifeCycle(ctx context.Context, event YataiEventType) {
 			}
 		}
 
+		uptimeStamp := ctx.Value("uptimeStamp")
+		var uptimeDurationSeconds time.Duration
+		if uptimeStamp != nil {
+			timeNow := time.Now()
+			uptimeDurationSeconds = timeNow.Sub(uptimeStamp.(time.Time)) / time.Second
+			ctx = context.WithValue(ctx, "uptimeStamp", timeNow)
+		}
 		lifecycleEvent := LifeCycleEvent{
-			CommonProperties:     NewCommonProperties("", org.Uid, version.Version),
-			NumBentoRepositories: numBentoRepos,
-			NumTotalBentos:       numTotalBentos,
-			NumModelRepositories: numModelRepos,
-			NumTotalModels:       numTotalModels,
-			NumUsers:             uint(len(members)),
-			NumClusters:          numClusters,
-			NumDeployments:       numDeployments,
+			CommonProperties:      NewCommonProperties("", org.Uid, version.Version),
+			UptimeDurationSeconds: uptimeDurationSeconds,
+			NumBentoRepositories:  numBentoRepos,
+			NumTotalBentos:        numTotalBentos,
+			NumModelRepositories:  numModelRepos,
+			NumTotalModels:        numTotalModels,
+			NumUsers:              uint(len(members)),
+			NumClusters:           numClusters,
+			NumDeployments:        numDeployments,
 		}
 
 		track(lifecycleEvent, event)

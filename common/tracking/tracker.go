@@ -54,7 +54,6 @@ func track(data interface{}, eventType YataiEventType) {
 	trackerLog.Info("Tracking Payload: ", prettyJSON.String())
 
 	if !donot_track() {
-		//TODO: change to t.bentoml.com
 		resp, err := http.Post(TRACKING_SERVER, "application/json", bytes.NewBuffer(jsonData))
 		if err != nil {
 			trackerLog.Error(err, "failed to send data to tracking server.")

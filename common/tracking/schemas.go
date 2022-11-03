@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
+	"github.com/bentoml/yatai/api-server/services"
 )
 
 type YataiEventType string
@@ -19,11 +20,12 @@ const (
 	YataiModelPush           YataiEventType = "yatai_model_push"
 	YataiLifeCycleStartup    YataiEventType = "yatai_lifecycle_startup"
 	YataiLifeCycleShutdown   YataiEventType = "yatai_lifecycle_shutdown"
-	YataiLifeCyclePeriodic   YataiEventType = "yatai_lifecycle_periodic"
+	YataiLifeCycleUpdate     YataiEventType = "yatai_lifecycle_update"
 )
 
 type CommonProperties struct {
-	EventType       string    `json:"event_type"`
+	EventType string `json:"event_type"`
+	// TODO:UID to figure out which yatai instance
 	OrganizationUID string    `json:"organization_uid"`
 	Timestamp       time.Time `json:"timestamp"`
 	YataiVersion    string    `json:"yatai_version"`
@@ -37,11 +39,6 @@ func NewCommonProperties(eventType YataiEventType, organizationUID string, yatai
 		Timestamp:       time.Now(),
 	}
 }
-
-// type LifecycleEvent struct {
-// 	LifecycleEventType string        `json:"lifecycle_eventtype"`
-// 	Uptime             time.Duration `json:"uptime"`
-// }
 
 type DeploymentEvent struct {
 	CommonProperties
@@ -83,13 +80,13 @@ type ModelEvent struct {
 
 type LifeCycleEvent struct {
 	CommonProperties
-	Uptime                time.Duration
-	NumBentoRepositories  uint
-	NumTotalBentos        uint
-	NumModelRepositories  uint
-	NumTotalModels        uint
-	NumUsers              uint
-	NumClusters           uint
-	NumRunningDeployments uint
-	NumDeployments        uint
+	UptimeDurationSeconds time.Duration `json:"uptime_duration_seconds"`
+	NumBentoRepositories  uint          `json:"num_bento_repositories"`
+	NumTotalBentos        uint          `json:"num_total_bentos"`
+	NumModelRepositories  uint          `json:"num_model_repositories"`
+	NumTotalModels        uint          `json:"num_total_models"`
+	NumUsers              uint          `json:"num_users"`
+	NumClusters           uint          `json:"num_clusters"`
+	NumRunningDeployments uint          `json:"num_running_deployments"`
+	NumDeployments        uint          `json:"num_deployments"`
 }
