@@ -19,6 +19,7 @@ import {
 import { Skeleton } from 'baseui/skeleton'
 import { resourceIconMapping } from '@/consts'
 import { IDeploymentSchema } from '@/schemas/deployment'
+import _ from 'lodash'
 import Log from './Log'
 import { PodStatus } from './PodStatuses'
 import Terminal from './Terminal'
@@ -327,9 +328,13 @@ export default function PodList({
                             namespace={desiredShowTerminalPod.namespace}
                             podName={desiredShowTerminalPod.name}
                             containerName={
+                                desiredShowTerminalPod.raw_status?.containerStatuses?.find((containerStatus) =>
+                                    _.startsWith(desiredShowTerminalPod.name, containerStatus.name)
+                                )?.name ??
                                 desiredShowTerminalPod.raw_status?.containerStatuses?.[
                                     (desiredShowTerminalPod.raw_status?.containerStatuses?.length ?? 1) - 1
-                                ]?.name ?? ''
+                                ]?.name ??
+                                ''
                             }
                         />
                     )}
