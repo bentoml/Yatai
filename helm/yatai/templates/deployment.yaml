@@ -44,7 +44,7 @@ spec:
               protocol: TCP
           envFrom:
             - secretRef:
-                name: env
+                name: {{ include "yatai.envname" . }}
           env:
             {{- if .Values.postgresql.passwordExistingSecretName }}
             - name: PG_PASSWORD

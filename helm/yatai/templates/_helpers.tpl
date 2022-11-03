@@ -24,6 +24,10 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 
+{{- define "yatai.envname" -}}
+{{- printf "%s-env" (include "yatai.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
 {{/*
 Create chart name and version as used by the chart label.
 */}}
@@ -63,25 +67,17 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "yatai.sessionSecretKey" -}}
-    {{- $secretObj := (lookup "v1" "Secret" .Release.Namespace (include "yatai.fullname" .)) | default dict }}
+    {{- $secretObj := (lookup "v1" "Secret" .Release.Namespace (include "yatai.envname" .)) | default dict }}
     {{- $secretData := (get $secretObj "data") | default dict }}
-    {{- (get $secretData "session_secret_key") | default (randAlphaNum 16 | nospace | b64enc) | b64dec }}
+    {{- (get $secretData "SESSION_SECRET_KEY") | default (randAlphaNum 16 | nospace | b64enc) | b64dec }}
 {{- end -}}
 
 {{/*
 Generate inititalization token
 */}}
 {{- define "yatai.initializationToken" -}}
-    {{- $secretObj := (lookup "v1" "Secret" .Release.Namespace (include "yatai.fullname" .)) | default dict }}
+    {{- $secretObj := (lookup "v1" "Secret" .Release.Namespace (include "yatai.envname" .)) | default dict }}
     {{- $secretData := (get $secretObj "data") | default dict }}
-    {{- (get $secretData "initialization_token") | default (randAlphaNum 16 | nospace | b64enc) | b64dec }}
+    {{- (get $secretData "YATAI_INITIALIZATION_TOKEN") | default (randAlphaNum 16 | nospace | b64enc) | b64dec }}
 {{- end -}}
 
-{{/*
-Generate k8s robot token
-*/}}
-{{- define "yatai.k8sRobotToken" -}}
-    {{- $secretObj := (lookup "v1" "Secret" .Release.Namespace (include "yatai.fullname" .)) | default dict }}
-    {{- $secretData := (get $secretObj "data") | default dict }}
-    {{- (get $secretData "k8s_robot_token") | default (randAlphaNum 16 | nospace | b64enc) | b64dec }}
-{{- end -}}
