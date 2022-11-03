@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
-	"github.com/bentoml/yatai/api-server/services"
 )
 
 type YataiEventType string
@@ -15,7 +14,7 @@ const (
 	YataiDeploymentTerminate YataiEventType = "yatai_deployment_terminate"
 	YataiDeploymentDelete    YataiEventType = "yatai_deployment_delete"
 	YataiBentoPull           YataiEventType = "yatai_bento_pull"
-	YataiBentoPush           YataiEventType = "yatai_bento_pull"
+	YataiBentoPush           YataiEventType = "yatai_bento_push"
 	YataiModelPull           YataiEventType = "yatai_model_pull"
 	YataiModelPush           YataiEventType = "yatai_model_push"
 	YataiLifeCycleStartup    YataiEventType = "yatai_lifecycle_startup"

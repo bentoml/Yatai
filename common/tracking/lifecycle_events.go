@@ -75,7 +75,7 @@ func TrackLifeCycle(ctx context.Context, event YataiEventType) {
 			ctx = context.WithValue(ctx, "uptimeStamp", timeNow)
 		}
 		lifecycleEvent := LifeCycleEvent{
-			CommonProperties:      NewCommonProperties("", org.Uid, version.Version),
+			CommonProperties:      NewCommonProperties(event, org.Uid, version.Version),
 			UptimeDurationSeconds: uptimeDurationSeconds,
 			NumBentoRepositories:  numBentoRepos,
 			NumTotalBentos:        numTotalBentos,
