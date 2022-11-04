@@ -1,4 +1,4 @@
-# 🦄️ Yatai: Model Deployment at scale on Kubernetes
+# 🦄️ Yatai: Model Deployment at Scale on Kubernetes
 
 [![actions_status](https://github.com/bentoml/yatai/workflows/CICD/badge.svg)](https://github.com/bentoml/yatai/actions)
 [![docs](https://readthedocs.org/projects/yatai/badge/?version=latest&style=flat-square)](https://docs.bentoml.org/projects/yatai)
@@ -13,7 +13,7 @@ It supports deploying any ML models via [BentoML: the unified model serving fram
 
 👉 [Join our Slack community today!](https://l.bentoml.com/join-slack)
 
-✨ Looking for the fastest way to give Yatai a try? Checkout [BentoML Cloud](https://www.bentoml.com/bentoml-cloud/) to get started today.
+✨ Looking for the fastest way to give Yatai a try? Check out [BentoML Cloud](https://www.bentoml.com/bentoml-cloud/) to get started today.
 
 
 ---
@@ -85,12 +85,12 @@ Open the URL printed above from your browser to finish admin account setup.
 
 ### 🍱 Push Bento to Yatai
 
-First, get an API token and login BentoML CLI:
+First, get an API token and login to the BentoML CLI:
 
-* Keep the `kubectl port-forward` command in step above running
+* Keep the `kubectl port-forward` command in the step above running
 * Go to Yatai's API tokens page: http://127.0.0.1:8080/api_tokens
-* Create a new API token form the UI, make sure to assign "API" access under "Scopes"
-* Copy login command upon token creation and run as shell command, e.g.:
+* Create a new API token from the UI, making sure to assign "API" access under "Scopes"
+* Copy the login command upon token creation and run as a shell command, e.g.:
 
     ```bash
     bentoml yatai login --api-token {YOUR_TOKEN} --endpoint http://127.0.0.1:8080
@@ -116,7 +116,7 @@ Now you can view and manage models and bentos from the web UI:
 <img width="785" alt="yatai-bento-repos" src="https://user-images.githubusercontent.com/489344/151456379-da255519-274d-41de-a1b9-a347be279230.png">
 <img width="785" alt="yatai-model-detail" src="https://user-images.githubusercontent.com/489344/151456021-360a6d6e-acb8-494b-9f6b-868ef9d13bce.png">
 
-### 🔧 Install yatai-deployment componet
+### 🔧 Install yatai-deployment component
 
 Yatai's Deployment feature comes as a separate component, you can install it via the following
 script:
@@ -126,7 +126,7 @@ DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deplo
 ```
 
 This will install the `BentoDeployment` CRD([Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/))
-in your cluster and enable the deployment UI on Yatai. Similiarly, this script is made for development and testing purpose only.
+in your cluster and enable the deployment UI on Yatai. Similarly, this script is made for development and testing purposes only.
 
 ### 🚢 Deploy Bento!
 
@@ -137,8 +137,8 @@ A Bento Deployment can be created either via Web UI or via a Kubernetes CRD conf
 
 #### Option 1. Simple Deployment via Web UI
 
-* Go to deployments page: http://127.0.0.1:8080/deployments
-* Click `Create` button and follow instructions on UI
+* Go to the deployments page: http://127.0.0.1:8080/deployments
+* Click `Create` button and follow the instructions on the UI
 
 <img width="785" alt="yatai-deployment-creation" src="https://user-images.githubusercontent.com/489344/151456002-d4e9f84d-8a71-4bf9-bde7-f94a74abbf3f.png">
 
@@ -205,7 +205,7 @@ There are many ways to contribute to the project:
 
 -   If you have any feedback on the project, share it with the community in [GitHub Discussions](https://github.com/bentoml/BentoML/discussions) under the [BentoML repo](https://github.com/bentoml/BentoML/).
 -   Report issues you're facing and "Thumbs up" on issues and feature requests that are relevant to you.
--   Investigate bugs and reviewing other developer's pull requests.
+-   Investigate bugs and review other developers' pull requests.
 -   Contributing code or documentation to the project by submitting a GitHub pull request. See the [development guide](https://github.com/bentoml/yatai/blob/main/DEVELOPMENT.md).
 
 ## Licence
