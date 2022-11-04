@@ -17,8 +17,8 @@ import (
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
+	"github.com/bentoml/yatai/api-server/services/tracking"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
-	"github.com/bentoml/yatai/common/tracking"
 	"github.com/bentoml/yatai/common/utils"
 )
 

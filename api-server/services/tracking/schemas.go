@@ -25,6 +25,7 @@ const (
 type CommonProperties struct {
 	EventType string `json:"event_type"`
 	// TODO:UID to figure out which yatai instance
+	InstanceUID     string
 	OrganizationUID string    `json:"organization_uid"`
 	Timestamp       time.Time `json:"timestamp"`
 	YataiVersion    string    `json:"yatai_version"`

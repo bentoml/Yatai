@@ -17,9 +17,9 @@ import (
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/routes"
 	"github.com/bentoml/yatai/api-server/services"
+	"github.com/bentoml/yatai/api-server/services/tracking"
 	"github.com/bentoml/yatai/common/command"
 	"github.com/bentoml/yatai/common/sync/errsgroup"
-	"github.com/bentoml/yatai/common/tracking"
 )
 
 func addCron(ctx context.Context) {

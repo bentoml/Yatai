@@ -15,8 +15,8 @@ import (
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
+	"github.com/bentoml/yatai/api-server/services/tracking"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
-	"github.com/bentoml/yatai/common/tracking"
 	"github.com/bentoml/yatai/common/utils"
 )
 
@@ -377,7 +377,7 @@ func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelS
 		modelSchema.PresignedUrlsDeprecated = true
 	}
 
-	go tracking.TrackModelEvent(*modelSchema, tracking.YataiModelPull)
+	go tracking.TrackModelEvent(*modelSchema, "", tracking.YataiModelPull)
 	return modelSchema, nil
 }
 
@@ -431,6 +431,7 @@ type FinishUploadModelSchema struct {
 
 func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadModelSchema) (*schemasv1.ModelSchema, error) {
 	model, err := schema.GetModel(ctx)
+	var orgUID string
 	if err != nil {
 		return nil, err
 	}
@@ -460,6 +461,7 @@ func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadMod
 		if err != nil {
 			return nil, err
 		}
+		orgUID = org.Uid
 		apiTokenName := ""
 		if user.ApiToken != nil {
 			apiTokenName = user.ApiToken.Name
@@ -481,7 +483,7 @@ func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadMod
 		}
 	}
 	modelSchema, err := transformersv1.ToModelSchema(ctx, model)
-	go tracking.TrackModelEvent(*modelSchema, tracking.YataiModelPush)
+	go tracking.TrackModelEvent(*modelSchema, orgUID, tracking.YataiModelPush)
 	return modelSchema, err
 }
 
