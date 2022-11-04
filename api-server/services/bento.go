@@ -855,49 +855,10 @@ func (s *bentoService) GetImageBuilderKubeLabels(ctx context.Context, bento *mod
 	}
 
 	return map[string]string{
+		commonconsts.KubeLabelIsBentoImageBuilder:  "true",
 		commonconsts.KubeLabelYataiBentoRepository: bentoRepository.Name,
 		commonconsts.KubeLabelYataiBento:           bento.Version,
 	}, nil
-}
-
-func (s *bentoService) ListImageBuilderPods(ctx context.Context, bento *models.Bento) ([]*models.KubePodWithStatus, error) {
-	bentoRepository, err := BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
-	if err != nil {
-		return nil, err
-	}
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, bentoRepository)
-	if err != nil {
-		return nil, err
-	}
-	cluster, err := OrganizationService.GetMajorCluster(ctx, org)
-	if err != nil {
-		return nil, err
-	}
-
-	kubeLabels, err := s.GetImageBuilderKubeLabels(ctx, bento)
-	if err != nil {
-		return nil, err
-	}
-
-	pods, err := ImageBuilderService.ListImageBuilderPods(ctx, cluster, kubeLabels)
-	if err != nil {
-		return nil, err
-	}
-
-	models_, err := s.ListModelsFromManifests(ctx, bento)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, model := range models_ {
-		pods_, err := ModelService.ListImageBuilderPods(ctx, model)
-		if err != nil {
-			return nil, err
-		}
-		pods = append(pods, pods_...)
-	}
-
-	return pods, nil
 }
 
 func (s *bentoService) ListImageBuildStatusUnsynced(ctx context.Context) ([]*models.Bento, error) {

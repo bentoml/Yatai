@@ -477,29 +477,6 @@ func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadMod
 	return transformersv1.ToModelSchema(ctx, model)
 }
 
-func (c *modelController) ListImageBuilderPods(ctx *gin.Context, schema *GetModelSchema) ([]*schemasv1.KubePodSchema, error) {
-	model, err := schema.GetModel(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err = c.canView(ctx, model); err != nil {
-		return nil, err
-	}
-	pods, err := services.ModelService.ListImageBuilderPods(ctx, model)
-	if err != nil {
-		return nil, err
-	}
-	org, err := schema.GetOrganization(ctx)
-	if err != nil {
-		return nil, err
-	}
-	majorCluster, err := services.OrganizationService.GetMajorCluster(ctx, org)
-	if err != nil {
-		return nil, err
-	}
-	return transformersv1.ToKubePodSchemas(ctx, majorCluster.ID, pods)
-}
-
 func (c *modelController) Get(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelFullSchema, error) {
 	model, err := schema.GetModel(ctx)
 	if err != nil {

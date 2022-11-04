@@ -19,11 +19,8 @@ import (
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 	clientcmdapiv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 
-	"github.com/bentoml/grafana-operator/api/integreatly/v1alpha1"
-
 	"github.com/bentoml/yatai-common/system"
 
-	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
@@ -253,14 +250,15 @@ func (s *clusterService) GetRESTClientGetter(ctx context.Context, c *models.Clus
 	return helmchart.NewRESTClientGetter(namespace, nil, &restConfig), nil
 }
 
+const DefaultDeploymentNamespace = "yatai"
+
 func (s *clusterService) GetDeploymentKubeNamespace(c *models.Cluster) string {
-	defaultKubeNamespace := commonconsts.KubeNamespaceYataiDeployment
 	if c.Config == nil {
-		return defaultKubeNamespace
+		return DefaultDeploymentNamespace
 	}
 	kubeNamespace := strings.TrimSpace(c.Config.DefaultDeploymentKubeNamespace)
 	if kubeNamespace == "" {
-		return defaultKubeNamespace
+		return DefaultDeploymentNamespace
 	}
 	return kubeNamespace
 }
@@ -376,47 +374,6 @@ func (s *clusterService) GenerateGrafanaHostname(ctx context.Context, cluster *m
 
 func (s *clusterService) GetGrafanaRootPath(ctx context.Context, cluster *models.Cluster) (string, error) {
 	return fmt.Sprintf("/api/v1/clusters/%s/grafana/", cluster.Name), nil
-}
-
-func (s *clusterService) GetGrafana(ctx context.Context, cluster *models.Cluster) (*v1alpha1.Grafana, error) {
-	_, ingLister, err := GetIngressInformer(ctx, cluster, commonconsts.KubeNamespaceYataiComponents)
-	if err != nil {
-		return nil, err
-	}
-
-	ing, err := ingLister.Get("yatai-grafana")
-	if err != nil {
-		return nil, err
-	}
-
-	_, secretLister, err := GetSecretInformer(ctx, cluster, commonconsts.KubeNamespaceYataiComponents)
-	if err != nil {
-		return nil, err
-	}
-
-	secret, err := secretLister.Get("yatai-grafana")
-	if err != nil {
-		return nil, err
-	}
-
-	password := secret.Data["admin-password"]
-	user := secret.Data["admin-user"]
-
-	grafanaConfig := v1alpha1.GrafanaConfig{
-		Security: &v1alpha1.GrafanaConfigSecurity{
-			AdminPassword: string(password),
-			AdminUser:     string(user),
-		},
-	}
-
-	return &v1alpha1.Grafana{
-		Spec: v1alpha1.GrafanaSpec{
-			Config: grafanaConfig,
-			Ingress: &v1alpha1.GrafanaIngress{
-				Hostname: ing.Spec.Rules[0].Host,
-			},
-		},
-	}, err
 }
 
 type IClusterAssociate interface {
