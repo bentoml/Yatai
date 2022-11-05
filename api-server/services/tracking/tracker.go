@@ -17,7 +17,7 @@ const (
 	YATAI_DONOT_TRACK       = "YATAI_DONOT_TRACK"
 )
 
-var trackerLog = NewTrackerLogger()
+var trackingLogger = NewTrackerLogger()
 
 func NewTrackerLogger() *log.Logger {
 	out := os.Getenv(YATAI_TRACKING_LOGLEVEL)
@@ -41,32 +41,32 @@ func donot_track() bool {
 
 // Marshal the data and sent to tracking server
 func track(data interface{}, eventType YataiEventType) {
-	trackerLog := trackerLog.WithField("eventType", eventType)
+	trackingLogger := trackingLogger.WithField("eventType", eventType)
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		trackerLog.Error(err, "Failed to marshal data")
+		trackingLogger.Error(err, "Failed to marshal data")
 		return
 	}
 
 	var prettyJSON bytes.Buffer
 	_ = json.Indent(&prettyJSON, jsonData, "", " ")
-	trackerLog.Info("Tracking Payload: ", prettyJSON.String())
+	trackingLogger.Info("Tracking Payload: ", prettyJSON.String())
 
 	if !donot_track() {
 		resp, err := http.Post(TRACKING_SERVER, "application/json", bytes.NewBuffer(jsonData))
 		if err != nil {
-			trackerLog.Error(err, "failed to send data to tracking server.")
+			trackingLogger.Error(err, "failed to send data to tracking server.")
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode == 200 {
-			trackerLog.Info("Tracking Request sent.")
+			trackingLogger.Info("Tracking Request sent.")
 		} else {
-			trackerLog.Errorf("Tracking Request failed. Status [%s]", resp.Status)
+			trackingLogger.Errorf("Tracking Request failed. Status [%s]", resp.Status)
 			bodyBytes, _ := io.ReadAll(resp.Body)
 			bodyString := string(bodyBytes)
-			trackerLog.Error(bodyString)
+			trackingLogger.Error(bodyString)
 		}
 	}
 }

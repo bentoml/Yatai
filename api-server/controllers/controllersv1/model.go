@@ -198,7 +198,8 @@ func (c *modelController) Upload(ctx *gin.Context) {
 		abortWithError(ctx, err)
 		return
 	}
-	go tracking.TrackModelEventModel(ctx, model, tracking.YataiModelPush)
+	go tracking.TrackModelEvent(ctx, model, tracking.YataiModelPush)
+
 }
 
 func (c *modelController) StartMultipartUpload(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
@@ -339,7 +340,7 @@ func (c *modelController) Download(ctx *gin.Context) {
 		return
 	}
 
-	go tracking.TrackModelEventModel(ctx, model, tracking.YataiModelPull)
+	go tracking.TrackModelEvent(ctx, model, tracking.YataiModelPull)
 }
 
 func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
@@ -377,7 +378,7 @@ func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelS
 		modelSchema.PresignedUrlsDeprecated = true
 	}
 
-	go tracking.TrackModelEvent(*modelSchema, "", tracking.YataiModelPull)
+	go tracking.TrackModelEvent(ctx, model, tracking.YataiModelPull)
 	return modelSchema, nil
 }
 
@@ -431,7 +432,6 @@ type FinishUploadModelSchema struct {
 
 func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadModelSchema) (*schemasv1.ModelSchema, error) {
 	model, err := schema.GetModel(ctx)
-	var orgUID string
 	if err != nil {
 		return nil, err
 	}
@@ -461,7 +461,6 @@ func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadMod
 		if err != nil {
 			return nil, err
 		}
-		orgUID = org.Uid
 		apiTokenName := ""
 		if user.ApiToken != nil {
 			apiTokenName = user.ApiToken.Name
@@ -483,7 +482,7 @@ func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadMod
 		}
 	}
 	modelSchema, err := transformersv1.ToModelSchema(ctx, model)
-	go tracking.TrackModelEvent(*modelSchema, orgUID, tracking.YataiModelPush)
+	go tracking.TrackModelEvent(ctx, model, tracking.YataiModelPush)
 	return modelSchema, err
 }
 

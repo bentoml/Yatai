@@ -20,20 +20,23 @@ func AddLifeCycleTrackingCron(ctx context.Context) {
 	})
 
 	if err != nil {
-		trackerLog.Errorf("cron add func failed: %s", err.Error())
+		NewTrackerLogger().Errorf("cron add func failed: %s", err.Error())
 	}
 
 	c.Start()
 }
 
 func TrackLifeCycle(ctx context.Context, event YataiEventType) {
-	trackerLog := trackerLog.WithField("eventType", event)
+	trackerLog := NewTrackerLogger().WithField("eventType", event)
 
 	orgs, _, err := services.OrganizationService.List(ctx, services.ListOrganizationOption{})
 
 	if err != nil {
 		trackerLog.Error("unable to get OrganizationService.List. ", err.Error())
 	}
+
+	// defaultOrg
+	defaultOrg, err := services.OrganizationService.GetDefault(ctx)
 
 	// sent tracking info for each organization
 	for _, org := range orgs {
@@ -75,7 +78,8 @@ func TrackLifeCycle(ctx context.Context, event YataiEventType) {
 			ctx = context.WithValue(ctx, "uptimeStamp", timeNow)
 		}
 		lifecycleEvent := LifeCycleEvent{
-			CommonProperties:      NewCommonProperties(event, org.Uid, version.Version),
+			CommonProperties: NewCommonProperties(
+				event, org.Uid, defaultOrg.Uid, version.Version),
 			UptimeDurationSeconds: uptimeDurationSeconds,
 			NumBentoRepositories:  numBentoRepos,
 			NumTotalBentos:        numTotalBentos,

@@ -231,7 +231,7 @@ func (c *bentoController) Upload(ctx *gin.Context) {
 		return
 	}
 
-	go tracking.TrackBentoEventModel(ctx, bento, tracking.YataiBentoPush)
+	go tracking.TrackBentoEvent(ctx, bento, tracking.YataiBentoPush)
 }
 
 const BentomlVersionHeader = "X-Bentoml-Version"
@@ -396,7 +396,7 @@ func (c *bentoController) Download(ctx *gin.Context) {
 		return
 	}
 
-	go tracking.TrackBentoEventModel(ctx, bento, tracking.YataiBentoPull)
+	go tracking.TrackBentoEvent(ctx, bento, tracking.YataiBentoPull)
 }
 
 func (c *bentoController) PreSignDownloadUrl(ctx *gin.Context, schema *GetBentoSchema) (*schemasv1.BentoSchema, error) {
@@ -433,7 +433,8 @@ func (c *bentoController) PreSignDownloadUrl(ctx *gin.Context, schema *GetBentoS
 	} else {
 		bentoSchema.PresignedUrlsDeprecated = true
 	}
-	go tracking.TrackBentoEvent(*bentoSchema, tracking.YataiBentoPull)
+
+	go tracking.TrackBentoEvent(ctx, bento, tracking.YataiBentoPull)
 	return bentoSchema, nil
 }
 
@@ -515,7 +516,8 @@ func (c *bentoController) FinishUpload(ctx *gin.Context, schema *FinishUploadBen
 		}
 	}
 	bentoSchema, err := transformersv1.ToBentoSchema(ctx, bento)
-	go tracking.TrackBentoEvent(*bentoSchema, tracking.YataiBentoPush)
+
+	go tracking.TrackBentoEvent(ctx, bento, tracking.YataiBentoPush)
 	return bentoSchema, err
 }
 

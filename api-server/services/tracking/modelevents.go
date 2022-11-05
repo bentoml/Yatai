@@ -3,16 +3,32 @@ package tracking
 import (
 	"context"
 
-	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
+	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
 	"github.com/bentoml/yatai/api-server/version"
 )
 
-func TrackModelEvent(modelschema schemasv1.ModelSchema, orgUID string, eventType YataiEventType) {
+func TrackModelEvent(ctx context.Context, modelModel *models.Model, eventType YataiEventType) {
+	trackingLogger := NewTrackerLogger().WithField("eventType", eventType)
+	modelschema, err := transformersv1.ToModelSchema(ctx, modelModel)
+	if err != nil {
+		trackingLogger.Error("Error transforming modelschema: ", err)
+		return
+	}
+
+	modelRepository, err := services.ModelRepositoryService.GetAssociatedModelRepository(ctx, modelModel)
+	if err != nil {
+		trackingLogger.Error(err)
+		return
+	}
+	org, err := services.OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	instanceOrg, err := services.OrganizationService.GetDefault(ctx)
+
 	modelEvent := ModelEvent{
-		UserUID:                   modelschema.Creator.Uid,
-		CommonProperties:          NewCommonProperties(eventType, "", version.Version),
+		UserUID: modelschema.Creator.Uid,
+		CommonProperties: NewCommonProperties(
+			eventType, instanceOrg.Uid, org.Uid, version.Version),
 		ModelUID:                  modelschema.ModelUid,
 		ModelUploadStatus:         modelschema.UploadStatus,
 		ModelUploadFinishedReason: modelschema.UploadFinishedReason,
@@ -23,9 +39,4 @@ func TrackModelEvent(modelschema schemasv1.ModelSchema, orgUID string, eventType
 		modelEvent.ModelSizeBytes = modelschema.Manifest.SizeBytes
 	}
 	track(modelEvent, eventType)
-}
-
-func TrackModelEventModel(ctx context.Context, modelModel *models.Model, eventType YataiEventType) {
-	b, _ := transformersv1.ToModelSchema(ctx, modelModel)
-	TrackModelEvent(*b, "", eventType)
 }

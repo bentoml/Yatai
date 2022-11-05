@@ -23,17 +23,17 @@ const (
 )
 
 type CommonProperties struct {
-	EventType string `json:"event_type"`
-	// TODO:UID to figure out which yatai instance
-	InstanceUID     string
+	EventType       string    `json:"event_type"`
+	InstanceUID     string    `json:"instance_uid"`
 	OrganizationUID string    `json:"organization_uid"`
 	Timestamp       time.Time `json:"timestamp"`
 	YataiVersion    string    `json:"yatai_version"`
 }
 
-func NewCommonProperties(eventType YataiEventType, organizationUID string, yataiVersion string) CommonProperties {
+func NewCommonProperties(eventType YataiEventType, instanceUID, organizationUID string, yataiVersion string) CommonProperties {
 	return CommonProperties{
 		EventType:       string(eventType),
+		InstanceUID:     instanceUID,
 		OrganizationUID: organizationUID,
 		YataiVersion:    yataiVersion,
 		Timestamp:       time.Now(),

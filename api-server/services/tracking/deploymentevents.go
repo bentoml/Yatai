@@ -1,16 +1,25 @@
 package tracking
 
 import (
+	"context"
+
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai-schemas/schemasv1"
+	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/version"
 )
 
 // track a DeploymentEvent(create/update/terminate/delete)
-func TrackDeploymentEvent(deploymentSchema *schemasv1.DeploymentSchema, eventType YataiEventType) {
+func TrackDeploymentEvent(ctx context.Context, deploymentSchema *schemasv1.DeploymentSchema, eventType YataiEventType) {
+	trackingLogger := NewTrackerLogger().WithField("eventType", eventType)
+	defaultOrg, err := services.OrganizationService.GetDefault(ctx)
+	if err != nil {
+		trackingLogger.Error(err)
+	}
 	deploymentSchemaParsed := DeploymentEvent{
-		UserUID:          deploymentSchema.Creator.Uid,
-		CommonProperties: NewCommonProperties(eventType, deploymentSchema.Cluster.Organization.Uid, version.Version),
+		UserUID: deploymentSchema.Creator.Uid,
+		CommonProperties: NewCommonProperties(
+			eventType, defaultOrg.Uid, deploymentSchema.Cluster.Organization.Uid, version.Version),
 		ClusterUID:       deploymentSchema.Cluster.Uid,
 		DeploymentUID:    deploymentSchema.Uid,
 		DeploymentStatus: deploymentSchema.Status,
