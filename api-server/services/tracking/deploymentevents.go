@@ -53,5 +53,5 @@ func TrackDeploymentEvent(ctx context.Context, deploymentSchema *schemasv1.Deplo
 		deploymentSchemaParsed.DeploymentRevisionID = deploymentSchema.LatestRevision.Uid
 	}
 
-	track(deploymentSchemaParsed, eventType)
+	track(ctx, deploymentSchemaParsed, eventType)
 }

@@ -90,6 +90,6 @@ func TrackLifeCycle(ctx context.Context, event YataiEventType) {
 			NumDeployments:        numDeployments,
 		}
 
-		track(lifecycleEvent, event)
+		track(ctx, lifecycleEvent, event)
 	}
 }

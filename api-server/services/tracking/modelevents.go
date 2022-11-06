@@ -38,5 +38,5 @@ func TrackModelEvent(ctx context.Context, modelModel *models.Model, eventType Ya
 	if modelschema.Manifest != nil {
 		modelEvent.ModelSizeBytes = modelschema.Manifest.SizeBytes
 	}
-	track(modelEvent, eventType)
+	track(ctx, modelEvent, eventType)
 }

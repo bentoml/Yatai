@@ -39,5 +39,5 @@ func TrackBentoEvent(ctx context.Context, bentoModel *models.Bento, eventType Ya
 		bentoEvent.NumRunners = len(bentoschema.Manifest.Runners)
 		bentoEvent.BentoSizeBytes = bentoschema.Manifest.SizeBytes
 	}
-	track(bentoEvent, eventType)
+	track(ctx, bentoEvent, eventType)
 }

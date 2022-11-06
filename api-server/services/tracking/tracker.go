@@ -2,17 +2,20 @@ package tracking
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
 
 const (
 	TRACKING_SERVER         = "http://t.bentoml.com"
+	TRACKER_TIMEOUT         = time.Duration(1) * time.Second
 	YATAI_TRACKING_LOGLEVEL = "__YATAI_TRACKING_LOGLEVEL"
 	YATAI_DONOT_TRACK       = "YATAI_DONOT_TRACK"
 )
@@ -22,11 +25,12 @@ var trackingLogger = NewTrackerLogger()
 func NewTrackerLogger() *log.Logger {
 	out := os.Getenv(YATAI_TRACKING_LOGLEVEL)
 	var logLevel log.Level
-	if strings.ToLower(out) == "info" {
+	switch strings.ToLower(out) {
+	case "info":
 		logLevel = log.InfoLevel
-	} else if strings.ToLower(out) == "debug" {
+	case "debug":
 		logLevel = log.DebugLevel
-	} else {
+	default:
 		logLevel = log.FatalLevel
 	}
 	logger := log.New()
@@ -40,7 +44,7 @@ func donot_track() bool {
 }
 
 // Marshal the data and sent to tracking server
-func track(data interface{}, eventType YataiEventType) {
+func track(ctx context.Context, data interface{}, eventType YataiEventType) {
 	trackingLogger := trackingLogger.WithField("eventType", eventType)
 
 	jsonData, err := json.Marshal(data)
@@ -54,9 +58,15 @@ func track(data interface{}, eventType YataiEventType) {
 	trackingLogger.Info("Tracking Payload: ", prettyJSON.String())
 
 	if !donot_track() {
-		resp, err := http.Post(TRACKING_SERVER, "application/json", bytes.NewBuffer(jsonData))
+		client := http.Client{Timeout: TRACKER_TIMEOUT}
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, TRACKING_SERVER, bytes.NewBuffer(jsonData))
 		if err != nil {
-			trackingLogger.Error(err, "failed to send data to tracking server.")
+			trackingLogger.Error(err, "failed to create new request.")
+			return
+		}
+		resp, err := client.Do(req)
+		if err != nil {
+			trackingLogger.Error(err, "sending request failed.")
 		}
 		defer resp.Body.Close()
 
