@@ -23,7 +23,13 @@ func TrackModelEvent(ctx context.Context, modelModel *models.Model, eventType Ya
 		return
 	}
 	org, err := services.OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
+	if err != nil {
+		trackingLogger.Error("Unnable to get associated org: ", err)
+	}
 	instanceOrg, err := services.OrganizationService.GetDefault(ctx)
+	if err != nil {
+		trackingLogger.Error("coun't get default Org: ", err)
+	}
 
 	modelEvent := ModelEvent{
 		UserUID: modelschema.Creator.Uid,

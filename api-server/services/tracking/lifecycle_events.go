@@ -12,7 +12,7 @@ import (
 
 func AddLifeCycleTrackingCron(ctx context.Context) {
 	TrackLifeCycle(ctx, YataiLifeCycleStartup)
-	ctx = context.WithValue(ctx, "uptimeStamp", time.Now())
+	ctx = context.WithValue(ctx, "yataiUpTimestamp", time.Now())
 
 	c := cron.New()
 	err := c.AddFunc("@every 1m", func() {
@@ -37,6 +37,9 @@ func TrackLifeCycle(ctx context.Context, event YataiEventType) {
 
 	// defaultOrg
 	defaultOrg, err := services.OrganizationService.GetDefault(ctx)
+	if err != nil {
+		trackingLogger.Error("Unnable to get defaultOrg: ", err)
+	}
 
 	// sent tracking info for each organization
 	for _, org := range orgs {
@@ -70,12 +73,12 @@ func TrackLifeCycle(ctx context.Context, event YataiEventType) {
 			}
 		}
 
-		uptimeStamp := ctx.Value("uptimeStamp")
+		uptimeStamp := ctx.Value("yataiUpTimestamp")
 		var uptimeDurationSeconds time.Duration
 		if uptimeStamp != nil {
 			timeNow := time.Now()
 			uptimeDurationSeconds = timeNow.Sub(uptimeStamp.(time.Time)) / time.Second
-			ctx = context.WithValue(ctx, "uptimeStamp", timeNow)
+			ctx = context.WithValue(ctx, "yataiUpTimestamp", timeNow)
 		}
 		lifecycleEvent := LifeCycleEvent{
 			CommonProperties: NewCommonProperties(

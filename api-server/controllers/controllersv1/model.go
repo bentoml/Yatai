@@ -199,7 +199,6 @@ func (c *modelController) Upload(ctx *gin.Context) {
 		return
 	}
 	go tracking.TrackModelEvent(ctx, model, tracking.YataiModelPush)
-
 }
 
 func (c *modelController) StartMultipartUpload(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
