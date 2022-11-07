@@ -447,7 +447,7 @@ You need to configure your DNS in one of the following two options:
         .. code:: bash
 
           # Replace yatai.example.com with your domain suffix
-          kubectl -n yatai-deployment patch cm/network --type merge --patch '{"data":{"domain-suffix":"'${DOMAIN_PREFIX}'"}}'
+          kubectl -n yatai-deployment patch cm/network --type merge --patch '{"data":{"domain-suffix":"'${DOMAIN_SUFFIX}'"}}'
 
 6. Install Yatai Deployment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
