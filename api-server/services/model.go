@@ -707,28 +707,6 @@ func (s *modelService) ListLatestByModelRepositoryIds(ctx context.Context, model
 	return models_, err
 }
 
-func (s *modelService) ListImageBuilderPods(ctx context.Context, model *models.Model) ([]*models.KubePodWithStatus, error) {
-	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
-	if err != nil {
-		return nil, err
-	}
-	org, err := OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
-	if err != nil {
-		return nil, err
-	}
-	cluster, err := OrganizationService.GetMajorCluster(ctx, org)
-	if err != nil {
-		return nil, err
-	}
-
-	kubeLabels, err := s.GetImageBuilderKubeLabels(ctx, model)
-	if err != nil {
-		return nil, err
-	}
-
-	return ImageBuilderService.ListImageBuilderPods(ctx, cluster, kubeLabels)
-}
-
 func (s *modelService) GetImageBuilderKubeLabels(ctx context.Context, model *models.Model) (map[string]string, error) {
 	modelRepository, err := ModelRepositoryService.GetAssociatedModelRepository(ctx, model)
 	if err != nil {

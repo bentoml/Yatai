@@ -174,13 +174,6 @@ func NewRouter() (*fizz.Fizz, error) {
 	clusterGroup := engine.Group("/api/v1/clusters/:clusterName")
 	clusterGroup.Use(requireLogin)
 
-	clusterGroup.GET("/grafana/*path", controllersv1.GrafanaController.Proxy)
-	clusterGroup.POST("/grafana/*path", controllersv1.GrafanaController.Proxy)
-	clusterGroup.PUT("/grafana/*path", controllersv1.GrafanaController.Proxy)
-	clusterGroup.PATCH("/grafana/*path", controllersv1.GrafanaController.Proxy)
-	clusterGroup.HEAD("/grafana/*path", controllersv1.GrafanaController.Proxy)
-	clusterGroup.DELETE("/grafana/*path", controllersv1.GrafanaController.Proxy)
-
 	bentoGroup := engine.Group("/api/v1/bento_repositories/:bentoRepositoryName/bentos/:version")
 	bentoGroup.Use(requireLogin)
 
@@ -662,11 +655,6 @@ func bentoRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("Finish upload a bento"),
 	}, tonic.Handler(controllersv1.BentoController.FinishUpload, 200))
 
-	resourceGrp.GET("/image_builder_pods", []fizz.OperationOption{
-		fizz.ID("List bento image builder pods"),
-		fizz.Summary("List bento image builder pods"),
-	}, tonic.Handler(controllersv1.BentoController.ListImageBuilderPods, 200))
-
 	grp.GET("", []fizz.OperationOption{
 		fizz.ID("List bentos"),
 		fizz.Summary("List bentos"),
@@ -860,11 +848,6 @@ func modelRoutes(grp *fizz.RouterGroup) {
 		fizz.ID("Finish upload a model"),
 		fizz.Summary("Finish upload a model"),
 	}, tonic.Handler(controllersv1.ModelController.FinishUpload, 200))
-
-	resourceGrp.GET("/image_builder_pods", []fizz.OperationOption{
-		fizz.ID("List model image builder pods"),
-		fizz.Summary("List model image builder pods"),
-	}, tonic.Handler(controllersv1.ModelController.ListImageBuilderPods, 200))
 
 	grp.GET("", []fizz.OperationOption{
 		fizz.ID("List models"),

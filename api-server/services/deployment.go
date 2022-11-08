@@ -503,7 +503,7 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 		return defaultStatus, err
 	}
 
-	_, imageBuilderPodLister, err := GetPodInformer(ctx, cluster, commonconsts.KubeNamespaceYataiBentoImageBuilder)
+	_, imageBuilderPodLister, err := GetPodInformer(ctx, cluster, namespace)
 	if err != nil {
 		return defaultStatus, err
 	}
@@ -543,12 +543,12 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 			return defaultStatus, err
 		}
 		var imageBuilderPodsSelector labels.Selector
-		imageBuilderPodsSelector, err = labels.Parse(fmt.Sprintf("%s=%s,%s=%s", commonconsts.KubeLabelYataiBentoRepository, bentoRepository.Name, commonconsts.KubeLabelYataiBento, bento.Version))
+		imageBuilderPodsSelector, err = labels.Parse(fmt.Sprintf("%s=true,%s=%s,%s=%s", commonconsts.KubeLabelIsBentoImageBuilder, commonconsts.KubeLabelYataiBentoRepository, bentoRepository.Name, commonconsts.KubeLabelYataiBento, bento.Version))
 		if err != nil {
 			return defaultStatus, err
 		}
 		var pods_ []*models.KubePodWithStatus
-		pods_, err = KubePodService.ListPodsBySelector(ctx, cluster, commonconsts.KubeNamespaceYataiBentoImageBuilder, imageBuilderPodLister, imageBuilderPodsSelector)
+		pods_, err = KubePodService.ListPodsBySelector(ctx, cluster, namespace, imageBuilderPodLister, imageBuilderPodsSelector)
 		if err != nil {
 			return defaultStatus, err
 		}

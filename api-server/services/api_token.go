@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/xid"
 	"gorm.io/gorm"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/bentoml/yatai-common/config"
@@ -159,7 +160,8 @@ func (s *apiTokenService) GetByUid(ctx context.Context, uid string) (*models.Api
 
 func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models.ApiToken, error) {
 	pieces := strings.Split(token, ":")
-	if len(pieces) == 3 && pieces[0] == consts.YataiApiTokenPrefixYataiDeploymentOperator {
+	if len(pieces) == 3 {
+		componentName := pieces[0]
 		clusterName := pieces[1]
 		token_ := pieces[2]
 		org, err := GetCurrentOrganization(ctx)
@@ -185,12 +187,38 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 			err = errors.Wrapf(err, "failed to get kube cli set in cluster %s in organization %s", clusterName, org.Name)
 			return nil, err
 		}
-		yataiConf, err := config.GetYataiConfig(ctx, cliset, consts.KubeNamespaceYataiDeploymentComponent, false)
-		if err != nil {
-			err = errors.Wrapf(err, "failed to get yatai config in cluster %s in organization %s", clusterName, org.Name)
+		componentSharedEnvSecretName := ""
+		// nolint: gocritic
+		if componentName == consts.YataiImageBuilderComponentName {
+			componentSharedEnvSecretName = consts.KubeSecretNameYataiImageBuilderSharedEnv
+		} else if componentName == consts.YataiDeploymentComponentName {
+			componentSharedEnvSecretName = consts.KubeSecretNameYataiDeploymentSharedEnv
+			// compatible with old version
+		} else if componentName != "yatai-deployment-operator" {
+			err = errors.Errorf("invalid component name %s", componentName)
 			return nil, err
 		}
-		if token_ != yataiConf.ApiToken {
+		expectedApiToken := ""
+		if componentSharedEnvSecretName != "" {
+			yataiConf, err := config.GetYataiConfig(ctx, cliset, componentSharedEnvSecretName, false)
+			if err != nil {
+				err = errors.Wrapf(err, "failed to get yatai config in cluster %s in organization %s", clusterName, org.Name)
+				return nil, err
+			}
+			expectedApiToken = yataiConf.ApiToken
+		} else {
+			secret, err := cliset.CoreV1().Secrets(consts.DefaultKubeNamespaceYataiDeploymentComponent).Get(ctx, "env", metav1.GetOptions{})
+			if err != nil {
+				err = errors.Wrapf(err, "failed to get secret in cluster %s in organization %s", clusterName, org.Name)
+				return nil, err
+			}
+			expectedApiToken = string(secret.Data[consts.EnvYataiApiToken])
+		}
+		if expectedApiToken == "" {
+			err = errors.Errorf("failed to get api token in cluster %s in organization %s, the expected api token is empty!", clusterName, org.Name)
+			return nil, err
+		}
+		if token_ != expectedApiToken {
 			err = errors.Errorf("the api token is not valid in cluster %s in organization %s", clusterName, org.Name)
 			return nil, err
 		}
