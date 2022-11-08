@@ -26,6 +26,9 @@ func addCron(ctx context.Context) {
 	c := cron.New()
 	logger := logrus.New().WithField("cron", "sync env")
 
+	// Add cron for tracking lifecycle events
+	tracking.AddLifeCycleTrackingCron(ctx, c)
+
 	err := c.AddFunc("@every 1m", func() {
 		ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
 		defer cancel()
@@ -127,7 +130,6 @@ func (opt *ServeOption) Run(ctx context.Context, args []string) error {
 	}
 
 	addCron(ctx)
-	tracking.AddLifeCycleTrackingCron(ctx)
 
 	// nolint: contextcheck
 	router, err := routes.NewRouter()

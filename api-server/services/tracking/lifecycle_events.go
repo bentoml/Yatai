@@ -2,6 +2,7 @@ package tracking
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/bentoml/yatai-schemas/modelschemas"
@@ -10,23 +11,48 @@ import (
 	"github.com/tianweidut/cron"
 )
 
-func AddLifeCycleTrackingCron(ctx context.Context) {
-	TrackLifeCycle(ctx, YataiLifeCycleStartup)
-	ctx = context.WithValue(ctx, "yataiUpTimestamp", time.Now())
+const (
+	LIFECYCLE_CRON_SCHEDULE       = "@every 6h"
+	LIFECYCLE_CRON_SCHEDULE_DEBUG = "@every 1m"
+)
 
-	c := cron.New()
-	err := c.AddFunc("@every 1m", func() {
+var (
+	yataiUpTimestamp   time.Time
+	yataiUpTimestampMu sync.Mutex
+)
+
+func resetYataiUpTimestamp() {
+	yataiUpTimestampMu.Lock()
+	defer yataiUpTimestampMu.Unlock()
+	yataiUpTimestamp = time.Now()
+}
+
+func init() {
+	resetYataiUpTimestamp()
+}
+
+func AddLifeCycleTrackingCron(ctx context.Context, c *cron.Cron) {
+	TrackLifeCycle(ctx, YataiLifeCycleStartup)
+
+	var cron_schedule string
+	if !isTrackingDebug() {
+		cron_schedule = LIFECYCLE_CRON_SCHEDULE
+	} else {
+		cron_schedule = LIFECYCLE_CRON_SCHEDULE_DEBUG
+	}
+	err := c.AddFunc(cron_schedule, func() {
 		TrackLifeCycle(ctx, YataiLifeCycleUpdate)
 	})
 
 	if err != nil {
 		NewTrackerLogger().Errorf("cron add func failed: %s", err.Error())
 	}
-
-	c.Start()
 }
 
 func TrackLifeCycle(ctx context.Context, event YataiEventType) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
 	trackerLog := NewTrackerLogger().WithField("eventType", event)
 
 	orgs, _, err := services.OrganizationService.List(ctx, services.ListOrganizationOption{})
@@ -73,13 +99,9 @@ func TrackLifeCycle(ctx context.Context, event YataiEventType) {
 			}
 		}
 
-		uptimeStamp := ctx.Value("yataiUpTimestamp")
-		var uptimeDurationSeconds time.Duration
-		if uptimeStamp != nil {
-			timeNow := time.Now()
-			uptimeDurationSeconds = timeNow.Sub(uptimeStamp.(time.Time)) / time.Second
-			ctx = context.WithValue(ctx, "yataiUpTimestamp", timeNow)
-		}
+		timeNow := time.Now()
+		uptimeDurationSeconds := timeNow.Sub(yataiUpTimestamp) / time.Second
+		resetYataiUpTimestamp()
 		lifecycleEvent := LifeCycleEvent{
 			CommonProperties: NewCommonProperties(
 				event, org.Uid, defaultOrg.Uid, version.Version),

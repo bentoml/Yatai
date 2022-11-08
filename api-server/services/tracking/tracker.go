@@ -4,12 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io"
-	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/bentoml/yatai-common/reqcli"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -38,9 +37,14 @@ func NewTrackerLogger() *log.Logger {
 	return logger
 }
 
-func donot_track() bool {
+func doNotTrack() bool {
 	out := os.Getenv(YATAI_DONOT_TRACK)
 	return strings.ToLower(out) == "true"
+}
+
+func isTrackingDebug() bool {
+	out := os.Getenv(YATAI_TRACKING_LOGLEVEL)
+	return out == "debug"
 }
 
 // Marshal the data and sent to tracking server
@@ -52,31 +56,24 @@ func track(ctx context.Context, data interface{}, eventType YataiEventType) {
 		trackingLogger.Error(err, "Failed to marshal data")
 		return
 	}
-
 	var prettyJSON bytes.Buffer
 	_ = json.Indent(&prettyJSON, jsonData, "", " ")
 	trackingLogger.Info("Tracking Payload: ", prettyJSON.String())
 
-	if !donot_track() {
-		client := http.Client{Timeout: TRACKER_TIMEOUT}
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, TRACKING_SERVER, bytes.NewBuffer(jsonData))
-		if err != nil {
-			trackingLogger.Error(err, "failed to create new request.")
-			return
+	if !doNotTrack() {
+		type JitsuResponse struct {
+			Status string `json:"status"`
 		}
-		resp, err := client.Do(req)
+		var resp JitsuResponse
+		reqcli.NewJsonRequestBuilder().Method("POST").Url(TRACKING_SERVER).Payload(bytes.NewBuffer(jsonData)).Result(&resp).Do(ctx)
 		if err != nil {
 			trackingLogger.Error(err, "sending request failed.")
 		}
-		defer resp.Body.Close()
 
-		if resp.StatusCode == 200 {
+		if resp.Status == "ok" {
 			trackingLogger.Info("Tracking Request sent.")
 		} else {
 			trackingLogger.Errorf("Tracking Request failed. Status [%s]", resp.Status)
-			bodyBytes, _ := io.ReadAll(resp.Body)
-			bodyString := string(bodyBytes)
-			trackingLogger.Error(bodyString)
 		}
 	}
 }
