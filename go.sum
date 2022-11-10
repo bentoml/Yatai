@@ -149,8 +149,8 @@ github.com/aws/aws-sdk-go v1.36.30/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2z
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
 github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647 h1:fKWmU8aM6tda4yThxj8SGKWJYCxjLW9gSM6WIIFFgvo=
 github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647/go.mod h1:w8sk7HbPMnOlZislz8Ch3pRw15FNMY6o1Q+53fepnhc=
-github.com/bentoml/yatai-common v0.0.0-20221104031150-236cce51f6d0 h1:nevLVYhEIbDrwkL0764wjTH4KfJ19FDJi2a+G9/7RNM=
-github.com/bentoml/yatai-common v0.0.0-20221104031150-236cce51f6d0/go.mod h1:pox0XYk/bVUwKkadn0XwWHEbJmxSEeN3+HwGA4a8uOQ=
+github.com/bentoml/yatai-common v0.0.0-20221110045501-b8f304ef3ac2 h1:xjzHs6iXj85/7AWhXYM7hXpyn+B0gUbQR8z8BuEAInA=
+github.com/bentoml/yatai-common v0.0.0-20221110045501-b8f304ef3ac2/go.mod h1:pox0XYk/bVUwKkadn0XwWHEbJmxSEeN3+HwGA4a8uOQ=
 github.com/bentoml/yatai-deployment v1.0.0-d7.0.20220929082153-10460cdfe1dc h1:G3shUA2vcJ8Tk8fJ2Ij3JChSYpfgJBObui0Jxaimcik=
 github.com/bentoml/yatai-deployment v1.0.0-d7.0.20220929082153-10460cdfe1dc/go.mod h1:72OSUjsa5HCVNBtLKz6yjvQ+pbRaPJUQQlSToSpvn0M=
 github.com/bentoml/yatai-schemas v0.0.0-20220929081535-497e588eac1f h1:U5RhCr23GOVWpxz3HWNqjHPILGgQcHjqvzvYjY+PQHQ=
