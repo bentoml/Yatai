@@ -8,6 +8,11 @@ As you know, Kubernetes has a complex network environment, so developing cloud-n
 
 ## Prequisites
 
+- [Git LFS](https://git-lfs.github.com/)
+  
+  Yatai Git project use LFS to storage large image files in the documentation.
+  
+
 - A Yatai installed in the **development environment** for development and debugging
 
     > NOTE: Since you are developing, **you must not use the production environment**, so we recommend using the quick install script to install Yatai in the local minikube
