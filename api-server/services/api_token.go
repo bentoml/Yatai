@@ -190,9 +190,9 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 		componentSharedEnvSecretName := ""
 		// nolint: gocritic
 		if componentName == consts.YataiImageBuilderComponentName {
-			componentSharedEnvSecretName = consts.KubeSecretNameYataiImageBuilderSharedEnv
+			componentSharedEnvSecretName = config.GetYataiImageBuilderSharedEnvSecretNameFromEnv()
 		} else if componentName == consts.YataiDeploymentComponentName {
-			componentSharedEnvSecretName = consts.KubeSecretNameYataiDeploymentSharedEnv
+			componentSharedEnvSecretName = config.GetYataiDeploymentSharedEnvSecretNameFromEnv()
 			// compatible with old version
 		} else if componentName != "yatai-deployment-operator" {
 			err = errors.Errorf("invalid component name %s", componentName)
