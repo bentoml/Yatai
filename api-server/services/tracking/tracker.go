@@ -66,7 +66,7 @@ func track(ctx context.Context, data interface{}, eventType YataiEventType) {
 			Status string `json:"status"`
 		}
 		var resp JitsuResponse
-		reqcli.NewJsonRequestBuilder().Method("POST").Url(TRACKING_SERVER).Payload(bytes.NewBuffer(jsonData)).Result(&resp).Do(ctx)
+		_, err := reqcli.NewJsonRequestBuilder().Method("POST").Url(TRACKING_SERVER).Payload(bytes.NewBuffer(jsonData)).Result(&resp).Do(ctx)
 		if err != nil {
 			trackingLogger.Error(err, "sending request failed.")
 		}
