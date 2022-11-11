@@ -67,6 +67,8 @@ spec:
                   name: {{ .Values.s3.secretKeyExistingSecretName | quote }}
                   key: {{ .Values.s3.secretKeyExistingSecretKey | quote }}
             {{- end }}
+            - name: YATAI_DONOT_TRACK
+              value: {{ .Values.doNotTrack | quote }}
           livenessProbe:
             failureThreshold: 15
             initialDelaySeconds: 10
