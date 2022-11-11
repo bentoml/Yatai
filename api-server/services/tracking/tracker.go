@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bentoml/yatai-common/reqcli"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/bentoml/yatai-common/reqcli"
 )
 
 const (

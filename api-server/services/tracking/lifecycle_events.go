@@ -5,10 +5,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/tianweidut/cron"
+
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/version"
-	"github.com/tianweidut/cron"
 )
 
 const (
