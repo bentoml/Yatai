@@ -75,8 +75,21 @@ fi
 
 
 echo "⏳ waiting for minio-operator to be ready..."
-kubectl -n yatai-system wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=minio-operator
-echo "✅ minio-operator is ready"
+if ! kubectl -n yatai-system wait --for=condition=ready --timeout=60s pod -l app.kubernetes.io/name=minio-operator; then
+  echo "😱 minio-operator is not ready"
+
+  helm repo add minio https://operator.min.io/
+  helm repo update minio
+
+  echo "🤖 installing minio-operator..."
+  helm upgrade --install minio-operator minio/minio-operator -n ${namespace} --set tenants=null
+
+  echo "⏳ waiting for minio-operator to be ready..."
+  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=minio-operator
+  echo "✅ minio-operator is ready"
+else
+  echo "✅ minio-operator is ready"
+fi
 
 minio_secret_name=yatai-logging-minio
 
