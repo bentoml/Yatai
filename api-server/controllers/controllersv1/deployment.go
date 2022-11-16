@@ -24,6 +24,7 @@ import (
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
+	"github.com/bentoml/yatai/api-server/services/tracking"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
 	"github.com/bentoml/yatai/common/sync/errsgroup"
 	"github.com/bentoml/yatai/common/utils"
@@ -159,6 +160,7 @@ func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeployment
 
 	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
 
+	go tracking.TrackDeploymentEvent(ctx, deploymentSchema, tracking.YataiDeploymentCreate)
 	return deploymentSchema, err
 }
 
@@ -215,6 +217,7 @@ func (c *deploymentController) Update(ctx *gin.Context, schema *UpdateDeployment
 	}
 
 	deploymentSchema, err := c.doUpdate(ctx_, schema.UpdateDeploymentSchema, org, deployment)
+	go tracking.TrackDeploymentEvent(ctx, deploymentSchema, tracking.YataiDeploymentUpdate)
 	return deploymentSchema, err
 }
 
@@ -406,7 +409,9 @@ func (c *deploymentController) Terminate(ctx *gin.Context, schema *GetDeployment
 	if err != nil {
 		return nil, err
 	}
-	return transformersv1.ToDeploymentSchema(ctx, deployment)
+	deploymentSchema, err := transformersv1.ToDeploymentSchema(ctx, deployment)
+	go tracking.TrackDeploymentEvent(ctx, deploymentSchema, tracking.YataiDeploymentTerminate)
+	return deploymentSchema, err
 }
 
 func (c *deploymentController) Delete(ctx *gin.Context, schema *GetDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
@@ -421,7 +426,9 @@ func (c *deploymentController) Delete(ctx *gin.Context, schema *GetDeploymentSch
 	if err != nil {
 		return nil, err
 	}
-	return transformersv1.ToDeploymentSchema(ctx, deployment)
+	deploymentSchema, err := transformersv1.ToDeploymentSchema(ctx, deployment)
+	go tracking.TrackDeploymentEvent(ctx, deploymentSchema, tracking.YataiDeploymentDelete)
+	return deploymentSchema, err
 }
 
 type ListClusterDeploymentSchema struct {

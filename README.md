@@ -208,6 +208,31 @@ There are many ways to contribute to the project:
 -   Investigate bugs and review other developers' pull requests.
 -   Contributing code or documentation to the project by submitting a GitHub pull request. See the [development guide](https://github.com/bentoml/yatai/blob/main/DEVELOPMENT.md).
 
+### Usage Reporting
+
+Yatai collects usage data that helps our team to improve the product.
+Only Yatai's internal API calls are being reported. We strip out as much potentially
+sensitive information as possible, and we will never collect user code, model data, model names, or stack traces.
+Here's the [code](./api-server/services/tracking/) for usage tracking.
+You can opt-out of usage by configuring the helm chart option `doNotTrack` to
+`true`.
+
+```yaml
+doNotTrack: false
+```
+
+Or by setting the `YATAI_DONOT_TRACK` env var in yatai deployment.
+```yaml
+spec:
+  template:
+    spec:
+      containers:
+        env:
+        - name: YATAI_DONOT_TRACK
+          value: "true"
+```
+
+
 ## Licence
 
 [Elastic License 2.0 (ELv2)](https://github.com/bentoml/yatai/blob/main/LICENSE.md)

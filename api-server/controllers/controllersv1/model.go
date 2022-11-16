@@ -15,6 +15,7 @@ import (
 	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
+	"github.com/bentoml/yatai/api-server/services/tracking"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
 	"github.com/bentoml/yatai/common/utils"
 )
@@ -189,7 +190,7 @@ func (c *modelController) Upload(ctx *gin.Context) {
 	uploadStatus = modelschemas.ModelUploadStatusSuccess
 	now = time.Now()
 	nowPtr = &now
-	_, err = services.ModelService.Update(ctx, model, services.UpdateModelOption{
+	model, err = services.ModelService.Update(ctx, model, services.UpdateModelOption{
 		UploadStatus:    &uploadStatus,
 		UploadStartedAt: &nowPtr,
 	})
@@ -197,6 +198,7 @@ func (c *modelController) Upload(ctx *gin.Context) {
 		abortWithError(ctx, err)
 		return
 	}
+	go tracking.TrackModelEvent(ctx, model, tracking.YataiModelPush)
 }
 
 func (c *modelController) StartMultipartUpload(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
@@ -336,6 +338,8 @@ func (c *modelController) Download(ctx *gin.Context) {
 		abortWithError(ctx, err)
 		return
 	}
+
+	go tracking.TrackModelEvent(ctx, model, tracking.YataiModelPull)
 }
 
 func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelSchema, error) {
@@ -372,6 +376,8 @@ func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelS
 	} else {
 		modelSchema.PresignedUrlsDeprecated = true
 	}
+
+	go tracking.TrackModelEvent(ctx, model, tracking.YataiModelPull)
 	return modelSchema, nil
 }
 
@@ -474,7 +480,9 @@ func (c *modelController) FinishUpload(ctx *gin.Context, schema *FinishUploadMod
 			return nil, errors.Wrap(err, "create event")
 		}
 	}
-	return transformersv1.ToModelSchema(ctx, model)
+	modelSchema, err := transformersv1.ToModelSchema(ctx, model)
+	go tracking.TrackModelEvent(ctx, model, tracking.YataiModelPush)
+	return modelSchema, err
 }
 
 func (c *modelController) Get(ctx *gin.Context, schema *GetModelSchema) (*schemasv1.ModelFullSchema, error) {

@@ -17,6 +17,7 @@ import (
 	"github.com/bentoml/yatai/api-server/config"
 	"github.com/bentoml/yatai/api-server/routes"
 	"github.com/bentoml/yatai/api-server/services"
+	"github.com/bentoml/yatai/api-server/services/tracking"
 	"github.com/bentoml/yatai/common/command"
 	"github.com/bentoml/yatai/common/sync/errsgroup"
 )
@@ -24,6 +25,9 @@ import (
 func addCron(ctx context.Context) {
 	c := cron.New()
 	logger := logrus.New().WithField("cron", "sync env")
+
+	// Add cron for tracking lifecycle events
+	tracking.AddLifeCycleTrackingCron(ctx, c)
 
 	err := c.AddFunc("@every 1m", func() {
 		ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
