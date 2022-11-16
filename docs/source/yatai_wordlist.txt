@@ -39,3 +39,4 @@ scalability
 addons
 nvidia
 gpu
+macOS
