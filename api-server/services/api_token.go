@@ -187,20 +187,9 @@ func (s *apiTokenService) GetByToken(ctx context.Context, token string) (*models
 			err = errors.Wrapf(err, "failed to get kube cli set in cluster %s in organization %s", clusterName, org.Name)
 			return nil, err
 		}
-		componentSharedEnvSecretName := ""
-		// nolint: gocritic
-		if componentName == consts.YataiImageBuilderComponentName {
-			componentSharedEnvSecretName = config.GetYataiImageBuilderSharedEnvSecretNameFromEnv()
-		} else if componentName == consts.YataiDeploymentComponentName {
-			componentSharedEnvSecretName = config.GetYataiDeploymentSharedEnvSecretNameFromEnv()
-			// compatible with old version
-		} else if componentName != "yatai-deployment-operator" {
-			err = errors.Errorf("invalid component name %s", componentName)
-			return nil, err
-		}
 		expectedApiToken := ""
-		if componentSharedEnvSecretName != "" {
-			yataiConf, err := config.GetYataiConfig(ctx, cliset, componentSharedEnvSecretName, false)
+		if componentName != "yatai-deployment-operator" {
+			yataiConf, err := config.GetYataiConfig(ctx, cliset, componentName, false)
 			if err != nil {
 				err = errors.Wrapf(err, "failed to get yatai config in cluster %s in organization %s", clusterName, org.Name)
 				return nil, err
