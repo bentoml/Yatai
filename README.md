@@ -48,7 +48,7 @@ Let's try out Yatai locally in a minikube cluster!
 ### ⚙️ Prerequisites:
   * Install latest minikube: https://minikube.sigs.k8s.io/docs/start/
   * Install latest Helm: https://helm.sh/docs/intro/install/
-  * Start a minikube Kubernetes cluster: `minikube start --cpus 4 --memory 4096`
+  * Start a minikube Kubernetes cluster: `minikube start --cpus 4 --memory 4096`, if you are using macOS, you sould use [hyperkit](https://minikube.sigs.k8s.io/docs/drivers/hyperkit/) driver to prevent the macOS docker desktop [network limitation](https://docs.docker.com/desktop/networking/#i-cannot-ping-my-containers)
   * Check that minikube cluster status is "running": `minikube status`
   * Make sure your `kubectl` is configured with `minikube` context: `kubectl config current-context`
   * Enable ingress controller: `minikube addons enable ingress`
