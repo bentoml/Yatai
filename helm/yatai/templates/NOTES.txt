@@ -1,6 +1,6 @@
 When installing Yatai for the first time, run the following command to get an initialzation link for creating your admin account:
 
-  export YATAI_INITIALIZATION_TOKEN=$(kubectl get secret env --namespace {{ .Release.Namespace }} -o jsonpath="{.data.YATAI_INITIALIZATION_TOKEN}" | base64 --decode)
+  export YATAI_INITIALIZATION_TOKEN=$(kubectl get secret {{ include "yatai.envname" . }} --namespace {{ .Release.Namespace }} -o jsonpath="{.data.YATAI_INITIALIZATION_TOKEN}" | base64 --decode)
 {{ if .Values.ingress.enabled }}
 {{- range $host := .Values.ingress.hosts }}
   {{- range .paths }}
@@ -14,7 +14,7 @@ When installing Yatai for the first time, run the following command to get an in
 {{- else if contains "LoadBalancer" .Values.service.type }}
   export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "yatai.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
   echo "Create admin account at: http://$SERVICE_IP:{{ .Values.service.port }}/setup?token=$YATAI_INITIALIZATION_TOKEN"
-  
+
 * NOTE: It may take a few minutes for the LoadBalancer IP to be available. You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "yatai.fullname" . }}'
 {{- else if contains "ClusterIP" .Values.service.type }}
   echo "Create admin account at: http://127.0.0.1:8080/setup?token=$YATAI_INITIALIZATION_TOKEN" && kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "yatai.fullname" . }} 8080:{{ .Values.service.port }}
