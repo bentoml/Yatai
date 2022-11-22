@@ -32,6 +32,8 @@ import (
 
 	servingv1alpha2 "github.com/bentoml/yatai-deployment/generated/serving/clientset/versioned/typed/serving/v1alpha2"
 	servingv1alpha3 "github.com/bentoml/yatai-deployment/generated/serving/clientset/versioned/typed/serving/v1alpha3"
+	servingv2alpha1 "github.com/bentoml/yatai-deployment/generated/serving/clientset/versioned/typed/serving/v2alpha1"
+	resourcesv1alpha1 "github.com/bentoml/yatai-image-builder/generated/resources/clientset/versioned/typed/resources/v1alpha1"
 )
 
 type deploymentService struct{}
@@ -461,6 +463,32 @@ func (s *deploymentService) GetKubeBentoDeploymentV1alpha3Cli(ctx context.Contex
 		return nil, errors.Wrap(err, "get bento deployment cliset")
 	}
 	return cli.BentoDeployments(ns), nil
+}
+
+func (s *deploymentService) GetKubeBentoDeploymentV2alpha1Cli(ctx context.Context, d *models.Deployment) (servingv2alpha1.BentoDeploymentInterface, error) {
+	_, restConf, err := s.GetKubeCliSet(ctx, d)
+	if err != nil {
+		return nil, errors.Wrap(err, "get k8s cliset")
+	}
+	ns := s.GetKubeNamespace(d)
+	cli, err := servingv2alpha1.NewForConfig(restConf)
+	if err != nil {
+		return nil, errors.Wrap(err, "get bento deployment cliset")
+	}
+	return cli.BentoDeployments(ns), nil
+}
+
+func (s *deploymentService) GetKubeBentoRequestV1alpha1Cli(ctx context.Context, d *models.Deployment) (resourcesv1alpha1.BentoRequestInterface, error) {
+	_, restConf, err := s.GetKubeCliSet(ctx, d)
+	if err != nil {
+		return nil, errors.Wrap(err, "get k8s cliset")
+	}
+	ns := s.GetKubeNamespace(d)
+	cli, err := resourcesv1alpha1.NewForConfig(restConf)
+	if err != nil {
+		return nil, errors.Wrap(err, "get bento deployment cliset")
+	}
+	return cli.BentoRequests(ns), nil
 }
 
 func (s *deploymentService) SyncStatus(ctx context.Context, d *models.Deployment) (modelschemas.DeploymentStatus, error) {
