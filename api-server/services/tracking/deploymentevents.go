@@ -34,15 +34,27 @@ func TrackDeploymentEvent(ctx context.Context, deploymentSchema *schemasv1.Deplo
 		var runnerHPAConfigList = make([]map[string]modelschemas.DeploymentTargetHPAConf, len(deploymentSchema.LatestRevision.Targets))
 
 		for i, deploymentTarget := range deploymentSchema.LatestRevision.Targets {
+			if deploymentTarget.Config == nil {
+				continue
+			}
+
 			deploymentTargetTypes = append(deploymentTargetTypes, deploymentTarget.DeploymentTargetTypeSchema.Type)
-			apiResources = append(apiResources, *deploymentTarget.Config.Resources)
-			apiHPAConfs = append(apiHPAConfs, *deploymentTarget.Config.HPAConf)
+			if deploymentTarget.Config.Resources != nil {
+				apiResources = append(apiResources, *deploymentTarget.Config.Resources)
+			}
+			if deploymentTarget.Config.HPAConf != nil {
+				apiHPAConfs = append(apiHPAConfs, *deploymentTarget.Config.HPAConf)
+			}
 
 			runnerResourcesList[i] = make(map[string]modelschemas.DeploymentTargetResources)
 			runnerHPAConfigList[i] = make(map[string]modelschemas.DeploymentTargetHPAConf)
 			for runnerName, runnerConfig := range deploymentTarget.Config.Runners {
-				runnerResourcesList[i][runnerName] = *runnerConfig.Resources
-				runnerHPAConfigList[i][runnerName] = *runnerConfig.HPAConf
+				if runnerConfig.Resources != nil {
+					runnerResourcesList[i][runnerName] = *runnerConfig.Resources
+				}
+				if runnerConfig.HPAConf != nil {
+					runnerHPAConfigList[i][runnerName] = *runnerConfig.HPAConf
+				}
 			}
 		}
 		deploymentSchemaParsed.DeploymentTargetTypes = deploymentTargetTypes
