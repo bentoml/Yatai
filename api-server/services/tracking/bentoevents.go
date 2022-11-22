@@ -10,6 +10,9 @@ import (
 )
 
 func TrackBentoEvent(ctx context.Context, bentoModel *models.Bento, eventType YataiEventType) {
+	if bentoModel == nil {
+		return
+	}
 	trackingLogger := NewTrackerLogger().WithField("eventType", eventType)
 	org, err := services.GetCurrentOrganization(ctx)
 	if err != nil {

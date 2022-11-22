@@ -11,6 +11,9 @@ import (
 
 // track a DeploymentEvent(create/update/terminate/delete)
 func TrackDeploymentEvent(ctx context.Context, deploymentSchema *schemasv1.DeploymentSchema, eventType YataiEventType) {
+	if deploymentSchema == nil {
+		return
+	}
 	trackingLogger := NewTrackerLogger().WithField("eventType", eventType)
 	defaultOrg, err := services.OrganizationService.GetDefault(ctx)
 	if err != nil {
