@@ -10,6 +10,9 @@ import (
 )
 
 func TrackModelEvent(ctx context.Context, modelModel *models.Model, eventType YataiEventType) {
+	if modelModel == nil {
+		return
+	}
 	trackingLogger := NewTrackerLogger().WithField("eventType", eventType)
 	modelschema, err := transformersv1.ToModelSchema(ctx, modelModel)
 	if err != nil {

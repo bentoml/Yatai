@@ -59,40 +59,70 @@ func TrackLifeCycle(ctx context.Context, event YataiEventType) {
 	orgs, _, err := services.OrganizationService.List(ctx, services.ListOrganizationOption{})
 
 	if err != nil {
-		trackerLog.Error("unable to get OrganizationService.List. ", err.Error())
+		trackerLog.Error("unable to get organizations ", err.Error())
+		return
 	}
 
 	// defaultOrg
 	defaultOrg, err := services.OrganizationService.GetDefault(ctx)
 	if err != nil {
 		trackingLogger.Error("Unnable to get defaultOrg: ", err)
+		return
 	}
 
 	// sent tracking info for each organization
 	for _, org := range orgs {
 		// bento
-		bentoRepos, numBentoRepos, _ := services.BentoRepositoryService.List(ctx, services.ListBentoRepositoryOption{OrganizationId: &org.ID})
+		bentoRepos, numBentoRepos, err := services.BentoRepositoryService.List(ctx, services.ListBentoRepositoryOption{OrganizationId: &org.ID})
+		if err != nil {
+			trackerLog.Error("unable to get bento repositories ", err.Error())
+			return
+		}
 		var numTotalBentos uint
 		for _, bentoRepo := range bentoRepos {
-			_, numBentos, _ := services.BentoService.List(ctx, services.ListBentoOption{BentoRepositoryId: &bentoRepo.ID})
+			_, numBentos, err := services.BentoService.List(ctx, services.ListBentoOption{BentoRepositoryId: &bentoRepo.ID})
+			if err != nil {
+				trackerLog.Error("unable to get bentos ", err.Error())
+				return
+			}
 			numTotalBentos += numBentos
 		}
 
 		// model
-		modelRepos, numModelRepos, _ := services.ModelRepositoryService.List(ctx, services.ListModelRepositoryOption{OrganizationId: &org.ID})
+		modelRepos, numModelRepos, err := services.ModelRepositoryService.List(ctx, services.ListModelRepositoryOption{OrganizationId: &org.ID})
+		if err != nil {
+			trackerLog.Error("unable to get model repositories ", err.Error())
+			return
+		}
 		var numTotalModels uint
 		for _, modelRepo := range modelRepos {
-			_, numModels, _ := services.ModelService.List(ctx, services.ListModelOption{ModelRepositoryId: &modelRepo.ID})
+			_, numModels, err := services.ModelService.List(ctx, services.ListModelOption{ModelRepositoryId: &modelRepo.ID})
+			if err != nil {
+				trackerLog.Error("unable to get models ", err.Error())
+				return
+			}
 			numTotalModels += numModels
 		}
 
 		// users
-		members, _ := services.OrganizationMemberService.List(ctx, services.ListOrganizationMemberOption{OrganizationId: &org.ID})
+		members, err := services.OrganizationMemberService.List(ctx, services.ListOrganizationMemberOption{OrganizationId: &org.ID})
+		if err != nil {
+			trackerLog.Error("unable to get organization members ", err.Error())
+			return
+		}
 		// clusters
-		_, numClusters, _ := services.ClusterService.List(ctx, services.ListClusterOption{OrganizationId: &org.ID})
+		_, numClusters, err := services.ClusterService.List(ctx, services.ListClusterOption{OrganizationId: &org.ID})
+		if err != nil {
+			trackerLog.Error("unable to get clusters ", err.Error())
+			return
+		}
 
 		// deployments
-		deployments, numDeployments, _ := services.DeploymentService.List(ctx, services.ListDeploymentOption{OrganizationId: &org.ID})
+		deployments, numDeployments, err := services.DeploymentService.List(ctx, services.ListDeploymentOption{OrganizationId: &org.ID})
+		if err != nil {
+			trackerLog.Error("unable to get deployments ", err.Error())
+			return
+		}
 		var numRunningDeployments uint
 		for _, deployment := range deployments {
 			if deployment.Status == modelschemas.DeploymentStatusRunning {

@@ -45,9 +45,12 @@ linters:
   presets:
     - bugs
     - unused
+    - error
   disable:
     - unused
     - scopelint
+    - wrapcheck
+    - goerr113
   enable:
     - bodyclose
     - deadcode
