@@ -11,6 +11,7 @@ import (
 )
 
 type deploymentRevisionController struct {
+	// nolint: unused
 	baseController
 }
 

@@ -13,6 +13,7 @@ import (
 )
 
 type newsController struct {
+	// nolint: unused
 	baseController
 }
 

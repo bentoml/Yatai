@@ -16,6 +16,7 @@ import (
 )
 
 type authController struct {
+	// nolint: unused
 	baseController
 }
 

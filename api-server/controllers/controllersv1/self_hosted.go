@@ -13,6 +13,7 @@ import (
 )
 
 type selfHostedController struct {
+	// nolint: unused
 	baseController
 }
 

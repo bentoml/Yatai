@@ -25,6 +25,7 @@ import (
 )
 
 type kubeController struct {
+	// nolint: unused
 	baseController
 }
 

@@ -24,6 +24,7 @@ import (
 )
 
 type clusterController struct {
+	// nolint: unused
 	baseController
 }
 

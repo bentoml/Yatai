@@ -17,6 +17,7 @@ import (
 )
 
 type modelRepositoryController struct {
+	// nolint: unused
 	baseController
 }
 
@@ -55,6 +56,7 @@ func (c *modelRepositoryController) canUpdate(ctx context.Context, modelReposito
 	return OrganizationController.canUpdate(ctx, organization)
 }
 
+// nolint: unused
 func (c *modelRepositoryController) canOperate(ctx context.Context, modelRepository *models.ModelRepository) error {
 	organization, err := services.OrganizationService.GetAssociatedOrganization(ctx, modelRepository)
 	if err != nil {

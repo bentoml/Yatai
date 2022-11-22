@@ -18,6 +18,7 @@ import (
 )
 
 type subscriptionController struct {
+	// nolint: unused
 	baseController
 }
 

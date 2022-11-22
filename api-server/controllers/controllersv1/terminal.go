@@ -35,6 +35,7 @@ import (
 )
 
 type terminalController struct {
+	// nolint: unused
 	baseController
 }
 
@@ -584,6 +585,7 @@ func launchKubectlPod(ctx context.Context, cli *kubernetes.Clientset, userName s
 	return launchPod(ctx, cli, pod)
 }
 
+// nolint: unused
 func launchPod(ctx context.Context, cli *kubernetes.Clientset, pod *corev1.Pod) (*corev1.Pod, error) {
 	podCli := cli.CoreV1().Pods(pod.Namespace)
 	_, err := podCli.Get(ctx, pod.Name, metav1.GetOptions{})
