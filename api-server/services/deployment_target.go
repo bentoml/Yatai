@@ -62,10 +62,10 @@ func (*deploymentTargetService) Create(ctx context.Context, opt CreateDeployment
 				},
 			},
 			HPAConf: &modelschemas.DeploymentTargetHPAConf{
-				CPU:         pointer.Int32Ptr(80),
-				GPU:         pointer.Int32Ptr(80),
-				MinReplicas: pointer.Int32Ptr(2),
-				MaxReplicas: pointer.Int32Ptr(10),
+				CPU:         pointer.Int32(80),
+				GPU:         pointer.Int32(80),
+				MinReplicas: pointer.Int32(2),
+				MaxReplicas: pointer.Int32(10),
 			},
 		}
 	}
@@ -237,7 +237,10 @@ func (s *deploymentTargetService) Deploy(ctx context.Context, deploymentTarget *
 		err = errors.Wrap(err, "get yatai deployment component")
 		return
 	}
-	if yataiDeploymentComp.Manifest != nil && yataiDeploymentComp.Manifest.LatestCRDVersion == "v1alpha3" {
+	// nolint: gocritic
+	if yataiDeploymentComp.Manifest != nil && yataiDeploymentComp.Manifest.LatestCRDVersion == "v2alpha1" {
+		_, err = KubeBentoDeploymentService.DeployV2alpha1(ctx, deploymentTarget, deployOption)
+	} else if yataiDeploymentComp.Manifest != nil && yataiDeploymentComp.Manifest.LatestCRDVersion == "v1alpha3" {
 		_, err = KubeBentoDeploymentService.DeployV1alpha3(ctx, deploymentTarget, deployOption)
 	} else {
 		_, err = KubeBentoDeploymentService.DeployV1alpha2(ctx, deploymentTarget, deployOption)
