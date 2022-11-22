@@ -13,6 +13,9 @@ import (
 
 	servingv1alpha2 "github.com/bentoml/yatai-deployment/apis/serving/v1alpha2"
 	servingv1alpha3 "github.com/bentoml/yatai-deployment/apis/serving/v1alpha3"
+	servingv2alpha1 "github.com/bentoml/yatai-deployment/apis/serving/v2alpha1"
+
+	resourcesv1alpha1 "github.com/bentoml/yatai-image-builder/apis/resources/v1alpha1"
 )
 
 type kubeBentoDeploymentService struct{}
@@ -97,6 +100,26 @@ func (s *kubeBentoDeploymentService) transformToBentoDeploymentV1alpha2(ctx cont
 	return
 }
 
+func (s *kubeBentoDeploymentService) transformToBentoDeploymentV1alpha3(ctx context.Context, deploymentTarget *models.DeploymentTarget) (kubeBentoDeployment *servingv1alpha3.BentoDeployment, err error) {
+	kubeBentoDeploymentV1alpha2, err := s.transformToBentoDeploymentV1alpha2(ctx, deploymentTarget)
+	if err != nil {
+		return
+	}
+	kubeBentoDeployment = kubeBentoDeploymentV1alpha2.ConvertToV1alpha3()
+	return
+}
+
+func (s *kubeBentoDeploymentService) transformToBentoDeploymentV2alpha1(ctx context.Context, deploymentTarget *models.DeploymentTarget) (kubeBentoDeployment *servingv2alpha1.BentoDeployment, bentoRequest *resourcesv1alpha1.BentoRequest, err error) {
+	kubeBentoDeployment_, err := s.transformToBentoDeploymentV1alpha3(ctx, deploymentTarget)
+	if err != nil {
+		return
+	}
+	bentoRequest = kubeBentoDeployment_.ConvertToBentoRequest()
+	kubeBentoDeployment = &servingv2alpha1.BentoDeployment{}
+	err = kubeBentoDeployment_.ConvertToV2alpha1(kubeBentoDeployment, bentoRequest.Name)
+	return
+}
+
 func (s *kubeBentoDeploymentService) DeployV1alpha2(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (kubeBentoDeployment *servingv1alpha2.BentoDeployment, err error) {
 	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
 	if err != nil {
@@ -161,10 +184,16 @@ func (s *kubeBentoDeploymentService) DeployV1alpha2(ctx context.Context, deploym
 		}
 	} else {
 		kubeBentoDeployment.SetResourceVersion(oldKubeBentoDeployment.GetResourceVersion())
+		if kubeBentoDeployment.Annotations == nil {
+			kubeBentoDeployment.Annotations = map[string]string{}
+		}
 		for k, v := range oldKubeBentoDeployment.Annotations {
 			if _, ok := kubeBentoDeployment.Annotations[k]; !ok {
 				kubeBentoDeployment.Annotations[k] = v
 			}
+		}
+		if kubeBentoDeployment.Labels == nil {
+			kubeBentoDeployment.Labels = map[string]string{}
 		}
 		for k, v := range oldKubeBentoDeployment.Labels {
 			if _, ok := kubeBentoDeployment.Labels[k]; !ok {
@@ -231,15 +260,9 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 		}()
 	}()
 
-	kubeBentoDeploymentV1alpha2, err := s.transformToBentoDeploymentV1alpha2(ctx, deploymentTarget)
+	kubeBentoDeployment, err = s.transformToBentoDeploymentV1alpha3(ctx, deploymentTarget)
 	if err != nil {
 		err = errors.Wrap(err, "failed to transform to kube bento deployment")
-		return
-	}
-
-	err = kubeBentoDeploymentV1alpha2.ConvertTo(kubeBentoDeployment)
-	if err != nil {
-		err = errors.Wrap(err, "failed to convert kube bento deployment v1alpha2 to v1alpha3")
 		return
 	}
 
@@ -258,10 +281,152 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 		}
 	} else {
 		kubeBentoDeployment.SetResourceVersion(oldKubeBentoDeployment.GetResourceVersion())
+		if kubeBentoDeployment.Annotations == nil {
+			kubeBentoDeployment.Annotations = map[string]string{}
+		}
 		for k, v := range oldKubeBentoDeployment.Annotations {
 			if _, ok := kubeBentoDeployment.Annotations[k]; !ok {
 				kubeBentoDeployment.Annotations[k] = v
 			}
+		}
+		if kubeBentoDeployment.Labels == nil {
+			kubeBentoDeployment.Labels = map[string]string{}
+		}
+		for k, v := range oldKubeBentoDeployment.Labels {
+			if _, ok := kubeBentoDeployment.Labels[k]; !ok {
+				kubeBentoDeployment.Labels[k] = v
+			}
+		}
+		kubeBentoDeployment.Spec.Annotations = oldKubeBentoDeployment.Spec.Annotations
+		kubeBentoDeployment.Spec.Labels = oldKubeBentoDeployment.Spec.Labels
+		kubeBentoDeployment.Spec.ExtraPodMetadata = oldKubeBentoDeployment.Spec.ExtraPodMetadata
+		kubeBentoDeployment.Spec.ExtraPodSpec = oldKubeBentoDeployment.Spec.ExtraPodSpec
+		kubeBentoDeployment.Spec.Ingress.Annotations = oldKubeBentoDeployment.Spec.Ingress.Annotations
+		kubeBentoDeployment.Spec.Ingress.Labels = oldKubeBentoDeployment.Spec.Ingress.Labels
+		kubeBentoDeployment.Spec.Ingress.TLS = oldKubeBentoDeployment.Spec.Ingress.TLS
+		kubeBentoDeployment.Spec.Autoscaling = oldKubeBentoDeployment.Spec.Autoscaling
+		for idx, runner := range kubeBentoDeployment.Spec.Runners {
+			for _, oldRunner := range oldKubeBentoDeployment.Spec.Runners {
+				if runner.Name == oldRunner.Name {
+					kubeBentoDeployment.Spec.Runners[idx].Annotations = oldRunner.Annotations
+					kubeBentoDeployment.Spec.Runners[idx].Labels = oldRunner.Labels
+					kubeBentoDeployment.Spec.Runners[idx].ExtraPodMetadata = oldRunner.ExtraPodMetadata
+					kubeBentoDeployment.Spec.Runners[idx].ExtraPodSpec = oldRunner.ExtraPodSpec
+					kubeBentoDeployment.Spec.Runners[idx].Autoscaling = oldRunner.Autoscaling
+				}
+			}
+		}
+		kubeBentoDeployment, err = cli.Update(ctx, kubeBentoDeployment, metav1.UpdateOptions{})
+		if err != nil {
+			err = errors.Wrapf(err, "failed to update kube bento deployment %s", kubeBentoDeployment.Name)
+			return
+		}
+	}
+	return
+}
+
+func (s *kubeBentoDeploymentService) DeployV2alpha1(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (kubeBentoDeployment *servingv2alpha1.BentoDeployment, err error) {
+	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get associated deployment")
+		return
+	}
+
+	bentoRequestCli, err := DeploymentService.GetKubeBentoRequestV1alpha1Cli(ctx, deployment)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get kube bento request cli")
+		return
+	}
+
+	cli, err := DeploymentService.GetKubeBentoDeploymentV2alpha1Cli(ctx, deployment)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get kube bento deployment cli")
+		return
+	}
+
+	if deploymentTarget.Config != nil && deploymentTarget.Config.KubeResourceVersion != "" {
+		var oldKubeBentoDeployment *servingv2alpha1.BentoDeployment
+		oldKubeBentoDeployment, err = cli.Get(ctx, deployment.Name, metav1.GetOptions{})
+		isNotFound := apierrors.IsNotFound(err)
+		if err != nil && !isNotFound {
+			err = errors.Wrap(err, "failed to get kube bento deployment")
+			return
+		}
+		if !isNotFound && oldKubeBentoDeployment.ResourceVersion == deploymentTarget.Config.KubeResourceVersion {
+			kubeBentoDeployment = oldKubeBentoDeployment
+			return
+		}
+	}
+
+	defer func() {
+		if err != nil {
+			return
+		}
+		status := modelschemas.DeploymentStatusImageBuilding
+		_, _ = DeploymentService.UpdateStatus(ctx, deployment, UpdateDeploymentStatusOption{
+			Status: &status,
+		})
+		deployment.Status = status
+		ctx_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		go func() {
+			defer cancel()
+			_, _ = DeploymentService.SyncStatus(ctx_, deployment)
+		}()
+	}()
+
+	kubeBentoDeployment, bentoRequest, err := s.transformToBentoDeploymentV2alpha1(ctx, deploymentTarget)
+	if err != nil {
+		err = errors.Wrap(err, "failed to transform to kube bento deployment")
+		return
+	}
+
+	var oldBentoRequest *resourcesv1alpha1.BentoRequest
+	oldBentoRequest, err = bentoRequestCli.Get(ctx, bentoRequest.Name, metav1.GetOptions{})
+	isNotFound := apierrors.IsNotFound(err)
+	if err != nil && !isNotFound {
+		err = errors.Wrap(err, "failed to get kube bento request")
+		return
+	}
+	if isNotFound {
+		_, err = bentoRequestCli.Create(ctx, bentoRequest, metav1.CreateOptions{})
+		if err != nil {
+			err = errors.Wrap(err, "failed to create kube bento request")
+			return
+		}
+	} else {
+		bentoRequest.SetResourceVersion(oldBentoRequest.GetResourceVersion())
+		_, err = bentoRequestCli.Update(ctx, bentoRequest, metav1.UpdateOptions{})
+		if err != nil {
+			err = errors.Wrap(err, "failed to update kube bento request")
+			return
+		}
+	}
+
+	var oldKubeBentoDeployment *servingv2alpha1.BentoDeployment
+	oldKubeBentoDeployment, err = cli.Get(ctx, kubeBentoDeployment.Name, metav1.GetOptions{})
+	isNotFound = apierrors.IsNotFound(err)
+	if err != nil && !isNotFound {
+		err = errors.Wrap(err, "failed to get kube bento deployment")
+		return
+	}
+	if isNotFound {
+		kubeBentoDeployment, err = cli.Create(ctx, kubeBentoDeployment, metav1.CreateOptions{})
+		if err != nil {
+			err = errors.Wrapf(err, "failed to create kube bento deployment %s", kubeBentoDeployment.Name)
+			return
+		}
+	} else {
+		kubeBentoDeployment.SetResourceVersion(oldKubeBentoDeployment.GetResourceVersion())
+		if kubeBentoDeployment.Annotations == nil {
+			kubeBentoDeployment.Annotations = map[string]string{}
+		}
+		for k, v := range oldKubeBentoDeployment.Annotations {
+			if _, ok := kubeBentoDeployment.Annotations[k]; !ok {
+				kubeBentoDeployment.Annotations[k] = v
+			}
+		}
+		if kubeBentoDeployment.Labels == nil {
+			kubeBentoDeployment.Labels = map[string]string{}
 		}
 		for k, v := range oldKubeBentoDeployment.Labels {
 			if _, ok := kubeBentoDeployment.Labels[k]; !ok {

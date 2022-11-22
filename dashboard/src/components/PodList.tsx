@@ -328,8 +328,10 @@ export default function PodList({
                             namespace={desiredShowTerminalPod.namespace}
                             podName={desiredShowTerminalPod.name}
                             containerName={
-                                desiredShowTerminalPod.raw_status?.containerStatuses?.find((containerStatus) =>
-                                    _.startsWith(desiredShowTerminalPod.name, containerStatus.name)
+                                desiredShowTerminalPod.raw_status?.containerStatuses?.find(
+                                    (containerStatus) =>
+                                        _.startsWith(desiredShowTerminalPod.name, containerStatus.name) ||
+                                        containerStatus.name === 'main'
                                 )?.name ??
                                 desiredShowTerminalPod.raw_status?.containerStatuses?.[
                                     (desiredShowTerminalPod.raw_status?.containerStatuses?.length ?? 1) - 1
