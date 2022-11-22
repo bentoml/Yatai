@@ -237,7 +237,7 @@ func (s *deploymentTargetService) Deploy(ctx context.Context, deploymentTarget *
 		err = errors.Wrap(err, "get yatai deployment component")
 		return
 	}
-	if yataiDeploymentComp.Manifest == nil && yataiDeploymentComp.Manifest.LatestCRDVersion == "v1alpha3" {
+	if yataiDeploymentComp.Manifest != nil && yataiDeploymentComp.Manifest.LatestCRDVersion == "v1alpha3" {
 		_, err = KubeBentoDeploymentService.DeployV1alpha3(ctx, deploymentTarget, deployOption)
 	} else {
 		_, err = KubeBentoDeploymentService.DeployV1alpha2(ctx, deploymentTarget, deployOption)
