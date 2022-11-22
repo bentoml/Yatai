@@ -16,6 +16,7 @@ import (
 )
 
 type terminalRecordController struct {
+	// nolint: unused
 	baseController
 }
 
@@ -54,6 +55,7 @@ func (c *terminalRecordController) canView(ctx context.Context, terminalRecord *
 	return nil
 }
 
+// nolint: unused
 func (c *terminalRecordController) canUpdate(ctx context.Context, terminalRecord *models.TerminalRecord) error {
 	org, err := services.OrganizationService.GetAssociatedNullableOrganization(ctx, terminalRecord)
 	if err != nil {
@@ -79,6 +81,7 @@ func (c *terminalRecordController) canUpdate(ctx context.Context, terminalRecord
 	return nil
 }
 
+// nolint: unused
 func (c *terminalRecordController) canOperate(ctx context.Context, terminalRecord *models.TerminalRecord) error {
 	org, err := services.OrganizationService.GetAssociatedNullableOrganization(ctx, terminalRecord)
 	if err != nil {

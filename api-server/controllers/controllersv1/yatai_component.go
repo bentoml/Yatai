@@ -17,6 +17,7 @@ import (
 )
 
 type yataiComponentController struct {
+	// nolint: unused
 	baseController
 }
 
@@ -39,6 +40,7 @@ func (s *GetYataiComponentSchema) GetYataiComponent(ctx context.Context) (*model
 	return yataiComponent, nil
 }
 
+// nolint: unused
 func (c *yataiComponentController) canView(ctx context.Context, yataiComponent *models.YataiComponent) error {
 	cluster, err := services.ClusterService.GetAssociatedCluster(ctx, yataiComponent)
 	if err != nil {
@@ -47,6 +49,7 @@ func (c *yataiComponentController) canView(ctx context.Context, yataiComponent *
 	return ClusterController.canView(ctx, cluster)
 }
 
+// nolint: unused
 func (c *yataiComponentController) canUpdate(ctx context.Context, yataiComponent *models.YataiComponent) error {
 	cluster, err := services.ClusterService.GetAssociatedCluster(ctx, yataiComponent)
 	if err != nil {
@@ -55,6 +58,7 @@ func (c *yataiComponentController) canUpdate(ctx context.Context, yataiComponent
 	return ClusterController.canUpdate(ctx, cluster)
 }
 
+// nolint: unused
 func (c *yataiComponentController) canOperate(ctx context.Context, yataiComponent *models.YataiComponent) error {
 	cluster, err := services.ClusterService.GetAssociatedCluster(ctx, yataiComponent)
 	if err != nil {

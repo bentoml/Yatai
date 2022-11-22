@@ -19,6 +19,7 @@ import (
 )
 
 type organizationController struct {
+	// nolint: unused
 	baseController
 }
 

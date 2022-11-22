@@ -89,7 +89,7 @@ func (s *kubePodService) GetKubePodRestartCount(pod apiv1.Pod) int32 {
 
 // GetKubePodStatus returns a KubePodStatus object containing a summary of the pod's status.
 func (s *kubePodService) GetKubePodStatus(pod apiv1.Pod, warnings []apiv1.Event) modelschemas.KubePodStatus {
-	var states []apiv1.ContainerState
+	states := make([]apiv1.ContainerState, 0, len(pod.Status.ContainerStatuses))
 	for _, containerStatus := range pod.Status.ContainerStatuses {
 		states = append(states, containerStatus.State)
 	}

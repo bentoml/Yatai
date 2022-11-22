@@ -46,19 +46,21 @@ linters:
     - bugs
     - unused
     - error
+    - performance
   disable:
-    - unused
-    - scopelint
     - wrapcheck
     - goerr113
-  enable:
-    - bodyclose
+    - maligned
+    - structcheck
     - deadcode
     - varcheck
+    - scopelint
+    - rowserrcheck
+    - sqlclosecheck
+  enable:
+    - bodyclose
     - ineffassign
     - exportloopref
-    - sqlclosecheck
-    - structcheck
     - typecheck
     - gofmt
     - unconvert
@@ -72,4 +74,3 @@ linters:
     - dogsled
     - whitespace
     - misspell
-    - rowserrcheck

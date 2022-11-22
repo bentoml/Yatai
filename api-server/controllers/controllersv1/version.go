@@ -8,6 +8,7 @@ import (
 )
 
 type versionController struct {
+	// nolint: unused
 	baseController
 }
 

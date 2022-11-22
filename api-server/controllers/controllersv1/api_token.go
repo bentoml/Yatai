@@ -17,6 +17,7 @@ import (
 )
 
 type apiTokenController struct {
+	// nolint: unused
 	baseController
 }
 

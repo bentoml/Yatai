@@ -23,6 +23,7 @@ import (
 )
 
 type bentoController struct {
+	// nolint: unused
 	baseController
 }
 
@@ -61,6 +62,7 @@ func (c *bentoController) canUpdate(ctx context.Context, bento *models.Bento) er
 	return BentoRepositoryController.canUpdate(ctx, bentoRepository)
 }
 
+// nolint: unused
 func (c *bentoController) canOperate(ctx context.Context, bento *models.Bento) error {
 	bentoRepository, err := services.BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
 	if err != nil {

@@ -290,6 +290,7 @@ func (t *Tail) Start(ctx context.Context, clientset *kubernetes.Clientset) error
 }
 
 type logController struct {
+	// nolint: unused
 	baseController
 }
 

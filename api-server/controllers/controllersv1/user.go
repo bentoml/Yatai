@@ -15,6 +15,7 @@ import (
 )
 
 type userController struct {
+	// nolint: unused
 	baseController
 }
 
