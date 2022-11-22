@@ -359,33 +359,6 @@ func (s *organizationService) GetTransmissionStrategy(org *models.Organization) 
 }
 
 func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organization) (conf *S3Config, err error) {
-	if config.YataiConfig.S3 != nil {
-		scheme := "http"
-		if config.YataiConfig.S3.Secure {
-			scheme = "https"
-		}
-		bentosBucketName := "yatai"
-		if config.YataiConfig.S3.BucketName != "" {
-			bentosBucketName = config.YataiConfig.S3.BucketName
-		}
-		modelsBucketName := "yatai"
-		if config.YataiConfig.S3.BucketName != "" {
-			modelsBucketName = config.YataiConfig.S3.BucketName
-		}
-		conf = &S3Config{
-			Endpoint:                    config.YataiConfig.S3.Endpoint,
-			EndpointInCluster:           config.YataiConfig.S3.Endpoint,
-			EndpointWithScheme:          fmt.Sprintf("%s://%s", scheme, config.YataiConfig.S3.Endpoint),
-			EndpointWithSchemeInCluster: fmt.Sprintf("%s://%s", scheme, config.YataiConfig.S3.Endpoint),
-			AccessKey:                   config.YataiConfig.S3.AccessKey,
-			SecretKey:                   config.YataiConfig.S3.SecretKey,
-			Secure:                      config.YataiConfig.S3.Secure,
-			Region:                      config.YataiConfig.S3.Region,
-			BentosBucketName:            bentosBucketName,
-			ModelsBucketName:            modelsBucketName,
-		}
-		return
-	}
 	if org.Config != nil && org.Config.S3 != nil && org.Config.S3.Endpoint != "" {
 		s3Config := org.Config.S3
 		endpoint := s3Config.Endpoint
@@ -428,6 +401,38 @@ func (s *organizationService) GetS3Config(ctx context.Context, org *models.Organ
 			Region:                      awsS3Conf.Region,
 			BentosBucketName:            awsS3Conf.BentosBucketName,
 			ModelsBucketName:            awsS3Conf.ModelsBucketName,
+		}
+		return
+	}
+	defaultOrg, err := s.GetDefault(ctx)
+	if err != nil {
+		err = errors.Wrap(err, "get default org")
+		return
+	}
+	if org.ID == defaultOrg.ID && config.YataiConfig.S3 != nil {
+		scheme := "http"
+		if config.YataiConfig.S3.Secure {
+			scheme = "https"
+		}
+		bentosBucketName := "yatai"
+		if config.YataiConfig.S3.BucketName != "" {
+			bentosBucketName = config.YataiConfig.S3.BucketName
+		}
+		modelsBucketName := "yatai"
+		if config.YataiConfig.S3.BucketName != "" {
+			modelsBucketName = config.YataiConfig.S3.BucketName
+		}
+		conf = &S3Config{
+			Endpoint:                    config.YataiConfig.S3.Endpoint,
+			EndpointInCluster:           config.YataiConfig.S3.Endpoint,
+			EndpointWithScheme:          fmt.Sprintf("%s://%s", scheme, config.YataiConfig.S3.Endpoint),
+			EndpointWithSchemeInCluster: fmt.Sprintf("%s://%s", scheme, config.YataiConfig.S3.Endpoint),
+			AccessKey:                   config.YataiConfig.S3.AccessKey,
+			SecretKey:                   config.YataiConfig.S3.SecretKey,
+			Secure:                      config.YataiConfig.S3.Secure,
+			Region:                      config.YataiConfig.S3.Region,
+			BentosBucketName:            bentosBucketName,
+			ModelsBucketName:            modelsBucketName,
 		}
 		return
 	}
