@@ -153,7 +153,7 @@ func (s *kubePodService) DeleteKubePod(ctx context.Context, deployment *models.D
 	if force {
 		policy := metav1.DeletePropagationForeground
 		options = metav1.DeleteOptions{
-			GracePeriodSeconds: pointer.Int64Ptr(0),
+			GracePeriodSeconds: pointer.Int64(0),
 			PropagationPolicy:  &policy,
 		}
 	}
