@@ -10,4 +10,7 @@ export interface IYataiComponentSchema extends IResourceSchema {
     kube_namespace: string
     lastest_installed_at?: string
     latest_heartbeat_at?: string
+    manifest?: {
+        latest_crd_version?: string
+    }
 }

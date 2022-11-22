@@ -11,6 +11,8 @@ import { MdEventNote } from 'react-icons/md'
 import { useDeployment } from '@/hooks/useDeployment'
 import Pods from '@/components/Pods'
 import { GrDocker } from 'react-icons/gr'
+import { useFetchYataiComponents } from '@/hooks/useFetchYataiComponents'
+import _ from 'lodash'
 
 export default function DeploymentReplicas() {
     const { clusterName, kubeNamespace, deploymentName } =
@@ -28,6 +30,20 @@ export default function DeploymentReplicas() {
         setPodsLoading,
     })
 
+    const { yataiComponentsInfo } = useFetchYataiComponents(clusterName)
+    let imageBuilderPodNamespace = 'yatai-builders'
+    let imageBuilderPodSelector = `yatai.ai/bento-repository=${deployment?.latest_revision?.targets[0]?.bento.repository.name},yatai.ai/bento=${deployment?.latest_revision?.targets[0]?.bento.version}`
+    if (
+        _.startsWith(
+            yataiComponentsInfo?.data?.find((component) => component.name === 'deployment')?.manifest
+                ?.latest_crd_version ?? 'v1alpha2',
+            'v2'
+        )
+    ) {
+        imageBuilderPodNamespace = kubeNamespace
+        imageBuilderPodSelector = `yatai.ai/is-bento-image-builder=true,yatai.ai/bento-repository=${deployment?.latest_revision?.targets[0]?.bento.repository.name},yatai.ai/bento=${deployment?.latest_revision?.targets[0]?.bento.version}`
+    }
+
     return (
         <div>
             <Card title={t('replicas')} titleIcon={VscServerProcess}>
@@ -37,8 +53,8 @@ export default function DeploymentReplicas() {
                 <Card title={t('docker image builder pods')} titleIcon={GrDocker}>
                     <Pods
                         clusterName={clusterName}
-                        namespace='yatai-builders'
-                        selector={`yatai.ai/bento-repository=${deployment?.latest_revision?.targets[0]?.bento.repository.name},yatai.ai/bento=${deployment?.latest_revision?.targets[0]?.bento.version}`}
+                        namespace={imageBuilderPodNamespace}
+                        selector={imageBuilderPodSelector}
                     />
                 </Card>
             )}

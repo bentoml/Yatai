@@ -47,23 +47,23 @@ make build-api-server-dev
 echo "✅ built yatai api-server in development mode"
 
 echo "⌛ starting yatai api-server..."
-env $(kubectl -n yatai-system get secret env -o jsonpath='{.data}' | $jq 'to_entries|map("\(.key)=\(.value|@base64d)")|.[]' | xargs) ./bin/api-server serve &
+env $(kubectl -n yatai-system get secret yatai-env -o jsonpath='{.data}' | $jq 'to_entries|map("\(.key)=\(.value|@base64d)")|.[]' | xargs) ./bin/api-server serve &
 api_server_pid=$!
 echo "✅ yatai api-server started"
 
-telepresence leave yatai-yatai-system || true
-echo "⌛ telepresence intercepting..."
-telepresence intercept yatai -n yatai-system -p 7777:http
-echo "✅ telepresence intercepted"
+# telepresence leave yatai-yatai-system || true
+# echo "⌛ telepresence intercepting..."
+# telepresence intercept yatai -n yatai-system -p 7777:http
+# echo "✅ telepresence intercepted"
 
 function trap_handler() {
   echo "🛑 received EXIT, exiting..."
   echo "⌛ kill yatai api-server..."
   kill ${api_server_pid}
   echo "✅ yatai api-server killed"
-  echo "⌛ telepresence leaving..."
-  telepresence leave yatai-yatai-system 2> /dev/null || true
-  echo "✅ telepresence left"
+  # echo "⌛ telepresence leaving..."
+  # telepresence leave yatai-yatai-system 2> /dev/null || true
+  # echo "✅ telepresence left"
   exit 0
 }
 
