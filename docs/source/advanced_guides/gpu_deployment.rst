@@ -35,30 +35,28 @@ Apply the following yaml for a BentoDeployment CR:
 .. code-block::
   :emphasize-lines: 34
 
-    apiVersion: serving.yatai.ai/v1alpha3
+    apiVersion: serving.yatai.ai/v2alpha1
     kind: BentoDeployment
     metadata:
       name: my-bento-deployment
       namespace: my-namespace
     spec:
-      bento_tag: iris:0.1.0
+      bento: iris-1
       ingress:
         enabled: true
       envs:
-      - key: foo
+      - name: foo
         value: bar
       resources:
         limits:
-            cpu: 2000m
-            memory: "1Gi"
+          cpu: 2000m
+          memory: "1Gi"
         requests:
-            cpu: 1000m
-            memory: "500Mi"
+          cpu: 1000m
+          memory: "500Mi"
       autoscaling:
-        max_replicas: 5
-        min_replicas: 1
-        cpu: 50
-        memory: 50
+        maxReplicas: 5
+        minReplicas: 1
       runners:
       - name: runner1
         resources:
@@ -71,8 +69,8 @@ Apply the following yaml for a BentoDeployment CR:
             custom:
               nvidia.com/gpu: 1
         autoscaling:
-          max_replicas: 2
-          min_replicas: 1
+          maxReplicas: 2
+          minReplicas: 1
 
 Fractional-GPU resource allocation
 ----------------------------------
