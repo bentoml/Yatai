@@ -21,13 +21,23 @@ This is a step-by-step tour that help you dive into the main concepts in BentoML
 
         Common terminology used in Yatai
 
+    .. grid-item-card:: :doc:`/concepts/bentorequest_crd`
+        :link: /concepts/bentorequest_crd
+        :link-type: doc
+
+        BentoRequest CRD
+
+    .. grid-item-card:: :doc:`/concepts/bento_crd`
+        :link: /concepts/bento_crd
+        :link-type: doc
+
+        Bento CRD
+
     .. grid-item-card:: :doc:`/concepts/bentodeployment_crd`
         :link: /concepts/bentodeployment_crd
         :link-type: doc
 
         BentoDeployment CRD
-
-
 
 .. toctree::
     :maxdepth: 1
@@ -36,5 +46,7 @@ This is a step-by-step tour that help you dive into the main concepts in BentoML
 
     architecture
     terminology
+    bentorequest_crd
+    bento_crd
     bentodeployment_crd
 
