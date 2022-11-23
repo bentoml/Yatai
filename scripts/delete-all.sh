@@ -20,4 +20,5 @@ done
 yes | bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/delete-yatai-logging.sh")
 yes | bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/delete-yatai-monitoring.sh")
 yes | bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/main/scripts/delete-yatai-deployment.sh")
+yes | bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-image-builder/main/scripts/delete-yatai-image-builder.sh")
 yes | bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/delete-yatai.sh")
