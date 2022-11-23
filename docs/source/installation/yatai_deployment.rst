@@ -1,15 +1,17 @@
 ===========================
-Installing Yatai Deployment
+Installing yatai-deployment
 ===========================
 
-Welcome to yatai-deployment! You will learn the system requirements, software dependencies, instructions for installing this Yatai component. Before you begin, ensure that you have already installed :ref:`Yatai <installation/yatai:Installing Yatai>`. See :ref:`Yatai Deployment architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai-deployment`` component.
+Welcome to yatai-deployment! You will learn the system requirements, software dependencies, instructions for installing this Yatai component.
+
+See :ref:`yatai-deployment architecture <concepts/architecture:yatai-deployment>` for a detailed introduction of the ``yatai-deployment`` component.
 
 Prerequisites
 -------------
 
-- Yatai
+- yatai-image-builder
 
-  ``yatai-deployment`` depends on ``yatai`` as the bento registry, you need to check the documentation :doc:`yatai` first.
+  ``yatai-deployment`` relies on Bento CR to get the image and runners information, you should check the documentation :doc:`yatai_image_builder` first.
 
 - Kubernetes
 
@@ -55,7 +57,6 @@ This script will automatically install the following dependencies inside the :co
 
 * cert-manager (if not already installed)
 * metrics-server (if not already installed)
-* docker-registry
 
 .. code:: bash
 
@@ -205,257 +206,7 @@ Read its official documentation for `installation <https://github.com/kubernetes
 
     minikube addons enable metrics-server
 
-.. _use-aws-ecr-with-iam-role:
-
-4. Prepare Container Registry
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. tab-set::
-
-    .. tab-item:: Use Existing Container Registry
-
-        `docker.io <https://docs.docker.com/engine/reference/commandline/login/>`_, `GCR <https://cloud.google.com/container-registry/docs/advanced-authentication#json-key>`_, `ECR <https://docs.aws.amazon.com/AmazonECR/latest/userguide/registry_auth.html#registry-auth-token>`_, `GHCR <https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry>`_, `quay.io <https://docs.quay.io/guides/login.html>`_ are all standard container registries, just get their connection parameters and set them to the following environment variables:
-
-        .. note::
-
-          Since the ECR password will expire regularly, you need to retrieve the ECR password regularly, see this article for details: `Kubernetes - pull an image from private ECR registry. Auto refresh ECR token. <https://skryvets.com/blog/2021/03/15/kubernetes-pull-image-from-private-ecr-registry/>`_
-
-        .. code:: bash
-
-          export DOCKER_REGISTRY_SERVER=xxx
-          export DOCKER_REGISTRY_USERNAME=xxx
-          export DOCKER_REGISTRY_PASSWORD=xxx
-          export DOCKER_REGISTRY_SECURE=false
-          export DOCKER_REGISTRY_BENTO_REPOSITORY_NAME=yatai-bentos
-
-    .. tab-item:: Use AWS ECR with IAM Role
-
-        1. Make sure you have an AWS account and have installed `aws-cli <https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html>`_.
-
-        2. Make sure you node has an IAM role with the following policies:
-
-        .. code::
-
-           - AmazonEC2ContainerRegistryReadOnly
-
-        3. Create an ECR repository
-
-        .. code:: bash
-
-          aws ecr create-repository --repository-name yatai-bentos --region YOUR-REGION
-
-        .. note::
-
-          Replace :code:`YOUR-REGION` with your AWS region. For example, if you are in the US East (N. Virginia) region, use :code:`us-east-1`.
-
-          Store the :code:`repositoryArn` returned by the command for later use.
-
-        4. Create an IAM policy for ECR push access for the bento image builder pod of yatai-deployment
-
-        Create a file named :code:`yatai-image-builder-pod-ecr-policy.json` with the following content:
-
-        .. code:: json
-
-          {
-              "Version": "2012-10-17",
-              "Statement": [
-                  {
-                      "Sid": "VisualEditor0",
-                      "Effect": "Allow",
-                      "Action": [
-                          "ecr:PutImageTagMutability",
-                          "ecr:StartImageScan",
-                          "ecr:DescribeImageReplicationStatus",
-                          "ecr:ListTagsForResource",
-                          "ecr:UploadLayerPart",
-                          "ecr:BatchDeleteImage",
-                          "ecr:ListImages",
-                          "ecr:BatchGetRepositoryScanningConfiguration",
-                          "ecr:DeleteRepository",
-                          "ecr:CompleteLayerUpload",
-                          "ecr:TagResource",
-                          "ecr:DescribeRepositories",
-                          "ecr:BatchCheckLayerAvailability",
-                          "ecr:ReplicateImage",
-                          "ecr:GetLifecyclePolicy",
-                          "ecr:PutLifecyclePolicy",
-                          "ecr:DescribeImageScanFindings",
-                          "ecr:GetLifecyclePolicyPreview",
-                          "ecr:PutImageScanningConfiguration",
-                          "ecr:GetDownloadUrlForLayer",
-                          "ecr:DeleteLifecyclePolicy",
-                          "ecr:PutImage",
-                          "ecr:UntagResource",
-                          "ecr:BatchGetImage",
-                          "ecr:DescribeImages",
-                          "ecr:StartLifecyclePolicyPreview",
-                          "ecr:InitiateLayerUpload",
-                          "ecr:GetRepositoryPolicy"
-                      ],
-                      "Resource": "YOUR-ECR-REPOSITORY-ARN"
-                  },
-                  {
-                      "Sid": "VisualEditor1",
-                      "Effect": "Allow",
-                      "Action": [
-                          "ecr:GetRegistryPolicy",
-                          "ecr:BatchImportUpstreamImage",
-                          "ecr:CreateRepository",
-                          "ecr:DescribeRegistry",
-                          "ecr:DescribePullThroughCacheRules",
-                          "ecr:GetAuthorizationToken",
-                          "ecr:PutRegistryScanningConfiguration",
-                          "ecr:CreatePullThroughCacheRule",
-                          "ecr:DeletePullThroughCacheRule",
-                          "ecr:GetRegistryScanningConfiguration",
-                          "ecr:PutReplicationConfiguration"
-                      ],
-                      "Resource": "*"
-                  }
-              ]
-          }
-
-        .. note::
-
-          Replace :code:`YOUR-ECR-REPOSITORY-ARN` with the :code:`repositoryArn` you stored in the previous step.
-
-        Create the IAM policy with the following command:
-
-        .. code:: bash
-
-          aws iam create-policy --policy-name yatai-image-builder-pod-ecr-policy --policy-document file://yatai-image-builder-pod-ecr-policy.json
-
-        .. note::
-
-          Store the :code:`Arn` returned by the command for later use. The ``Arn`` format is like this: :code:`arn:aws:iam::123456789012:policy/yatai-image-builder-pod-ecr-policy`
-
-        5. Create an IAM role for the service account
-
-        .. code:: bash
-
-          eksctl create iamserviceaccount \
-            --cluster=YOUR-CLUSTER \
-            --region YOUR-REGION \
-            --namespace=yatai-builders \
-            --name=yatai-image-builder-pod \
-            --attach-policy-arn=YOUR-IAM-POLICY-ARN \
-            --override-existing-serviceaccounts \
-            --approve
-
-        .. note:: Replace ``YOUR-CLUSTER`` with your EKS cluster name, ``YOUR-REGION`` with your AWS region, and ``YOUR-IAM-POLICY-ARN`` with the :code:`Arn` you stored in the previous step.
-
-        6. Set the environment variables
-
-        .. code:: bash
-
-          export DOCKER_REGISTRY_SERVER=YOUR-ECR-REGISTRY-URL
-          export DOCKER_REGISTRY_USERNAME=""
-          export DOCKER_REGISTRY_PASSWORD=""
-          export DOCKER_REGISTRY_SECURE=true
-          export DOCKER_REGISTRY_BENTO_REPOSITORY_NAME=yatai-bentos
-
-        .. note::
-
-          Replace ``YOUR-ECR-REGISTRY-URL`` with your ECR registry URL. The URL format is like this: :code:`123456789012.dkr.ecr.us-east-1.amazonaws.com`
-
-    .. tab-item:: Install Private Container Registry
-
-        .. note:: Do not recommend for production because this installation does not guarantee high availability.
-
-        1. Install the docker-registry helm chart
-
-        .. code:: bash
-
-          helm repo add twuni https://helm.twun.io
-          helm repo update twuni
-          helm upgrade --install docker-registry twuni/docker-registry -n yatai-deployment
-
-        2. Verify the docker-registry installation
-
-        .. code:: bash
-
-          kubectl -n yatai-deployment get pod -l app=docker-registry
-
-        The output should look like this:
-
-        .. note:: Wait until the status of all pods becomes :code:`Running` before proceeding.
-
-        .. code:: bash
-
-          NAME                               READY   STATUS    RESTARTS   AGE
-          docker-registry-7dc8b575d4-d6stx   1/1     Running   0          10m
-
-        3. Create a docker private registry proxy for development and testing purposes
-
-        For **development** and **testing** purposes, sometimes it's useful to build images locally and push them directly to a Kubernetes cluster.
-
-        This can be achieved by running a docker registry in the cluster and using a special repo prefix such as :code:`127.0.0.1:5000/` that will be seen as an insecure registry url.
-
-        .. code:: bash
-
-          cat <<EOF | kubectl apply -f -
-          apiVersion: apps/v1
-          kind: DaemonSet
-          metadata:
-            name: docker-private-registry-proxy
-            namespace: yatai-deployment
-            labels:
-              app: docker-private-registry-proxy
-          spec:
-            selector:
-              matchLabels:
-                app: docker-private-registry-proxy
-            template:
-              metadata:
-                creationTimestamp: null
-                labels:
-                  app: docker-private-registry-proxy
-              spec:
-                containers:
-                - args:
-                  - tcp
-                  - "5000"
-                  - docker-registry.yatai-deployment.svc.cluster.local
-                  image: quay.io/bentoml/proxy-to-service:v2
-                  name: tcp-proxy
-                  ports:
-                  - containerPort: 5000
-                    hostPort: 5000
-                    name: tcp
-                    protocol: TCP
-                  resources:
-                    limits:
-                      cpu: 100m
-                      memory: 100Mi
-          EOF
-
-        4. Verify the docker-private-registry-proxy installation
-
-        .. code:: bash
-
-          kubectl -n yatai-deployment get pod -l app=docker-private-registry-proxy
-
-        The output should look like this:
-
-        .. note:: Wait until the status of all pods becomes :code:`Running` before proceeding. The number of pods depends on how many nodes you have.
-
-        .. code:: bash
-
-          NAME                                  READY   STATUS    RESTARTS   AGE
-          docker-private-registry-proxy-jzjxr   1/1     Running   0          74s
-
-        5. Prepare the docker registry connection params
-
-        .. code:: bash
-
-          export DOCKER_REGISTRY_SERVER=127.0.0.1:5000
-          export DOCKER_REGISTRY_IN_CLUSTER_SERVER=docker-registry.yatai-deployment.svc.cluster.local:5000
-          export DOCKER_REGISTRY_USERNAME=''
-          export DOCKER_REGISTRY_PASSWORD=''
-          export DOCKER_REGISTRY_SECURE=false
-          export DOCKER_REGISTRY_BENTO_REPOSITORY_NAME=yatai-bentos
-
-5. Configure network
+4. Configure network
 ^^^^^^^^^^^^^^^^^^^^
 
 The network config is for :code:`BentoDeployment` access.
@@ -581,7 +332,7 @@ You need to configure your DNS in one of the following two options:
           # Replace yatai.example.com with your domain suffix
           kubectl -n yatai-deployment patch cm/network --type merge --patch '{"data":{"domain-suffix":"'${DOMAIN_SUFFIX}'"}}'
 
-6. Install Yatai Deployment
+5. Install yatai-deployment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1. Install yatai-deployment CRDs
@@ -622,19 +373,7 @@ The output of the command above should look something like this:
       --set layers.network.ingressClass=$INGRESS_CLASS \
       --skip-crds
 
-.. note::
-
-   If you are using :ref:`AWS ECR with IAM Role <use-aws-ecr-with-iam-role>`, you need to add the following option to the helm install command:
-
-   .. code:: bash
-
-      --set dockerRegistry.useAWSECRWithIAMRole=true \
-      --set dockerRegistry.awsECRRegion=YOUR-REGION \
-      --set imageBuilderPod.serviceAccountName=yatai-image-builder-pod
-
-   Replace ``YOUR-REGION`` with your AWS region.
-
-2. Verify the yatai-deployment installation
+4. Verify the yatai-deployment installation
 """""""""""""""""""""""""""""""""""""""""""
 
 .. code:: bash
