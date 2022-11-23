@@ -1,8 +1,8 @@
-=========
-Migration
-=========
+=========================
+Migration from 0.x to 1.x
+=========================
 
-Starting from version 1.0 of BentoML, components of Yatai are installed separately for more standard integration with the Kubernetes ecosystem. Components such as deployment, logging, and monitoring features are now addons that you must install separately, see the :ref:`observability <observability>` section. The new installation method allows you to choose which features of Yatai you would like, and have an easier time managing them as separate components.
+Starting from version 1.0 of Yatai, components of Yatai are installed separately for more standard integration with the Kubernetes ecosystem. Components such as deployment, logging, and monitoring features are now addons that you must install separately, see the :ref:`observability <observability>` section. The new installation method allows you to choose which features of Yatai you would like, and have an easier time managing them as separate components.
 
 .. note:: Migrating data to Yatai 1.0 requires you to have Yatai version 0.46.
 
@@ -12,7 +12,7 @@ Breaking Changes
 * Split Yatai into two components for better modularization and separation of concerns.
 
   * :ref:`Yatai <concepts/architecture:Yatai>`
-  * :ref:`Yatai Deployment <concepts/architecture:Yatai Deployment>`
+  * :ref:`yatai-deployment <concepts/architecture:yatai-deployment>`
 
 * Removed all Yatai component operators for more standard integration with the ecosystem.
 
@@ -27,7 +27,7 @@ Breaking Changes
 Down Time and Data Backup
 -------------------------
 
-Your data and model files will not be affected if they are stored in a stable, external platform. If your storage is on the same cluster as Yatai, you must back up and recover the data manually. This document will walk you through on how to back up your data. BentoML deployments will be completely unaffected and remain online.
+Your data and model files will not be affected if they are stored in a stable, external platform. If your storage is on the same cluster as Yatai, you must back up and recover the data manually. This document will walk you through on how to back up your data. Bento deployments will be completely unaffected and remain online.
 
 * Yatai System
 
@@ -35,7 +35,7 @@ Your data and model files will not be affected if they are stored in a stable, e
 
 * Bento Deployment CRD
 
-  The ``BentoDeployment`` CRD will stay online.
+  The ``BentoDeployment`` CR will stay online.
 
 Migration steps
 ---------------
@@ -128,7 +128,7 @@ Read this documentation to install Yatai: :ref:`Installing Yatai <yatai-installa
   export DOCKER_REGISTRY_SECURE=false
   export DOCKER_REGISTRY_BENTO_REPOSITORY_NAME=bentos
 
-7. Install Yatai Deployment
+7. Install yatai-deployment
 """""""""""""""""""""""""""
 
 Read this documentation to install yatai-deployment: :ref:`Installing yatai-deployment <yatai-deployment-installation-steps>`

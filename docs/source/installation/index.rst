@@ -15,17 +15,29 @@ This is a handy tutorial that shows you how to install and upgrade various compo
 
         How to install Yatai
 
+    .. grid-item-card:: :doc:`/installation/yatai_image_builder`
+        :link: /installation/yatai_image_builder
+        :link-type: doc
+
+        How to install yatai-image-builder
+
     .. grid-item-card:: :doc:`/installation/yatai_deployment`
         :link: /installation/yatai_deployment
         :link-type: doc
 
-        How to install Yatai Deployment
+        How to install yatai-deployment
 
-    .. grid-item-card:: :doc:`/installation/migration`
-        :link: /installation/migration
+    .. grid-item-card:: :doc:`/installation/migration_to_1x`
+        :link: /installation/migration_to_1x
         :link-type: doc
 
         Migration Yatai from 0.4.x to 1.0.x
+
+    .. grid-item-card:: :doc:`/installation/migration_to_2x`
+        :link: /installation/migration_to_2x
+        :link-type: doc
+
+        Migration Yatai from 1.0.x to 2.0.x
 
 .. toctree::
     :maxdepth: 1
@@ -33,6 +45,8 @@ This is a handy tutorial that shows you how to install and upgrade various compo
     :hidden:
 
     yatai
+    yatai_image_builder
     yatai_deployment
-    migration
+    migration_to_1x
+    migration_to_2x
 
