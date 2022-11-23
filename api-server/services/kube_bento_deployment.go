@@ -161,10 +161,16 @@ func (s *kubeBentoDeploymentService) DeployV1alpha2(ctx context.Context, deploym
 		}
 	} else {
 		kubeBentoDeployment.SetResourceVersion(oldKubeBentoDeployment.GetResourceVersion())
+		if kubeBentoDeployment.Annotations == nil {
+			kubeBentoDeployment.Annotations = make(map[string]string)
+		}
 		for k, v := range oldKubeBentoDeployment.Annotations {
 			if _, ok := kubeBentoDeployment.Annotations[k]; !ok {
 				kubeBentoDeployment.Annotations[k] = v
 			}
+		}
+		if kubeBentoDeployment.Labels == nil {
+			kubeBentoDeployment.Labels = make(map[string]string)
 		}
 		for k, v := range oldKubeBentoDeployment.Labels {
 			if _, ok := kubeBentoDeployment.Labels[k]; !ok {
@@ -237,6 +243,7 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 		return
 	}
 
+	kubeBentoDeployment = &servingv1alpha3.BentoDeployment{}
 	err = kubeBentoDeploymentV1alpha2.ConvertTo(kubeBentoDeployment)
 	if err != nil {
 		err = errors.Wrap(err, "failed to convert kube bento deployment v1alpha2 to v1alpha3")
@@ -258,10 +265,16 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 		}
 	} else {
 		kubeBentoDeployment.SetResourceVersion(oldKubeBentoDeployment.GetResourceVersion())
+		if kubeBentoDeployment.Annotations == nil {
+			kubeBentoDeployment.Annotations = make(map[string]string)
+		}
 		for k, v := range oldKubeBentoDeployment.Annotations {
 			if _, ok := kubeBentoDeployment.Annotations[k]; !ok {
 				kubeBentoDeployment.Annotations[k] = v
 			}
+		}
+		if kubeBentoDeployment.Labels == nil {
+			kubeBentoDeployment.Labels = make(map[string]string)
 		}
 		for k, v := range oldKubeBentoDeployment.Labels {
 			if _, ok := kubeBentoDeployment.Labels[k]; !ok {
