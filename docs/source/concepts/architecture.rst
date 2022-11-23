@@ -5,6 +5,12 @@ Architecture
 .. image:: /_static/img/architecture.png
    :width: 100%
    :alt: Architecture Diagram
+   :class: only-light
+
+.. image:: /_static/img/architecture-dark.png
+   :width: 100%
+   :alt: Architecture Diagram
+   :class: only-dark
 
 Yatai
 #####
@@ -35,31 +41,39 @@ Bucket storage for storing model and bento objects. Any S3 compatible services c
 - `AWS S3 <https://aws.amazon.com/s3/>`_
 - `Google Cloud Storage (GCS) <https://cloud.google.com/storage>`_
 
-Yatai Deployment
-################
+yatai-image-builder
+###################
 
-- Builds Docker images from bentos.
-- Manages Docker images of bentos in an image registry.
-- Deploy bentos in Kubernetes.
+- Builds OCI images for bentos.
+- Generate Bento CR.
 
-The ``yatai-deployment`` component is an add-on on top of ``yatai`` for building Docker images from bentos and deploying bentos to Kubernetes. One ``yatai-deployment`` component is required to be installed for every Kubernetes cluster ``yatai`` manages.
+The ``yatai-image-builder`` component is an add-on on top of ``yatai`` for building OCI images for bentos.
 
-The ``yatai-deployment`` component installs and runs in a Kubernetes cluster and adds the ``BentoDeployment``  resource type. It requires a certificate manager, metrics server, image registry, and an ingress controller to function.
-
-Certificate Manager
-*******************
-
-`Certificate manager <https://cert-manager.io/docs/>`_ adds certificate and certificate issuers resource types in the Kubernetes cluster. These resources are required by the ``BentoDeployment`` CRD conversion webhook.
-
-Metrics Server
-**************
-
-`Metrics server <https://github.com/kubernetes-sigs/metrics-server>`_ collects resource metrics from kubelet and exposes them in Kubernetes apiserver `horizontal pod autoscaling <https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#how-does-a-horizontalpodautoscaler-work>`_.
+``yatai-image-builder`` runs in Kubernetes, it is the operator of BentoRequest CRD, it is responsible for reconcile BentoRequest CR and then build the image for Bento, after the image is built Bento CR is generated, ``yatai-deployment`` component will depend on Bento CR to deploy Bento in Kubernetes.
 
 Docker Registry
 ***************
 
-The Docker registry stores the OCI images built from bentos. Yatai Deployment fetches images from the registry during deployment.
+The Docker registry stores the OCI images built from bentos. yatai-deployment fetches images from the OCI image registry during deployment.
+
+yatai-deployment
+################
+
+- Deploy bentos in Kubernetes.
+
+The ``yatai-deployment`` component is an add-on on top of ``yatai`` for deploying bentos to Kubernetes.
+
+``yatai-deployment`` runs in Kubernetes, it is the operator of BentoDeployment CRD, it is responsible for reconcile BentoDeployment CR and then deploying bentos to Kubernetes. It relies on Bento CR to get the OCI image and runners information, so it should install after the ``yatai-image-builder`` component installation.
+
+cert-manager
+************
+
+`cert-manager <https://cert-manager.io/docs/>`__ adds certificate and certificate issuers resource types in the Kubernetes cluster. These resources are required by the ``BentoDeployment`` CRD conversion webhook.
+
+metrics-server
+**************
+
+`metrics-server <https://github.com/kubernetes-sigs/metrics-server>`_ collects resource metrics from kubelet and exposes them in Kubernetes apiserver `horizontal pod autoscaling <https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#how-does-a-horizontalpodautoscaler-work>`_.
 
 Ingress Controller
 ******************

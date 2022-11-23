@@ -1,15 +1,17 @@
 ===========================
-Installing Yatai Deployment
+Installing yatai-deployment
 ===========================
 
-Welcome to yatai-deployment! You will learn the system requirements, software dependencies, instructions for installing this Yatai component. Before you begin, ensure that you have already installed :ref:`Yatai <installation/yatai:Installing Yatai>`. See :ref:`Yatai Deployment architecture <concepts/architecture:Yatai Deployment>` for a detailed introduction of the ``yatai-deployment`` component.
+Welcome to yatai-deployment! You will learn the system requirements, software dependencies, instructions for installing this Yatai component.
+
+See :ref:`yatai-deployment architecture <concepts/architecture:yatai-deployment>` for a detailed introduction of the ``yatai-deployment`` component.
 
 Prerequisites
 -------------
 
-- Yatai
+- yatai-image-builder
 
-  ``yatai-deployment`` depends on ``yatai`` as the bento registry, you need to check the documentation :doc:`yatai` first.
+  ``yatai-deployment`` relies on Bento CR to get the image and runners information, you should check the documentation :doc:`yatai_image_builder` first.
 
 - Kubernetes
 
@@ -449,7 +451,7 @@ You need to configure your DNS in one of the following two options:
           # Replace yatai.example.com with your domain suffix
           kubectl -n yatai-deployment patch cm/network --type merge --patch '{"data":{"domain-suffix":"'${DOMAIN_SUFFIX}'"}}'
 
-6. Install Yatai Deployment
+6. Install yatai-deployment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1. Install yatai-deployment CRDs
@@ -490,7 +492,7 @@ The output of the command above should look something like this:
       --set layers.network.ingressClass=$INGRESS_CLASS \
       --skip-crds
 
-2. Verify the yatai-deployment installation
+4. Verify the yatai-deployment installation
 """""""""""""""""""""""""""""""""""""""""""
 
 .. code:: bash
