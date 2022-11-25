@@ -297,13 +297,20 @@ type S3Config struct {
 	ModelsBucketName            string
 }
 
+func (c *S3Config) getMinioCredential() *credentials.Credentials {
+	if c.AccessKey == "" || c.SecretKey == "" {
+		return credentials.NewIAM("")
+	}
+	return credentials.NewStaticV4(c.AccessKey, c.SecretKey, "")
+}
+
 func (c *S3Config) GetMinioClient() (*minio.Client, error) {
 	endpoint := c.Endpoint
 	if config.YataiConfig.InCluster && !config.YataiConfig.IsSaaS {
 		endpoint = c.EndpointInCluster
 	}
 	return minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV2(c.AccessKey, c.SecretKey, ""),
+		Creds:  c.getMinioCredential(),
 		Secure: c.Secure,
 	})
 }
@@ -314,7 +321,7 @@ func (c *S3Config) GetMinioCore() (*minio.Core, error) {
 		endpoint = c.EndpointInCluster
 	}
 	return minio.NewCore(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV2(c.AccessKey, c.SecretKey, ""),
+		Creds:  c.getMinioCredential(),
 		Secure: c.Secure,
 	})
 }
