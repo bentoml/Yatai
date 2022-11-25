@@ -47,7 +47,7 @@ make build-api-server-dev
 echo "✅ built yatai api-server in development mode"
 
 echo "⌛ starting yatai api-server..."
-env $(kubectl -n yatai-system get secret env -o jsonpath='{.data}' | $jq 'to_entries|map("\(.key)=\(.value|@base64d)")|.[]' | xargs) ./bin/api-server serve &
+env $(kubectl -n yatai-system get secret yatai-env -o jsonpath='{.data}' | $jq 'to_entries|map("\(.key)=\(.value|@base64d)")|.[]' | xargs) ./bin/api-server serve &
 api_server_pid=$!
 echo "✅ yatai api-server started"
 
