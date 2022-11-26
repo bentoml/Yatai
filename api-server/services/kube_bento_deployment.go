@@ -515,7 +515,16 @@ func (s *kubeBentoDeploymentService) DeployV2alpha1(ctx context.Context, deploym
 		kubeBentoDeployment.Spec.Ingress.Annotations = oldKubeBentoDeployment.Spec.Ingress.Annotations
 		kubeBentoDeployment.Spec.Ingress.Labels = oldKubeBentoDeployment.Spec.Ingress.Labels
 		kubeBentoDeployment.Spec.Ingress.TLS = oldKubeBentoDeployment.Spec.Ingress.TLS
+		currentAutoscaling := kubeBentoDeployment.Spec.Autoscaling
 		kubeBentoDeployment.Spec.Autoscaling = oldKubeBentoDeployment.Spec.Autoscaling
+		if currentAutoscaling != nil {
+			if kubeBentoDeployment.Spec.Autoscaling == nil {
+				kubeBentoDeployment.Spec.Autoscaling = currentAutoscaling
+			} else {
+				kubeBentoDeployment.Spec.Autoscaling.MinReplicas = currentAutoscaling.MinReplicas
+				kubeBentoDeployment.Spec.Autoscaling.MaxReplicas = currentAutoscaling.MaxReplicas
+			}
+		}
 		for idx, runner := range kubeBentoDeployment.Spec.Runners {
 			var runnerConfig *modelschemas.DeploymentTargetRunnerConfig
 			if deploymentTarget.Config != nil {
@@ -552,7 +561,16 @@ func (s *kubeBentoDeploymentService) DeployV2alpha1(ctx context.Context, deploym
 					kubeBentoDeployment.Spec.Runners[idx].Labels = oldRunner.Labels
 					kubeBentoDeployment.Spec.Runners[idx].ExtraPodMetadata = oldRunner.ExtraPodMetadata
 					kubeBentoDeployment.Spec.Runners[idx].ExtraPodSpec = oldRunner.ExtraPodSpec
+					currentAutoscaling := kubeBentoDeployment.Spec.Runners[idx].Autoscaling
 					kubeBentoDeployment.Spec.Runners[idx].Autoscaling = oldRunner.Autoscaling
+					if currentAutoscaling != nil {
+						if kubeBentoDeployment.Spec.Runners[idx].Autoscaling == nil {
+							kubeBentoDeployment.Spec.Runners[idx].Autoscaling = currentAutoscaling
+						} else {
+							kubeBentoDeployment.Spec.Runners[idx].Autoscaling.MinReplicas = currentAutoscaling.MinReplicas
+							kubeBentoDeployment.Spec.Runners[idx].Autoscaling.MaxReplicas = currentAutoscaling.MaxReplicas
+						}
+					}
 				}
 			}
 		}
