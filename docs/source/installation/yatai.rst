@@ -134,6 +134,8 @@ Installation Steps
 
           pod "postgresql-ha-client" deleted
 
+        .. note:: If there is no response for a long time, you can check if the VPC security group of the AWS RDS instance has opened port 5432 for public access
+
     .. tab-item:: Install New PostgreSQL
 
         .. note:: Do not recommend for production because this installation of PostgreSQL does not provide high availability and data replication.
@@ -247,6 +249,8 @@ Expected output:
 
   pod "postgresql-ha-client" deleted
 
+.. note:: If the above command does not respond for a long time and you are using AWS RDS, you can check if the VPC security group of the AWS RDS instance has port 5432 open for public access
+
 3. Prepare Object Storage
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -260,12 +264,102 @@ Expected output:
 
       .. code:: bash
 
-        export S3_REGION=ap-northeast-3
+        export S3_REGION=YOUR-S3-REGION
         export S3_ENDPOINT="s3.${S3_REGION}.amazonaws.com"
-        export S3_BUCKET_NAME=yatai-registry
+        export S3_BUCKET_NAME=YOUR-BUCKET-NAME
         export S3_ACCESS_KEY=$(aws configure get default.aws_access_key_id)
         export S3_SECRET_KEY=$(aws configure get default.aws_secret_access_key)
         export S3_SECURE=true
+
+      .. note:: Remember to replace YOUR-S3-REGION to your S3 region, replace YOUR-BUCKET-NAME to your S3 bucket name
+
+    .. tab-item:: Use Existing AWS S3 with IAM
+
+      1. Prepare S3 connection params
+
+      .. code:: bash
+
+        export S3_REGION=YOUR-S3-REGION
+        export S3_ENDPOINT="s3.amazonaws.com"
+        export S3_BUCKET_NAME=YOUR-BUCKET-NAME
+        export S3_ACCESS_KEY=""
+        export S3_SECRET_KEY=""
+        export S3_SECURE=true
+
+      .. note:: Remember to replace YOUR-S3-REGION to your S3 region, replace YOUR-BUCKET-NAME to your S3 bucket name
+
+      2. Create IAM policy for S3 bucket access
+
+      Create a file named :code:`s3-iam-policy.json` with the following content:
+
+      .. code:: json
+
+        {
+           "Version":"2012-10-17",
+           "Statement":[
+              {
+                 "Effect":"Allow",
+                 "Action": "s3:ListAllMyBuckets",
+                 "Resource":"*"
+              },
+              {
+                 "Effect":"Allow",
+                 "Action":["s3:ListBucket","s3:GetBucketLocation"],
+                 "Resource":"arn:aws:s3:::${S3_BUCKET_NAME}"
+              },
+              {
+                 "Effect":"Allow",
+                 "Action":[
+                    "s3:PutObject",
+                    "s3:PutObjectAcl",
+                    "s3:GetObject",
+                    "s3:GetObjectAcl",
+                    "s3:DeleteObject"
+                 ],
+                 "Resource":"arn:aws:s3:::${S3_BUCKET_NAME}/*"
+              }
+           ]
+        }
+
+      Replace :code:`${S3_BUCKET_NAME}` with your S3 bucket name:
+
+      .. code:: bash
+
+        envsubst < s3-iam-policy.json > s3-iam-policy.json
+
+      .. note:: If you don't have :code:`envsubst` installed and you are using macOS, you can install it by running :code:`brew install gettext && brew link --force gettext`
+
+      Create the IAM policy:
+
+      .. code:: bash
+
+        aws iam create-policy \
+            --policy-name yatai-s3-access \
+            --policy-document file://s3-iam-policy.json
+
+      .. note:: Please store the ``arn`` of the created policy, you will need it in the next step. The ``arn`` format is ``arn:aws:iam::ACCOUNT_ID:policy/yatai-s3-access``
+
+      3. Create IAM ServiceAccount for S3 access
+
+      Create ``yatai-system`` namespace:
+
+      .. code:: bash
+
+        kubectl create namespace yatai-system
+
+      Create IAM ServiceAccount:
+
+      .. code:: bash
+
+        eksctl create iamserviceaccount \
+            --name yatai \
+            --namespace yatai-system \
+            --cluster YOUR-CLUSTER \
+            --region YOUR-REGION \
+            --attach-policy-arn YOUR-IAM-POLICY-ARN \
+            --approve
+
+      .. note:: Remember to replace YOUR-CLUSTER to your EKS cluster name, replace YOUR-REGION to your EKS cluster region, replace YOUR-IAM-POLICY-ARN to the ``arn`` of the created IAM policy
 
     .. tab-item:: Create New AWS S3
 
@@ -452,6 +546,15 @@ Expected output:
       --set s3.secure=$S3_SECURE \
       --set s3.accessKey=$S3_ACCESS_KEY \
       --set s3.secretKey=$S3_SECRET_KEY
+
+.. note::
+
+   If you are using AWS S3 With IAM Role, you should add the following flags to the helm command:
+
+   .. code:: bash
+
+      --set serviceAccount.create=false \
+      --set serviceAccount.name=yatai
 
 2. Verify the Yatai Installation
 """"""""""""""""""""""""""""""""
