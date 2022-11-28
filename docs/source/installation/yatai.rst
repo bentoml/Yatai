@@ -31,7 +31,7 @@ This script will automatically install the following dependencies inside the :co
 
 .. code:: bash
 
-  DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/quick-install-yatai.sh")
+  bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/quick-install-yatai.sh")
 
 .. _yatai-installation-steps:
 

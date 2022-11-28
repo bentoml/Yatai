@@ -58,7 +58,7 @@ Let's try out Yatai locally in a minikube cluster!
 Install Yatai with the following script:
 
 ```bash
-DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/quick-install-yatai.sh")
+bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai/main/scripts/quick-install-yatai.sh")
 ```
 
 This script will install Yatai along with its dependencies (PostgreSQL and MinIO) on
@@ -122,7 +122,7 @@ Yatai's Deployment feature comes as a separate component, you can install it via
 script:
 
 ```bash
-DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/main/scripts/quick-install-yatai-deployment.sh")
+bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/main/scripts/quick-install-yatai-deployment.sh")
 ```
 
 This will install the `BentoDeployment` CRD([Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/))
