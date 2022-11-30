@@ -205,7 +205,7 @@ export default function ModelOverview() {
                                 tabIndex={0}
                                 onClick={() => setShowMetaData((v) => !v)}
                             >
-                                Meta Data
+                                Metadata
                             </div>
                             <div className={styles.value}>
                                 {showMetaData ? (
