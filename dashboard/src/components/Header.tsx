@@ -15,7 +15,7 @@ import logo from '@/assets/logo.svg'
 import logoDark from '@/assets/logo-dark.svg'
 import useTranslation from '@/hooks/useTranslation'
 import { createOrganization, fetchCurrentOrganization } from '@/services/organization'
-import { Select } from 'baseui/select'
+import { Select, Value } from 'baseui/select'
 import { useOrganization } from '@/hooks/useOrganization'
 import OrganizationForm from '@/components/OrganizationForm'
 import { ICreateOrganizationSchema } from '@/schemas/organization'
@@ -250,6 +250,25 @@ export default function Header() {
     const infoInfo = useFetchInfo()
 
     const { organization, setOrganization } = useOrganization()
+
+    const [orgSelectorValue, setOrgSelectorValue] = useState<Value>([])
+
+    useEffect(() => {
+        setOrgSelectorValue((value) => {
+            if (value && value.length > 0) {
+                return value
+            }
+            if (organization) {
+                return [
+                    {
+                        id: organization.uid,
+                        label: organization.name,
+                    },
+                ]
+            }
+            return []
+        })
+    }, [organization])
 
     useEffect(() => {
         if (!infoInfo.isSuccess) {
@@ -519,7 +538,7 @@ export default function Header() {
                             <Select
                                 isLoading={orgsInfo.isLoading}
                                 clearable={false}
-                                searchable={false}
+                                searchable
                                 options={
                                     orgsInfo.data?.items.map((item) => ({
                                         id: item.uid,
@@ -528,17 +547,11 @@ export default function Header() {
                                 }
                                 size='mini'
                                 placeholder={t('select sth', [t('organization')])}
-                                value={
-                                    organization && [
-                                        {
-                                            id: organization.uid,
-                                            label: organization.name,
-                                        },
-                                    ]
-                                }
+                                value={orgSelectorValue}
                                 onChange={(v) => {
+                                    setOrgSelectorValue(v.value)
                                     const org = orgsInfo.data?.items.find((item) => item.uid === v.option?.id)
-                                    if (org) {
+                                    if (org && org.uid !== organization?.uid) {
                                         setOrganization(org)
                                     }
                                 }}

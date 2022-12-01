@@ -177,13 +177,20 @@ func (s *organizationService) List(ctx context.Context, opt ListOrganizationOpti
 	orgs := make([]*models.Organization, 0)
 	query := getBaseQuery(ctx, s)
 	if opt.VisitorId != nil {
-		orgIds, err := OrganizationMemberService.ListOrganizationIds(ctx, *opt.VisitorId)
+		user, err := UserService.Get(ctx, *opt.VisitorId)
 		if err != nil {
-			return nil, 0, errors.Wrap(err, "list organization ids")
+			err = errors.Wrapf(err, "get user %d", *opt.VisitorId)
+			return nil, 0, err
 		}
-		// postgresql `in` clause cannot be empty, so push 0 to avoid it empty
-		orgIds = append(orgIds, 0)
-		query = query.Where("(creator_id = ? or id in (?))", *opt.VisitorId, orgIds)
+		if !user.IsSuperAdmin() {
+			orgIds, err := OrganizationMemberService.ListOrganizationIds(ctx, *opt.VisitorId)
+			if err != nil {
+				return nil, 0, errors.Wrap(err, "list organization ids")
+			}
+			// postgresql `in` clause cannot be empty, so push 0 to avoid it empty
+			orgIds = append(orgIds, 0)
+			query = query.Where("(creator_id = ? or id in (?))", *opt.VisitorId, orgIds)
+		}
 	}
 	if opt.Ids != nil {
 		if len(*opt.Ids) == 0 {
