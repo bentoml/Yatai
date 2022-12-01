@@ -258,7 +258,7 @@ export default function Header() {
         if (infoInfo.data?.saas_domain_suffix && organization?.name) {
             const hostname = `${organization.name}.${infoInfo.data.saas_domain_suffix}`
             if (hostname !== window.location.hostname) {
-                window.location.hostname = hostname
+                window.location.href = `${window.location.protocol}//${hostname}`
             }
         } else if (organization?.name) {
             axios.defaults.headers.common[yataiOrgHeader] = organization.name
