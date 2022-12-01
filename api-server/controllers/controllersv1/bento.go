@@ -389,7 +389,7 @@ func (c *bentoController) Download(ctx *gin.Context) {
 		abortWithError(ctx, err)
 		return
 	}
-	if err = c.canUpdate(ctx, bento); err != nil {
+	if err = c.canView(ctx, bento); err != nil {
 		abortWithError(ctx, err)
 		return
 	}
@@ -406,7 +406,7 @@ func (c *bentoController) PreSignDownloadUrl(ctx *gin.Context, schema *GetBentoS
 	if err != nil {
 		return nil, err
 	}
-	if err = c.canUpdate(ctx, bento); err != nil {
+	if err = c.canView(ctx, bento); err != nil {
 		return nil, err
 	}
 	bentoSchema, err := transformersv1.ToBentoSchema(ctx, bento)

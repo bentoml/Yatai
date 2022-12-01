@@ -332,7 +332,7 @@ func (c *modelController) Download(ctx *gin.Context) {
 		abortWithError(ctx, err)
 		return
 	}
-	if err = c.canUpdate(ctx, model); err != nil {
+	if err = c.canView(ctx, model); err != nil {
 		abortWithError(ctx, err)
 		return
 	}
@@ -349,7 +349,7 @@ func (c *modelController) PreSignDownloadUrl(ctx *gin.Context, schema *GetModelS
 	if err != nil {
 		return nil, err
 	}
-	if err = c.canUpdate(ctx, model); err != nil {
+	if err = c.canView(ctx, model); err != nil {
 		return nil, err
 	}
 	modelSchema, err := transformersv1.ToModelSchema(ctx, model)
