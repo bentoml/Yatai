@@ -41,7 +41,7 @@ func (s *memberService) checkApiToken(m IMemberManager, user *models.User, ops [
 			return nil
 		}
 	}
-	return errors.Errorf("the api_token need the scopes: %s", strings.Join(scopeStrs, " or "))
+	return jujuerrors.Unauthorizedf("the api_token need the scopes: %s", strings.Join(scopeStrs, " or "))
 }
 
 func (s *memberService) CanView(ctx context.Context, m IMemberManager, user *models.User, resourceId uint) error {
