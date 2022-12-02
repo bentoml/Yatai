@@ -32,7 +32,6 @@ set +x
 echo "Removing additional yatai related namespaces and resources.."
 set -x
 kubectl delete namespace yatai
-kubectl delete namespace yatai-builders
 kubectl delete namespace yatai-deployment
 kubectl delete namespace yatai-system
 set +x
