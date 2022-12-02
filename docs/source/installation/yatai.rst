@@ -146,7 +146,7 @@ Installation Steps
 
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update bitnami
-          helm upgrade --install postgresql-ha bitnami/postgresql-ha -n yatai-system
+          helm upgrade --install postgresql-ha bitnami/postgresql-ha -n yatai-system --version 10.0.6
 
         2. Verify the :code:`postgresql-ha` installation:
 
@@ -172,7 +172,7 @@ Installation Steps
 
         .. code:: bash
 
-          export PG_PASSWORD=$(kubectl get secret --namespace yatai-system postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 -d)
+          export PG_PASSWORD=$(kubectl get secret --namespace yatai-system postgresql-ha-postgresql -o jsonpath="{.data.password}" | base64 -d)
           export PG_HOST=postgresql-ha-pgpool.yatai-system.svc.cluster.local
           export PG_PORT=5432
           export PG_DATABASE=yatai
