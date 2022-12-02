@@ -74,7 +74,7 @@ if ! kubectl -n ${namespace} get secret postgresql-ha-postgresql >/dev/null 2>&1
   postgresql_password=$(randstr)
   repmgr_password=$(randstr)
 else
-  postgresql_password=$(kubectl -n ${namespace} get secret postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 -d)
+  postgresql_password=$(kubectl -n ${namespace} get secret postgresql-ha-postgresql -o jsonpath="{.data.password}" | base64 -d)
   repmgr_password=$(kubectl -n ${namespace} get secret postgresql-ha-postgresql -o jsonpath="{.data.repmgr-password}" | base64 -d)
 fi
 
@@ -96,7 +96,7 @@ echo "⏳ waiting for PostgreSQL to be ready..."
 kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=postgresql-ha
 echo "✅ PostgreSQL is ready"
 
-PG_PASSWORD=$(kubectl -n ${namespace} get secret postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 -d)
+PG_PASSWORD=$(kubectl -n ${namespace} get secret postgresql-ha-postgresql -o jsonpath="{.data.password}" | base64 -d)
 PG_HOST=postgresql-ha-pgpool.${namespace}.svc.cluster.local
 PG_PORT=5432
 PG_DATABASE=yatai
