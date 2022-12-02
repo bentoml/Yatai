@@ -78,8 +78,6 @@ Installation Steps
 
   # for yatai-deployment deployment
   kubectl create ns yatai-deployment
-  # for bento image builder pods
-  kubectl create ns yatai-builders
   # for bento deployment resources
   kubectl create ns yatai
 
