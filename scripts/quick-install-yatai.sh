@@ -84,13 +84,22 @@ else
   pgpool_admin_password=$(kubectl -n ${namespace} get secret postgresql-ha-pgpool -o jsonpath="{.data.admin-password}" | base64 -d)
 fi
 
+# get installed postgresql-ha version
+postgresql_ha_version=$(helm list -n ${namespace} -o json | $jq -r '.[] | select(.name == "postgresql-ha") | .chart' | cut -d'/' -f2 | cut -d'-' -f3)
+# if postgresql-ha already installed but version is less than 10.0.6, get postgresql_password with the old way
+if [[ -n "${postgresql_ha_version}" && "${postgresql_ha_version}" < "10.0.6" ]]; then
+  echo "🤖 postgresql-ha already installed, but it's version ${postgresql_ha_version} is less than 10.0.6, getting postgresql password with the old way"
+  postgresql_password=$(kubectl -n ${namespace} get secret postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 -d)
+fi
+
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update bitnami
 echo "🤖 installing PostgreSQL..."
 helm upgrade --install postgresql-ha bitnami/postgresql-ha -n ${namespace} \
   --set postgresql.password="${postgresql_password}" \
   --set postgresql.repmgrPassword="${repmgr_password}" \
-  --set pgpool.adminPassword="${pgpool_admin_password}"
+  --set pgpool.adminPassword="${pgpool_admin_password}" \
+  --version 10.0.6
 
 echo "⏳ waiting for PostgreSQL to be ready..."
 kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=postgresql-ha
@@ -253,7 +262,13 @@ fi
 helm repo remove ${helm_repo_name} 2>/dev/null || true
 helm repo add ${helm_repo_name} ${helm_repo_url}
 helm repo update ${helm_repo_name}
-echo "🤖 installing yatai..."
+
+# if $VERSION is not set, use the latest version
+if [ -z "$VERSION" ]; then
+  VERSION=$(helm search repo ${helm_repo_name} --devel="$DEVEL" -l | grep "${helm_repo_name}/yatai " | awk '{print $2}' | head -n 1)
+fi
+
+echo "🤖 installing yatai ${VERSION} from helm repo ${helm_repo_name}..."
 helm upgrade --install yatai ${helm_repo_name}/yatai -n ${namespace} \
   --set postgresql.host="$PG_HOST" \
   --set postgresql.port="$PG_PORT" \
@@ -267,7 +282,8 @@ helm upgrade --install yatai ${helm_repo_name}/yatai -n ${namespace} \
   --set s3.secure="$S3_SECURE" \
   --set s3.accessKey="$S3_ACCESS_KEY" \
   --set s3.secretKey="$S3_SECRET_KEY" \
-  --devel="$DEVEL"
+  --devel="$DEVEL" \
+  --version "$VERSION"
 
 echo "⏳ waiting for yatai to be ready..."
 kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=yatai
