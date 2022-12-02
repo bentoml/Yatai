@@ -114,7 +114,7 @@ export default function Log({ clusterName, deploymentName, pod, open, width = 30
                         }`}</div>
                     </div>
                 ),
-                disabled: item.state.waiting !== undefined,
+                disabled: item.state.waiting !== undefined && item.state.waiting.reason !== 'CrashLoopBackOff',
             })
         }
         pod.raw_status?.initContainerStatuses?.forEach((item) => appendOption(item, 'init'))
