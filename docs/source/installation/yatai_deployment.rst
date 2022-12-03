@@ -205,6 +205,8 @@ Read its official documentation for `installation <https://github.com/kubernetes
 
     minikube addons enable metrics-server
 
+.. _use-aws-ecr-with-iam-role:
+
 4. Prepare Container Registry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -225,6 +227,136 @@ Read its official documentation for `installation <https://github.com/kubernetes
           export DOCKER_REGISTRY_PASSWORD=xxx
           export DOCKER_REGISTRY_SECURE=false
           export DOCKER_REGISTRY_BENTO_REPOSITORY_NAME=yatai-bentos
+
+    .. tab-item:: Use AWS ECR with IAM Role
+
+        1. Make sure you have an AWS account and have installed `aws-cli <https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html>`_.
+
+        2. Make sure you node has an IAM role with the following policies:
+
+        .. code::
+
+           - AmazonEC2ContainerRegistryReadOnly
+
+        3. Create an ECR repository
+
+        .. code:: bash
+
+          aws ecr create-repository --repository-name yatai-bentos --region YOUR-REGION
+
+        .. note::
+
+          Replace :code:`YOUR-REGION` with your AWS region. For example, if you are in the US East (N. Virginia) region, use :code:`us-east-1`.
+
+          Store the :code:`repositoryArn` returned by the command for later use.
+
+        4. Create an IAM policy for ECR push access for the bento image builder pod of yatai-deployment
+
+        Create a file named :code:`yatai-image-builder-pod-ecr-policy.json` with the following content:
+
+        .. code:: json
+
+          {
+              "Version": "2012-10-17",
+              "Statement": [
+                  {
+                      "Sid": "VisualEditor0",
+                      "Effect": "Allow",
+                      "Action": [
+                          "ecr:PutImageTagMutability",
+                          "ecr:StartImageScan",
+                          "ecr:DescribeImageReplicationStatus",
+                          "ecr:ListTagsForResource",
+                          "ecr:UploadLayerPart",
+                          "ecr:BatchDeleteImage",
+                          "ecr:ListImages",
+                          "ecr:BatchGetRepositoryScanningConfiguration",
+                          "ecr:DeleteRepository",
+                          "ecr:CompleteLayerUpload",
+                          "ecr:TagResource",
+                          "ecr:DescribeRepositories",
+                          "ecr:BatchCheckLayerAvailability",
+                          "ecr:ReplicateImage",
+                          "ecr:GetLifecyclePolicy",
+                          "ecr:PutLifecyclePolicy",
+                          "ecr:DescribeImageScanFindings",
+                          "ecr:GetLifecyclePolicyPreview",
+                          "ecr:PutImageScanningConfiguration",
+                          "ecr:GetDownloadUrlForLayer",
+                          "ecr:DeleteLifecyclePolicy",
+                          "ecr:PutImage",
+                          "ecr:UntagResource",
+                          "ecr:BatchGetImage",
+                          "ecr:DescribeImages",
+                          "ecr:StartLifecyclePolicyPreview",
+                          "ecr:InitiateLayerUpload",
+                          "ecr:GetRepositoryPolicy"
+                      ],
+                      "Resource": "YOUR-ECR-REPOSITORY-ARN"
+                  },
+                  {
+                      "Sid": "VisualEditor1",
+                      "Effect": "Allow",
+                      "Action": [
+                          "ecr:GetRegistryPolicy",
+                          "ecr:BatchImportUpstreamImage",
+                          "ecr:CreateRepository",
+                          "ecr:DescribeRegistry",
+                          "ecr:DescribePullThroughCacheRules",
+                          "ecr:GetAuthorizationToken",
+                          "ecr:PutRegistryScanningConfiguration",
+                          "ecr:CreatePullThroughCacheRule",
+                          "ecr:DeletePullThroughCacheRule",
+                          "ecr:GetRegistryScanningConfiguration",
+                          "ecr:PutReplicationConfiguration"
+                      ],
+                      "Resource": "*"
+                  }
+              ]
+          }
+
+        .. note::
+
+          Replace :code:`YOUR-ECR-REPOSITORY-ARN` with the :code:`repositoryArn` you stored in the previous step.
+
+        Create the IAM policy with the following command:
+
+        .. code:: bash
+
+          aws iam create-policy --policy-name yatai-image-builder-pod-ecr-policy --policy-document file://yatai-image-builder-pod-ecr-policy.json
+
+        .. note::
+
+          Store the :code:`Arn` returned by the command for later use. The ``Arn`` format is like this: :code:`arn:aws:iam::123456789012:policy/yatai-image-builder-pod-ecr-policy`
+
+        5. Create an IAM role for the service account
+
+        .. code:: bash
+
+          eksctl create iamserviceaccount \
+            --cluster=YOUR-CLUSTER \
+            --region YOUR-REGION \
+            --namespace=yatai-builders \
+            --name=yatai-image-builder-pod \
+            --attach-policy-arn=YOUR-IAM-POLICY-ARN \
+            --override-existing-serviceaccounts \
+            --approve
+
+        .. note:: Replace ``YOUR-CLUSTER`` with your EKS cluster name, ``YOUR-REGION`` with your AWS region, and ``YOUR-IAM-POLICY-ARN`` with the :code:`Arn` you stored in the previous step.
+
+        6. Set the environment variables
+
+        .. code:: bash
+
+          export DOCKER_REGISTRY_SERVER=YOUR-ECR-REGISTRY-URL
+          export DOCKER_REGISTRY_USERNAME=""
+          export DOCKER_REGISTRY_PASSWORD=""
+          export DOCKER_REGISTRY_SECURE=true
+          export DOCKER_REGISTRY_BENTO_REPOSITORY_NAME=yatai-bentos
+
+        .. note::
+
+          Replace ``YOUR-ECR-REGISTRY-URL`` with your ECR registry URL. The URL format is like this: :code:`123456789012.dkr.ecr.us-east-1.amazonaws.com`
 
     .. tab-item:: Install Private Container Registry
 
@@ -489,6 +621,18 @@ The output of the command above should look something like this:
       --set dockerRegistry.bentoRepositoryName=$DOCKER_REGISTRY_BENTO_REPOSITORY_NAME \
       --set layers.network.ingressClass=$INGRESS_CLASS \
       --skip-crds
+
+.. note::
+
+   If you are using :ref:`AWS ECR with IAM Role <use-aws-ecr-with-iam-role>`, you need to add the following option to the helm install command:
+
+   .. code:: bash
+
+      --set dockerRegistry.useAWSECRWithIAMRole=true \
+      --set dockerRegistry.awsECRRegion=YOUR-REGION \
+      --set imageBuilderPod.serviceAccountName=yatai-image-builder-pod
+
+   Replace ``YOUR-REGION`` with your AWS region.
 
 2. Verify the yatai-deployment installation
 """""""""""""""""""""""""""""""""""""""""""

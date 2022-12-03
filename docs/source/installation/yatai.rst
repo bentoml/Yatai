@@ -271,7 +271,7 @@ Expected output:
         export S3_SECRET_KEY=$(aws configure get default.aws_secret_access_key)
         export S3_SECURE=true
 
-      .. note:: Remember to replace YOUR-S3-REGION to your S3 region, replace YOUR-BUCKET-NAME to your S3 bucket name
+      .. note:: Remember to replace YOUR-S3-REGION with your S3 region, replace YOUR-BUCKET-NAME with your S3 bucket name
 
     .. tab-item:: Use Existing AWS S3 with IAM
 
@@ -286,7 +286,7 @@ Expected output:
         export S3_SECRET_KEY=""
         export S3_SECURE=true
 
-      .. note:: Remember to replace YOUR-S3-REGION to your S3 region, replace YOUR-BUCKET-NAME to your S3 bucket name
+      .. note:: Remember to replace YOUR-S3-REGION with your S3 region, replace YOUR-BUCKET-NAME with your S3 bucket name
 
       2. Create IAM policy for S3 bucket access
 
@@ -337,7 +337,7 @@ Expected output:
             --policy-name yatai-s3-access \
             --policy-document file://s3-iam-policy.json
 
-      .. note:: Please store the ``arn`` of the created policy, you will need it in the next step. The ``arn`` format is ``arn:aws:iam::ACCOUNT_ID:policy/yatai-s3-access``
+      .. note:: Please store the ``Arn`` of the created policy, you will need it in the next step. The ``Arn`` format is like this: ``arn:aws:iam::ACCOUNT_ID:policy/yatai-s3-access``
 
       3. Create IAM ServiceAccount for S3 access
 
@@ -359,7 +359,7 @@ Expected output:
             --attach-policy-arn YOUR-IAM-POLICY-ARN \
             --approve
 
-      .. note:: Remember to replace YOUR-CLUSTER to your EKS cluster name, replace YOUR-REGION to your EKS cluster region, replace YOUR-IAM-POLICY-ARN to the ``arn`` of the created IAM policy
+      .. note:: Remember to replace YOUR-CLUSTER with your EKS cluster name, replace YOUR-REGION with your EKS cluster region, replace YOUR-IAM-POLICY-ARN with the ``Arn`` of the created IAM policy
 
     .. tab-item:: Create New AWS S3
 
