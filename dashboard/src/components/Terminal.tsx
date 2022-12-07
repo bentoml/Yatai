@@ -1,14 +1,25 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useCallback } from 'react'
 import { Terminal as XtermTerminal } from 'xterm'
 import { WebLinksAddon } from 'xterm-addon-web-links'
 import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
 import qs from 'qs'
+import { toaster } from 'baseui/toast'
 import { decode } from 'js-base64'
 import { IKubePodSchema } from '@/schemas/kube_pod'
 import { IWsRespSchema } from '@/schemas/websocket'
-import { toaster } from 'baseui/toast'
 import { useOrganization } from '@/hooks/useOrganization'
+import { Button } from 'baseui/button'
+import { ProgressBar } from 'baseui/progress-bar'
+import useTranslation from '@/hooks/useTranslation'
+import { ImFinder } from 'react-icons/im'
+import Upload from 'rc-upload'
+import { GrStatusGood } from 'react-icons/gr'
+import { useStyletron } from 'baseui'
+import { Tab, Tabs } from 'baseui/tabs-motion'
+import { AiOutlineCloudDownload, AiOutlineCloudUpload } from 'react-icons/ai'
+import { Input } from 'baseui/input'
+import Label from './Label'
 
 interface ITerminalProps {
     clusterName: string
@@ -17,8 +28,6 @@ interface ITerminalProps {
     podName: string
     containerName: string
     open?: boolean
-    width?: number
-    height?: number
     debug?: boolean
     fork?: boolean
     onGetGeneratedPod?: (pod: IKubePodSchema) => void
@@ -31,8 +40,6 @@ export default function Terminal({
     podName,
     containerName,
     open,
-    width,
-    height,
     debug,
     fork,
     onGetGeneratedPod,
@@ -41,12 +48,80 @@ export default function Terminal({
     const wsRef = useRef<null | WebSocket>(null)
     const fitRef = useRef<null | FitAddon>(null)
     const { organization } = useOrganization()
+    const [isOpenFileManagerDrawer, setIsOpenFileManagerDrawer] = React.useState(false)
+    const [t] = useTranslation()
+    const [, theme] = useStyletron()
+    const [fileManagerTabActiveKey, setFileManagerTabActiveKey] = React.useState('0')
+    const [downloadPath, setDownloadPath] = React.useState('')
+
+    const [uploadingFiles, setUploadingFiles] = React.useState(
+        [] as { name: string; percent: number; finished: boolean }[]
+    )
+
+    const beforeUpload = useCallback(
+        (file) => {
+            // 1G
+            if (file.size > 10 * 1024 * 1024 * 1024) {
+                toaster.negative(t('file size cannot exceed', ['10G']), { autoHideDuration: 5000 })
+                return false
+            }
+            setUploadingFiles((files) => [
+                {
+                    name: file.name,
+                    percent: 0,
+                    finished: false,
+                },
+                ...files,
+            ])
+            return true
+        },
+        [t]
+    )
+
+    const handleUploadProgress = useCallback((progress, file) => {
+        setUploadingFiles((files) =>
+            files.map((f) => {
+                if (f.name === file.name) {
+                    return {
+                        ...f,
+                        percent: progress.percent,
+                    }
+                }
+                return f
+            })
+        )
+    }, [])
+
+    const handleUploadSuccess = useCallback(
+        (resp) => {
+            const pieces = resp.dest_path.split('/')
+            const fileName = pieces[pieces.length - 1]
+            toaster.positive(t('upload sth successfully', [resp.dest_path]), { autoHideDuration: 5000 })
+            setUploadingFiles((files) =>
+                files.map((f) => {
+                    if (f.name === fileName) {
+                        return {
+                            ...f,
+                            finished: true,
+                        }
+                    }
+                    return f
+                })
+            )
+        },
+        [t]
+    )
+
+    const handleUploadError = useCallback(
+        (err) => {
+            toaster.negative(`${t('upload file failed')}: ${err}`, { autoHideDuration: 5000 })
+        },
+        [t]
+    )
 
     useEffect(() => {
-        if (fitRef.current) {
-            fitRef.current.fit()
-        }
-    }, [width, height])
+        fitRef.current?.fit()
+    }, [isOpenFileManagerDrawer])
 
     useEffect(() => {
         if (!open || !elRef.current) {
@@ -72,7 +147,6 @@ export default function Terminal({
         }
 
         const resizeHandler = () => {
-            fitAddon.fit()
             const msg = { type: 'resize', rows: terminal.rows, cols: terminal.cols }
             ws?.send(JSON.stringify(msg))
         }
@@ -155,7 +229,14 @@ export default function Terminal({
 
         window.addEventListener('resize', resizeHandler)
 
+        // eslint-disable-next-line no-console
+        console.log('terminal mounted')
+
         return () => {
+            // eslint-disable-next-line no-console
+            console.log('terminal unmount')
+            fitRef.current = null
+            terminal.dispose()
             window.removeEventListener('resize', resizeHandler)
             ws?.close()
         }
@@ -174,12 +255,156 @@ export default function Terminal({
 
     return (
         <div
-            ref={elRef}
             style={{
+                display: 'flex',
+                flexDirection: 'column',
                 flexGrow: 1,
                 width: '100%',
                 height: '100%',
+                gap: 10,
             }}
-        />
+        >
+            <div>
+                <Button
+                    onClick={() => setIsOpenFileManagerDrawer((isOpen) => !isOpen)}
+                    startEnhancer={() => <ImFinder size={12} />}
+                    size='mini'
+                >
+                    {isOpenFileManagerDrawer ? t('hide file manager') : t('show file manager')}
+                </Button>
+            </div>
+            <div
+                style={{
+                    flexGrow: 1,
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: 20,
+                }}
+            >
+                <div
+                    ref={elRef}
+                    style={{
+                        flexGrow: 1,
+                        width: isOpenFileManagerDrawer ? 'calc(100% - 600px)' : '100%',
+                        height: '100%',
+                    }}
+                />
+                {isOpenFileManagerDrawer && (
+                    <div
+                        style={{
+                            width: 400,
+                            flexShrink: 0,
+                        }}
+                    >
+                        <Tabs
+                            activeKey={fileManagerTabActiveKey}
+                            onChange={({ activeKey }) => {
+                                setFileManagerTabActiveKey(activeKey as string)
+                            }}
+                            activateOnFocus
+                        >
+                            <Tab title={t('upload file')} artwork={() => <AiOutlineCloudUpload />}>
+                                <Upload
+                                    beforeUpload={beforeUpload}
+                                    onError={handleUploadError}
+                                    onSuccess={handleUploadSuccess}
+                                    onProgress={handleUploadProgress}
+                                    action={`/api/v1/clusters/${clusterName}/namespaces/${namespace}/deployments/${deploymentName}/pods/${podName}/containers/${containerName}/upload_file`}
+                                >
+                                    <div
+                                        style={{
+                                            width: '100%',
+                                            padding: '40px 0',
+                                            margin: '20px 0',
+                                            textAlign: 'center',
+                                            cursor: 'pointer',
+                                            border: '2px dashed #eee',
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: 700, fontSize: '15px' }}>
+                                            {t('click or drop file to this section')}
+                                        </div>
+                                        <span>{t('upload file to pod tips')}</span>
+                                    </div>
+                                </Upload>
+                                {uploadingFiles.map((f, idx) => (
+                                    <div key={uploadingFiles.length - idx} style={{ marginBottom: 6 }}>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                                gap: 8,
+                                            }}
+                                        >
+                                            {f.finished && (
+                                                <GrStatusGood
+                                                    style={{
+                                                        fill: theme.colors.positive300,
+                                                    }}
+                                                    size={12}
+                                                />
+                                            )}
+                                            <div>{f.name}</div>
+                                        </div>
+                                        <ProgressBar
+                                            overrides={{
+                                                Root: {
+                                                    style: {
+                                                        display: f.finished ? 'none' : 'block',
+                                                    },
+                                                },
+                                            }}
+                                            value={f.percent}
+                                        />
+                                    </div>
+                                ))}
+                            </Tab>
+                            <Tab title={t('download file')} artwork={() => <AiOutlineCloudDownload />}>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 10,
+                                    }}
+                                >
+                                    <div>
+                                        <Label>{t('file path')}</Label>
+                                        <Input
+                                            placeholder={t('file path')}
+                                            value={downloadPath}
+                                            size='compact'
+                                            onChange={(e) => {
+                                                setDownloadPath((e.target as HTMLInputElement).value)
+                                            }}
+                                        />
+                                    </div>
+                                    <span>{t('please input the absolute path in the container')}</span>
+                                    <Button
+                                        disabled={!downloadPath.trim()}
+                                        startEnhancer={() => <AiOutlineCloudDownload />}
+                                        size='mini'
+                                        onClick={() => {
+                                            window.open(
+                                                `/api/v1/clusters/${clusterName}/namespaces/${namespace}/deployments/${deploymentName}/pods/${podName}/containers/${containerName}/download_file${qs.stringify(
+                                                    {
+                                                        path: downloadPath.trim(),
+                                                    },
+                                                    { addQueryPrefix: true }
+                                                )}`
+                                            )
+                                        }}
+                                    >
+                                        {t('download')}
+                                    </Button>
+                                </div>
+                            </Tab>
+                        </Tabs>
+                    </div>
+                )}
+            </div>
+        </div>
     )
 }

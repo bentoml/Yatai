@@ -3,6 +3,9 @@ package controllersv1
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
@@ -26,6 +29,8 @@ import (
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/api-server/services/tracking"
 	"github.com/bentoml/yatai/api-server/transformers/transformersv1"
+	"github.com/bentoml/yatai/common/ginutils"
+	"github.com/bentoml/yatai/common/kube"
 	"github.com/bentoml/yatai/common/sync/errsgroup"
 	"github.com/bentoml/yatai/common/utils"
 )
@@ -704,6 +709,155 @@ func (c *deploymentController) ListTerminalRecords(ctx *gin.Context, schema *Lis
 		},
 		Items: terminalRecordSchemas,
 	}, err
+}
+
+type UploadFileToDeploymentPodSchema struct {
+	GetDeploymentSchema
+	PodName       string `path:"podName"`
+	ContainerName string `path:"containerName"`
+}
+
+type UploadFileToDeploymentPodResultSchema struct {
+	DestPath string `json:"dest_path"`
+}
+
+const BOUNDARY = "; boundary="
+
+func (c *deploymentController) UploadFileToPod(ctx *gin.Context) {
+	schema := &UploadFileToDeploymentPodSchema{}
+	schema.ClusterName = ctx.Param("clusterName")
+	schema.KubeNamespace = ctx.Param("kubeNamespace")
+	schema.DeploymentName = ctx.Param("deploymentName")
+	schema.PodName = ctx.Param("podName")
+	schema.ContainerName = ctx.Param("containerName")
+
+	var err error
+
+	defer func() {
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+		}
+	}()
+
+	deployment, err := schema.GetDeployment(ctx)
+	if err != nil {
+		return
+	}
+	if err = c.canUpdate(ctx, deployment); err != nil {
+		return
+	}
+
+	contentType := ctx.GetHeader("Content-Type")
+	boundaryIndex := strings.Index(contentType, BOUNDARY)
+	if boundaryIndex < 0 {
+		err = errors.New("no boundary")
+		return
+	}
+
+	boundary := []byte(contentType[(boundaryIndex + len(BOUNDARY)):])
+
+	cluster, err := services.ClusterService.GetAssociatedCluster(ctx, deployment)
+	if err != nil {
+		return
+	}
+
+	cliset, restConfig, err := services.ClusterService.GetKubeCliSet(ctx, cluster)
+	if err != nil {
+		return
+	}
+
+	namespace := deployment.KubeNamespace
+
+	readData := make([]byte, 1024*12)
+	readTotal := 0
+
+	fileHeader, restData, restDataTotal, err := ginutils.GetFileHeaderFromUploadStream(readData, readTotal, boundary, ctx.Request.Body)
+	if err != nil {
+		return
+	}
+
+	destDir := "/tmp/yatai_upload"
+
+	destPath := filepath.Join(destDir, fileHeader.FileName)
+
+	reader, writer := io.Pipe()
+
+	go func() {
+		reachEnd := false
+		for !reachEnd {
+			restData, restDataTotal, reachEnd, _ = ginutils.GetFileContentFromUploadStream(restData, restDataTotal, boundary, ctx.Request.Body, writer)
+		}
+		_ = writer.Close()
+	}()
+
+	err = kube.UploadToPod(kube.KubeClient{
+		ClientSet: cliset,
+		Config:    restConfig,
+	}, namespace, schema.PodName, schema.ContainerName, destPath, reader)
+
+	if err == nil {
+		rest := &UploadFileToDeploymentPodResultSchema{
+			DestPath: destPath,
+		}
+		ctx.JSON(http.StatusOK, rest)
+	}
+}
+
+type DownloadFileFromDeploymentPodSchema struct {
+	GetDeploymentSchema
+	PodName       string `path:"podName"`
+	ContainerName string `path:"containerName"`
+}
+
+func (c *deploymentController) DownloadFileFromPod(ctx *gin.Context) {
+	schema := &DownloadFileFromDeploymentPodSchema{}
+	schema.ClusterName = ctx.Param("clusterName")
+	schema.KubeNamespace = ctx.Param("kubeNamespace")
+	schema.DeploymentName = ctx.Param("deploymentName")
+	schema.PodName = ctx.Param("podName")
+	schema.ContainerName = ctx.Param("containerName")
+
+	var err error
+
+	defer func() {
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+		}
+	}()
+
+	deployment, err := schema.GetDeployment(ctx)
+	if err != nil {
+		return
+	}
+	if err = c.canUpdate(ctx, deployment); err != nil {
+		return
+	}
+
+	cluster, err := services.ClusterService.GetAssociatedCluster(ctx, deployment)
+	if err != nil {
+		return
+	}
+
+	cliset, restConfig, err := services.ClusterService.GetKubeCliSet(ctx, cluster)
+	if err != nil {
+		return
+	}
+
+	namespace := deployment.KubeNamespace
+
+	sourcePath := strings.TrimSpace(ctx.Query("path"))
+
+	ctx.Writer.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filepath.Base(sourcePath)))
+	ctx.Writer.Header().Add("Content-type", "application/octet-stream")
+
+	err = kube.DownloadFromPod(kube.KubeClient{
+		ClientSet: cliset,
+		Config:    restConfig,
+	}, namespace, schema.PodName, schema.ContainerName, sourcePath, ctx.Writer)
 }
 
 var (
