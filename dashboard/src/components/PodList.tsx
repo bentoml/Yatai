@@ -6,6 +6,7 @@ import { Modal, ModalBody, ModalHeader } from 'baseui/modal'
 import { IoMdList } from 'react-icons/io'
 import { GoTerminal } from 'react-icons/go'
 import { MdEventNote } from 'react-icons/md'
+import { TbBrandDocker } from 'react-icons/tb'
 import React, { useState, useCallback, useMemo } from 'react'
 import { StatefulTooltip } from 'baseui/tooltip'
 import { Button } from 'baseui/button'
@@ -19,7 +20,8 @@ import {
 import { Skeleton } from 'baseui/skeleton'
 import { resourceIconMapping } from '@/consts'
 import { IDeploymentSchema } from '@/schemas/deployment'
-import _ from 'lodash'
+import { StatefulPopover } from 'baseui/popover'
+import { StatefulMenu } from 'baseui/menu'
 import Log from './Log'
 import { PodStatus } from './PodStatuses'
 import Terminal from './Terminal'
@@ -53,6 +55,7 @@ export default function PodList({
     const [desiredShowKubeEventsPod, setDesiredShowKubeEventsPod] = useState<IKubePodSchema>()
     const [desiredShowMonitorPod, setDesiredShowMonitorPod] = useState<IKubePodSchema>()
     const [desiredShowTerminalPod, setDesiredShowTerminalPod] = useState<IKubePodSchema>()
+    const [desiredShowTerminalContainerName, setDesiredShowTerminalContainerName] = useState<string>()
     let clusterName = cluster?.name
     if (clusterName_) {
         clusterName = clusterName_
@@ -126,10 +129,53 @@ export default function PodList({
                                     <MdEventNote />
                                 </Button>
                             </StatefulTooltip>
-                            <StatefulTooltip content={t('terminal')} showArrow>
-                                <Button size='mini' shape='circle' onClick={() => setDesiredShowTerminalPod(pod)}>
-                                    <GoTerminal />
-                                </Button>
+                            <StatefulTooltip content={t('events')} showArrow>
+                                <StatefulPopover
+                                    focusLock
+                                    placement='bottom'
+                                    overrides={{
+                                        Inner: {
+                                            style: {
+                                                minWith: '200px',
+                                            },
+                                        },
+                                    }}
+                                    content={({ close }) => (
+                                        <StatefulMenu
+                                            items={
+                                                pod.raw_status?.containerStatuses?.map((container) => ({
+                                                    label: (
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: 8,
+                                                            }}
+                                                        >
+                                                            <div style={{ flexShrink: 0 }}>
+                                                                <TbBrandDocker size={14} />
+                                                            </div>
+                                                            {container.name}
+                                                        </div>
+                                                    ),
+                                                    containerName: container.name,
+                                                })) ?? []
+                                            }
+                                            onItemSelect={({ item }) => {
+                                                setDesiredShowTerminalContainerName(item?.containerName)
+                                                setDesiredShowTerminalPod(pod)
+                                                close()
+                                            }}
+                                            overrides={{
+                                                List: { style: { height: '150px', width: '138px' } },
+                                            }}
+                                        />
+                                    )}
+                                >
+                                    <Button size='mini' shape='circle'>
+                                        <GoTerminal />
+                                    </Button>
+                                </StatefulPopover>
                             </StatefulTooltip>
                         </div>
                     </StyledTableBodyCell>
@@ -312,30 +358,29 @@ export default function PodList({
                         },
                     },
                 }}
-                isOpen={desiredShowTerminalPod !== undefined}
-                onClose={() => setDesiredShowTerminalPod(undefined)}
+                isOpen={desiredShowTerminalPod !== undefined && desiredShowTerminalContainerName !== undefined}
+                onClose={() => {
+                    setDesiredShowTerminalContainerName(undefined)
+                    setDesiredShowTerminalPod(undefined)
+                }}
                 closeable
                 animate
                 autoFocus
             >
-                <ModalHeader>{t('terminal')}</ModalHeader>
+                <ModalHeader>{`${t('terminal')} - ${
+                    desiredShowTerminalPod?.name
+                } - ${desiredShowTerminalContainerName}`}</ModalHeader>
                 <ModalBody style={{ flex: '1 1 0' }}>
-                    {organization && clusterName && desiredShowTerminalPod && (
+                    {organization && clusterName && desiredShowTerminalPod && desiredShowTerminalContainerName && (
                         <Terminal
-                            open={desiredShowTerminalPod !== undefined}
+                            open={
+                                desiredShowTerminalPod !== undefined && desiredShowTerminalContainerName !== undefined
+                            }
                             clusterName={clusterName}
                             deploymentName={deployment?.name}
                             namespace={desiredShowTerminalPod.namespace}
                             podName={desiredShowTerminalPod.name}
-                            containerName={
-                                desiredShowTerminalPod.raw_status?.containerStatuses?.find((containerStatus) =>
-                                    _.startsWith(desiredShowTerminalPod.name, containerStatus.name)
-                                )?.name ??
-                                desiredShowTerminalPod.raw_status?.containerStatuses?.[
-                                    (desiredShowTerminalPod.raw_status?.containerStatuses?.length ?? 1) - 1
-                                ]?.name ??
-                                ''
-                            }
+                            containerName={desiredShowTerminalContainerName ?? ''}
                         />
                     )}
                 </ModalBody>
