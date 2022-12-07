@@ -186,6 +186,12 @@ func NewRouter() (*fizz.Fizz, error) {
 	modelGroup.PUT("/upload", controllersv1.ModelController.Upload)
 	modelGroup.GET("/download", controllersv1.ModelController.Download)
 
+	deploymentGroup := engine.Group("/api/v1/clusters/:clusterName/namespaces/:kubeNamespace/deployments/:deploymentName")
+	deploymentGroup.Use(requireLogin)
+
+	deploymentGroup.POST("/pods/:podName/containers/:containerName/upload_file", controllersv1.DeploymentController.UploadFileToPod)
+	deploymentGroup.GET("/pods/:podName/containers/:containerName/download_file", controllersv1.DeploymentController.DownloadFileFromPod)
+
 	publicApiRootGroup := fizzApp.Group("/api/v1", "api v1", "api v1")
 	apiRootGroup := fizzApp.Group("/api/v1", "api v1", "api v1")
 	apiRootGroup.Use(requireLogin)
