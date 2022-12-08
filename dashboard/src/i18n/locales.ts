@@ -2748,6 +2748,116 @@ const locales0 = {
         'ko': '파일 경로',
         'vi': 'Đường dẫn tập tin',
     },
+    'enable debug mode': {
+        'en': 'Enable debug mode',
+        'zh-CN': '开启调试模式',
+        'zh-TW': '開啟調試模式',
+        'ja': 'デバッグモードを有効にする',
+        'ko': '디버그 모드 활성화',
+        'vi': 'Bật chế độ gỡ lỗi',
+    },
+    'enable debug mode desc': {
+        'zh-CN':
+            '开启调试模式后，每个 pod 会新增一个 debug 容器，可以在容器中执行命令进行调试，由于新增了容器，正在运行的 pod 会滚动重启（服务不会中断），且会导致 pod 的资源占用增加，建议在调试完成后关闭调试模式，以免影响正常的服务',
+        'zh-TW':
+            '開啟調試模式後，每個 pod 會新增一個 debug 容器，可以在容器中執行命令進行調試，由於新增了容器，正在運行的 pod 會滾動重啟（服務不會中斷），且會導致 pod 的資源占用增加，建議在調試完成後關閉調試模式，以免影響正常的服務',
+        'ja': 'デバッグモードを有効にすると、各 pod に debug コンテナが追加され、コンテナ内でコマンドを実行してデバッグできます。コンテナが追加されるため、実行中の pod はローリングリスタートされます（サービスは中断されません）。また、pod のリソース使用量が増加するため、デバッグが完了したらデバッグモードを無効にしてください（正常なサービスに影響を与えないようにするためです）',
+        'ko': '디버그 모드를 활성화하면 각 pod에 debug 컨테이너가 추가되어 컨테이너 내에서 명령을 실행하여 디버그할 수 있습니다. 컨테이너가 추가되기 때문에 실행 중인 pod는 롤링 리스타트됩니다(서비스는 중단되지 않습니다). 또한 pod의 리소스 사용량이 증가하므로 디버그가 완료되면 디버그 모드를 비활성화하여 정상 서비스에 영향을 주지 않도록 하십시오',
+        'vi': 'Khi bật chế độ gỡ lỗi, mỗi pod sẽ có thêm một container gỡ lỗi, bạn có thể thực thi các lệnh trong container để gỡ lỗi. Vì thêm container nên pod đang chạy sẽ được khởi động lại (dịch vụ không bị gián đoạn), và sẽ tăng tải tài nguyên của pod, nên sau khi gỡ lỗi xong, bạn nên tắt chế độ gỡ lỗi để tránh ảnh hưởng đến dịch vụ bình thường',
+        'en': 'After enabling debug mode, a debug container will be added to each pod, you can execute commands in the container to debug, because the container is added, the running pod will be rolling restarted (the service will not be interrupted), and the resource usage of the pod will increase, it is recommended to turn off the debug mode after debugging is completed to avoid affecting the normal service',
+    },
+    'enable stealing traffic debug mode': {
+        'en': 'Enable stealing traffic debug mode',
+        'zh-CN': '开启偷取流量的调试模式',
+        'zh-TW': '開啟偷取流量的調試模式',
+        'ja': 'トラフィックを盗むデバッグモードを有効にする',
+        'ko': '트래픽을 훔치는 디버그 모드를 활성화합니다',
+        'vi': 'Bật chế độ gỡ lỗi trộm gói tin',
+    },
+    'enable stealing traffic debug mode desc': {
+        'zh-CN':
+            '开启偷取流量的调试模式后，此组件（API Server 或 Runner）会在现有的 pod 基础上新增一个 debug pod，用于调试。由于是新增 pod，正在运行中的 pod 不会受任何影响，但是会增加整个组件的资源使用量，因此建议在调试完成后关闭调试模式。',
+        'zh-TW':
+            '開啟偷取流量的調試模式後，此組件（API Server 或 Runner）會在現有的 pod 基礎上新增一個 debug pod，用於調試。由於是新增 pod，正在運行中的 pod 不會受任何影響，但是會增加整個組件的資源使用量，因此建議在調試完成後關閉調試模式。',
+        'ja': 'トラフィックを盗むデバッグモードを有効にすると、このコンポーネント（API ServerまたはRunner）は、既存のpodにdebug podを追加してデバッグします。podが追加されるため、実行中のpodには影響がありませんが、コンポーネントのリソース使用量が増加します。したがって、デバッグが完了したら、デバッグモードを無効にすることをお勧めします。',
+        'ko': '트래픽을 훔치는 디버그 모드를 활성화하면 이 컴포넌트 (API Server 또는 Runner)는 기존 pod에 debug pod를 추가하여 디버깅합니다. pod가 추가되기 때문에 실행 중인 pod에는 영향이 없지만 컴포넌트의 리소스 사용량이 증가합니다. 따라서 디버깅이 완료된 후 디버그 모드를 비활성화하는 것이 좋습니다.',
+        'vi': 'Bật chế độ gỡ lỗi trộm gói tin sẽ thêm một debug pod vào các pod hiện có, bạn có thể thực thi các lệnh trong debug pod để gỡ lỗi, do là thêm pod nên pod đang chạy sẽ không bị ảnh hưởng, nhưng sẽ tăng tải tài nguyên của toàn bộ pod, do đó khuyến khích tắt chế độ gỡ lỗi sau khi gỡ lỗi xong để tránh ảnh hưởng đến dịch vụ bình thường.',
+        'en': 'After enabling the debug mode of stealing traffic, this component (API Server or Runner) will add a debug pod to the existing pod for debugging. Since the pod is added, there is no impact on the running pod, but the resource usage of the component will increase. Therefore, it is recommended to disable the debug mode after debugging is completed.',
+    },
+    'enable debug pod receive production traffic': {
+        'zh-CN': '允许 debug pod 接收生产环境的流量',
+        'zh-TW': '允許 debug pod 接收生產環境的流量',
+        'ja': 'debug podが本番環境のトラフィックを受信できるようにする',
+        'ko': 'debug pod가 프로덕션 트래픽을 수신할 수 있도록합니다.',
+        'vi': 'Cho phép debug pod nhận gói tin từ môi trường sản xuất',
+        'en': 'Allow debug pod to receive production traffic',
+    },
+    'enable debug pod receive production traffic desc': {
+        'zh-CN':
+            '开启偷取流量的调试模式后，默认情况下生产环境中的流量不会发送到 debug pod 中，需要手动在 HTTP header 中增加 `X-Yatai-Debug: true` 才能让流量发送到 debug pod 中。开启此选项后，生产环境中的流量会自动发送到 debug pod 中，无需手动添加 HTTP header。',
+        'en': 'After enabling the debug mode of stealing traffic, the production environment traffic will not be sent to the debug pod by default, and you need to manually add `X-Yatai-Debug: true` in the HTTP header to send the traffic to the debug pod. After enabling this option, the production environment traffic will be automatically sent to the debug pod without manually adding the HTTP header.',
+        'zh-TW':
+            '開啟偷取流量的調試模式後，預設情況下生產環境中的流量不會發送到 debug pod 中，需要手動在 HTTP header 中增加 `X-Yatai-Debug: true` 才能讓流量發送到 debug pod 中。開啟此選項後，生產環境中的流量會自動發送到 debug pod 中，無需手動添加 HTTP header。',
+        'ja': 'トラフィックを盗むデバッグモードを有効にすると、デフォルトでは本番環境のトラフィックはdebug podに送信されません。HTTPヘッダーに`X-Yatai-Debug: true`を追加する必要があります。このオプションを有効にすると、本番環境のトラフィックは自動的にdebug podに送信され、HTTPヘッダーを手動で追加する必要はありません。',
+        'ko': '트래픽을 훔치는 디버그 모드를 활성화하면 기본적으로 프로덕션 환경의 트래픽은 debug pod로 전송되지 않습니다. HTTP 헤더에 `X-Yatai-Debug: true`를 추가해야합니다.이 옵션을 활성화하면 프로덕션 환경의 트래픽이 자동으로 debug pod로 전송되며 HTTP 헤더를 수동으로 추가할 필요가 없습니다.',
+        'vi': 'Sau khi bật chế độ gỡ lỗi của việc trộm gói tin, gói tin môi trường sản xuất sẽ không được gửi đến debug pod theo mặc định, bạn cần thêm `X-Yatai-Debug: true` vào HTTP header để gửi gói tin đến debug pod. Sau khi bật tùy chọn này, gói tin môi trường sản xuất sẽ được tự động gửi đến debug pod mà không cần thêm HTTP header.',
+    },
+    'this is a production pod': {
+        'zh-CN': '这是一个生产环境的 pod',
+        'zh-TW': '這是一個生產環境的 pod',
+        'ja': 'これは本番環境のpodです',
+        'ko': '이것은 프로덕션 환경의 pod입니다.',
+        'vi': 'Đây là một pod môi trường sản xuất',
+        'en': 'This is a production pod',
+    },
+    'this is a debug pod': {
+        'zh-CN': '这是一个调试环境的 pod',
+        'zh-TW': '這是一個調試環境的 pod',
+        'ja': 'これはデバッグ環境のpodです',
+        'ko': '이것은 디버그 환경의 pod입니다.',
+        'vi': 'Đây là một pod môi trường gỡ lỗi',
+        'en': 'This is a debug pod',
+    },
+    'debug traffic': {
+        'zh-CN': '调试流量',
+        'zh-TW': '調試流量',
+        'ja': 'デバッグトラフィック',
+        'ko': '디버그 트래픽',
+        'vi': 'Gỡ lỗi gói tin',
+        'en': 'Debug traffic',
+    },
+    'receive debug traffic desc': {
+        'zh-CN': '只接收 HTTP header 中包含 `X-Yatai-Debug: true` 的调试流量',
+        'zh-TW': '只接收 HTTP header 中包含 `X-Yatai-Debug: true` 的調試流量',
+        'ja': 'HTTPヘッダーに `X-Yatai-Debug: true` を含むデバッグトラフィックのみを受信します',
+        'ko': 'HTTP 헤더에 `X-Yatai-Debug: true` 를 포함하는 디버그 트래픽만 수신합니다.',
+        'vi': 'Chỉ nhận gói tin gỡ lỗi có HTTP header chứa `X-Yatai-Debug: true`',
+        'en': 'Only receive debug traffic with HTTP header containing `X-Yatai-Debug: true`',
+    },
+    'production traffic': {
+        'zh-CN': '生产流量',
+        'zh-TW': '生產流量',
+        'ja': '本番環境のトラフィック',
+        'ko': '프로덕션 트래픽',
+        'vi': 'Gói tin môi trường sản xuất',
+        'en': 'Production traffic',
+    },
+    'receive production traffic desc': {
+        'zh-CN': '所有的生产环境的流量都可能会被接收',
+        'zh-TW': '所有的生產環境的流量都可能會被接收',
+        'ja': 'すべての本番環境のトラフィックが受信される可能性があります',
+        'ko': '모든 프로덕션 환경의 트래픽이 수신될 수 있습니다.',
+        'vi': 'Tất cả gói tin môi trường sản xuất đều có thể nhận được',
+        'en': 'All production traffic may be received',
+    },
+    'contains debugger container': {
+        'zh-CN': '包含调试容器',
+        'zh-TW': '包含調試容器',
+        'ja': 'デバッガーコンテナを含む',
+        'ko': '디버거 컨테이너를 포함합니다.',
+        'vi': 'Chứa container gỡ lỗi',
+        'en': 'Contains debugger container',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

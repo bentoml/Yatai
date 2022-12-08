@@ -8,6 +8,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 
@@ -194,6 +195,12 @@ func (s *kubeBentoDeploymentService) DeployV1alpha2(ctx context.Context, deploym
 	return
 }
 
+const (
+	KubeAnnotationEnableDebugMode                        = "yatai.ai/enable-debug-mode"
+	KubeAnnotationEnableStealingTrafficDebugMode         = "yatai.ai/enable-stealing-traffic-debug-mode"
+	KubeAnnotationEnableDebugPodReceiveProductionTraffic = "yatai.ai/enable-debug-pod-receive-production-traffic"
+)
+
 func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (kubeBentoDeployment *servingv1alpha3.BentoDeployment, err error) {
 	deployment, err := DeploymentService.GetAssociatedDeployment(ctx, deploymentTarget)
 	if err != nil {
@@ -250,6 +257,28 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 		return
 	}
 
+	if kubeBentoDeployment.Spec.Annotations == nil {
+		kubeBentoDeployment.Spec.Annotations = make(map[string]string)
+	}
+
+	if deploymentTarget.Config != nil {
+		if deploymentTarget.Config.EnableDebugMode != nil && *deploymentTarget.Config.EnableDebugMode {
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelTrue
+		} else {
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelFalse
+		}
+		if deploymentTarget.Config.EnableStealingTrafficDebugMode != nil && *deploymentTarget.Config.EnableStealingTrafficDebugMode {
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelTrue
+		} else {
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelFalse
+		}
+		if deploymentTarget.Config.EnableDebugPodReceiveProductionTraffic != nil && *deploymentTarget.Config.EnableDebugPodReceiveProductionTraffic {
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelTrue
+		} else {
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelFalse
+		}
+	}
+
 	var oldKubeBentoDeployment *servingv1alpha3.BentoDeployment
 	oldKubeBentoDeployment, err = cli.Get(ctx, kubeBentoDeployment.Name, metav1.GetOptions{})
 	isNotFound := apierrors.IsNotFound(err)
@@ -281,7 +310,15 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 				kubeBentoDeployment.Labels[k] = v
 			}
 		}
-		kubeBentoDeployment.Spec.Annotations = oldKubeBentoDeployment.Spec.Annotations
+		// copy old spec annotations
+		if kubeBentoDeployment.Spec.Annotations == nil {
+			kubeBentoDeployment.Spec.Annotations = make(map[string]string)
+		}
+		for k, v := range oldKubeBentoDeployment.Spec.Annotations {
+			if _, ok := kubeBentoDeployment.Spec.Annotations[k]; !ok {
+				kubeBentoDeployment.Spec.Annotations[k] = v
+			}
+		}
 		kubeBentoDeployment.Spec.Labels = oldKubeBentoDeployment.Spec.Labels
 		kubeBentoDeployment.Spec.ExtraPodMetadata = oldKubeBentoDeployment.Spec.ExtraPodMetadata
 		kubeBentoDeployment.Spec.ExtraPodSpec = oldKubeBentoDeployment.Spec.ExtraPodSpec
@@ -290,9 +327,38 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 		kubeBentoDeployment.Spec.Ingress.TLS = oldKubeBentoDeployment.Spec.Ingress.TLS
 		kubeBentoDeployment.Spec.Autoscaling = oldKubeBentoDeployment.Spec.Autoscaling
 		for idx, runner := range kubeBentoDeployment.Spec.Runners {
+			var runnerConfig *modelschemas.DeploymentTargetRunnerConfig
+			if deploymentTarget.Config != nil {
+				runnerConfig_ := deploymentTarget.Config.Runners[runner.Name]
+				runnerConfig = &runnerConfig_
+			}
 			for _, oldRunner := range oldKubeBentoDeployment.Spec.Runners {
 				if runner.Name == oldRunner.Name {
-					kubeBentoDeployment.Spec.Runners[idx].Annotations = oldRunner.Annotations
+					if kubeBentoDeployment.Spec.Runners[idx].Annotations == nil {
+						kubeBentoDeployment.Spec.Runners[idx].Annotations = make(map[string]string)
+					}
+					if runnerConfig != nil {
+						if runnerConfig.EnableDebugMode != nil && *runnerConfig.EnableDebugMode {
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelTrue
+						} else {
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelFalse
+						}
+						if runnerConfig.EnableStealingTrafficDebugMode != nil && *runnerConfig.EnableStealingTrafficDebugMode {
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelTrue
+						} else {
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelFalse
+						}
+						if runnerConfig.EnableDebugPodReceiveProductionTraffic != nil && *runnerConfig.EnableDebugPodReceiveProductionTraffic {
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelTrue
+						} else {
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelFalse
+						}
+					}
+					for k, v := range oldRunner.Annotations {
+						if _, ok := kubeBentoDeployment.Spec.Runners[idx].Annotations[k]; !ok {
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[k] = v
+						}
+					}
 					kubeBentoDeployment.Spec.Runners[idx].Labels = oldRunner.Labels
 					kubeBentoDeployment.Spec.Runners[idx].ExtraPodMetadata = oldRunner.ExtraPodMetadata
 					kubeBentoDeployment.Spec.Runners[idx].ExtraPodSpec = oldRunner.ExtraPodSpec

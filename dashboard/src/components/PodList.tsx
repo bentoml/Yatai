@@ -22,6 +22,8 @@ import { resourceIconMapping } from '@/consts'
 import { IDeploymentSchema } from '@/schemas/deployment'
 import { StatefulPopover } from 'baseui/popover'
 import { StatefulMenu } from 'baseui/menu'
+import { Tag } from 'baseui/tag'
+import { FcElectricalSensor, FcSupport } from 'react-icons/fc'
 import Log from './Log'
 import { PodStatus } from './PodStatuses'
 import Terminal from './Terminal'
@@ -82,22 +84,212 @@ export default function PodList({
 
     const renderPodRow = useCallback(
         (pod: IKubePodSchema) => {
+            const isDebugPod = pod.labels?.['yatai.ai/bento-deployment-target-type'] === 'debug'
+            const containsDebuggerContainer = pod.raw_status?.containerStatuses?.some(
+                (container) => container.name === 'debugger'
+            )
+
+            let receiveProductionTraffic = false
+            if (deployment) {
+                if (pod.runner_name) {
+                    receiveProductionTraffic =
+                        deployment.latest_revision?.targets?.[0]?.config?.runners?.[pod.runner_name]
+                            ?.enable_debug_pod_receive_production_traffic ?? false
+                } else {
+                    receiveProductionTraffic =
+                        deployment.latest_revision?.targets?.[0]?.config?.enable_debug_pod_receive_production_traffic ??
+                        false
+                }
+            }
+
             return (
                 <StyledTableBodyRow key={pod.name}>
                     <StyledTableBodyCell>
-                        <StatefulTooltip key={pod.name} content={pod.name} showArrow>
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '2px',
+                            }}
+                        >
                             <div
                                 style={{
-                                    display: 'inline-block',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    maxWidth: 320,
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: '6px',
                                 }}
                             >
-                                {pod.name}
+                                {isDebugPod ? (
+                                    <StatefulTooltip
+                                        key={pod.name}
+                                        content={
+                                            <div>
+                                                <p>{t('this is a debug pod')}</p>
+                                                {receiveProductionTraffic ? (
+                                                    <p>{t('receive production traffic desc')}</p>
+                                                ) : (
+                                                    <p>{t('receive debug traffic desc')}</p>
+                                                )}
+                                            </div>
+                                        }
+                                        showArrow
+                                    >
+                                        <div
+                                            style={{
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                            }}
+                                        >
+                                            <FcSupport />
+                                        </div>
+                                    </StatefulTooltip>
+                                ) : (
+                                    <StatefulTooltip key={pod.name} content={t('this is a production pod')} showArrow>
+                                        <div
+                                            style={{
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                            }}
+                                        >
+                                            <FcElectricalSensor />
+                                        </div>
+                                    </StatefulTooltip>
+                                )}
+                                <StatefulTooltip key={pod.name} content={pod.name} showArrow>
+                                    <div
+                                        style={{
+                                            display: 'inline-block',
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            maxWidth: 320,
+                                        }}
+                                    >
+                                        {pod.name}
+                                    </div>
+                                </StatefulTooltip>
                             </div>
-                        </StatefulTooltip>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                }}
+                            >
+                                {containsDebuggerContainer && (
+                                    <StatefulTooltip
+                                        key={pod.name}
+                                        content={t('contains debugger container')}
+                                        showArrow
+                                    >
+                                        <div
+                                            style={{
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                            }}
+                                            role='button'
+                                            tabIndex={0}
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                setDesiredShowTerminalPod(pod)
+                                                setDesiredShowTerminalContainerName('debugger')
+                                            }}
+                                        >
+                                            <Tag
+                                                overrides={{
+                                                    Root: {
+                                                        style: {
+                                                            cursor: 'pointer',
+                                                            zoom: 0.7,
+                                                        },
+                                                    },
+                                                }}
+                                                size='small'
+                                                closeable={false}
+                                                variant='outlined'
+                                                kind='positive'
+                                            >
+                                                Debugger
+                                            </Tag>
+                                        </div>
+                                    </StatefulTooltip>
+                                )}
+                                {isDebugPod &&
+                                    (receiveProductionTraffic ? (
+                                        <StatefulTooltip
+                                            key={pod.name}
+                                            content={t('receive production traffic desc')}
+                                            showArrow
+                                        >
+                                            <div
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                }}
+                                            >
+                                                <Tag
+                                                    overrides={{
+                                                        Root: {
+                                                            style: {
+                                                                cursor: 'pointer',
+                                                                zoom: 0.7,
+                                                            },
+                                                        },
+                                                    }}
+                                                    size='small'
+                                                    closeable={false}
+                                                    variant='outlined'
+                                                    kind='positive'
+                                                >
+                                                    {t('production traffic')}
+                                                </Tag>
+                                            </div>
+                                        </StatefulTooltip>
+                                    ) : (
+                                        <StatefulTooltip
+                                            key={pod.name}
+                                            content={t('receive debug traffic desc')}
+                                            showArrow
+                                        >
+                                            <div
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                }}
+                                            >
+                                                <Tag
+                                                    overrides={{
+                                                        Root: {
+                                                            style: {
+                                                                cursor: 'pointer',
+                                                                zoom: 0.7,
+                                                            },
+                                                        },
+                                                    }}
+                                                    size='small'
+                                                    closeable={false}
+                                                    variant='outlined'
+                                                    kind='positive'
+                                                >
+                                                    {t('debug traffic')}
+                                                </Tag>
+                                            </div>
+                                        </StatefulTooltip>
+                                    ))}
+                            </div>
+                        </div>
                     </StyledTableBodyCell>
                     <StyledTableBodyCell>
                         <PodStatus key={pod.name} pod={pod} pods={pods} />
@@ -182,7 +374,7 @@ export default function PodList({
                 </StyledTableBodyRow>
             )
         },
-        [pods, t]
+        [deployment, pods, t]
     )
 
     return (

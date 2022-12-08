@@ -120,6 +120,8 @@ func ToKubePodSchemas(ctx context.Context, clusterId uint, pods []*models.KubePo
 		vs = append(vs, &schemasv1.KubePodSchema{
 			Name:             p.Pod.Name,
 			Namespace:        p.Pod.Namespace,
+			Annotations:      p.Pod.Annotations,
+			Labels:           p.Pod.Labels,
 			NodeName:         p.Pod.Spec.NodeName,
 			RunnerName:       runnerName,
 			Status:           status,
