@@ -6,9 +6,9 @@ require (
 	github.com/aquasecurity/go-pep440-version v0.0.0-20210121094942-22b2f8951d46
 	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
 	github.com/bentoml/yatai-common v0.0.0-20221115112706-487d02768241
-	github.com/bentoml/yatai-schemas v0.0.0-20221208132324-cf512abdbb1f
 	github.com/bentoml/yatai-deployment v1.0.3-0.20221122105112-fcab131d260b
 	github.com/bentoml/yatai-image-builder v0.0.1-d9
+	github.com/bentoml/yatai-schemas v0.0.0-20221208132324-cf512abdbb1f
 	github.com/bits-and-blooms/bloom/v3 v3.3.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/sessions v0.0.3
