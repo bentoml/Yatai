@@ -50,6 +50,8 @@ export interface IContainerStatus {
 export interface IKubePodSchema {
     name: string
     namespace: string
+    annotations?: Record<string, string>
+    labels?: Record<string, string>
     node_name: string
     runner_name?: string
     image: string

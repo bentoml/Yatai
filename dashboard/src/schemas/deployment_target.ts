@@ -67,6 +67,9 @@ export interface IDeploymentTargetRunnerSchema {
     resources?: IKubeResources
     hpa_conf?: IKubeHPAConf
     envs?: ILabelItemSchema[]
+    enable_debug_mode?: boolean
+    enable_stealing_traffic_debug_mode?: boolean
+    enable_debug_pod_receive_production_traffic?: boolean
 }
 
 export interface IDeploymentTargetConfigSchema {
@@ -75,4 +78,7 @@ export interface IDeploymentTargetConfigSchema {
     envs?: ILabelItemSchema[]
     runners?: Record<string, IDeploymentTargetRunnerSchema>
     enable_ingress?: boolean
+    enable_debug_mode?: boolean
+    enable_stealing_traffic_debug_mode?: boolean
+    enable_debug_pod_receive_production_traffic?: boolean
 }
