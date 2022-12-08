@@ -67,6 +67,21 @@ if ! kubectl get namespace ${namespace} >/dev/null 2>&1; then
   echo "✅ created namespace ${namespace}"
 fi
 
+echo "🤖 installing prometheus operator CRDs"
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
+
+echo "⏳ waiting for prometheus-operator CRDs to be established..."
+kubectl wait --for condition=established --timeout=120s crd/prometheuses.monitoring.coreos.com
+kubectl wait --for condition=established --timeout=120s crd/servicemonitors.monitoring.coreos.com
+echo "✅ prometheus-operator CRDs are established"
+
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update prometheus-community
 echo "🤖 installing prometheus-operator..."
@@ -80,11 +95,6 @@ EOF
 echo "⏳ waiting for prometheus-operator to be ready..."
 kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l release=prometheus
 echo "✅ prometheus-operator is ready"
-
-echo "⏳ waiting for prometheus-operator CRDs to be established..."
-kubectl wait --for condition=established --timeout=120s crd/prometheuses.monitoring.coreos.com
-kubectl wait --for condition=established --timeout=120s crd/servicemonitors.monitoring.coreos.com
-echo "✅ prometheus-operator CRDs are established"
 
 echo "🧪 verify that the Prometheus service is running..."
 kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/instance=prometheus-kube-prometheus-prometheus
