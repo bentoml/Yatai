@@ -325,7 +325,6 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 		kubeBentoDeployment.Spec.Ingress.Annotations = oldKubeBentoDeployment.Spec.Ingress.Annotations
 		kubeBentoDeployment.Spec.Ingress.Labels = oldKubeBentoDeployment.Spec.Ingress.Labels
 		kubeBentoDeployment.Spec.Ingress.TLS = oldKubeBentoDeployment.Spec.Ingress.TLS
-		kubeBentoDeployment.Spec.Autoscaling = oldKubeBentoDeployment.Spec.Autoscaling
 		for idx, runner := range kubeBentoDeployment.Spec.Runners {
 			var runnerConfig *modelschemas.DeploymentTargetRunnerConfig
 			if deploymentTarget.Config != nil {
@@ -362,7 +361,6 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 					kubeBentoDeployment.Spec.Runners[idx].Labels = oldRunner.Labels
 					kubeBentoDeployment.Spec.Runners[idx].ExtraPodMetadata = oldRunner.ExtraPodMetadata
 					kubeBentoDeployment.Spec.Runners[idx].ExtraPodSpec = oldRunner.ExtraPodSpec
-					kubeBentoDeployment.Spec.Runners[idx].Autoscaling = oldRunner.Autoscaling
 				}
 			}
 		}
