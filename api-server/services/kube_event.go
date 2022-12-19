@@ -43,13 +43,14 @@ func (s *kubeEventService) isKubePodReadyOrSucceeded(pod apiv1.Pod) bool {
 	return false
 }
 
-func (s *kubeEventService) removeDuplicateKubeEvents(slice []apiv1.Event) []apiv1.Event {
-	visited := make(map[string]bool)
-	result := make([]apiv1.Event, 0)
+func (s *kubeEventService) removeDuplicateKubeEvents(events []apiv1.Event) []apiv1.Event {
+	seen := make(map[string]struct{})
+	result := make([]apiv1.Event, 0, len(events))
 
-	for _, elem := range slice {
-		if !visited[elem.Reason] {
-			visited[elem.Reason] = true
+	for _, elem := range events {
+		key := fmt.Sprintf("%s-%s", elem.InvolvedObject.UID, elem.Reason)
+		if _, exists := seen[key]; !exists {
+			seen[key] = struct{}{}
 			result = append(result, elem)
 		}
 	}
