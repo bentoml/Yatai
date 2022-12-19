@@ -24,6 +24,7 @@ import { StatefulPopover } from 'baseui/popover'
 import { StatefulMenu } from 'baseui/menu'
 import { Tag } from 'baseui/tag'
 import { FcElectricalSensor, FcSupport } from 'react-icons/fc'
+import { VscDebugConsole } from 'react-icons/vsc'
 import Log from './Log'
 import { PodStatus } from './PodStatuses'
 import Terminal from './Terminal'
@@ -58,6 +59,8 @@ export default function PodList({
     const [desiredShowMonitorPod, setDesiredShowMonitorPod] = useState<IKubePodSchema>()
     const [desiredShowTerminalPod, setDesiredShowTerminalPod] = useState<IKubePodSchema>()
     const [desiredShowTerminalContainerName, setDesiredShowTerminalContainerName] = useState<string>()
+    const [desiredShowDebugTerminalPod, setDesiredShowDebugTerminalPod] = useState<IKubePodSchema>()
+    const [desiredShowDebugTerminalContainerName, setDesiredShowDebugTerminalContainerName] = useState<string>()
     let clusterName = cluster?.name
     if (clusterName_) {
         clusterName = clusterName_
@@ -321,7 +324,7 @@ export default function PodList({
                                     <MdEventNote />
                                 </Button>
                             </StatefulTooltip>
-                            <StatefulTooltip content={t('events')} showArrow>
+                            <StatefulTooltip content={t('terminal')} showArrow>
                                 <StatefulPopover
                                     focusLock
                                     placement='bottom'
@@ -366,6 +369,54 @@ export default function PodList({
                                 >
                                     <Button size='mini' shape='circle'>
                                         <GoTerminal />
+                                    </Button>
+                                </StatefulPopover>
+                            </StatefulTooltip>
+                            <StatefulTooltip content={t('debug')} showArrow>
+                                <StatefulPopover
+                                    focusLock
+                                    placement='bottom'
+                                    overrides={{
+                                        Inner: {
+                                            style: {
+                                                minWith: '200px',
+                                            },
+                                        },
+                                    }}
+                                    content={({ close }) => (
+                                        <StatefulMenu
+                                            items={
+                                                pod.raw_status?.containerStatuses?.map((container) => ({
+                                                    label: (
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: 8,
+                                                            }}
+                                                        >
+                                                            <div style={{ flexShrink: 0 }}>
+                                                                <TbBrandDocker size={14} />
+                                                            </div>
+                                                            {container.name}
+                                                        </div>
+                                                    ),
+                                                    containerName: container.name,
+                                                })) ?? []
+                                            }
+                                            onItemSelect={({ item }) => {
+                                                setDesiredShowDebugTerminalContainerName(item?.containerName)
+                                                setDesiredShowDebugTerminalPod(pod)
+                                                close()
+                                            }}
+                                            overrides={{
+                                                List: { style: { height: '150px', width: '138px' } },
+                                            }}
+                                        />
+                                    )}
+                                >
+                                    <Button size='mini' shape='circle'>
+                                        <VscDebugConsole />
                                     </Button>
                                 </StatefulPopover>
                             </StatefulTooltip>
@@ -575,6 +626,51 @@ export default function PodList({
                             containerName={desiredShowTerminalContainerName ?? ''}
                         />
                     )}
+                </ModalBody>
+            </Modal>
+            <Modal
+                overrides={{
+                    Dialog: {
+                        style: {
+                            width: '80vw',
+                            height: '80vh',
+                            display: 'flex',
+                            flexDirection: 'column',
+                        },
+                    },
+                }}
+                isOpen={
+                    desiredShowDebugTerminalPod !== undefined && desiredShowDebugTerminalContainerName !== undefined
+                }
+                onClose={() => {
+                    setDesiredShowDebugTerminalContainerName(undefined)
+                    setDesiredShowDebugTerminalPod(undefined)
+                }}
+                closeable
+                animate
+                autoFocus
+            >
+                <ModalHeader>{`${t('debug')} - ${
+                    desiredShowDebugTerminalPod?.name
+                } - ${desiredShowDebugTerminalContainerName}`}</ModalHeader>
+                <ModalBody style={{ flex: '1 1 0' }}>
+                    {organization &&
+                        clusterName &&
+                        desiredShowDebugTerminalPod &&
+                        desiredShowDebugTerminalContainerName && (
+                            <Terminal
+                                open={
+                                    desiredShowDebugTerminalPod !== undefined &&
+                                    desiredShowDebugTerminalContainerName !== undefined
+                                }
+                                clusterName={clusterName}
+                                deploymentName={deployment?.name}
+                                namespace={desiredShowDebugTerminalPod.namespace}
+                                podName={desiredShowDebugTerminalPod.name}
+                                containerName={desiredShowDebugTerminalContainerName ?? ''}
+                                debug
+                            />
+                        )}
                 </ModalBody>
             </Modal>
         </>

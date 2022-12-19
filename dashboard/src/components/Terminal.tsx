@@ -38,7 +38,7 @@ export default function Terminal({
     deploymentName,
     namespace,
     podName,
-    containerName,
+    containerName: targetContainerName,
     open,
     debug,
     fork,
@@ -53,6 +53,7 @@ export default function Terminal({
     const [, theme] = useStyletron()
     const [fileManagerTabActiveKey, setFileManagerTabActiveKey] = React.useState('0')
     const [downloadPath, setDownloadPath] = React.useState('')
+    const [containerName, setContainerName] = React.useState(debug ? undefined : targetContainerName)
 
     const [uploadingFiles, setUploadingFiles] = React.useState(
         [] as { name: string; percent: number; finished: boolean }[]
@@ -158,7 +159,7 @@ export default function Terminal({
                   {
                       organization_name: organization?.name,
                       pod_name: podName,
-                      container_name: containerName,
+                      container_name: targetContainerName,
                       debug: debug ? 1 : 0,
                       fork: fork ? 1 : 0,
                   }
@@ -169,7 +170,7 @@ export default function Terminal({
                   organization_name: organization?.name,
                   namespace,
                   pod_name: podName,
-                  container_name: containerName,
+                  container_name: targetContainerName,
                   debug: debug ? 1 : 0,
                   fork: fork ? 1 : 0,
               })}`
@@ -187,13 +188,17 @@ export default function Terminal({
         }
         ws.onmessage = (event) => {
             try {
-                const resp = JSON.parse(event.data) as IWsRespSchema<string>
+                const jsn = JSON.parse(event.data)
+                const resp = jsn as IWsRespSchema<{ containerName: string }>
                 if (resp.message) {
                     if (resp.type === 'error') {
                         toaster.negative(resp.message, {})
                     } else {
                         toaster.info(resp.message, {})
                     }
+                }
+                if (resp.payload?.containerName) {
+                    setContainerName(resp.payload.containerName)
                 }
                 return
             } catch {
@@ -242,7 +247,7 @@ export default function Terminal({
         }
     }, [
         clusterName,
-        containerName,
+        targetContainerName,
         debug,
         deploymentName,
         fork,

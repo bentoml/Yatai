@@ -18,6 +18,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	errors2 "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	utilrand "k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -28,11 +29,14 @@ import (
 
 	commonconsts "github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/modelschemas"
+	"github.com/bentoml/yatai-schemas/schemasv1"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/api-server/services"
 	"github.com/bentoml/yatai/common/consts"
 	"github.com/bentoml/yatai/common/utils"
 )
+
+var nameSuffixFunc = utilrand.String
 
 type terminalController struct {
 	// nolint: unused
@@ -62,8 +66,7 @@ type WebTerminal struct {
 	timeoutCh chan struct{}
 	err       error
 
-	namespace     string
-	podName       string
+	pod           *corev1.Pod
 	containerName string
 
 	recorder *models.TerminalRecord
@@ -71,7 +74,7 @@ type WebTerminal struct {
 	toClose  chan struct{}
 }
 
-func NewWebTerminal(ctx context.Context, conn *websocket.Conn, namespace, podName, containerName string, recorder *models.TerminalRecord) (*WebTerminal, error) {
+func NewWebTerminal(ctx context.Context, conn *websocket.Conn, namespace string, pod *corev1.Pod, containerName string, recorder *models.TerminalRecord) (*WebTerminal, error) {
 	t := &WebTerminal{
 		conn:     conn,
 		sizeChan: make(chan remotecommand.TerminalSize),
@@ -80,8 +83,7 @@ func NewWebTerminal(ctx context.Context, conn *websocket.Conn, namespace, podNam
 		readSize:  make(chan int, 1),
 		timeoutCh: make(chan struct{}),
 
-		namespace:     namespace,
-		podName:       podName,
+		pod:           pod,
 		containerName: containerName,
 
 		recorder: recorder,
@@ -263,17 +265,95 @@ func (t *WebTerminal) Safe(fn func() error) error {
 	}).Run(fn)
 }
 
-func (t *WebTerminal) HandleDebug(ctx context.Context, cliset *kubernetes.Clientset, restConfig *rest.Config, fork bool) error {
-	o := NewDebugOptions(t, cliset, restConfig, false, fork, consts.YataiDebugImg)
-	return o.Run(ctx)
+func (t *WebTerminal) HandleDebug(ctx context.Context, cliset *kubernetes.Clientset, restConfig *rest.Config) error {
+	o := DebugOptions{
+		Args:            []string{"bash"},
+		Image:           "quay.io/bentoml/bento-debugger:0.0.5",
+		Interactive:     true,
+		TTY:             true,
+		Namespace:       t.pod.Namespace,
+		TargetContainer: t.containerName,
+	}
+	err := o.Complete(cliset.CoreV1())
+	if err != nil {
+		return err
+	}
+
+	// nolint: contextcheck
+	_, err = t.Write([]byte("loading debugger container...\r\n"))
+	if err != nil {
+		return err
+	}
+
+	pod, containerName, err := o.LoadDebuggerContainer(ctx, t.pod)
+	if err != nil {
+		return err
+	}
+
+	err = t.conn.WriteJSON(&schemasv1.WsRespSchema{
+		Type:    schemasv1.WsRespTypeSuccess,
+		Message: "",
+		Payload: struct {
+			ContainerName string `json:"containerName"`
+		}{
+			ContainerName: containerName,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	// nolint: contextcheck
+	_, err = t.Write([]byte(fmt.Sprintf("debugger container %s loaded, attaching to it...\r\n", containerName)))
+	if err != nil {
+		return err
+	}
+
+	t.pod = pod
+	t.containerName = containerName
+	return t.HandleAttach(cliset, restConfig)
+}
+
+func (t *WebTerminal) HandleAttach(cliset *kubernetes.Clientset, restConfig *rest.Config) error {
+	f := func() error {
+		sshReq := cliset.CoreV1().RESTClient().Post().
+			Resource("pods").
+			Name(t.pod.Name).
+			Namespace(t.pod.Namespace).
+			SubResource("attach").
+			VersionedParams(&corev1.PodExecOptions{
+				Container: t.containerName,
+				Stdin:     true,
+				Stdout:    true,
+				Stderr:    true,
+				TTY:       true,
+			}, scheme.ParameterCodec)
+
+		executor, err := remotecommand.NewSPDYExecutor(restConfig, http.MethodPost, sshReq.URL())
+		if err != nil {
+			return err
+		}
+
+		logrus.Info("connecting to pod...")
+
+		return executor.Stream(remotecommand.StreamOptions{
+			Stdin:             t,
+			Stdout:            t,
+			Stderr:            t,
+			TerminalSizeQueue: t,
+			Tty:               true,
+		})
+	}
+
+	return t.Safe(f)
 }
 
 func (t *WebTerminal) Handle(cliset *kubernetes.Clientset, restConfig *rest.Config, cmd []string) error {
 	f := func() error {
 		sshReq := cliset.CoreV1().RESTClient().Post().
 			Resource("pods").
-			Name(t.podName).
-			Namespace(t.namespace).
+			Name(t.pod.Name).
+			Namespace(t.pod.Namespace).
 			SubResource("exec").
 			VersionedParams(&corev1.PodExecOptions{
 				Container: t.containerName,
@@ -342,25 +422,27 @@ func (c *terminalController) GetDeploymentPodTerminal(ctx *gin.Context, schema *
 
 	kubeNs := services.DeploymentService.GetKubeNamespace(deployment)
 
-	if podName != "" {
-		podsCli := cliset.CoreV1().Pods(kubeNs)
+	if podName == "" {
+		err = errors.New("pod_name is required")
+		return err
+	}
 
-		pod, err := podsCli.Get(ctx, podName, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
+	podsCli := cliset.CoreV1().Pods(kubeNs)
 
-		if pod.Labels[commonconsts.KubeLabelYataiBentoDeployment] != deployment.Name {
-			return errors.Errorf("pod %s not in this deployment %s", podName, deployment.Name)
-		}
+	pod, err := podsCli.Get(ctx, podName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
 
-		if containerName == "" {
-			containerName = pod.Spec.Containers[0].Name
-		}
+	if pod.Labels[commonconsts.KubeLabelYataiBentoDeployment] != deployment.Name {
+		return errors.Errorf("pod %s not in this deployment %s", podName, deployment.Name)
+	}
+
+	if containerName == "" {
+		containerName = pod.Spec.Containers[0].Name
 	}
 
 	debug := ctx.Query("debug")
-	fork := ctx.Query("fork")
 
 	currentUser, err := services.GetCurrentUser(ctx)
 	if err != nil {
@@ -383,13 +465,13 @@ func (c *terminalController) GetDeploymentPodTerminal(ctx *gin.Context, schema *
 		return err
 	}
 
-	t, err := NewWebTerminal(ctx, conn, kubeNs, podName, containerName, recorder)
+	t, err := NewWebTerminal(ctx, conn, kubeNs, pod, containerName, recorder)
 	if err != nil {
 		return err
 	}
 
 	if debug == "1" {
-		err = t.HandleDebug(ctx, cliset, restConfig, fork == "1")
+		err = t.HandleDebug(ctx, cliset, restConfig)
 		return err
 	}
 
@@ -431,22 +513,22 @@ func (c *terminalController) GetClusterPodTerminal(ctx *gin.Context, schema *Get
 
 	kubeNs := ctx.Query("namespace")
 
-	if podName != "" {
-		podsCli := cliset.CoreV1().Pods(kubeNs)
-
-		var pod *corev1.Pod
-		pod, err = podsCli.Get(ctx, podName, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-
-		if containerName == "" {
-			containerName = pod.Spec.Containers[0].Name
-		}
+	if podName == "" {
+		err = errors.New("pod_name is required")
+		return err
 	}
 
-	debug := ctx.Query("debug")
-	fork := ctx.Query("fork")
+	podsCli := cliset.CoreV1().Pods(kubeNs)
+
+	var pod *corev1.Pod
+	pod, err = podsCli.Get(ctx, podName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	if containerName == "" {
+		containerName = pod.Spec.Containers[0].Name
+	}
 
 	currentUser, err := services.GetCurrentUser(ctx)
 	if err != nil {
@@ -468,13 +550,15 @@ func (c *terminalController) GetClusterPodTerminal(ctx *gin.Context, schema *Get
 		return err
 	}
 
-	t, err := NewWebTerminal(ctx, conn, kubeNs, podName, containerName, recorder)
+	t, err := NewWebTerminal(ctx, conn, kubeNs, pod, containerName, recorder)
 	if err != nil {
 		return err
 	}
 
+	debug := ctx.Query("debug")
+
 	if debug == "1" {
-		err = t.HandleDebug(ctx, cliset, restConfig, fork == "1")
+		err = t.HandleDebug(ctx, cliset, restConfig)
 		return err
 	}
 
