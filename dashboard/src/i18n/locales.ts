@@ -2858,6 +2858,14 @@ const locales0 = {
         'vi': 'Chứa container gỡ lỗi',
         'en': 'Contains debugger container',
     },
+    'debug': {
+        'zh-CN': '调试',
+        'zh-TW': '調試',
+        'ja': 'デバッグ',
+        'ko': '디버그',
+        'vi': 'Gỡ lỗi',
+        'en': 'Debug',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0
