@@ -17,13 +17,17 @@ export default function Time({ time, style }: ITimeProps) {
                     display: 'inline-block',
                 }}
             >
-                <ReactTimeAgo
-                    tooltip={false}
-                    style={style}
-                    date={new Date(time)}
-                    timeStyle='round'
-                    locales={i18n.languages as string[]}
-                />
+                {time ? (
+                    <ReactTimeAgo
+                        tooltip={false}
+                        style={style}
+                        date={new Date(time)}
+                        timeStyle='round'
+                        locales={i18n.languages as string[]}
+                    />
+                ) : (
+                    '-'
+                )}
             </div>
         </StatefulTooltip>
     )
