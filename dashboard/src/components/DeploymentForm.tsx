@@ -792,38 +792,6 @@ export default function DeploymentForm({
                                     >
                                         <Panel title={t('advanced')}>
                                             <FormItem
-                                                name={['targets', idx, 'config', 'enable_debug_mode']}
-                                                label={t('enable debug mode')}
-                                            >
-                                                <Toggle labelPlacement='right'>
-                                                    <div
-                                                        style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: 3,
-                                                        }}
-                                                    >
-                                                        <span style={{ fontSize: '12px', fontWeight: 'normal' }}>
-                                                            {target?.config?.enable_debug_mode
-                                                                ? t('enabled')
-                                                                : t('disabled')}
-                                                        </span>
-                                                        <StatefulTooltip
-                                                            showArrow
-                                                            content={() => (
-                                                                <Block width={['100px', '200px', '400px', '600px']}>
-                                                                    <span>{t('enable debug mode desc')}</span>
-                                                                </Block>
-                                                            )}
-                                                        >
-                                                            <div>
-                                                                <FiAlertCircle size={12} />
-                                                            </div>
-                                                        </StatefulTooltip>
-                                                    </div>
-                                                </Toggle>
-                                            </FormItem>
-                                            <FormItem
                                                 name={['targets', idx, 'config', 'enable_stealing_traffic_debug_mode']}
                                                 label={t('enable stealing traffic debug mode')}
                                             >
@@ -1233,63 +1201,6 @@ export default function DeploymentForm({
                                                                 renderAll
                                                             >
                                                                 <Panel title={t('advanced')}>
-                                                                    <FormItem
-                                                                        name={[
-                                                                            'targets',
-                                                                            idx,
-                                                                            'config',
-                                                                            'runners',
-                                                                            runner.name,
-                                                                            'enable_debug_mode',
-                                                                        ]}
-                                                                        label={t('enable debug mode')}
-                                                                    >
-                                                                        <Toggle labelPlacement='right'>
-                                                                            <div
-                                                                                style={{
-                                                                                    display: 'flex',
-                                                                                    alignItems: 'center',
-                                                                                    gap: 3,
-                                                                                }}
-                                                                            >
-                                                                                <span
-                                                                                    style={{
-                                                                                        fontSize: '12px',
-                                                                                        fontWeight: 'normal',
-                                                                                    }}
-                                                                                >
-                                                                                    {target?.config?.runners?.[
-                                                                                        runner.name
-                                                                                    ]?.enable_debug_mode
-                                                                                        ? t('enabled')
-                                                                                        : t('disabled')}
-                                                                                </span>
-                                                                                <StatefulTooltip
-                                                                                    showArrow
-                                                                                    content={() => (
-                                                                                        <Block
-                                                                                            width={[
-                                                                                                '100px',
-                                                                                                '200px',
-                                                                                                '400px',
-                                                                                                '600px',
-                                                                                            ]}
-                                                                                        >
-                                                                                            <span>
-                                                                                                {t(
-                                                                                                    'enable debug mode desc'
-                                                                                                )}
-                                                                                            </span>
-                                                                                        </Block>
-                                                                                    )}
-                                                                                >
-                                                                                    <div>
-                                                                                        <FiAlertCircle size={12} />
-                                                                                    </div>
-                                                                                </StatefulTooltip>
-                                                                            </div>
-                                                                        </Toggle>
-                                                                    </FormItem>
                                                                     <FormItem
                                                                         name={[
                                                                             'targets',
