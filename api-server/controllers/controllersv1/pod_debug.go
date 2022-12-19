@@ -158,6 +158,7 @@ func (o *DebugOptions) computeDebugContainerName(pod *corev1.Pod) string {
 
 func (o *DebugOptions) generateDebugContainer(pod *corev1.Pod) (*corev1.Pod, *corev1.EphemeralContainer, error) {
 	name := o.computeDebugContainerName(pod)
+
 	var targetContainer *corev1.Container
 	for _, c := range pod.Spec.Containers {
 		c := c
@@ -180,7 +181,11 @@ func (o *DebugOptions) generateDebugContainer(pod *corev1.Pod) (*corev1.Pod, *co
 			Stdin:                    o.Interactive,
 			TerminationMessagePolicy: corev1.TerminationMessageReadFile,
 			TTY:                      o.TTY,
-			SecurityContext:          targetContainer.SecurityContext,
+			SecurityContext: &corev1.SecurityContext{
+				Capabilities: &corev1.Capabilities{
+					Add: []corev1.Capability{"SYS_PTRACE"},
+				},
+			},
 		},
 		TargetContainerName: o.TargetContainer,
 	}
