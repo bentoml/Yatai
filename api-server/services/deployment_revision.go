@@ -182,7 +182,7 @@ func (s *deploymentRevisionService) MakeSureKubeOwnerReferences(ctx context.Cont
 	if isNotFound {
 		labels := map[string]string{
 			commonconsts.KubeLabelYataiBentoDeployment: deployment.Name,
-			commonconsts.KubeLabelYataiOwnerReference:  commonconsts.KubeLabelTrue,
+			commonconsts.KubeLabelYataiOwnerReference:  commonconsts.KubeLabelValueTrue,
 		}
 		cm = &v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
