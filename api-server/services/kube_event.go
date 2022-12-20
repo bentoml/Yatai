@@ -15,8 +15,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	commonconsts "github.com/bentoml/yatai-common/consts"
+	servingv1alpha3 "github.com/bentoml/yatai-deployment/apis/serving/v1alpha3"
+	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 	"github.com/bentoml/yatai/common/consts"
+	"github.com/bentoml/yatai/common/utils"
 )
 
 var KubeEventFailedReasonPartials = []string{"failed", "err", "exceeded", "invalid", "unhealthy",
@@ -162,14 +165,54 @@ func (s *kubeEventService) MakeDeploymentKubeEventFilter(ctx context.Context, de
 		return nil, errors.Wrap(err, "compile regexp pattern")
 	}
 
+	if deploymentTarget == nil {
+		status_ := modelschemas.DeploymentRevisionStatusActive
+		var deploymentRevisions []*models.DeploymentRevision
+		deploymentRevisions, _, err = DeploymentRevisionService.List(ctx, ListDeploymentRevisionOption{
+			DeploymentId: utils.UintPtr(deployment.ID),
+			Status:       &status_,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "list active deployment revisions")
+		}
+		if len(deploymentRevisions) > 0 {
+			var deploymentTargets []*models.DeploymentTarget
+			deploymentTargets, _, err = DeploymentTargetService.List(ctx, ListDeploymentTargetOption{
+				DeploymentRevisionId: utils.UintPtr(deploymentRevisions[0].ID),
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, "list deployment targets")
+			}
+			if len(deploymentTargets) > 0 {
+				deploymentTarget = &deploymentTargets[0]
+			}
+		}
+	}
+
+	var bentoName string
+
+	if deploymentTarget != nil && *deploymentTarget != nil {
+		var bento *models.Bento
+		bento, err = BentoService.GetAssociatedBento(ctx, *deploymentTarget)
+		if err != nil {
+			return nil, errors.Wrap(err, "get associated bento")
+		}
+		var bentoRepository *models.BentoRepository
+		bentoRepository, err = BentoRepositoryService.GetAssociatedBentoRepository(ctx, bento)
+		if err != nil {
+			return nil, errors.Wrap(err, "get bento repository")
+		}
+		bentoName = servingv1alpha3.GetBentoNameFromBentoTag(fmt.Sprintf("%s:%s", bentoRepository.Name, bento.Version))
+	}
+
 	return func(event *apiv1.Event) bool {
 		if event.InvolvedObject.Kind == "Pod" && kubeNamePattern.Match([]byte(event.InvolvedObject.Name)) {
 			return true
 		}
-		if event.InvolvedObject.Kind == "Bento" && event.InvolvedObject.Name == deployment.Name {
+		if event.InvolvedObject.Kind == "Bento" && event.InvolvedObject.Name == bentoName {
 			return true
 		}
-		if event.InvolvedObject.Kind == "BentoRequest" && event.InvolvedObject.Name == deployment.Name {
+		if event.InvolvedObject.Kind == "BentoRequest" && event.InvolvedObject.Name == bentoName {
 			return true
 		}
 		if event.InvolvedObject.Kind == "BentoDeployment" && event.InvolvedObject.Name == deployment.Name {

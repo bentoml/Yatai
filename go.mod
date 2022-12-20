@@ -5,8 +5,8 @@ go 1.19
 require (
 	github.com/aquasecurity/go-pep440-version v0.0.0-20210121094942-22b2f8951d46
 	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
-	github.com/bentoml/yatai-common v0.0.0-20221115112706-487d02768241
-	github.com/bentoml/yatai-deployment v1.0.3-0.20221122105112-fcab131d260b
+	github.com/bentoml/yatai-common v0.0.0-20221204065908-975ef2e3714e
+	github.com/bentoml/yatai-deployment v1.1.0-d8.0.20221220190828-2cb862274005
 	github.com/bentoml/yatai-image-builder v0.0.1-d9
 	github.com/bentoml/yatai-schemas v0.0.0-20221220135425-3f48cbf72719
 	github.com/bits-and-blooms/bloom/v3 v3.3.1
@@ -155,7 +155,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e // indirect
+	google.golang.org/genproto v0.0.0-20221202195650-67e5cbc046fd // indirect
 	google.golang.org/grpc v1.50.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
