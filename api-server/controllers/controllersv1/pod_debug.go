@@ -40,7 +40,7 @@ import (
 )
 
 const (
-	DebuggerImage = "quay.io/bentoml/bento-debugger:0.0.5"
+	DefaultDebuggerImage = "quay.io/bentoml/bento-debugger:0.0.7"
 )
 
 // profileLegacy represents the legacy debugging profile which is backwards-compatible with 1.23 behavior.
