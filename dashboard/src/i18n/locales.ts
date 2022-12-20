@@ -2866,6 +2866,90 @@ const locales0 = {
         'vi': 'Gỡ lỗi',
         'en': 'Debug',
     },
+    'deployment strategy': {
+        'zh-CN': '部署策略',
+        'zh-TW': '部署策略',
+        'ja': 'デプロイメント戦略',
+        'ko': '배포 전략',
+        'vi': 'Chiến lược triển khai',
+        'en': 'Deployment strategy',
+    },
+    'deployment strategy desc': {
+        'zh-CN': '部署策略决定了在更新副本时，如何将流量从旧版本迁移到新版本:',
+        'zh-TW': '部署策略決定了在更新副本時，如何將流量從舊版本遷移到新版本:',
+        'ja': 'デプロイメント戦略は、古いバージョンから新しいバージョンにトラフィックを移行する方法を決定します:',
+        'ko': '배포 전략은 트래픽을 새 버전으로 이동하는 방법을 결정합니다:',
+        'vi': 'Chiến lược triển khai quyết định cách chuyển gói tin từ phiên bản cũ sang phiên bản mới:',
+        'en': 'Deployment strategy decides how to migrate traffic from old version to new version:',
+    },
+    'RollingUpdate': {
+        'zh-CN': '滚动更新',
+        'zh-TW': '滾動更新',
+        'ja': 'ローリングアップデート',
+        'ko': '롤링 업데이트',
+        'vi': 'Cập nhật dần dần',
+        'en': 'RollingUpdate',
+    },
+    'RollingUpdate desc': {
+        'zh-CN': '滚动更新: 逐步更新副本，保证在更新过程中不会中断服务。',
+        'zh-TW': '滾動更新: 逐步更新副本，保證在更新過程中不會中斷服務。',
+        'ja': 'ローリングアップデート: 副本を段階的に更新し、更新中にサービスが中断されないようにします。',
+        'ko': '롤링 업데이트: 복제본을 단계적으로 업데이트하여 업데이트 중에 서비스가 중단되지 않도록합니다.',
+        'vi': 'Cập nhật dần dần: Cập nhật các bản sao một cách từng bước, đảm bảo không ngắt quãng dịch vụ trong quá trình cập nhật.',
+        'en': 'RollingUpdate: Update replicas step by step to ensure that the service is not interrupted during the update.',
+    },
+    'Recreate': {
+        'zh-CN': '重建',
+        'zh-TW': '重建',
+        'ja': '再作成',
+        'ko': '재생성',
+        'vi': 'Tạo lại',
+        'en': 'Recreate',
+    },
+    'Recreate desc': {
+        'zh-CN': '重建: 先完全删除旧副本，再创建新副本，在更新过程中会中断服务。',
+        'zh-TW': '重建: 先完全刪除舊副本，再創建新副本，在更新過程中會中斷服務。',
+        'ja': '再作成: まず完全に古いレプリカを削除し、新しいレプリカを作成します。更新中にサービスが中断されます。',
+        'ko': '재생성: 먼저 완전히 이전 복제본을 삭제한 다음 새 복제본을 만듭니다. 업데이트 중에 서비스가 중단됩니다.',
+        'vi': 'Tạo lại: Đầu tiên hoàn toàn xóa các bản sao cũ, sau đó tạo các bản sao mới, trong quá trình cập nhật sẽ ngắt quãng dịch vụ.',
+        'en': 'Recreate: First completely delete the old replica, then create the new replica. The service will be interrupted during the update.',
+    },
+    'RampedSlowRollout': {
+        'zh-CN': '缓慢滚动',
+        'zh-TW': '緩慢滾動',
+        'ja': 'ゆっくりロールアウト',
+        'ko': '느리게 롤아웃',
+        'vi': 'Lăn dần',
+        'en': 'RampedSlowRollout',
+    },
+    'RampedSlowRollout desc': {
+        'zh-CN':
+            '缓慢滚动: 先新增一个新副本再关闭一个旧副本，更新速度很慢，但是最大程度上减少了更新带来的风险，在更新过程中不会中断服务。',
+        'zh-TW':
+            '緩慢滾動: 先新增一個新副本再關閉一個舊副本，更新速度很慢，但是最大程度上減少了更新帶來的風險，在更新過程中不會中斷服務。',
+        'ja': 'ゆっくりロールアウト: 新しいレプリカを1つ追加してから古いレプリカを1つ削除します。更新速度は非常に遅いですが、更新に伴うリスクを最大限に減らします。更新中にサービスが中断されません。',
+        'ko': '느리게 롤아웃: 새 복제본을 1 개 추가한 다음 이전 복제본을 1 개 삭제합니다. 업데이트 속도는 매우 느리지만 업데이트로 인해 발생하는 위험을 최대한 줄입니다. 업데이트 중에 서비스가 중단되지 않습니다.',
+        'vi': 'Lăn dần: Đầu tiên thêm một bản sao mới, sau đó tắt một bản sao cũ, tốc độ cập nhật rất chậm, nhưng đảm bảo giảm thiểu tối đa rủi ro trong quá trình cập nhật, trong quá trình cập nhật sẽ không ngắt quãng dịch vụ.',
+        'en': 'RampedSlowRollout: Add one new replica first, then delete one old replica. The update speed is very slow, but the risk of updating is reduced as much as possible. The service will not be interrupted during the update.',
+    },
+    'BestEffortControlledRollout': {
+        'zh-CN': '最佳控制滚动',
+        'zh-TW': '最佳控制滾動',
+        'ja': 'ベストエフォートコントロールロールアウト',
+        'ko': '최선의 노력으로 롤아웃',
+        'vi': 'Lăn tốt nhất',
+        'en': 'BestEffortControlledRollout',
+    },
+    'BestEffortControlledRollout desc': {
+        'zh-CN':
+            '最佳控制滚动: 在升级过程中会保持所有副本的不可用百分比为 20%，从而使更新的速度更快，但同时要承担更高的风险，因为在更新过程中要容忍一定比例的停机时间。',
+        'zh-TW':
+            '最佳控制滾動: 在升級過程中會保持所有副本的不可用百分比為 20%，從而使更新的速度更快，但同時要承擔更高的風險，因為在更新過程中要容忍一定比例的停機時間。',
+        'ja': 'ベストエフォートコントロールロールアウト: 更新中にすべてのレプリカの利用不可率を20％に保ちます。これにより、更新の速度が速くなりますが、更新中に一定の割合の停止時間を容認する必要があるため、更新のリスクが高くなります。',
+        'ko': '최선의 노력으로 롤아웃: 업데이트 중에 모든 복제본의 사용 불가 비율을 20%로 유지합니다. 이렇게하면 업데이트 속도가 빨라지지만 업데이트 중에 일정 비율의 중지 시간을 인정해야하므로 업데이트의 위험이 높아집니다.',
+        'vi': 'Lăn tốt nhất: Trong quá trình cập nhật, tỷ lệ không khả dụng của tất cả các bản sao sẽ được giữ ở 20%, do đó tốc độ cập nhật sẽ nhanh hơn, nhưng đồng thời phải chịu rủi ro cao hơn, vì trong quá trình cập nhật phải chấp nhận một tỷ lệ nhất định của thời gian ngừng hoạt động.',
+        'en': 'BestEffortControlledRollout: Keep the unavailable percentage of all replicas at 20% during the update, so that the update speed is faster, but at the same time you have to bear a higher risk, because you have to tolerate a certain proportion of downtime during the update.',
+    },
 }
 
 export const locales: { [key in keyof typeof locales0]: ILocaleItem } = locales0

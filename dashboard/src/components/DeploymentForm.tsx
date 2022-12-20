@@ -9,7 +9,11 @@ import { Accordion, Panel } from 'baseui/accordion'
 import { IDeploymentRevisionSchema } from '@/schemas/deployment_revision'
 import { RiCpuLine } from 'react-icons/ri'
 import { FaMemory } from 'react-icons/fa'
-import { ICreateDeploymentTargetSchema, IDeploymentTargetRunnerSchema } from '@/schemas/deployment_target'
+import {
+    DeploymentStrategy,
+    ICreateDeploymentTargetSchema,
+    IDeploymentTargetRunnerSchema,
+} from '@/schemas/deployment_target'
 import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
 import { IThemedStyleProps } from '@/interfaces/IThemedStyle'
@@ -19,7 +23,7 @@ import { SidebarContext } from '@/contexts/SidebarContext'
 import color from 'color'
 import { LabelMedium, LabelSmall } from 'baseui/typography'
 import { useHistory } from 'react-router-dom'
-import { VscServerProcess, VscSymbolVariable } from 'react-icons/vsc'
+import { VscDebugAll, VscServerProcess, VscSymbolVariable } from 'react-icons/vsc'
 import { GrResources } from 'react-icons/gr'
 import { FiAlertCircle, FiInfo, FiMaximize2, FiMinimize2 } from 'react-icons/fi'
 import { fetchCluster } from '@/services/cluster'
@@ -30,6 +34,7 @@ import { StatefulTooltip } from 'baseui/tooltip'
 import { Block } from 'baseui/block'
 import _ from 'lodash'
 import { BiCustomize } from 'react-icons/bi'
+import { GiTeamUpgrade } from 'react-icons/gi'
 import DeploymentTargetTypeSelector from './DeploymentTargetTypeSelector'
 import BentoRepositorySelector from './BentoRepositorySelector'
 import BentoSelector from './BentoSelector'
@@ -45,6 +50,7 @@ import Toggle from './Toggle'
 import CopyableText from './CopyableText'
 import MapInput from './MapInput'
 import MonacoEditor from './MonacoEditor'
+import DeploymentStrategySelector from './DeploymentStrategySelector'
 
 const useStyles = createUseStyles({
     wrapper: () => {
@@ -104,6 +110,7 @@ const defaultTarget: ICreateDeploymentTargetSchema = {
         envs: [],
         runners: {},
         enable_ingress: true,
+        deployment_strategy: 'RollingUpdate',
     },
 }
 
@@ -301,6 +308,7 @@ export default function DeploymentForm({
                                         resources: _.cloneDeep(defaultTarget.config!.resources!),
                                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                                         hpa_conf: _.cloneDeep(defaultTarget.config!.hpa_conf!),
+                                        deployment_strategy: 'RollingUpdate' as DeploymentStrategy,
                                     }
                                     if (runner.resource_config?.cpu) {
                                         if (!conf.resources.requests) {
@@ -791,103 +799,139 @@ export default function DeploymentForm({
                                         renderAll
                                     >
                                         <Panel title={t('advanced')}>
-                                            <FormItem
-                                                name={['targets', idx, 'config', 'enable_stealing_traffic_debug_mode']}
-                                                label={t('enable stealing traffic debug mode')}
-                                            >
-                                                <Toggle labelPlacement='right'>
-                                                    <div
-                                                        style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: 3,
-                                                        }}
-                                                    >
-                                                        <span style={{ fontSize: '12px', fontWeight: 'normal' }}>
-                                                            {target?.config?.enable_stealing_traffic_debug_mode
-                                                                ? t('enabled')
-                                                                : t('disabled')}
-                                                        </span>
-                                                        <StatefulTooltip
-                                                            showArrow
-                                                            content={() => (
-                                                                <Block width={['100px', '200px', '400px', '600px']}>
-                                                                    <span>
-                                                                        {t('enable stealing traffic debug mode desc')}
-                                                                    </span>
-                                                                </Block>
-                                                            )}
+                                            <FormGroup icon={GiTeamUpgrade}>
+                                                <FormItem
+                                                    name={['targets', idx, 'config', 'deployment_strategy']}
+                                                    label={
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: 6,
+                                                            }}
                                                         >
-                                                            <div>
-                                                                <FiAlertCircle size={12} />
-                                                            </div>
-                                                        </StatefulTooltip>
-                                                    </div>
-                                                </Toggle>
-                                            </FormItem>
-                                            <FormItem
-                                                name={[
-                                                    'targets',
-                                                    idx,
-                                                    'config',
-                                                    'enable_debug_pod_receive_production_traffic',
-                                                ]}
-                                                label={t('enable debug pod receive production traffic')}
-                                            >
-                                                <Toggle labelPlacement='right'>
-                                                    <div
-                                                        style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: 3,
-                                                        }}
-                                                    >
-                                                        <span style={{ fontSize: '12px', fontWeight: 'normal' }}>
-                                                            {target?.config?.enable_debug_pod_receive_production_traffic
-                                                                ? t('enabled')
-                                                                : t('disabled')}
-                                                        </span>
-                                                        <StatefulTooltip
-                                                            showArrow
-                                                            content={() => (
-                                                                <Block width={['100px', '200px', '400px', '600px']}>
-                                                                    <span>
-                                                                        {t(
-                                                                            'enable debug pod receive production traffic desc'
-                                                                        )}
-                                                                    </span>
-                                                                </Block>
-                                                            )}
+                                                            <div>{t('deployment strategy')}</div>
+                                                            <StatefulTooltip
+                                                                showArrow
+                                                                content={() => (
+                                                                    <Block width={['100px', '200px', '400px', '600px']}>
+                                                                        <p>{t('deployment strategy desc')}</p>
+                                                                        <p>{t('RollingUpdate desc')}</p>
+                                                                        <p>{t('Recreate desc')}</p>
+                                                                        <p>{t('RampedSlowRollout desc')}</p>
+                                                                        <p>{t('BestEffortControlledRollout desc')}</p>
+                                                                    </Block>
+                                                                )}
+                                                            >
+                                                                <div>
+                                                                    <FiAlertCircle size={12} />
+                                                                </div>
+                                                            </StatefulTooltip>
+                                                        </div>
+                                                    }
+                                                    style={{ width: 340 }}
+                                                >
+                                                    <DeploymentStrategySelector />
+                                                </FormItem>
+                                            </FormGroup>
+                                            <FormGroup icon={VscDebugAll}>
+                                                <FormItem
+                                                    name={[
+                                                        'targets',
+                                                        idx,
+                                                        'config',
+                                                        'enable_stealing_traffic_debug_mode',
+                                                    ]}
+                                                    label={t('enable stealing traffic debug mode')}
+                                                >
+                                                    <Toggle labelPlacement='right'>
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: 3,
+                                                            }}
                                                         >
-                                                            <div>
-                                                                <FiAlertCircle size={12} />
-                                                            </div>
-                                                        </StatefulTooltip>
-                                                    </div>
-                                                </Toggle>
-                                            </FormItem>
-                                            <FormItem
-                                                name={['targets', idx, 'config', 'envs']}
-                                                label={
-                                                    <div
+                                                            <span style={{ fontSize: '12px', fontWeight: 'normal' }}>
+                                                                {target?.config?.enable_stealing_traffic_debug_mode
+                                                                    ? t('enabled')
+                                                                    : t('disabled')}
+                                                            </span>
+                                                            <StatefulTooltip
+                                                                showArrow
+                                                                content={() => (
+                                                                    <Block width={['100px', '200px', '400px', '600px']}>
+                                                                        <span>
+                                                                            {t(
+                                                                                'enable stealing traffic debug mode desc'
+                                                                            )}
+                                                                        </span>
+                                                                    </Block>
+                                                                )}
+                                                            >
+                                                                <div>
+                                                                    <FiAlertCircle size={12} />
+                                                                </div>
+                                                            </StatefulTooltip>
+                                                        </div>
+                                                    </Toggle>
+                                                </FormItem>
+                                                <FormItem
+                                                    name={[
+                                                        'targets',
+                                                        idx,
+                                                        'config',
+                                                        'enable_debug_pod_receive_production_traffic',
+                                                    ]}
+                                                    label={t('enable debug pod receive production traffic')}
+                                                >
+                                                    <Toggle labelPlacement='right'>
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: 3,
+                                                            }}
+                                                        >
+                                                            <span style={{ fontSize: '12px', fontWeight: 'normal' }}>
+                                                                {target?.config
+                                                                    ?.enable_debug_pod_receive_production_traffic
+                                                                    ? t('enabled')
+                                                                    : t('disabled')}
+                                                            </span>
+                                                            <StatefulTooltip
+                                                                showArrow
+                                                                content={() => (
+                                                                    <Block width={['100px', '200px', '400px', '600px']}>
+                                                                        <span>
+                                                                            {t(
+                                                                                'enable debug pod receive production traffic desc'
+                                                                            )}
+                                                                        </span>
+                                                                    </Block>
+                                                                )}
+                                                            >
+                                                                <div>
+                                                                    <FiAlertCircle size={12} />
+                                                                </div>
+                                                            </StatefulTooltip>
+                                                        </div>
+                                                    </Toggle>
+                                                </FormItem>
+                                            </FormGroup>
+                                            <FormGroup icon={VscSymbolVariable}>
+                                                <FormItem
+                                                    name={['targets', idx, 'config', 'envs']}
+                                                    label={t('environment variables')}
+                                                >
+                                                    <LabelList
+                                                        ignoreKeys={[bentomlConfigsEnvKey]}
                                                         style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: 5,
+                                                            width: 440,
                                                         }}
-                                                    >
-                                                        <VscSymbolVariable />
-                                                        <div>{t('environment variables')}</div>
-                                                    </div>
-                                                }
-                                            >
-                                                <LabelList
-                                                    ignoreKeys={[bentomlConfigsEnvKey]}
-                                                    style={{
-                                                        width: 440,
-                                                    }}
-                                                />
-                                            </FormItem>
+                                                    />
+                                                </FormItem>
+                                            </FormGroup>
                                         </Panel>
                                     </Accordion>
                                     <Accordion
@@ -1201,153 +1245,217 @@ export default function DeploymentForm({
                                                                 renderAll
                                                             >
                                                                 <Panel title={t('advanced')}>
-                                                                    <FormItem
-                                                                        name={[
-                                                                            'targets',
-                                                                            idx,
-                                                                            'config',
-                                                                            'runners',
-                                                                            runner.name,
-                                                                            'enable_stealing_traffic_debug_mode',
-                                                                        ]}
-                                                                        label={t('enable stealing traffic debug mode')}
-                                                                    >
-                                                                        <Toggle labelPlacement='right'>
-                                                                            <div
-                                                                                style={{
-                                                                                    display: 'flex',
-                                                                                    alignItems: 'center',
-                                                                                    gap: 3,
-                                                                                }}
-                                                                            >
-                                                                                <span
+                                                                    <FormGroup icon={GiTeamUpgrade}>
+                                                                        <FormItem
+                                                                            name={[
+                                                                                'targets',
+                                                                                idx,
+                                                                                'config',
+                                                                                'runners',
+                                                                                runner.name,
+                                                                                'deployment_strategy',
+                                                                            ]}
+                                                                            label={
+                                                                                <div
                                                                                     style={{
-                                                                                        fontSize: '12px',
-                                                                                        fontWeight: 'normal',
+                                                                                        display: 'flex',
+                                                                                        alignItems: 'center',
+                                                                                        gap: 6,
                                                                                     }}
                                                                                 >
-                                                                                    {target?.config?.runners?.[
-                                                                                        runner.name
-                                                                                    ]
-                                                                                        ?.enable_stealing_traffic_debug_mode
-                                                                                        ? t('enabled')
-                                                                                        : t('disabled')}
-                                                                                </span>
-                                                                                <StatefulTooltip
-                                                                                    showArrow
-                                                                                    content={() => (
-                                                                                        <Block
-                                                                                            width={[
-                                                                                                '100px',
-                                                                                                '200px',
-                                                                                                '400px',
-                                                                                                '600px',
-                                                                                            ]}
-                                                                                        >
-                                                                                            <span>
-                                                                                                {t(
-                                                                                                    'enable stealing traffic debug mode desc'
-                                                                                                )}
-                                                                                            </span>
-                                                                                        </Block>
-                                                                                    )}
-                                                                                >
                                                                                     <div>
-                                                                                        <FiAlertCircle size={12} />
+                                                                                        {t('deployment strategy')}
                                                                                     </div>
-                                                                                </StatefulTooltip>
-                                                                            </div>
-                                                                        </Toggle>
-                                                                    </FormItem>
-                                                                    <FormItem
-                                                                        name={[
-                                                                            'targets',
-                                                                            idx,
-                                                                            'config',
-                                                                            'runners',
-                                                                            runner.name,
-                                                                            'enable_debug_pod_receive_production_traffic',
-                                                                        ]}
-                                                                        label={t(
-                                                                            'enable debug pod receive production traffic'
-                                                                        )}
-                                                                    >
-                                                                        <Toggle labelPlacement='right'>
-                                                                            <div
-                                                                                style={{
-                                                                                    display: 'flex',
-                                                                                    alignItems: 'center',
-                                                                                    gap: 3,
-                                                                                }}
-                                                                            >
-                                                                                <span
+                                                                                    <StatefulTooltip
+                                                                                        showArrow
+                                                                                        content={() => (
+                                                                                            <Block
+                                                                                                width={[
+                                                                                                    '100px',
+                                                                                                    '200px',
+                                                                                                    '400px',
+                                                                                                    '600px',
+                                                                                                ]}
+                                                                                            >
+                                                                                                <p>
+                                                                                                    {t(
+                                                                                                        'deployment strategy desc'
+                                                                                                    )}
+                                                                                                </p>
+                                                                                                <p>
+                                                                                                    {t(
+                                                                                                        'RollingUpdate desc'
+                                                                                                    )}
+                                                                                                </p>
+                                                                                                <p>
+                                                                                                    {t('Recreate desc')}
+                                                                                                </p>
+                                                                                                <p>
+                                                                                                    {t(
+                                                                                                        'RampedSlowRollout desc'
+                                                                                                    )}
+                                                                                                </p>
+                                                                                                <p>
+                                                                                                    {t(
+                                                                                                        'BestEffortControlledRollout desc'
+                                                                                                    )}
+                                                                                                </p>
+                                                                                            </Block>
+                                                                                        )}
+                                                                                    >
+                                                                                        <div>
+                                                                                            <FiAlertCircle size={12} />
+                                                                                        </div>
+                                                                                    </StatefulTooltip>
+                                                                                </div>
+                                                                            }
+                                                                            style={{ width: 340 }}
+                                                                        >
+                                                                            <DeploymentStrategySelector />
+                                                                        </FormItem>
+                                                                    </FormGroup>
+                                                                    <FormGroup icon={VscDebugAll}>
+                                                                        <FormItem
+                                                                            name={[
+                                                                                'targets',
+                                                                                idx,
+                                                                                'config',
+                                                                                'runners',
+                                                                                runner.name,
+                                                                                'enable_stealing_traffic_debug_mode',
+                                                                            ]}
+                                                                            label={t(
+                                                                                'enable stealing traffic debug mode'
+                                                                            )}
+                                                                        >
+                                                                            <Toggle labelPlacement='right'>
+                                                                                <div
                                                                                     style={{
-                                                                                        fontSize: '12px',
-                                                                                        fontWeight: 'normal',
+                                                                                        display: 'flex',
+                                                                                        alignItems: 'center',
+                                                                                        gap: 3,
                                                                                     }}
                                                                                 >
-                                                                                    {target?.config?.runners?.[
-                                                                                        runner.name
-                                                                                    ]
-                                                                                        ?.enable_debug_pod_receive_production_traffic
-                                                                                        ? t('enabled')
-                                                                                        : t('disabled')}
-                                                                                </span>
-                                                                                <StatefulTooltip
-                                                                                    showArrow
-                                                                                    content={() => (
-                                                                                        <Block
-                                                                                            width={[
-                                                                                                '100px',
-                                                                                                '200px',
-                                                                                                '400px',
-                                                                                                '600px',
-                                                                                            ]}
-                                                                                        >
-                                                                                            <span>
-                                                                                                {t(
-                                                                                                    'enable debug pod receive production traffic desc'
-                                                                                                )}
-                                                                                            </span>
-                                                                                        </Block>
-                                                                                    )}
+                                                                                    <span
+                                                                                        style={{
+                                                                                            fontSize: '12px',
+                                                                                            fontWeight: 'normal',
+                                                                                        }}
+                                                                                    >
+                                                                                        {target?.config?.runners?.[
+                                                                                            runner.name
+                                                                                        ]
+                                                                                            ?.enable_stealing_traffic_debug_mode
+                                                                                            ? t('enabled')
+                                                                                            : t('disabled')}
+                                                                                    </span>
+                                                                                    <StatefulTooltip
+                                                                                        showArrow
+                                                                                        content={() => (
+                                                                                            <Block
+                                                                                                width={[
+                                                                                                    '100px',
+                                                                                                    '200px',
+                                                                                                    '400px',
+                                                                                                    '600px',
+                                                                                                ]}
+                                                                                            >
+                                                                                                <span>
+                                                                                                    {t(
+                                                                                                        'enable stealing traffic debug mode desc'
+                                                                                                    )}
+                                                                                                </span>
+                                                                                            </Block>
+                                                                                        )}
+                                                                                    >
+                                                                                        <div>
+                                                                                            <FiAlertCircle size={12} />
+                                                                                        </div>
+                                                                                    </StatefulTooltip>
+                                                                                </div>
+                                                                            </Toggle>
+                                                                        </FormItem>
+                                                                        <FormItem
+                                                                            name={[
+                                                                                'targets',
+                                                                                idx,
+                                                                                'config',
+                                                                                'runners',
+                                                                                runner.name,
+                                                                                'enable_debug_pod_receive_production_traffic',
+                                                                            ]}
+                                                                            label={t(
+                                                                                'enable debug pod receive production traffic'
+                                                                            )}
+                                                                        >
+                                                                            <Toggle labelPlacement='right'>
+                                                                                <div
+                                                                                    style={{
+                                                                                        display: 'flex',
+                                                                                        alignItems: 'center',
+                                                                                        gap: 3,
+                                                                                    }}
                                                                                 >
-                                                                                    <div>
-                                                                                        <FiAlertCircle size={12} />
-                                                                                    </div>
-                                                                                </StatefulTooltip>
-                                                                            </div>
-                                                                        </Toggle>
-                                                                    </FormItem>
-                                                                    <FormItem
-                                                                        name={[
-                                                                            'targets',
-                                                                            idx,
-                                                                            'config',
-                                                                            'runners',
-                                                                            runner.name,
-                                                                            'envs',
-                                                                        ]}
-                                                                        label={
-                                                                            <div
+                                                                                    <span
+                                                                                        style={{
+                                                                                            fontSize: '12px',
+                                                                                            fontWeight: 'normal',
+                                                                                        }}
+                                                                                    >
+                                                                                        {target?.config?.runners?.[
+                                                                                            runner.name
+                                                                                        ]
+                                                                                            ?.enable_debug_pod_receive_production_traffic
+                                                                                            ? t('enabled')
+                                                                                            : t('disabled')}
+                                                                                    </span>
+                                                                                    <StatefulTooltip
+                                                                                        showArrow
+                                                                                        content={() => (
+                                                                                            <Block
+                                                                                                width={[
+                                                                                                    '100px',
+                                                                                                    '200px',
+                                                                                                    '400px',
+                                                                                                    '600px',
+                                                                                                ]}
+                                                                                            >
+                                                                                                <span>
+                                                                                                    {t(
+                                                                                                        'enable debug pod receive production traffic desc'
+                                                                                                    )}
+                                                                                                </span>
+                                                                                            </Block>
+                                                                                        )}
+                                                                                    >
+                                                                                        <div>
+                                                                                            <FiAlertCircle size={12} />
+                                                                                        </div>
+                                                                                    </StatefulTooltip>
+                                                                                </div>
+                                                                            </Toggle>
+                                                                        </FormItem>
+                                                                    </FormGroup>
+                                                                    <FormGroup icon={VscSymbolVariable}>
+                                                                        <FormItem
+                                                                            name={[
+                                                                                'targets',
+                                                                                idx,
+                                                                                'config',
+                                                                                'runners',
+                                                                                runner.name,
+                                                                                'envs',
+                                                                            ]}
+                                                                            label={t('environment variables')}
+                                                                        >
+                                                                            <LabelList
+                                                                                ignoreKeys={[bentomlConfigsEnvKey]}
                                                                                 style={{
-                                                                                    display: 'flex',
-                                                                                    alignItems: 'center',
-                                                                                    gap: 5,
+                                                                                    width: 440,
                                                                                 }}
-                                                                            >
-                                                                                <VscSymbolVariable />
-                                                                                <div>{t('environment variables')}</div>
-                                                                            </div>
-                                                                        }
-                                                                    >
-                                                                        <LabelList
-                                                                            ignoreKeys={[bentomlConfigsEnvKey]}
-                                                                            style={{
-                                                                                width: 440,
-                                                                            }}
-                                                                        />
-                                                                    </FormItem>
+                                                                            />
+                                                                        </FormItem>
+                                                                    </FormGroup>
                                                                 </Panel>
                                                             </Accordion>
                                                         </div>
