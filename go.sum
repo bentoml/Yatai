@@ -110,10 +110,10 @@ github.com/aws/aws-sdk-go v1.27.0/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
 github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647 h1:fKWmU8aM6tda4yThxj8SGKWJYCxjLW9gSM6WIIFFgvo=
 github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647/go.mod h1:w8sk7HbPMnOlZislz8Ch3pRw15FNMY6o1Q+53fepnhc=
-github.com/bentoml/yatai-common v0.0.0-20221115112706-487d02768241 h1:f0HJprSOtp40XJ73psR6Dgfx6KD6nMiIfJm9BftrTAU=
-github.com/bentoml/yatai-common v0.0.0-20221115112706-487d02768241/go.mod h1:pox0XYk/bVUwKkadn0XwWHEbJmxSEeN3+HwGA4a8uOQ=
-github.com/bentoml/yatai-deployment v1.0.3-0.20221122105112-fcab131d260b h1:8epLTBG0qT1QZ2vHw1fivdITyxVtoDqZ0N50va5TjEA=
-github.com/bentoml/yatai-deployment v1.0.3-0.20221122105112-fcab131d260b/go.mod h1:ZtZaM00P5EBquaoddHLOjPBgkFipkbYqsnoODAgaw6E=
+github.com/bentoml/yatai-common v0.0.0-20221204065908-975ef2e3714e h1:et8vRFRG2CgnFUElqpXVrerB1DkV2DcpmFWpzAGAvqo=
+github.com/bentoml/yatai-common v0.0.0-20221204065908-975ef2e3714e/go.mod h1:pox0XYk/bVUwKkadn0XwWHEbJmxSEeN3+HwGA4a8uOQ=
+github.com/bentoml/yatai-deployment v1.1.0-d8.0.20221220190828-2cb862274005 h1:ruM0N2l30KTQPKgA73MdPLhuhUQ08A5B4vbn9LUTQXc=
+github.com/bentoml/yatai-deployment v1.1.0-d8.0.20221220190828-2cb862274005/go.mod h1:4/NXCYwg0SnXwhK3bHkIBYE5gKkkw8mq4kW8AqyQ4yI=
 github.com/bentoml/yatai-image-builder v0.0.1-d9 h1:2N/UkXAR0kkVTYyR8ri0Ly1YGuDAoC02sTL8LVYI5M4=
 github.com/bentoml/yatai-image-builder v0.0.1-d9/go.mod h1:FXWGIOMVGQHHdMthuIDX2MIFpZRvDr64UAF1sk36DTA=
 github.com/bentoml/yatai-schemas v0.0.0-20221220135425-3f48cbf72719 h1:30l4lOqutD1vdo9QOop3ISdxgqjTxLLECIMCZhRFHxU=
@@ -1521,8 +1521,8 @@ google.golang.org/genproto v0.0.0-20200911024640-645f7a48b24f/go.mod h1:FWY/as6D
 google.golang.org/genproto v0.0.0-20201030142918-24207fddd1c3/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20220107163113-42d7afdf6368/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
-google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e h1:S9GbmC1iCgvbLyAokVCwiO6tVIrU9Y7c5oMx1V/ki/Y=
-google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e/go.mod h1:9qHF0xnpdSfF6knlcsnpzUu5y+rpwgbvsyGAZPBMg4s=
+google.golang.org/genproto v0.0.0-20221202195650-67e5cbc046fd h1:OjndDrsik+Gt+e6fs45z9AxiewiKyLKYpA45W5Kpkks=
+google.golang.org/genproto v0.0.0-20221202195650-67e5cbc046fd/go.mod h1:cTsE614GARnxrLsqKREzmNYJACSWWpAWdNMwnD7c2BE=
 google.golang.org/grpc v1.17.0/go.mod h1:6QZJwpn2B+Zp71q/5VxRsJ6NXXVCE5NRUHRo+f3cWCs=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.20.0/go.mod h1:chYK+tFQF0nDUGJgXMSgLCQk3phJEuONr2DCgLDdAQM=
