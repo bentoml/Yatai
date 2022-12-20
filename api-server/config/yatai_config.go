@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -19,12 +20,15 @@ type YataiServerConfigYaml struct {
 }
 
 type YataiPostgresqlConfigYaml struct {
-	Host     string `yaml:"host"`
-	Port     uint   `yaml:"port"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	Database string `yaml:"database"`
-	SSLMode  string `yaml:"sslmode"`
+	Host            string        `yaml:"host"`
+	Port            uint          `yaml:"port"`
+	User            string        `yaml:"user"`
+	Password        string        `yaml:"password"`
+	Database        string        `yaml:"database"`
+	SSLMode         string        `yaml:"sslmode"`
+	MaxOpenConns    int           `yaml:"max_open_conns"`
+	MaxIdleConns    int           `yaml:"max_idle_conns"`
+	ConnMaxLifetime time.Duration `yaml:"conn_max_lifetime"`
 }
 
 type YataiS3ConfigYaml struct {
@@ -100,6 +104,33 @@ func PopulateYataiConfig() error {
 	pgSSLMode, ok := os.LookupEnv(consts.EnvPgSSLMode)
 	if ok {
 		YataiConfig.Postgresql.SSLMode = pgSSLMode
+	}
+	YataiConfig.Postgresql.MaxOpenConns = 10
+	pgMaxOpenConns, ok := os.LookupEnv("PG_MAX_OPEN_CONNS")
+	if ok {
+		pgMaxOpenConns_, err := strconv.Atoi(pgMaxOpenConns)
+		if err != nil {
+			return errors.Wrap(err, "convert PG_MAX_OPEN_CONNS from env to int")
+		}
+		YataiConfig.Postgresql.MaxOpenConns = pgMaxOpenConns_
+	}
+	YataiConfig.Postgresql.MaxIdleConns = 10
+	pgMaxIdleConns, ok := os.LookupEnv("PG_MAX_IDLE_CONNS")
+	if ok {
+		pgMaxIdleConns_, err := strconv.Atoi(pgMaxIdleConns)
+		if err != nil {
+			return errors.Wrap(err, "convert PG_MAX_IDLE_CONNS from env to int")
+		}
+		YataiConfig.Postgresql.MaxIdleConns = pgMaxIdleConns_
+	}
+	YataiConfig.Postgresql.ConnMaxLifetime = 15 * time.Minute
+	pgConnMaxLifetime, ok := os.LookupEnv("PG_CONN_MAX_LIFETIME")
+	if ok {
+		pgConnMaxLifetime_, err := time.ParseDuration(pgConnMaxLifetime)
+		if err != nil {
+			return errors.Wrap(err, "convert PG_CONN_MAX_LIFETIME from env to time.Duration")
+		}
+		YataiConfig.Postgresql.ConnMaxLifetime = pgConnMaxLifetime_
 	}
 	migrationDir, ok := os.LookupEnv(consts.EnvMigrationDir)
 	if ok {

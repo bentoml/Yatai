@@ -29,8 +29,8 @@ import (
 )
 
 var (
-	dbCache   = map[string]*gorm.DB{}
-	dbCacheRW sync.RWMutex
+	db         *gorm.DB
+	dbOpenOnce sync.Once
 )
 
 type DbCtxKeyType string
@@ -110,35 +110,28 @@ func openDB() (*gorm.DB, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "open db")
 	}
+	var rawDb *sql.DB
+	rawDb, err = db.DB()
+	if err != nil {
+		return nil, err
+	}
+	rawDb.SetMaxOpenConns(config.YataiConfig.Postgresql.MaxOpenConns)
+	rawDb.SetMaxIdleConns(config.YataiConfig.Postgresql.MaxIdleConns)
+	rawDb.SetConnMaxLifetime(config.YataiConfig.Postgresql.ConnMaxLifetime)
+	logrus.Infof("pg max open connections: %d", config.YataiConfig.Postgresql.MaxOpenConns)
+	logrus.Infof("pg max idle connections: %d", config.YataiConfig.Postgresql.MaxIdleConns)
+	logrus.Infof("pg connection max lifetime: %s", config.YataiConfig.Postgresql.ConnMaxLifetime.String())
 	return db, nil
 }
 
 func getDB() (*gorm.DB, error) {
-	uri, err := getDBURI()
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get db uri")
-	}
-	dbCacheRW.RLock()
-	db, ok := dbCache[uri]
-	dbCacheRW.RUnlock()
-	if !ok {
+	var err error
+	dbOpenOnce.Do(func() {
 		db, err = openDB()
-		if err != nil {
-			return nil, err
-		}
-		var rawDb *sql.DB
-		rawDb, err = db.DB()
-		if err != nil {
-			return nil, err
-		}
-		rawDb.SetMaxOpenConns(25)
-		rawDb.SetMaxIdleConns(25)
-		rawDb.SetConnMaxLifetime(5 * time.Minute)
-		dbCacheRW.Lock()
-		dbCache[uri] = db
-		dbCacheRW.Unlock()
+	})
+	if err != nil {
+		return nil, err
 	}
-
 	if command.GlobalCommandOption.Debug {
 		return db.Debug(), nil
 	}
@@ -251,6 +244,7 @@ func MigrateUp() error {
 	if err != nil {
 		return errors.Wrap(err, "cannot create migrate")
 	}
+	defer m.Close()
 
 	m.Log = &MigrateLog{}
 

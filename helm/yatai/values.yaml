@@ -91,6 +91,9 @@ postgresql:
   password: ''
   passwordExistingSecretName: ''
   passwordExistingSecretKey: ''
+  maxOpenConns: 10
+  maxIdleConns: 10
+  connMaxLifetime: 15m
 
 s3:
   endpoint: ''
