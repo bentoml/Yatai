@@ -181,7 +181,13 @@ func (c *kubeController) GetPodKubeEvents(ctx *gin.Context, schema *GetClusterSc
 			return strings.Compare(ie.ResourceVersion, je.ResourceVersion) < 0
 		})
 
-		if len(_events) == 0 || !is_sent {
+		select {
+		case <-closeCh:
+			return
+		default:
+		}
+
+		if len(_events) != 0 || !is_sent {
 			is_sent = true
 			err = conn.WriteJSON(&schemasv1.WsRespSchema{
 				Type:    schemasv1.WsRespTypeSuccess,
