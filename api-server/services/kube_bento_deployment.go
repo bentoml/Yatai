@@ -117,19 +117,19 @@ func (s *kubeBentoDeploymentService) transformToBentoDeploymentV1alpha3(ctx cont
 
 	if deploymentTarget.Config != nil {
 		if deploymentTarget.Config.EnableDebugMode != nil && *deploymentTarget.Config.EnableDebugMode {
-			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelTrue
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelValueTrue
 		} else {
-			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelFalse
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelValueFalse
 		}
 		if deploymentTarget.Config.EnableStealingTrafficDebugMode != nil && *deploymentTarget.Config.EnableStealingTrafficDebugMode {
-			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelTrue
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelValueTrue
 		} else {
-			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelFalse
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelValueFalse
 		}
 		if deploymentTarget.Config.EnableDebugPodReceiveProductionTraffic != nil && *deploymentTarget.Config.EnableDebugPodReceiveProductionTraffic {
-			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelTrue
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelValueTrue
 		} else {
-			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelFalse
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelValueFalse
 		}
 		if deploymentTarget.Config.DeploymentStrategy != nil {
 			kubeBentoDeployment.Spec.Annotations[KubeAnnotationDeploymentStrategy] = string(*deploymentTarget.Config.DeploymentStrategy)
@@ -361,19 +361,19 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 					}
 					if runnerConfig != nil {
 						if runnerConfig.EnableDebugMode != nil && *runnerConfig.EnableDebugMode {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelTrue
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelValueTrue
 						} else {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelFalse
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelValueFalse
 						}
 						if runnerConfig.EnableStealingTrafficDebugMode != nil && *runnerConfig.EnableStealingTrafficDebugMode {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelTrue
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelValueTrue
 						} else {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelFalse
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelValueFalse
 						}
 						if runnerConfig.EnableDebugPodReceiveProductionTraffic != nil && *runnerConfig.EnableDebugPodReceiveProductionTraffic {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelTrue
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelValueTrue
 						} else {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelFalse
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelValueFalse
 						}
 						if runnerConfig.DeploymentStrategy != nil {
 							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationDeploymentStrategy] = string(*runnerConfig.DeploymentStrategy)
@@ -545,19 +545,19 @@ func (s *kubeBentoDeploymentService) DeployV2alpha1(ctx context.Context, deploym
 					}
 					if runnerConfig != nil {
 						if runnerConfig.EnableDebugMode != nil && *runnerConfig.EnableDebugMode {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelTrue
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelValueTrue
 						} else {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelFalse
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugMode] = commonconsts.KubeLabelValueFalse
 						}
 						if runnerConfig.EnableStealingTrafficDebugMode != nil && *runnerConfig.EnableStealingTrafficDebugMode {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelTrue
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelValueTrue
 						} else {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelFalse
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableStealingTrafficDebugMode] = commonconsts.KubeLabelValueFalse
 						}
 						if runnerConfig.EnableDebugPodReceiveProductionTraffic != nil && *runnerConfig.EnableDebugPodReceiveProductionTraffic {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelTrue
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelValueTrue
 						} else {
-							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelFalse
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelValueFalse
 						}
 					}
 					for k, v := range oldRunner.Annotations {
