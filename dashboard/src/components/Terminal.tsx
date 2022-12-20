@@ -129,6 +129,14 @@ export default function Terminal({
             return undefined
         }
 
+        let wsHeartbeatTimer: undefined | number
+        const cancelHeartbeat = () => {
+            if (wsHeartbeatTimer) {
+                window.clearTimeout(wsHeartbeatTimer)
+            }
+            wsHeartbeatTimer = undefined
+        }
+
         const terminal = new XtermTerminal({
             fontFamily: "Consolas, Menlo, 'Bitstream Vera Sans Mono', monospace, 'Powerline Symbols'",
             fontSize: 13,
@@ -175,19 +183,27 @@ export default function Terminal({
                   fork: fork ? 1 : 0,
               })}`
         ws = new WebSocket(wsUrl)
+        const heartbeat = () => {
+            if (ws?.readyState === ws?.OPEN) {
+                ws?.send(JSON.stringify({ type: 'heartbeat' }))
+            }
+            wsHeartbeatTimer = window.setTimeout(heartbeat, 20000)
+        }
         wsRef.current = ws
         ws.onopen = () => {
             // eslint-disable-next-line no-console
             console.log('onopen')
             resizeHandler()
+            heartbeat()
         }
         ws.onclose = (ev) => {
             // eslint-disable-next-line no-console
             console.log('onclose', ev)
             terminal.write('\n!!! websocket closed !!!\n')
+            cancelHeartbeat()
         }
         ws.onmessage = (event) => {
-            try {
+            if (typeof event.data === 'string' && event.data.length > 0 && event.data[0] === '{') {
                 const jsn = JSON.parse(event.data)
                 const resp = jsn as IWsRespSchema<{ containerName: string }>
                 if (resp.message) {
@@ -201,8 +217,6 @@ export default function Terminal({
                     setContainerName(resp.payload.containerName)
                 }
                 return
-            } catch {
-                //
             }
             if (onGetGeneratedPod) {
                 try {
@@ -221,6 +235,7 @@ export default function Terminal({
         ws.onerror = (ev) => {
             // eslint-disable-next-line no-console
             console.log('onerror', ev)
+            cancelHeartbeat()
         }
 
         terminal.onData((input) => {
@@ -240,6 +255,7 @@ export default function Terminal({
         return () => {
             // eslint-disable-next-line no-console
             console.log('terminal unmount')
+            cancelHeartbeat()
             fitRef.current = null
             terminal.dispose()
             window.removeEventListener('resize', resizeHandler)
