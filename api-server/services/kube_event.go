@@ -166,6 +166,12 @@ func (s *kubeEventService) MakeDeploymentKubeEventFilter(ctx context.Context, de
 		if event.InvolvedObject.Kind == "Pod" && kubeNamePattern.Match([]byte(event.InvolvedObject.Name)) {
 			return true
 		}
+		if event.InvolvedObject.Kind == "Bento" && event.InvolvedObject.Name == deployment.Name {
+			return true
+		}
+		if event.InvolvedObject.Kind == "BentoRequest" && event.InvolvedObject.Name == deployment.Name {
+			return true
+		}
 		if event.InvolvedObject.Kind == "BentoDeployment" && event.InvolvedObject.Name == deployment.Name {
 			return true
 		}
