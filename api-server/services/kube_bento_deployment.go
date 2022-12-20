@@ -199,6 +199,7 @@ const (
 	KubeAnnotationEnableDebugMode                        = "yatai.ai/enable-debug-mode"
 	KubeAnnotationEnableStealingTrafficDebugMode         = "yatai.ai/enable-stealing-traffic-debug-mode"
 	KubeAnnotationEnableDebugPodReceiveProductionTraffic = "yatai.ai/enable-debug-pod-receive-production-traffic"
+	KubeAnnotationDeploymentStrategy                     = "yatai.ai/deployment-strategy"
 )
 
 func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (kubeBentoDeployment *servingv1alpha3.BentoDeployment, err error) {
@@ -277,6 +278,9 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 		} else {
 			kubeBentoDeployment.Spec.Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelFalse
 		}
+		if deploymentTarget.Config.DeploymentStrategy != nil {
+			kubeBentoDeployment.Spec.Annotations[KubeAnnotationDeploymentStrategy] = string(*deploymentTarget.Config.DeploymentStrategy)
+		}
 	}
 
 	var oldKubeBentoDeployment *servingv1alpha3.BentoDeployment
@@ -351,6 +355,9 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelTrue
 						} else {
 							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationEnableDebugPodReceiveProductionTraffic] = commonconsts.KubeLabelFalse
+						}
+						if runnerConfig.DeploymentStrategy != nil {
+							kubeBentoDeployment.Spec.Runners[idx].Annotations[KubeAnnotationDeploymentStrategy] = string(*runnerConfig.DeploymentStrategy)
 						}
 					}
 					for k, v := range oldRunner.Annotations {

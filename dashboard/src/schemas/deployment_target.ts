@@ -63,6 +63,8 @@ export interface IKubeHPAConf {
     min_replicas?: number
 }
 
+export type DeploymentStrategy = 'RollingUpdate' | 'Recreate' | 'RampedSlowRollout' | 'BestEffortControlledRollout'
+
 export interface IDeploymentTargetRunnerSchema {
     resources?: IKubeResources
     hpa_conf?: IKubeHPAConf
@@ -70,6 +72,7 @@ export interface IDeploymentTargetRunnerSchema {
     enable_debug_mode?: boolean
     enable_stealing_traffic_debug_mode?: boolean
     enable_debug_pod_receive_production_traffic?: boolean
+    deployment_strategy?: DeploymentStrategy
 }
 
 export interface IDeploymentTargetConfigSchema {
@@ -81,4 +84,5 @@ export interface IDeploymentTargetConfigSchema {
     enable_debug_mode?: boolean
     enable_stealing_traffic_debug_mode?: boolean
     enable_debug_pod_receive_production_traffic?: boolean
+    deployment_strategy?: DeploymentStrategy
 }

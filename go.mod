@@ -7,7 +7,7 @@ require (
 	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
 	github.com/bentoml/yatai-common v0.0.0-20221115112706-487d02768241
 	github.com/bentoml/yatai-deployment v1.0.0-d7.0.20220929082153-10460cdfe1dc
-	github.com/bentoml/yatai-schemas v0.0.0-20221208132324-cf512abdbb1f
+	github.com/bentoml/yatai-schemas v0.0.0-20221220135425-3f48cbf72719
 	github.com/bits-and-blooms/bloom/v3 v3.3.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/sessions v0.0.3
