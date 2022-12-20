@@ -202,6 +202,19 @@ func (t *WebTerminal) Read(buffer []byte) (size int, err error) {
 			Height: message.Rows,
 		}
 		t.sizeChan <- terminalSize
+	case "heartbeat":
+		err = t.conn.WriteJSON(&schemasv1.WsRespSchema{
+			Type:    schemasv1.WsRespTypeSuccess,
+			Message: "",
+			Payload: struct {
+				Heartbeat bool `json:"heartbeat"`
+			}{
+				Heartbeat: true,
+			},
+		})
+		if err != nil {
+			return
+		}
 	default:
 		// ignore
 	}
