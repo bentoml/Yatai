@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -279,9 +280,14 @@ func (t *WebTerminal) Safe(fn func() error) error {
 }
 
 func (t *WebTerminal) HandleDebug(ctx context.Context, cliset *kubernetes.Clientset, restConfig *rest.Config) error {
+	debuggerImage := "quay.io/bentoml/bento-debugger:0.0.6"
+	debuggerImage_ := os.Getenv("INTERNAL_IMAGES_DEBUGGER")
+	if debuggerImage_ != "" {
+		debuggerImage = debuggerImage_
+	}
 	o := DebugOptions{
 		Args:            []string{"bash"},
-		Image:           "quay.io/bentoml/bento-debugger:0.0.5",
+		Image:           debuggerImage,
 		Interactive:     true,
 		TTY:             true,
 		Namespace:       t.pod.Namespace,

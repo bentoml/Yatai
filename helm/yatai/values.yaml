@@ -108,3 +108,6 @@ enableHostTimeZone: false
 
 transmissionStrategy: proxy
 doNotTrack: false
+
+internalImages:
+  debugger: quay.io/bentoml/bento-debugger:0.0.6
