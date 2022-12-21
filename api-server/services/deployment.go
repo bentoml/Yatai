@@ -493,7 +493,7 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 
 	cluster, err := ClusterService.GetAssociatedCluster(ctx, d)
 	if err != nil {
-		return defaultStatus, errors.Wrap(err, "get associated cluster")
+		return defaultStatus, errors.Wrapf(err, "get associated cluster for deployment %d", d.ID)
 	}
 
 	namespace := DeploymentService.GetKubeNamespace(d)
