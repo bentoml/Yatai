@@ -36,7 +36,7 @@ type getSharedInformerFactoryOption struct {
 func getSharedInformerFactory(ctx context.Context, option *getSharedInformerFactoryOption) (informers.SharedInformerFactory, error) {
 	org, err := OrganizationService.GetAssociatedOrganization(ctx, option.cluster)
 	if err != nil {
-		err = errors.Wrap(err, "failed to get associated organization")
+		err = errors.Wrapf(err, "get associated organization for cluster %d", option.cluster.ID)
 		return nil, err
 	}
 	var cacheKey CacheKey
@@ -56,7 +56,7 @@ func getSharedInformerFactory(ctx context.Context, option *getSharedInformerFact
 	if factory, ok = informerFactoryCache[cacheKey]; !ok {
 		clientset, _, err := ClusterService.GetKubeCliSet(ctx, option.cluster)
 		if err != nil {
-			err = errors.Wrap(err, "failed to get kubernetes client set")
+			err = errors.Wrapf(err, "get kubernetes client set for cluster %d", option.cluster.ID)
 			return nil, err
 		}
 		informerOptions := make([]informers.SharedInformerOption, 0)
