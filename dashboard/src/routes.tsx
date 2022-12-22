@@ -245,8 +245,8 @@ const Routes = () => {
                     </Route>
                 </Switch>
                 <ChatWidget
-                    token='25ad5fd9-293b-4e0f-9601-5b0cd7846b48'
-                    inbox='ac3ebd50-fc10-4299-9a1c-496841b49a6f'
+                    token='bd772f05-a51b-4647-99a9-5d6f24de1999'
+                    inbox='adc8d598-4fa9-4aae-9879-96867a838314'
                     title='Welcome to Yatai👋 👋 👋'
                     subtitle='Ask us questions or give us feedback - we will reply ASAP!😊'
                     primaryColor='#47AFD1'
