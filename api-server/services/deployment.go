@@ -505,12 +505,14 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 
 	imageBuilderPodNamespace := namespace
 	// TODO: make "deployment" as a constant
-	yataiComponent, err := YataiComponentService.GetByName(ctx, cluster.ID, "deployment")
+	yataiDeploymentComponent, err := YataiComponentService.GetByName(ctx, cluster.ID, "deployment")
 	if err != nil {
 		err = errors.Wrap(err, "get yatai component")
 		return defaultStatus, err
 	}
-	if strings.HasPrefix(yataiComponent.Manifest.LatestCRDVersion, "v1alpha") {
+
+	doNotHaveYataiImageBuilderComponent := strings.HasPrefix(yataiDeploymentComponent.Manifest.LatestCRDVersion, "v1alpha")
+	if doNotHaveYataiImageBuilderComponent {
 		imageBuilderPodNamespace = "yatai-builders"
 	}
 
@@ -554,7 +556,11 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 			return defaultStatus, err
 		}
 		var imageBuilderPodsSelector labels.Selector
-		imageBuilderPodsSelector, err = labels.Parse(fmt.Sprintf("%s=true,%s=%s,%s=%s", commonconsts.KubeLabelIsBentoImageBuilder, commonconsts.KubeLabelYataiBentoRepository, bentoRepository.Name, commonconsts.KubeLabelYataiBento, bento.Version))
+		if doNotHaveYataiImageBuilderComponent {
+			imageBuilderPodsSelector, err = labels.Parse(fmt.Sprintf("%s=%s,%s=%s", commonconsts.KubeLabelYataiBentoRepository, bentoRepository.Name, commonconsts.KubeLabelYataiBento, bento.Version))
+		} else {
+			imageBuilderPodsSelector, err = labels.Parse(fmt.Sprintf("%s=true,%s=%s,%s=%s", commonconsts.KubeLabelIsBentoImageBuilder, commonconsts.KubeLabelYataiBentoRepository, bentoRepository.Name, commonconsts.KubeLabelYataiBento, bento.Version))
+		}
 		if err != nil {
 			return defaultStatus, err
 		}
