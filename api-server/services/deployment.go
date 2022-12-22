@@ -503,7 +503,18 @@ func (s *deploymentService) getStatusFromK8s(ctx context.Context, d *models.Depl
 		return defaultStatus, err
 	}
 
-	_, imageBuilderPodLister, err := GetPodInformer(ctx, cluster, namespace)
+	imageBuilderPodNamespace := namespace
+	// TODO: make "deployment" as a constant
+	yataiComponent, err := YataiComponentService.GetByName(ctx, cluster.ID, "deployment")
+	if err != nil {
+		err = errors.Wrap(err, "get yatai component")
+		return defaultStatus, err
+	}
+	if strings.HasPrefix(yataiComponent.Manifest.LatestCRDVersion, "v1alpha") {
+		imageBuilderPodNamespace = "yatai-builders"
+	}
+
+	_, imageBuilderPodLister, err := GetPodInformer(ctx, cluster, imageBuilderPodNamespace)
 	if err != nil {
 		return defaultStatus, err
 	}
