@@ -338,9 +338,9 @@ Installation Steps
 
         .. code:: bash
 
-          helm repo add twuni https://helm.twun.io
-          helm repo update twuni
-          helm upgrade --install docker-registry twuni/docker-registry -n yatai-image-builder
+          helm upgrade --install docker-registry docker-registry \
+              --repo https://helm.twun.io \
+              -n yatai-image-builder
 
         2. Verify the docker-registry installation
 
@@ -457,10 +457,9 @@ The output of the command above should look something like this:
 
 .. code:: bash
 
-  helm repo remove bentoml 2> /dev/null || true
-  helm repo add bentoml https://bentoml.github.io/helm-charts
-  helm repo update bentoml
-  helm upgrade --install yatai-image-builder bentoml/yatai-image-builder -n yatai-image-builder \
+  helm upgrade --install yatai-image-builder yatai-image-builder \
+      --repo https://bentoml.github.io/helm-charts \
+      -n yatai-image-builder \
       --set dockerRegistry.server=$DOCKER_REGISTRY_SERVER \
       --set dockerRegistry.inClusterServer=$DOCKER_REGISTRY_IN_CLUSTER_SERVER \
       --set dockerRegistry.username=$DOCKER_REGISTRY_USERNAME \

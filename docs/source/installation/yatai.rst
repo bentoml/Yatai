@@ -530,10 +530,9 @@ Expected output:
 
 .. code:: bash
 
-  helm repo remove bentoml 2> /dev/null || true
-  helm repo add bentoml https://bentoml.github.io/helm-charts
-  helm repo update bentoml
-  helm upgrade --install yatai bentoml/yatai -n yatai-system \
+  helm upgrade --install yatai bentoml/yatai \
+      --repo https://bentoml.github.io/helm-charts \
+      -n yatai-system \
       --set postgresql.host=$PG_HOST \
       --set postgresql.port=$PG_PORT \
       --set postgresql.user=$PG_USER \

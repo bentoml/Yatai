@@ -333,12 +333,32 @@ You need to configure your DNS in one of the following two options:
 5. Install yatai-deployment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. Install yatai-deployment CRDs
+1. Install yatai-deployment-crds
 """"""""""""""""""""""""""""""""
 
 .. code:: bash
 
-  kubectl apply --server-side -f https://raw.githubusercontent.com/bentoml/yatai-deployment/main/helm/yatai-deployment/crds/bentodeployment.yaml
+  helm upgrade --install yatai-deployment-crds yatai-deployment-crds \
+      --repo https://bentoml.github.io/helm-charts \
+      -n yatai-deployment
+
+.. warning::
+
+   If you encounter error like this:
+
+   .. code:: bash
+
+      Error: rendered manifests contain a resource that already exists. Unable to continue with install: CustomResourceDefinition "bentodeployments.serving.yatai.ai" in namespace "" exists and cannot be imported into the current release: invalid ownership metadata; label validation error: missing key "app.kubernetes.io/managed-by": must be set to "Helm"; annotation validation error: missing key "meta.helm.sh/release-name": must be set to "yatai-deployment-crds"; annotation validation error: missing key "meta.helm.sh/release-namespace": must be set to "yatai-deployment"
+
+   It means you already have BentoDeployment CRD, you should use this command to fix it:
+
+   .. code:: bash
+
+      kubectl label crd bentodeployments.serving.yatai.ai app.kubernetes.io/managed-by=Helm
+      kubectl annotate crd bentodeployments.serving.yatai.ai meta.helm.sh/release-name=yatai-deployment-crds meta.helm.sh/release-namespace=yatai-deployment
+
+   Then reinstall the ``yatai-deployment-crds``.
+
 
 2. Verify that the CRDs of yatai-deployment has been established
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -358,10 +378,9 @@ The output of the command above should look something like this:
 
 .. code:: bash
 
-  helm repo remove bentoml 2> /dev/null || true
-  helm repo add bentoml https://bentoml.github.io/helm-charts
-  helm repo update bentoml
-  helm upgrade --install yatai-deployment bentoml/yatai-deployment -n yatai-deployment \
+  helm upgrade --install yatai-deployment yatai-deployment \
+      --repo https://bentoml.github.io/helm-charts \
+      -n yatai-deployment \
       --set dockerRegistry.server=$DOCKER_REGISTRY_SERVER \
       --set dockerRegistry.inClusterServer=$DOCKER_REGISTRY_IN_CLUSTER_SERVER \
       --set dockerRegistry.username=$DOCKER_REGISTRY_USERNAME \
