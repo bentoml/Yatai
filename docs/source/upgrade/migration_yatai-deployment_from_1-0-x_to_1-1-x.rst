@@ -1,10 +1,10 @@
-=============================
-Migration from 1.0.x to 2.0.x
-=============================
+==============================================
+Migration yatai-deployment from 1.0.x to 1.1.x
+==============================================
 
-Yatai 2.0.0 adds ``yatai-image-builder`` component, docker registry dependency migrated from yatai-deployment to yatai-image-builder
+Yatai 1.1.0 adds ``yatai-image-builder`` component, docker registry dependency migrated from yatai-deployment to yatai-image-builder
 
-.. note:: Migrating data to Yatai 2.0 requires you to have Yatai version 1.x.
+.. note:: Migrating yatai-deployment to 1.1.0 requires you to have Yatai version 1.0.x.
 
 Breaking Changes
 ----------------

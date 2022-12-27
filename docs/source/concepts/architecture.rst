@@ -2,6 +2,8 @@
 Architecture
 ============
 
+.. _yatai-architecture:
+
 .. image:: /_static/img/architecture.png
    :width: 100%
    :alt: Architecture Diagram
@@ -11,6 +13,8 @@ Architecture
    :width: 100%
    :alt: Architecture Diagram
    :class: only-dark
+
+The versions of the ``Yatai`` and ``yatai-image-builder`` and ``yatai-deployment`` components need to be consistent in the minor version.
 
 Yatai
 #####

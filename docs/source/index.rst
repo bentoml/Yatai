@@ -42,6 +42,12 @@ Learn Yatai
 
         A hands-on tutorial for installing Yatai
 
+    .. grid-item-card:: :doc:`💻 Upgrade Guide <upgrade/index>`
+        :link: upgrade/index
+        :link-type: doc
+
+        A hands-on tutorial for upgrading Yatai
+
     .. grid-item-card:: :doc:`🔭 Observability <observability/index>`
         :link: observability/index
         :link-type: doc
@@ -93,6 +99,7 @@ contributing to the project, helping other users and discuss all things MLOps.
    :hidden:
 
    installation/index
+   upgrade/index
    observability/index
    concepts/index
    advanced_guides/index

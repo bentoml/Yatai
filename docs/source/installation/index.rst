@@ -2,7 +2,9 @@
 Installation
 ============
 
-This is a handy tutorial that shows you how to install and upgrade various components of Yatai.
+This is a handy tutorial that shows you how to install various components of Yatai.
+
+You may want to go through this :ref:`Architecture <yatai-architecture>` documentation to understand the entire architecture of Yatai before installing it.
 
 .. grid:: 1 2 2 2
     :gutter: 3
@@ -27,18 +29,6 @@ This is a handy tutorial that shows you how to install and upgrade various compo
 
         How to install yatai-deployment
 
-    .. grid-item-card:: :doc:`/installation/migration_to_1x`
-        :link: /installation/migration_to_1x
-        :link-type: doc
-
-        Migration Yatai from 0.4.x to 1.0.x
-
-    .. grid-item-card:: :doc:`/installation/migration_to_2x`
-        :link: /installation/migration_to_2x
-        :link-type: doc
-
-        Migration Yatai from 1.0.x to 2.0.x
-
 .. toctree::
     :maxdepth: 1
     :titlesonly:
@@ -47,6 +37,4 @@ This is a handy tutorial that shows you how to install and upgrade various compo
     yatai
     yatai_image_builder
     yatai_deployment
-    migration_to_1x
-    migration_to_2x
 
