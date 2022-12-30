@@ -122,7 +122,7 @@ Yatai's Deployment feature comes as a separate component, you can install it via
 script:
 
 ```bash
-bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/main/scripts/quick-install-yatai-deployment.sh")
+bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/v1.0.x/scripts/quick-install-yatai-deployment.sh")
 ```
 
 This will install the `BentoDeployment` CRD([Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/))
