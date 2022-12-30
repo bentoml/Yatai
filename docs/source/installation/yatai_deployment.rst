@@ -589,7 +589,7 @@ You need to configure your DNS in one of the following two options:
 
 .. code:: bash
 
-  kubectl apply -f https://raw.githubusercontent.com/bentoml/yatai-deployment/main/helm/yatai-deployment/crds/bentodeployment.yaml
+  kubectl apply -f https://raw.githubusercontent.com/bentoml/yatai-deployment/v1.0.x/helm/yatai-deployment/crds/bentodeployment.yaml
 
 2. Verify that the CRDs of yatai-deployment has been established
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
