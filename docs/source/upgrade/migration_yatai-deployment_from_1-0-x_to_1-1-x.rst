@@ -39,14 +39,21 @@ Migration steps
 2. Get Docker Registry Environment Variables
 """"""""""""""""""""""""""""""""""""""""""""
 
-.. note:: If you use the external docker registry, you need to skip this step.
+Get the docker registry configuration from the ``yatai-deployment`` helm release:
 
 .. code:: bash
 
-  export DOCKER_REGISTRY_SERVER=127.0.0.1:5000
-  export DOCKER_REGISTRY_IN_CLUSTER_SERVER=docker-registry.yatai-deployment.svc.cluster.local:5000
-  export DOCKER_REGISTRY_USERNAME=''
-  export DOCKER_REGISTRY_PASSWORD=''
+  helm -n yatai-deployment get values yatai-deployment
+
+
+Set the docker registry configuration as environment variables:
+
+.. code:: bash
+
+  export DOCKER_REGISTRY_SERVER=xxx
+  export DOCKER_REGISTRY_IN_CLUSTER_SERVER=yyy
+  export DOCKER_REGISTRY_USERNAME=xxx
+  export DOCKER_REGISTRY_PASSWORD=yyy
   export DOCKER_REGISTRY_SECURE=false
   export DOCKER_REGISTRY_BENTO_REPOSITORY_NAME=bentos
 
@@ -54,8 +61,6 @@ Migration steps
 """"""""""""""""""""""""""""""
 
 Read this documentation to install yatai-image-builder: :ref:`Installing yatai-image-builder <yatai-image-builder-installation-steps>`
-
-.. note:: You should skip the step of Docker Registry installation because it has already been done as a part of the migration.
 
 4. Install yatai-deployment
 """""""""""""""""""""""""""
