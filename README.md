@@ -116,13 +116,25 @@ Now you can view and manage models and bentos from the web UI:
 <img width="785" alt="yatai-bento-repos" src="https://user-images.githubusercontent.com/489344/151456379-da255519-274d-41de-a1b9-a347be279230.png">
 <img width="785" alt="yatai-model-detail" src="https://user-images.githubusercontent.com/489344/151456021-360a6d6e-acb8-494b-9f6b-868ef9d13bce.png">
 
+### 🔧 Install yatai-image-builder component
+
+Yatai's image builder feature comes as a separate component, you can install it via the following
+script:
+
+```bash
+bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-image-builder/main/scripts/quick-install-yatai-image-builder.sh")
+```
+
+This will install the `BentoRequest` CRD([Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)) and `Bento` CRD
+in your cluster. Similarly, this script is made for development and testing purposes only.
+
 ### 🔧 Install yatai-deployment component
 
 Yatai's Deployment feature comes as a separate component, you can install it via the following
 script:
 
 ```bash
-bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/v1.0.x/scripts/quick-install-yatai-deployment.sh")
+bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-deployment/main/scripts/quick-install-yatai-deployment.sh")
 ```
 
 This will install the `BentoDeployment` CRD([Custom Resource Definition](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/))
@@ -147,13 +159,21 @@ A Bento Deployment can be created either via Web UI or via a Kubernetes CRD conf
 Define your Bento deployment in a `my_deployment.yaml` file:
 
 ```yaml
-apiVersion: serving.yatai.ai/v1alpha3
+apiVersion: resources.yatai.ai/v1alpha1
+kind: BentoRequest
+metadata:
+    name: iris-classifier
+    namespace: yatai
+spec:
+    bentoTag: iris_classifier:3oevmqfvnkvwvuqj
+---
+apiVersion: serving.yatai.ai/v2alpha1
 kind: BentoDeployment
 metadata:
     name: my-bento-deployment
     namespace: yatai
 spec:
-    bento_tag: iris_classifier:3oevmqfvnkvwvuqj
+    bento: iris-classifier
     ingress:
         enabled: true
     resources:
@@ -164,8 +184,8 @@ spec:
             cpu: "250m"
             memory: "128m"
     autoscaling:
-        max_replicas: 10
-        min_replicas: 2
+        maxReplicas: 10
+        minReplicas: 2
     runners:
         - name: iris_clf
           resources:
@@ -176,8 +196,8 @@ spec:
                   cpu: "500m"
                   memory: "512m"
               autoscaling:
-                  max_replicas: 4
-                  min_replicas: 1
+                  maxReplicas: 4
+                  minReplicas: 1
 ```
 
 Apply the deployment to your minikube cluster:
