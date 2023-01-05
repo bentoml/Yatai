@@ -211,7 +211,7 @@ Installation Steps
 
           Store the :code:`repositoryArn` returned by the command for later use.
 
-        4. Create an IAM policy for ECR push access for the bento image builder pod of yatai-deployment
+        4. Create an IAM policy for ECR push access for the bento image builder pod of yatai-image-builder
 
         Create a file named :code:`yatai-image-builder-pod-ecr-policy.json` with the following content:
 
@@ -430,12 +430,31 @@ Installation Steps
 4. Install yatai-image-builder
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. Install yatai-image-builder CRDs
+1. Install yatai-image-builder-crds
 """""""""""""""""""""""""""""""""""
 
 .. code:: bash
 
-  kubectl apply --server-side -f https://raw.githubusercontent.com/bentoml/yatai-image-builder/main/helm/yatai-image-builder/crds/bentorequest.yaml
+  helm upgrade --install yatai-image-builder-crds yatai-image-builder-crds \
+      --repo https://bentoml.github.io/helm-charts \
+      -n yatai-image-builder
+
+.. warning::
+
+   If you encounter error like this:
+
+   .. code:: bash
+
+      Error: rendered manifests contain a resource that already exists. Unable to continue with install: CustomResourceDefinition "bentodeployments.serving.yatai.ai" in namespace "" exists and cannot be imported into the current release: invalid ownership metadata; label validation error: missing key "app.kubernetes.io/managed-by": must be set to "Helm"; annotation validation error: missing key "meta.helm.sh/release-name": must be set to "yatai-image-builder-crds"; annotation validation error: missing key "meta.helm.sh/release-namespace": must be set to "yatai-image-builder"
+
+   It means you already have BentoDeployment CRD, you should use this command to fix it:
+
+   .. code:: bash
+
+      kubectl label crd bentodeployments.serving.yatai.ai app.kubernetes.io/managed-by=Helm
+      kubectl annotate crd bentodeployments.serving.yatai.ai meta.helm.sh/release-name=yatai-image-builder-crds meta.helm.sh/release-namespace=yatai-image-builder
+
+   Then reinstall the ``yatai-image-builder-crds``.
 
 2. Verify that the CRDs of yatai-image-builder has been established
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -465,8 +484,7 @@ The output of the command above should look something like this:
       --set dockerRegistry.username=$DOCKER_REGISTRY_USERNAME \
       --set dockerRegistry.password=$DOCKER_REGISTRY_PASSWORD \
       --set dockerRegistry.secure=$DOCKER_REGISTRY_SECURE \
-      --set dockerRegistry.bentoRepositoryName=$DOCKER_REGISTRY_BENTO_REPOSITORY_NAME \
-      --skip-crds
+      --set dockerRegistry.bentoRepositoryName=$DOCKER_REGISTRY_BENTO_REPOSITORY_NAME
 
 .. note::
 
