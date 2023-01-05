@@ -387,8 +387,7 @@ The output of the command above should look something like this:
       --set dockerRegistry.password=$DOCKER_REGISTRY_PASSWORD \
       --set dockerRegistry.secure=$DOCKER_REGISTRY_SECURE \
       --set dockerRegistry.bentoRepositoryName=$DOCKER_REGISTRY_BENTO_REPOSITORY_NAME \
-      --set layers.network.ingressClass=$INGRESS_CLASS \
-      --skip-crds
+      --set layers.network.ingressClass=$INGRESS_CLASS
 
 4. Verify the yatai-deployment installation
 """""""""""""""""""""""""""""""""""""""""""
