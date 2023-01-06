@@ -296,7 +296,7 @@ Installation Steps
 
           eksctl create iamserviceaccount \
             --cluster=YOUR-CLUSTER \
-            --region YOUR-REGION \
+            --region=YOUR-REGION \
             --namespace=yatai \
             --name=yatai-image-builder-pod \
             --attach-policy-arn=YOUR-IAM-POLICY-ARN \
