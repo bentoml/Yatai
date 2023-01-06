@@ -247,6 +247,7 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                 isLoading={deploymentsInfo.isLoading}
                 columns={[
                     t('name'),
+                    'Bento',
                     clusterName ? undefined : t('cluster'),
                     t('status'),
                     t('creator'),
@@ -262,6 +263,15 @@ export default function DeploymentListCard({ clusterName }: IDeploymentListCardP
                             >
                                 {deployment.name}
                             </Link>,
+                            deployment?.latest_revision && deployment.latest_revision.targets.length > 0 && (
+                                <Link
+                                    key={deployment.uid}
+                                    href={`/bento_repositories/${deployment.latest_revision.targets[0].bento.repository.name}/bentos/${deployment.latest_revision.targets[0].bento.version}`}
+                                >
+                                    {deployment.latest_revision.targets[0].bento.repository.name}:
+                                    {deployment.latest_revision.targets[0].bento.version}
+                                </Link>
+                            ),
                             clusterName ? undefined : (
                                 <Link key={deployment.cluster?.uid} href={`/clusters/${deployment.cluster?.name}`}>
                                     {deployment.cluster?.name}
