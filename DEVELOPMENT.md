@@ -144,33 +144,15 @@ As you know, Kubernetes has a complex network environment, so developing cloud-n
     telepresence connect
     ```
 
-2. Run Yatai
+2. Run Yatai api-server
 
     > NOTE: The following command uses the infrastructure of the Kubernetes environment in the current kubectl context and replaces the behavior of Yatai in the current Kubernetes environment, so please proceed with caution
 
     ```bash
-    env $(kubectl -n yatai-system get secret env -o jsonpath='{.data}' | jq 'to_entries|map("\(.key)=\(.value|@base64d)")|.[]' | xargs) make be-run
+    make start-dev
     ```
 
-    If you want to access the front-end pages, you need to compile the front-end static files in advance using the following command, or [Run Yatai Web UI](#run-yatai-web-ui)
-
-    ```bash
-    cd dashboard
-    yarn
-    yarn build
-    cd -
-    ```
-
-3. Intercept traffic from the Kubernetes cluster sent to the yatai service to the locally running yatai process
-
-    ```bash
-    telepresence leave yatai-yatai-system || true
-    telepresence intercept yatai -n yatai-system -p 7777:http
-    ```
-
-    > NOTE: After development, unblock the traffic with the following command: `telepresence leave yatai-yatai-system`
-
-4. ✨ Enjoy it!
+3. ✨ Enjoy it!
 
 ## Run Yatai Web UI
 
