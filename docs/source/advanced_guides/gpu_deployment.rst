@@ -33,7 +33,7 @@ Through the CLI
 Apply the following yaml for a BentoDeployment CR:
 
 .. code-block::
-  :emphasize-lines: 34
+  :emphasize-lines: 30
 
     apiVersion: serving.yatai.ai/v2alpha1
     kind: BentoDeployment
@@ -63,11 +63,11 @@ Apply the following yaml for a BentoDeployment CR:
           limits:
             cpu: 2000m
             memory: "4Gi"
+            custom:
+              nvidia.com/gpu: 1
           requests:
             cpu: 1000m
             memory: "2Gi"
-            custom:
-              nvidia.com/gpu: 1
         autoscaling:
           maxReplicas: 2
           minReplicas: 1
