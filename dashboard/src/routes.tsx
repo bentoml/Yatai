@@ -17,6 +17,7 @@ import OrganizationDeploymentForm from '@/pages/Organization/DeploymentForm'
 import OrganizationSettings from '@/pages/Organization/Settings'
 import ClusterDeployments from '@/pages/Cluster/Deployments'
 import ClusterMembers from '@/pages/Cluster/Members'
+import ClusterYataiComponents from '@/pages/Cluster/YataiComponents'
 import ClusterSettings from '@/pages/Cluster/Settings'
 import ClusterLayout from '@/components/ClusterLayout'
 import OrganizationBentoRepositories from '@/pages/Organization/BentoRepositories'
@@ -192,6 +193,11 @@ const Routes = () => {
                                 <Route exact path='/clusters/:clusterName/deployments' component={ClusterDeployments} />
                                 <Route exact path='/clusters/:clusterName/members' component={ClusterMembers} />
                                 <Route exact path='/clusters/:clusterName/settings' component={ClusterSettings} />
+                                <Route
+                                    exact
+                                    path='/clusters/:clusterName/yatai_components'
+                                    component={ClusterYataiComponents}
+                                />
                             </Switch>
                         </ClusterLayout>
                     </Route>
