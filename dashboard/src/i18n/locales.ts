@@ -448,6 +448,14 @@ const locales0 = {
         'ko': '배포되지 않음',
         'vi': 'Chưa cập nhật',
     },
+    'healthy': {
+        'zh-CN': '健康',
+        'zh-TW': '健康',
+        'en': 'Healthy',
+        'ja': '健康',
+        'ko': '건강',
+        'vi': 'Sức khỏe',
+    },
     'unhealthy': {
         'zh-CN': '不健康',
         'zh-TW': '不健康',
@@ -2949,6 +2957,30 @@ const locales0 = {
         'ko': '최선의 노력으로 롤아웃: 업데이트 중에 모든 복제본의 사용 불가 비율을 20%로 유지합니다. 이렇게하면 업데이트 속도가 빨라지지만 업데이트 중에 일정 비율의 중지 시간을 인정해야하므로 업데이트의 위험이 높아집니다.',
         'vi': 'Lăn tốt nhất: Trong quá trình cập nhật, tỷ lệ không khả dụng của tất cả các bản sao sẽ được giữ ở 20%, do đó tốc độ cập nhật sẽ nhanh hơn, nhưng đồng thời phải chịu rủi ro cao hơn, vì trong quá trình cập nhật phải chấp nhận một tỷ lệ nhất định của thời gian ngừng hoạt động.',
         'en': 'BestEffortControlledRollout: Keep the unavailable percentage of all replicas at 20% during the update, so that the update speed is faster, but at the same time you have to bear a higher risk, because you have to tolerate a certain proportion of downtime during the update.',
+    },
+    'installed_at': {
+        'zh-CN': '安装时间',
+        'zh-TW': '安裝時間',
+        'ja': 'インストール時間',
+        'ko': '설치 시간',
+        'vi': 'Đã cài đặt lúc',
+        'en': 'Installed at',
+    },
+    'yatai component unhealthy reason': {
+        'zh-CN': 'Yatai 组件不健康原因',
+        'zh-TW': 'Yatai 元件不健康原因',
+        'ja': 'Yataiコンポーネントの不健康な理由',
+        'ko': 'Yatai 구성 요소의 건강하지 않은 이유',
+        'vi': 'Lý do không khỏe cho thành phần Yatai',
+        'en': 'Yatai component unhealthy reason',
+    },
+    'yatai component unhealthy reason desc': {
+        'zh-CN': '超过 5 分钟没有收到 Yatai 组件的心跳',
+        'zh-TW': '超過 5 分鐘沒有收到 Yatai 元件的心跳',
+        'ja': '5分以上Yataiコンポーネントからのハートビートを受信していません',
+        'ko': '5 분 이상 Yatai 구성 요소의 하트 비트를 수신하지 않았습니다',
+        'vi': 'Không nhận được nhịp tim từ thành phần Yatai trong vòng 5 phút',
+        'en': 'No heartbeat received from Yatai component for more than 5 minutes',
     },
 }
 

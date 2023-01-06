@@ -32,7 +32,7 @@ export default function KubeResourcePodStatuses({ clusterName, resource, style }
             {podsLoading ? (
                 <Skeleton rows={1} animation />
             ) : (
-                <PodStatuses pods={pods ?? []} replicas={pods?.length ?? 0} />
+                <PodStatuses showOperationIcons pods={pods ?? []} replicas={pods?.length ?? 0} />
             )}
         </div>
     )

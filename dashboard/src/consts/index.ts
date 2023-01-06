@@ -7,6 +7,8 @@ import { BiRevision, BiExtension } from 'react-icons/bi'
 import { GoPackage } from 'react-icons/go'
 import { VscFileBinary } from 'react-icons/vsc'
 import { GiAbstract006, GiAbstract045 } from 'react-icons/gi'
+import { SiDocker } from 'react-icons/si'
+import { YataiComponentType } from '@/schemas/yatai_component'
 
 export const headerHeight = 55
 export const sidebarExpandedWidth = 220
@@ -18,6 +20,11 @@ export const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss'
 export const yataiOrgHeader = 'X-Yatai-Organization'
 
 export const bentomlConfigsEnvKey = 'BENTOML_CONFIG_OPTIONS'
+
+export const yataiComponentIconMapping: Record<YataiComponentType, IconType> = {
+    'deployment': GrDeploy,
+    'image-builder': SiDocker,
+}
 
 export const resourceIconMapping: Record<ResourceType, IconType> = {
     user: GrUser,
