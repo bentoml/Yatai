@@ -61,8 +61,10 @@ If you want to upgrade to ``1.1.0-d13``, you can run the following command:
 
    .. code:: bash
 
-      kubectl label crd bentodeployments.serving.yatai.ai app.kubernetes.io/managed-by=Helm
-      kubectl annotate crd bentodeployments.serving.yatai.ai meta.helm.sh/release-name=yatai-image-builder-crds meta.helm.sh/release-namespace=yatai-image-builder
+      kubectl label crd bentorequests.resources.yatai.ai app.kubernetes.io/managed-by=Helm
+      kubectl annotate crd bentorequests.resources.yatai.ai meta.helm.sh/release-name=yatai-image-builder-crds meta.helm.sh/release-namespace=yatai-image-builder
+      kubectl label crd bentoes.resources.yatai.ai app.kubernetes.io/managed-by=Helm
+      kubectl annotate crd bentoes.resources.yatai.ai meta.helm.sh/release-name=yatai-image-builder-crds meta.helm.sh/release-namespace=yatai-image-builder
 
    Then upgrade the ``yatai-image-builder-crds`` again.
 
