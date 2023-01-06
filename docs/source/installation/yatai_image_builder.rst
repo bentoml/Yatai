@@ -451,8 +451,10 @@ Installation Steps
 
    .. code:: bash
 
-      kubectl label crd bentodeployments.serving.yatai.ai app.kubernetes.io/managed-by=Helm
-      kubectl annotate crd bentodeployments.serving.yatai.ai meta.helm.sh/release-name=yatai-image-builder-crds meta.helm.sh/release-namespace=yatai-image-builder
+      kubectl label crd bentorequests.resources.yatai.ai app.kubernetes.io/managed-by=Helm
+      kubectl annotate crd bentorequests.resources.yatai.ai meta.helm.sh/release-name=yatai-image-builder-crds meta.helm.sh/release-namespace=yatai-image-builder
+      kubectl label crd bentoes.resources.yatai.ai app.kubernetes.io/managed-by=Helm
+      kubectl annotate crd bentoes.resources.yatai.ai meta.helm.sh/release-name=yatai-image-builder-crds meta.helm.sh/release-namespace=yatai-image-builder
 
    Then reinstall the ``yatai-image-builder-crds``.
 
