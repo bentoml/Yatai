@@ -243,7 +243,7 @@ export default function BaseSidebar({ navItems, style, title, icon, settingsPath
                 </div>
                 <div style={bottomItemStyle}>
                     <CgFileDocument />
-                    <Link href='https://docs.bentoml.org' target='_blank'>
+                    <Link href='https://docs.bentoml.org/projects/yatai' target='_blank'>
                         {t('docs')}
                     </Link>
                 </div>
