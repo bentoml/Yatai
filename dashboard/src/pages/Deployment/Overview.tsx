@@ -96,6 +96,7 @@ export default function DeploymentOverview() {
                         t('name'),
                         'URL',
                         t('cluster internal url'),
+                        'Bento',
                         t('kube namespace'),
                         t('description'),
                         t('creator'),
@@ -115,6 +116,15 @@ export default function DeploymentOverview() {
                                 key={deployment?.uid}
                                 text={`http://${deployment?.name}.${deployment?.kube_namespace}.svc.cluster.local:3000`}
                             />,
+                            deployment?.latest_revision && deployment.latest_revision.targets.length > 0 && (
+                                <Link
+                                    key={deployment.uid}
+                                    href={`/bento_repositories/${deployment.latest_revision.targets[0].bento.repository.name}/bentos/${deployment.latest_revision.targets[0].bento.version}`}
+                                >
+                                    {deployment.latest_revision.targets[0].bento.repository.name}:
+                                    {deployment.latest_revision.targets[0].bento.version}
+                                </Link>
+                            ),
                             // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                             <span key={deployment?.uid} onClick={(e) => e.stopPropagation()} style={{ cursor: 'text' }}>
                                 {deployment?.kube_namespace}
