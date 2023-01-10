@@ -254,12 +254,21 @@ func (s *deploymentRevisionService) Terminate(ctx context.Context, deploymentRev
 		err = errors.Wrap(err, "get yatai deployment component")
 		return err
 	}
-	if yataiDeploymentComp.Manifest == nil && yataiDeploymentComp.Manifest.LatestCRDVersion == "v1alpha3" {
-		cli, err := DeploymentService.GetKubeBentoDeploymentV1alpha3Cli(ctx, deployment)
-		if err != nil {
-			return err
+	if yataiDeploymentComp.Manifest != nil {
+		if yataiDeploymentComp.Manifest.LatestCRDVersion == "v2alpha1" {
+			cli, err := DeploymentService.GetKubeBentoDeploymentV2alpha1Cli(ctx, deployment)
+			if err != nil {
+				return err
+			}
+			return cli.Delete(ctx, deployment.Name, metav1.DeleteOptions{})
 		}
-		return cli.Delete(ctx, deployment.Name, metav1.DeleteOptions{})
+		if yataiDeploymentComp.Manifest.LatestCRDVersion == "v1alpha3" {
+			cli, err := DeploymentService.GetKubeBentoDeploymentV1alpha3Cli(ctx, deployment)
+			if err != nil {
+				return err
+			}
+			return cli.Delete(ctx, deployment.Name, metav1.DeleteOptions{})
+		}
 	}
 	cli, err := DeploymentService.GetKubeBentoDeploymentV1alpha2Cli(ctx, deployment)
 	if err != nil {
