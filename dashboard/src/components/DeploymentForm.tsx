@@ -1,4 +1,4 @@
-import { ICreateDeploymentSchema, IDeploymentSchema } from '@/schemas/deployment'
+import { ICreateDeploymentSchema, ICreateDeploymentUISchema, IDeploymentSchema } from '@/schemas/deployment'
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { createForm } from '@/components/Form'
 import useTranslation from '@/hooks/useTranslation'
@@ -12,7 +12,8 @@ import { FaMemory } from 'react-icons/fa'
 import {
     DeploymentStrategy,
     ICreateDeploymentTargetSchema,
-    IDeploymentTargetRunnerSchema,
+    ICreateDeploymentTargetUISchema,
+    IDeploymentTargetRunnerUISchema,
 } from '@/schemas/deployment_target'
 import { useStyletron } from 'baseui'
 import { createUseStyles } from 'react-jss'
@@ -84,9 +85,9 @@ const useStyles = createUseStyles({
     },
 })
 
-const { Form, FormItem, useForm } = createForm<ICreateDeploymentSchema>()
+const { Form, FormItem, useForm } = createForm<ICreateDeploymentUISchema>()
 
-const defaultTarget: ICreateDeploymentTargetSchema = {
+const defaultTarget: ICreateDeploymentTargetUISchema = {
     type: 'stable',
     bento_repository: '',
     bento: '',
@@ -135,24 +136,52 @@ export default function DeploymentForm({
     const [form] = useForm()
     const history = useHistory()
 
+    const [uiValues, setUIValues] = useState<ICreateDeploymentUISchema>({
+        cluster_name: clusterName,
+        name: '',
+        description: '',
+        targets: [_.cloneDeep(defaultTarget)],
+    })
+
     const [values, setValues] = useState<ICreateDeploymentSchema>({
         cluster_name: clusterName,
         name: '',
         description: '',
-        targets: [defaultTarget],
+        targets: [],
     })
+
+    useEffect(() => {
+        setValues((values_) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const customizer = (value: any, srcValue: any, key: string): any => {
+                if (_.endsWith(key, '_overrides')) {
+                    return value
+                }
+                if (typeof value === 'object' || typeof srcValue === 'object') {
+                    if (value === undefined || value === null) {
+                        return srcValue
+                    }
+                    const res = _.mergeWith(value, srcValue, customizer)
+                    return res
+                }
+                return srcValue
+            }
+            const mergedValues = _.mergeWith(values_, uiValues, customizer)
+            return mergedValues
+        })
+    }, [uiValues])
 
     const [bento, setBento] = useState<IBentoWithRepositorySchema>()
 
-    const clusterInfo = useQuery(`cluster:${values.cluster_name}`, () =>
-        values.cluster_name ? fetchCluster(values.cluster_name) : Promise.resolve(undefined)
+    const clusterInfo = useQuery(`cluster:${uiValues.cluster_name}`, () =>
+        uiValues.cluster_name ? fetchCluster(uiValues.cluster_name) : Promise.resolve(undefined)
     )
 
     const previousDeploymentRevisionUid = useRef<string>()
 
     useEffect(() => {
-        form.setFieldsValue(values)
-    }, [form, values])
+        form.setFieldsValue(uiValues)
+    }, [form, uiValues])
 
     const [bentomlConfs, setBentomlConfs] = useState<string[]>([])
 
@@ -184,7 +213,7 @@ export default function DeploymentForm({
                 } as ICreateDeploymentTargetSchema
             }),
         }
-        setValues(values0)
+        setUIValues(values0)
     }, [clusterName, deployment, deploymentRevision])
 
     const [loading, setLoading] = useState(false)
@@ -254,18 +283,19 @@ export default function DeploymentForm({
     }, [bentomlConfs, history, onSubmit, values])
 
     const handleChange = useCallback((_changes, values_) => {
-        setValues(values_)
+        setUIValues(values_)
     }, [])
 
     useEffect(() => {
-        setValues((vs) => {
+        setUIValues((vs) => {
             if (!clusterInfo.data) {
                 return vs
             }
-            return {
+            const values_ = {
                 ...vs,
                 kube_namespace: clusterInfo.data.config?.default_deployment_kube_namespace ?? 'yatai',
             }
+            return values_
         })
     }, [clusterInfo.data])
 
@@ -284,7 +314,7 @@ export default function DeploymentForm({
             }
             return runnerTabsActiveKey_
         })
-        setValues((vs) => {
+        setUIValues((vs) => {
             if (deploymentRevision) {
                 return vs
             }
@@ -294,7 +324,7 @@ export default function DeploymentForm({
             if (vs.targets.length === 0) {
                 return vs
             }
-            return {
+            const values_ = {
                 ...vs,
                 targets: [
                     {
@@ -334,22 +364,19 @@ export default function DeploymentForm({
                                         ...runners,
                                         [runner.name]: conf,
                                     }
-                                }, {} as Record<string, IDeploymentTargetRunnerSchema>) ?? {},
+                                }, {} as Record<string, IDeploymentTargetRunnerUISchema>) ?? {},
                         },
                     },
                 ],
             }
+            return values_
         })
     }, [bento?.manifest?.runners, deploymentRevision])
 
+    const [showJsonEditor, setShowJsonEditor] = useState(false)
+
     return (
-        <Form
-            className={styles.wrapper}
-            form={form}
-            initialValues={values}
-            onFinish={handleFinish}
-            onValuesChange={handleChange}
-        >
+        <div className={styles.wrapper}>
             <div
                 className={styles.header}
                 style={{
@@ -366,6 +393,13 @@ export default function DeploymentForm({
                         gap: 20,
                     }}
                 >
+                    <Toggle
+                        labelPlacement='right'
+                        value={showJsonEditor}
+                        onChange={() => setShowJsonEditor((v_) => !v_)}
+                    >
+                        JSON Editor
+                    </Toggle>
                     <Button
                         isLoading={loading}
                         size={ButtonSize.compact}
@@ -377,494 +411,130 @@ export default function DeploymentForm({
                     >
                         {t('cancel')}
                     </Button>
-                    <Button isLoading={loading} size={ButtonSize.compact}>
+                    <Button isLoading={loading} size={ButtonSize.compact} onClick={handleFinish}>
                         {t('submit')}
                     </Button>
                 </div>
             </div>
-
             <div className={styles.body}>
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 20,
-                    }}
-                >
-                    <FormItem
-                        required
-                        name='cluster_name'
-                        label={t('cluster')}
-                        style={{ display: clusterName ? 'none' : 'block', marginBottom: 0 }}
-                    >
-                        <ClusterSelector
-                            disabled={!!deployment}
-                            overrides={{
-                                Root: {
-                                    style: {
-                                        width: '392px',
-                                    },
-                                },
-                            }}
-                        />
-                    </FormItem>
-                    {values.cluster_name && (
-                        <FormItem
-                            required
-                            name='kube_namespace'
-                            label={t('kube namespace')}
-                            style={{ marginBottom: 0 }}
-                        >
-                            <Input disabled={!!deployment} />
-                        </FormItem>
-                    )}
-                </div>
-                <FormItem required name='name' label={t('deployment name')}>
-                    <Input
-                        disabled={!!deployment}
-                        overrides={{
-                            Root: {
-                                style: {
-                                    width: '392px',
-                                },
+                {showJsonEditor ? (
+                    <MonacoEditor
+                        value={JSON.stringify(values, null, 4)}
+                        height='calc(100vh - 170px)'
+                        theme={themeType === 'dark' ? 'vs-dark' : 'Dawn'}
+                        defaultLanguage='json'
+                        options={{
+                            minimap: {
+                                enabled: true,
                             },
+                            lineNumbers: 'off',
+                            lineDecorationsWidth: 0,
+                        }}
+                        onChange={(value) => {
+                            if (!value) {
+                                return
+                            }
+                            const v = JSON.parse(value)
+                            setValues(v as ICreateDeploymentSchema)
+                            setUIValues(v as ICreateDeploymentUISchema)
                         }}
                     />
-                </FormItem>
-                {!deployment && (
-                    <FormItem
-                        name='description'
-                        label={t('description')}
-                        style={{
-                            width: 838,
-                        }}
-                    >
-                        <Textarea />
-                    </FormItem>
-                )}
-                <div>
-                    {values.targets.map((target, idx) => {
-                        return (
-                            <div key={idx}>
+                ) : (
+                    <Form form={form} initialValues={uiValues} onValuesChange={handleChange}>
+                        <div>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 20,
+                                }}
+                            >
                                 <FormItem
                                     required
-                                    name={['targets', idx, 'config', 'enable_ingress']}
-                                    label={t('endpoint public access')}
+                                    name='cluster_name'
+                                    label={t('cluster')}
+                                    style={{ display: clusterName ? 'none' : 'block', marginBottom: 0 }}
                                 >
-                                    <Toggle labelPlacement='right'>
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 3,
-                                            }}
-                                        >
-                                            <span style={{ fontSize: '12px', fontWeight: 'normal' }}>
-                                                {target?.config?.enable_ingress ? t('enabled') : t('disabled')}
-                                            </span>
-                                            {target?.config?.enable_ingress ? (
-                                                <StatefulTooltip
-                                                    showArrow
-                                                    content={() => (
-                                                        <Block width={['100px', '200px', '400px', '600px']}>
-                                                            <span>{t('endpoint public access enable piece 1')} </span>
-                                                            <span style={{ fontWeight: 'bold' }}>{t('warning')}: </span>
-                                                            <span>{t('endpoint public access enable piece 2')}</span>
-                                                        </Block>
-                                                    )}
-                                                >
-                                                    <div>
-                                                        <FiAlertCircle size={12} />
-                                                    </div>
-                                                </StatefulTooltip>
-                                            ) : (
-                                                <StatefulTooltip
-                                                    showArrow
-                                                    content={() => (
-                                                        <Block width={['100px', '200px', '400px', '600px']}>
-                                                            <span>{t('endpoint public access disable piece 1')} </span>
-                                                            <span>
-                                                                <CopyableText highlight text='kubectl port-forward' />{' '}
-                                                            </span>
-                                                            <span>{t('endpoint public access disable piece 2')}</span>
-                                                        </Block>
-                                                    )}
-                                                >
-                                                    <div>
-                                                        <FiInfo size={12} />
-                                                    </div>
-                                                </StatefulTooltip>
-                                            )}
-                                        </div>
-                                    </Toggle>
-                                </FormItem>
-                                <Divider orientation='left'>{t('select bento')}</Divider>
-                                <div>
-                                    <FormItem
-                                        style={{ display: 'none' }}
-                                        required
-                                        name={['targets', idx, 'type']}
-                                        label={t('type')}
-                                    >
-                                        <DeploymentTargetTypeSelector />
-                                    </FormItem>
-                                    {target.type === 'canary' && (
-                                        <FormItem
-                                            required
-                                            name={['targets', idx, 'canary_rules']}
-                                            label={t('canary rules')}
-                                        >
-                                            <DeploymentTargetCanaryRulesForm
-                                                style={{
-                                                    paddingLeft: 40,
-                                                }}
-                                            />
-                                        </FormItem>
-                                    )}
-                                    <div
-                                        style={{
-                                            paddingLeft,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 20,
+                                    <ClusterSelector
+                                        disabled={!!deployment}
+                                        overrides={{
+                                            Root: {
+                                                style: {
+                                                    width: '392px',
+                                                },
+                                            },
                                         }}
+                                    />
+                                </FormItem>
+                                {uiValues.cluster_name && (
+                                    <FormItem
+                                        required
+                                        name='kube_namespace'
+                                        label={t('kube namespace')}
+                                        style={{ marginBottom: 0 }}
                                     >
-                                        <FormItem
-                                            required
-                                            name={['targets', idx, 'bento_repository']}
-                                            style={{ marginBottom: 0, width: 370 }}
-                                            label={
-                                                <div
-                                                    style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: 5,
-                                                    }}
-                                                >
-                                                    {React.createElement(resourceIconMapping.bento_repository, {})}
-                                                    <div>{t('bento repository')}</div>
-                                                </div>
-                                            }
-                                        >
-                                            <BentoRepositorySelector />
-                                        </FormItem>
-                                        {target.bento_repository && (
+                                        <Input disabled={!!deployment} />
+                                    </FormItem>
+                                )}
+                            </div>
+                            <FormItem required name='name' label={t('deployment name')}>
+                                <Input
+                                    disabled={!!deployment}
+                                    overrides={{
+                                        Root: {
+                                            style: {
+                                                width: '392px',
+                                            },
+                                        },
+                                    }}
+                                />
+                            </FormItem>
+                            {!deployment && (
+                                <FormItem
+                                    name='description'
+                                    label={t('description')}
+                                    style={{
+                                        width: 838,
+                                    }}
+                                >
+                                    <Textarea />
+                                </FormItem>
+                            )}
+                            <div>
+                                {uiValues.targets.map((target, idx) => {
+                                    return (
+                                        <div key={idx}>
                                             <FormItem
                                                 required
-                                                name={['targets', idx, 'bento']}
-                                                label={
+                                                name={['targets', idx, 'config', 'enable_ingress']}
+                                                label={t('endpoint public access')}
+                                            >
+                                                <Toggle labelPlacement='right'>
                                                     <div
                                                         style={{
                                                             display: 'flex',
                                                             alignItems: 'center',
-                                                            gap: 5,
+                                                            gap: 3,
                                                         }}
                                                     >
-                                                        {React.createElement(resourceIconMapping.bento, {})}
-                                                        <div>{t('bento')}</div>
-                                                    </div>
-                                                }
-                                                style={{ width: 370 }}
-                                            >
-                                                <BentoSelector
-                                                    bentoRepositoryName={target.bento_repository}
-                                                    onBentoChange={setBento}
-                                                />
-                                            </FormItem>
-                                        )}
-                                    </div>
-                                    <Divider orientation='left'>{t('configurations')}</Divider>
-                                    <div
-                                        style={{
-                                            paddingLeft,
-                                        }}
-                                    >
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 10,
-                                            }}
-                                        >
-                                            <VscServerProcess />
-                                            <LabelSmall>{t('bentoml configuration')}</LabelSmall>
-                                        </div>
-                                        <div
-                                            style={{
-                                                paddingLeft: paddingLeft + 5,
-                                                marginTop: 10,
-                                                width: 400,
-                                            }}
-                                        >
-                                            <MonacoEditor
-                                                value={bentomlConfs[idx] ?? ''}
-                                                height='200px'
-                                                theme={themeType === 'dark' ? 'vs-dark' : 'Dawn'}
-                                                defaultLanguage='yaml'
-                                                options={{
-                                                    minimap: {
-                                                        enabled: false,
-                                                    },
-                                                    lineNumbers: 'off',
-                                                    lineDecorationsWidth: 0,
-                                                }}
-                                                onChange={(value) => {
-                                                    setBentomlConfs((bentomlConfs_) => {
-                                                        const newBentomlConfs = bentomlConfs_.slice()
-                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                        newBentomlConfs[idx] = value ?? ''
-                                                        return newBentomlConfs
-                                                    })
-                                                }}
-                                            />
-                                        </div>
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 10,
-                                                marginTop: 20,
-                                            }}
-                                        >
-                                            <VscServerProcess />
-                                            <LabelSmall>{t('number of replicas')}</LabelSmall>
-                                        </div>
-                                        <div
-                                            style={{
-                                                paddingLeft,
-                                                marginTop: 10,
-                                            }}
-                                        >
-                                            <FormItem
-                                                name={['targets', idx, 'config', 'hpa_conf', 'min_replicas']}
-                                                label={
-                                                    <div
-                                                        style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: 16,
-                                                        }}
-                                                    >
-                                                        <FiMinimize2 size={20} />
-                                                        <div>{t('min')}</div>
-                                                    </div>
-                                                }
-                                            >
-                                                <NumberInput
-                                                    overrides={{
-                                                        Root: {
-                                                            style: {
-                                                                width: '220px',
-                                                                marginLeft: '36px',
-                                                            },
-                                                        },
-                                                    }}
-                                                />
-                                            </FormItem>
-                                            <FormItem
-                                                name={['targets', idx, 'config', 'hpa_conf', 'max_replicas']}
-                                                label={
-                                                    <div
-                                                        style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: 16,
-                                                        }}
-                                                    >
-                                                        <FiMaximize2 size={20} />
-                                                        <div>{t('max')}</div>
-                                                    </div>
-                                                }
-                                            >
-                                                <NumberInput
-                                                    overrides={{
-                                                        Root: {
-                                                            style: {
-                                                                width: '220px',
-                                                                marginLeft: '36px',
-                                                            },
-                                                        },
-                                                    }}
-                                                />
-                                            </FormItem>
-                                        </div>
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 10,
-                                            }}
-                                        >
-                                            <GrResources />
-                                            <LabelSmall>{t('resource per replicas')}</LabelSmall>
-                                        </div>
-                                        <div
-                                            style={{
-                                                paddingLeft,
-                                                marginTop: 10,
-                                            }}
-                                        >
-                                            <FormGroup icon={RiCpuLine}>
-                                                <FormItem
-                                                    name={['targets', idx, 'config', 'resources', 'requests', 'cpu']}
-                                                    label={t('cpu requests')}
-                                                >
-                                                    <CPUResourceInput
-                                                        overrides={{
-                                                            Root: {
-                                                                style: {
-                                                                    width: '220px',
-                                                                },
-                                                            },
-                                                        }}
-                                                    />
-                                                </FormItem>
-                                                <FormItem
-                                                    name={['targets', idx, 'config', 'resources', 'limits', 'cpu']}
-                                                    label={t('cpu limits')}
-                                                >
-                                                    <CPUResourceInput
-                                                        overrides={{
-                                                            Root: {
-                                                                style: {
-                                                                    width: '220px',
-                                                                },
-                                                            },
-                                                        }}
-                                                    />
-                                                </FormItem>
-                                            </FormGroup>
-                                            <FormGroup icon={FaMemory}>
-                                                <FormItem
-                                                    name={['targets', idx, 'config', 'resources', 'requests', 'memory']}
-                                                    label={t('memory requests')}
-                                                >
-                                                    <MemoryResourceInput
-                                                        overrides={{
-                                                            Root: {
-                                                                style: {
-                                                                    width: '130px',
-                                                                },
-                                                            },
-                                                        }}
-                                                    />
-                                                </FormItem>
-                                                <FormItem
-                                                    name={['targets', idx, 'config', 'resources', 'limits', 'memory']}
-                                                    label={t('memory limits')}
-                                                >
-                                                    <MemoryResourceInput
-                                                        overrides={{
-                                                            Root: {
-                                                                style: {
-                                                                    width: '130px',
-                                                                },
-                                                            },
-                                                        }}
-                                                    />
-                                                </FormItem>
-                                            </FormGroup>
-                                            <FormGroup icon={BiCustomize}>
-                                                <FormItem
-                                                    name={['targets', idx, 'config', 'resources', 'requests', 'custom']}
-                                                    label={t('custom resources requests')}
-                                                >
-                                                    <MapInput
-                                                        style={{
-                                                            width: '600px',
-                                                        }}
-                                                    />
-                                                </FormItem>
-                                                <FormItem
-                                                    name={['targets', idx, 'config', 'resources', 'limits', 'custom']}
-                                                    label={t('custom resources limits')}
-                                                >
-                                                    <MapInput
-                                                        style={{
-                                                            width: '600px',
-                                                        }}
-                                                    />
-                                                </FormItem>
-                                            </FormGroup>
-                                        </div>
-                                    </div>
-                                    <Accordion
-                                        overrides={{
-                                            Root: {
-                                                style: {
-                                                    marginBottom: '10px',
-                                                },
-                                            },
-                                        }}
-                                        renderAll
-                                    >
-                                        <Panel title={t('advanced')}>
-                                            <FormGroup icon={GiTeamUpgrade}>
-                                                <FormItem
-                                                    name={['targets', idx, 'config', 'deployment_strategy']}
-                                                    label={
-                                                        <div
-                                                            style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: 6,
-                                                            }}
-                                                        >
-                                                            <div>{t('deployment strategy')}</div>
-                                                            <StatefulTooltip
-                                                                showArrow
-                                                                content={() => (
-                                                                    <Block width={['100px', '200px', '400px', '600px']}>
-                                                                        <p>{t('deployment strategy desc')}</p>
-                                                                        <p>{t('RollingUpdate desc')}</p>
-                                                                        <p>{t('Recreate desc')}</p>
-                                                                        <p>{t('RampedSlowRollout desc')}</p>
-                                                                        <p>{t('BestEffortControlledRollout desc')}</p>
-                                                                    </Block>
-                                                                )}
-                                                            >
-                                                                <div>
-                                                                    <FiAlertCircle size={12} />
-                                                                </div>
-                                                            </StatefulTooltip>
-                                                        </div>
-                                                    }
-                                                    style={{ width: 340 }}
-                                                >
-                                                    <DeploymentStrategySelector />
-                                                </FormItem>
-                                            </FormGroup>
-                                            <FormGroup icon={VscDebugAll}>
-                                                <FormItem
-                                                    name={[
-                                                        'targets',
-                                                        idx,
-                                                        'config',
-                                                        'enable_stealing_traffic_debug_mode',
-                                                    ]}
-                                                    label={t('enable stealing traffic debug mode')}
-                                                >
-                                                    <Toggle labelPlacement='right'>
-                                                        <div
-                                                            style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: 3,
-                                                            }}
-                                                        >
-                                                            <span style={{ fontSize: '12px', fontWeight: 'normal' }}>
-                                                                {target?.config?.enable_stealing_traffic_debug_mode
-                                                                    ? t('enabled')
-                                                                    : t('disabled')}
-                                                            </span>
+                                                        <span style={{ fontSize: '12px', fontWeight: 'normal' }}>
+                                                            {target?.config?.enable_ingress
+                                                                ? t('enabled')
+                                                                : t('disabled')}
+                                                        </span>
+                                                        {target?.config?.enable_ingress ? (
                                                             <StatefulTooltip
                                                                 showArrow
                                                                 content={() => (
                                                                     <Block width={['100px', '200px', '400px', '600px']}>
                                                                         <span>
-                                                                            {t(
-                                                                                'enable stealing traffic debug mode desc'
-                                                                            )}
+                                                                            {t('endpoint public access enable piece 1')}{' '}
+                                                                        </span>
+                                                                        <span style={{ fontWeight: 'bold' }}>
+                                                                            {t('warning')}:{' '}
+                                                                        </span>
+                                                                        <span>
+                                                                            {t('endpoint public access enable piece 2')}
                                                                         </span>
                                                                     </Block>
                                                                 )}
@@ -873,603 +543,1143 @@ export default function DeploymentForm({
                                                                     <FiAlertCircle size={12} />
                                                                 </div>
                                                             </StatefulTooltip>
-                                                        </div>
-                                                    </Toggle>
-                                                </FormItem>
-                                                <FormItem
-                                                    name={[
-                                                        'targets',
-                                                        idx,
-                                                        'config',
-                                                        'enable_debug_pod_receive_production_traffic',
-                                                    ]}
-                                                    label={t('enable debug pod receive production traffic')}
-                                                >
-                                                    <Toggle labelPlacement='right'>
-                                                        <div
-                                                            style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: 3,
-                                                            }}
-                                                        >
-                                                            <span style={{ fontSize: '12px', fontWeight: 'normal' }}>
-                                                                {target?.config
-                                                                    ?.enable_debug_pod_receive_production_traffic
-                                                                    ? t('enabled')
-                                                                    : t('disabled')}
-                                                            </span>
+                                                        ) : (
                                                             <StatefulTooltip
                                                                 showArrow
                                                                 content={() => (
                                                                     <Block width={['100px', '200px', '400px', '600px']}>
                                                                         <span>
                                                                             {t(
-                                                                                'enable debug pod receive production traffic desc'
+                                                                                'endpoint public access disable piece 1'
+                                                                            )}{' '}
+                                                                        </span>
+                                                                        <span>
+                                                                            <CopyableText
+                                                                                highlight
+                                                                                text='kubectl port-forward'
+                                                                            />{' '}
+                                                                        </span>
+                                                                        <span>
+                                                                            {t(
+                                                                                'endpoint public access disable piece 2'
                                                                             )}
                                                                         </span>
                                                                     </Block>
                                                                 )}
                                                             >
                                                                 <div>
-                                                                    <FiAlertCircle size={12} />
+                                                                    <FiInfo size={12} />
                                                                 </div>
                                                             </StatefulTooltip>
-                                                        </div>
-                                                    </Toggle>
-                                                </FormItem>
-                                            </FormGroup>
-                                            <FormGroup icon={VscSymbolVariable}>
+                                                        )}
+                                                    </div>
+                                                </Toggle>
+                                            </FormItem>
+                                            <Divider orientation='left'>{t('select bento')}</Divider>
+                                            <div>
                                                 <FormItem
-                                                    name={['targets', idx, 'config', 'envs']}
-                                                    label={t('environment variables')}
+                                                    style={{ display: 'none' }}
+                                                    required
+                                                    name={['targets', idx, 'type']}
+                                                    label={t('type')}
                                                 >
-                                                    <LabelList
-                                                        ignoreKeys={[bentomlConfigsEnvKey]}
-                                                        style={{
-                                                            width: 440,
-                                                        }}
-                                                    />
+                                                    <DeploymentTargetTypeSelector />
                                                 </FormItem>
-                                            </FormGroup>
-                                        </Panel>
-                                    </Accordion>
-                                    <Accordion
-                                        overrides={{
-                                            Root: {
-                                                style: {
-                                                    marginBottom: '10px',
-                                                },
-                                            },
-                                        }}
-                                        renderAll
-                                    >
-                                        <Panel title='Runners'>
-                                            <Tabs
-                                                activeKey={runnerTabsActiveKey}
-                                                renderAll
-                                                onChange={({ activeKey }) => {
-                                                    setRunnerTabsActiveKey(activeKey)
-                                                    setValues((values_) => {
-                                                        const runner = values_.targets[0]?.config?.runners?.[activeKey]
-                                                        if (runner) {
-                                                            return values_
-                                                        }
-                                                        return {
-                                                            ...values_,
-                                                            targets: [
-                                                                {
-                                                                    ...values_.targets[0],
-                                                                    config: {
-                                                                        ...values_.targets[0].config,
-                                                                        runners: {
-                                                                            ...values_.targets[0]?.config?.runners,
-                                                                            [activeKey]: {},
-                                                                        },
-                                                                    },
-                                                                },
-                                                            ],
-                                                        }
-                                                    })
-                                                }}
-                                            >
-                                                {bento?.manifest.runners?.map((runner) => (
-                                                    <Tab
-                                                        key={runner.name}
-                                                        title={
+                                                {target.type === 'canary' && (
+                                                    <FormItem
+                                                        required
+                                                        name={['targets', idx, 'canary_rules']}
+                                                        label={t('canary rules')}
+                                                    >
+                                                        <DeploymentTargetCanaryRulesForm
+                                                            style={{
+                                                                paddingLeft: 40,
+                                                            }}
+                                                        />
+                                                    </FormItem>
+                                                )}
+                                                <div
+                                                    style={{
+                                                        paddingLeft,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 20,
+                                                    }}
+                                                >
+                                                    <FormItem
+                                                        required
+                                                        name={['targets', idx, 'bento_repository']}
+                                                        style={{ marginBottom: 0, width: 370 }}
+                                                        label={
                                                             <div
                                                                 style={{
                                                                     display: 'flex',
                                                                     alignItems: 'center',
-                                                                    gap: 8,
+                                                                    gap: 5,
                                                                 }}
                                                             >
-                                                                {React.createElement(resourceIconMapping.bento_runner, {
-                                                                    size: 12,
-                                                                })}
-                                                                <span>{runner.name}</span>
+                                                                {React.createElement(
+                                                                    resourceIconMapping.bento_repository,
+                                                                    {}
+                                                                )}
+                                                                <div>{t('bento repository')}</div>
                                                             </div>
                                                         }
                                                     >
-                                                        <div
-                                                            style={{
-                                                                paddingLeft,
-                                                            }}
+                                                        <BentoRepositorySelector />
+                                                    </FormItem>
+                                                    {target.bento_repository && (
+                                                        <FormItem
+                                                            required
+                                                            name={['targets', idx, 'bento']}
+                                                            label={
+                                                                <div
+                                                                    style={{
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: 5,
+                                                                    }}
+                                                                >
+                                                                    {React.createElement(resourceIconMapping.bento, {})}
+                                                                    <div>{t('bento')}</div>
+                                                                </div>
+                                                            }
+                                                            style={{ width: 370 }}
                                                         >
-                                                            <div
-                                                                style={{
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    gap: 10,
-                                                                }}
-                                                            >
-                                                                <VscServerProcess />
-                                                                <LabelSmall>{t('number of replicas')}</LabelSmall>
-                                                            </div>
-                                                            <div
-                                                                style={{
-                                                                    paddingLeft,
-                                                                    marginTop: 10,
-                                                                }}
-                                                            >
-                                                                <FormItem
-                                                                    name={[
-                                                                        'targets',
-                                                                        idx,
-                                                                        'config',
-                                                                        'runners',
-                                                                        runner.name,
-                                                                        'hpa_conf',
-                                                                        'min_replicas',
-                                                                    ]}
-                                                                    label={
-                                                                        <div
-                                                                            style={{
-                                                                                display: 'flex',
-                                                                                alignItems: 'center',
-                                                                                gap: 16,
-                                                                            }}
-                                                                        >
-                                                                            <FiMinimize2 size={20} />
-                                                                            <div>{t('min')}</div>
-                                                                        </div>
-                                                                    }
+                                                            <BentoSelector
+                                                                bentoRepositoryName={target.bento_repository}
+                                                                onBentoChange={setBento}
+                                                            />
+                                                        </FormItem>
+                                                    )}
+                                                </div>
+                                                <Divider orientation='left'>{t('configurations')}</Divider>
+                                                <div
+                                                    style={{
+                                                        paddingLeft,
+                                                    }}
+                                                >
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 10,
+                                                        }}
+                                                    >
+                                                        <VscServerProcess />
+                                                        <LabelSmall>{t('bentoml configuration')}</LabelSmall>
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            paddingLeft: paddingLeft + 5,
+                                                            marginTop: 10,
+                                                            width: 400,
+                                                        }}
+                                                    >
+                                                        <MonacoEditor
+                                                            value={bentomlConfs[idx] ?? ''}
+                                                            height='200px'
+                                                            theme={themeType === 'dark' ? 'vs-dark' : 'Dawn'}
+                                                            defaultLanguage='yaml'
+                                                            options={{
+                                                                minimap: {
+                                                                    enabled: false,
+                                                                },
+                                                                lineNumbers: 'off',
+                                                                lineDecorationsWidth: 0,
+                                                            }}
+                                                            onChange={(value) => {
+                                                                setBentomlConfs((bentomlConfs_) => {
+                                                                    const newBentomlConfs = bentomlConfs_.slice()
+                                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                                    newBentomlConfs[idx] = value ?? ''
+                                                                    return newBentomlConfs
+                                                                })
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 10,
+                                                            marginTop: 20,
+                                                        }}
+                                                    >
+                                                        <VscServerProcess />
+                                                        <LabelSmall>{t('number of replicas')}</LabelSmall>
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            paddingLeft,
+                                                            marginTop: 10,
+                                                        }}
+                                                    >
+                                                        <FormItem
+                                                            name={[
+                                                                'targets',
+                                                                idx,
+                                                                'config',
+                                                                'hpa_conf',
+                                                                'min_replicas',
+                                                            ]}
+                                                            label={
+                                                                <div
+                                                                    style={{
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: 16,
+                                                                    }}
                                                                 >
-                                                                    <NumberInput
-                                                                        overrides={{
-                                                                            Root: {
-                                                                                style: {
-                                                                                    width: '220px',
-                                                                                    marginLeft: '36px',
-                                                                                },
-                                                                            },
-                                                                        }}
-                                                                    />
-                                                                </FormItem>
-                                                                <FormItem
-                                                                    name={[
-                                                                        'targets',
-                                                                        idx,
-                                                                        'config',
-                                                                        'runners',
-                                                                        runner.name,
-                                                                        'hpa_conf',
-                                                                        'max_replicas',
-                                                                    ]}
-                                                                    label={
-                                                                        <div
-                                                                            style={{
-                                                                                display: 'flex',
-                                                                                alignItems: 'center',
-                                                                                gap: 16,
-                                                                            }}
-                                                                        >
-                                                                            <FiMaximize2 size={20} />
-                                                                            <div>{t('max')}</div>
-                                                                        </div>
-                                                                    }
-                                                                >
-                                                                    <NumberInput
-                                                                        overrides={{
-                                                                            Root: {
-                                                                                style: {
-                                                                                    width: '220px',
-                                                                                    marginLeft: '36px',
-                                                                                },
-                                                                            },
-                                                                        }}
-                                                                    />
-                                                                </FormItem>
-                                                            </div>
-                                                            <div
-                                                                style={{
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    gap: 10,
-                                                                }}
-                                                            >
-                                                                <GrResources />
-                                                                <LabelSmall>{t('resource per replicas')}</LabelSmall>
-                                                            </div>
-                                                            <div
-                                                                style={{
-                                                                    paddingLeft,
-                                                                    marginTop: 10,
-                                                                }}
-                                                            >
-                                                                <FormGroup icon={RiCpuLine}>
-                                                                    <FormItem
-                                                                        name={[
-                                                                            'targets',
-                                                                            idx,
-                                                                            'config',
-                                                                            'runners',
-                                                                            runner.name,
-                                                                            'resources',
-                                                                            'requests',
-                                                                            'cpu',
-                                                                        ]}
-                                                                        label={t('cpu requests')}
-                                                                    >
-                                                                        <CPUResourceInput
-                                                                            overrides={{
-                                                                                Root: {
-                                                                                    style: {
-                                                                                        width: '220px',
-                                                                                    },
-                                                                                },
-                                                                            }}
-                                                                        />
-                                                                    </FormItem>
-                                                                    <FormItem
-                                                                        name={[
-                                                                            'targets',
-                                                                            idx,
-                                                                            'config',
-                                                                            'runners',
-                                                                            runner.name,
-                                                                            'resources',
-                                                                            'limits',
-                                                                            'cpu',
-                                                                        ]}
-                                                                        label={t('cpu limits')}
-                                                                    >
-                                                                        <CPUResourceInput
-                                                                            overrides={{
-                                                                                Root: {
-                                                                                    style: {
-                                                                                        width: '220px',
-                                                                                    },
-                                                                                },
-                                                                            }}
-                                                                        />
-                                                                    </FormItem>
-                                                                </FormGroup>
-                                                                <FormGroup icon={FaMemory}>
-                                                                    <FormItem
-                                                                        name={[
-                                                                            'targets',
-                                                                            idx,
-                                                                            'config',
-                                                                            'runners',
-                                                                            runner.name,
-                                                                            'resources',
-                                                                            'requests',
-                                                                            'memory',
-                                                                        ]}
-                                                                        label={t('memory requests')}
-                                                                    >
-                                                                        <MemoryResourceInput
-                                                                            overrides={{
-                                                                                Root: {
-                                                                                    style: {
-                                                                                        width: '130px',
-                                                                                    },
-                                                                                },
-                                                                            }}
-                                                                        />
-                                                                    </FormItem>
-                                                                    <FormItem
-                                                                        name={[
-                                                                            'targets',
-                                                                            idx,
-                                                                            'config',
-                                                                            'runners',
-                                                                            runner.name,
-                                                                            'resources',
-                                                                            'limits',
-                                                                            'memory',
-                                                                        ]}
-                                                                        label={t('memory limits')}
-                                                                    >
-                                                                        <MemoryResourceInput
-                                                                            overrides={{
-                                                                                Root: {
-                                                                                    style: {
-                                                                                        width: '130px',
-                                                                                    },
-                                                                                },
-                                                                            }}
-                                                                        />
-                                                                    </FormItem>
-                                                                </FormGroup>
-                                                                <FormGroup icon={BiCustomize}>
-                                                                    <FormItem
-                                                                        name={[
-                                                                            'targets',
-                                                                            idx,
-                                                                            'config',
-                                                                            'runners',
-                                                                            runner.name,
-                                                                            'resources',
-                                                                            'requests',
-                                                                            'custom',
-                                                                        ]}
-                                                                        label={t('custom resources requests')}
-                                                                    >
-                                                                        <MapInput
-                                                                            style={{
-                                                                                width: '600px',
-                                                                            }}
-                                                                        />
-                                                                    </FormItem>
-                                                                    <FormItem
-                                                                        name={[
-                                                                            'targets',
-                                                                            idx,
-                                                                            'config',
-                                                                            'runners',
-                                                                            runner.name,
-                                                                            'resources',
-                                                                            'limits',
-                                                                            'custom',
-                                                                        ]}
-                                                                        label={t('custom resources limits')}
-                                                                    >
-                                                                        <MapInput
-                                                                            style={{
-                                                                                width: '600px',
-                                                                            }}
-                                                                        />
-                                                                    </FormItem>
-                                                                </FormGroup>
-                                                            </div>
-                                                            <Accordion
+                                                                    <FiMinimize2 size={20} />
+                                                                    <div>{t('min')}</div>
+                                                                </div>
+                                                            }
+                                                        >
+                                                            <NumberInput
                                                                 overrides={{
                                                                     Root: {
                                                                         style: {
-                                                                            marginBottom: '10px',
+                                                                            width: '220px',
+                                                                            marginLeft: '36px',
                                                                         },
                                                                     },
                                                                 }}
-                                                                renderAll
+                                                            />
+                                                        </FormItem>
+                                                        <FormItem
+                                                            name={[
+                                                                'targets',
+                                                                idx,
+                                                                'config',
+                                                                'hpa_conf',
+                                                                'max_replicas',
+                                                            ]}
+                                                            label={
+                                                                <div
+                                                                    style={{
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: 16,
+                                                                    }}
+                                                                >
+                                                                    <FiMaximize2 size={20} />
+                                                                    <div>{t('max')}</div>
+                                                                </div>
+                                                            }
+                                                        >
+                                                            <NumberInput
+                                                                overrides={{
+                                                                    Root: {
+                                                                        style: {
+                                                                            width: '220px',
+                                                                            marginLeft: '36px',
+                                                                        },
+                                                                    },
+                                                                }}
+                                                            />
+                                                        </FormItem>
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 10,
+                                                        }}
+                                                    >
+                                                        <GrResources />
+                                                        <LabelSmall>{t('resource per replicas')}</LabelSmall>
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            paddingLeft,
+                                                            marginTop: 10,
+                                                        }}
+                                                    >
+                                                        <FormGroup icon={RiCpuLine}>
+                                                            <FormItem
+                                                                name={[
+                                                                    'targets',
+                                                                    idx,
+                                                                    'config',
+                                                                    'resources',
+                                                                    'requests',
+                                                                    'cpu',
+                                                                ]}
+                                                                label={t('cpu requests')}
                                                             >
-                                                                <Panel title={t('advanced')}>
-                                                                    <FormGroup icon={GiTeamUpgrade}>
-                                                                        <FormItem
-                                                                            name={[
-                                                                                'targets',
-                                                                                idx,
-                                                                                'config',
-                                                                                'runners',
-                                                                                runner.name,
-                                                                                'deployment_strategy',
-                                                                            ]}
-                                                                            label={
-                                                                                <div
-                                                                                    style={{
-                                                                                        display: 'flex',
-                                                                                        alignItems: 'center',
-                                                                                        gap: 6,
-                                                                                    }}
+                                                                <CPUResourceInput
+                                                                    overrides={{
+                                                                        Root: {
+                                                                            style: {
+                                                                                width: '220px',
+                                                                            },
+                                                                        },
+                                                                    }}
+                                                                />
+                                                            </FormItem>
+                                                            <FormItem
+                                                                name={[
+                                                                    'targets',
+                                                                    idx,
+                                                                    'config',
+                                                                    'resources',
+                                                                    'limits',
+                                                                    'cpu',
+                                                                ]}
+                                                                label={t('cpu limits')}
+                                                            >
+                                                                <CPUResourceInput
+                                                                    overrides={{
+                                                                        Root: {
+                                                                            style: {
+                                                                                width: '220px',
+                                                                            },
+                                                                        },
+                                                                    }}
+                                                                />
+                                                            </FormItem>
+                                                        </FormGroup>
+                                                        <FormGroup icon={FaMemory}>
+                                                            <FormItem
+                                                                name={[
+                                                                    'targets',
+                                                                    idx,
+                                                                    'config',
+                                                                    'resources',
+                                                                    'requests',
+                                                                    'memory',
+                                                                ]}
+                                                                label={t('memory requests')}
+                                                            >
+                                                                <MemoryResourceInput
+                                                                    overrides={{
+                                                                        Root: {
+                                                                            style: {
+                                                                                width: '130px',
+                                                                            },
+                                                                        },
+                                                                    }}
+                                                                />
+                                                            </FormItem>
+                                                            <FormItem
+                                                                name={[
+                                                                    'targets',
+                                                                    idx,
+                                                                    'config',
+                                                                    'resources',
+                                                                    'limits',
+                                                                    'memory',
+                                                                ]}
+                                                                label={t('memory limits')}
+                                                            >
+                                                                <MemoryResourceInput
+                                                                    overrides={{
+                                                                        Root: {
+                                                                            style: {
+                                                                                width: '130px',
+                                                                            },
+                                                                        },
+                                                                    }}
+                                                                />
+                                                            </FormItem>
+                                                        </FormGroup>
+                                                        <FormGroup icon={BiCustomize}>
+                                                            <FormItem
+                                                                name={[
+                                                                    'targets',
+                                                                    idx,
+                                                                    'config',
+                                                                    'resources',
+                                                                    'requests',
+                                                                    'custom',
+                                                                ]}
+                                                                label={t('custom resources requests')}
+                                                            >
+                                                                <MapInput
+                                                                    style={{
+                                                                        width: '600px',
+                                                                    }}
+                                                                />
+                                                            </FormItem>
+                                                            <FormItem
+                                                                name={[
+                                                                    'targets',
+                                                                    idx,
+                                                                    'config',
+                                                                    'resources',
+                                                                    'limits',
+                                                                    'custom',
+                                                                ]}
+                                                                label={t('custom resources limits')}
+                                                            >
+                                                                <MapInput
+                                                                    style={{
+                                                                        width: '600px',
+                                                                    }}
+                                                                />
+                                                            </FormItem>
+                                                        </FormGroup>
+                                                    </div>
+                                                </div>
+                                                <Accordion
+                                                    overrides={{
+                                                        Root: {
+                                                            style: {
+                                                                marginBottom: '10px',
+                                                            },
+                                                        },
+                                                    }}
+                                                    renderAll
+                                                >
+                                                    <Panel title={t('advanced')}>
+                                                        <FormGroup icon={GiTeamUpgrade}>
+                                                            <FormItem
+                                                                name={['targets', idx, 'config', 'deployment_strategy']}
+                                                                label={
+                                                                    <div
+                                                                        style={{
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            gap: 6,
+                                                                        }}
+                                                                    >
+                                                                        <div>{t('deployment strategy')}</div>
+                                                                        <StatefulTooltip
+                                                                            showArrow
+                                                                            content={() => (
+                                                                                <Block
+                                                                                    width={[
+                                                                                        '100px',
+                                                                                        '200px',
+                                                                                        '400px',
+                                                                                        '600px',
+                                                                                    ]}
                                                                                 >
-                                                                                    <div>
-                                                                                        {t('deployment strategy')}
+                                                                                    <p>
+                                                                                        {t('deployment strategy desc')}
+                                                                                    </p>
+                                                                                    <p>{t('RollingUpdate desc')}</p>
+                                                                                    <p>{t('Recreate desc')}</p>
+                                                                                    <p>{t('RampedSlowRollout desc')}</p>
+                                                                                    <p>
+                                                                                        {t(
+                                                                                            'BestEffortControlledRollout desc'
+                                                                                        )}
+                                                                                    </p>
+                                                                                </Block>
+                                                                            )}
+                                                                        >
+                                                                            <div>
+                                                                                <FiAlertCircle size={12} />
+                                                                            </div>
+                                                                        </StatefulTooltip>
+                                                                    </div>
+                                                                }
+                                                                style={{ width: 340 }}
+                                                            >
+                                                                <DeploymentStrategySelector />
+                                                            </FormItem>
+                                                        </FormGroup>
+                                                        <FormGroup icon={VscDebugAll}>
+                                                            <FormItem
+                                                                name={[
+                                                                    'targets',
+                                                                    idx,
+                                                                    'config',
+                                                                    'enable_stealing_traffic_debug_mode',
+                                                                ]}
+                                                                label={t('enable stealing traffic debug mode')}
+                                                            >
+                                                                <Toggle labelPlacement='right'>
+                                                                    <div
+                                                                        style={{
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            gap: 3,
+                                                                        }}
+                                                                    >
+                                                                        <span
+                                                                            style={{
+                                                                                fontSize: '12px',
+                                                                                fontWeight: 'normal',
+                                                                            }}
+                                                                        >
+                                                                            {target?.config
+                                                                                ?.enable_stealing_traffic_debug_mode
+                                                                                ? t('enabled')
+                                                                                : t('disabled')}
+                                                                        </span>
+                                                                        <StatefulTooltip
+                                                                            showArrow
+                                                                            content={() => (
+                                                                                <Block
+                                                                                    width={[
+                                                                                        '100px',
+                                                                                        '200px',
+                                                                                        '400px',
+                                                                                        '600px',
+                                                                                    ]}
+                                                                                >
+                                                                                    <span>
+                                                                                        {t(
+                                                                                            'enable stealing traffic debug mode desc'
+                                                                                        )}
+                                                                                    </span>
+                                                                                </Block>
+                                                                            )}
+                                                                        >
+                                                                            <div>
+                                                                                <FiAlertCircle size={12} />
+                                                                            </div>
+                                                                        </StatefulTooltip>
+                                                                    </div>
+                                                                </Toggle>
+                                                            </FormItem>
+                                                            <FormItem
+                                                                name={[
+                                                                    'targets',
+                                                                    idx,
+                                                                    'config',
+                                                                    'enable_debug_pod_receive_production_traffic',
+                                                                ]}
+                                                                label={t('enable debug pod receive production traffic')}
+                                                            >
+                                                                <Toggle labelPlacement='right'>
+                                                                    <div
+                                                                        style={{
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            gap: 3,
+                                                                        }}
+                                                                    >
+                                                                        <span
+                                                                            style={{
+                                                                                fontSize: '12px',
+                                                                                fontWeight: 'normal',
+                                                                            }}
+                                                                        >
+                                                                            {target?.config
+                                                                                ?.enable_debug_pod_receive_production_traffic
+                                                                                ? t('enabled')
+                                                                                : t('disabled')}
+                                                                        </span>
+                                                                        <StatefulTooltip
+                                                                            showArrow
+                                                                            content={() => (
+                                                                                <Block
+                                                                                    width={[
+                                                                                        '100px',
+                                                                                        '200px',
+                                                                                        '400px',
+                                                                                        '600px',
+                                                                                    ]}
+                                                                                >
+                                                                                    <span>
+                                                                                        {t(
+                                                                                            'enable debug pod receive production traffic desc'
+                                                                                        )}
+                                                                                    </span>
+                                                                                </Block>
+                                                                            )}
+                                                                        >
+                                                                            <div>
+                                                                                <FiAlertCircle size={12} />
+                                                                            </div>
+                                                                        </StatefulTooltip>
+                                                                    </div>
+                                                                </Toggle>
+                                                            </FormItem>
+                                                        </FormGroup>
+                                                        <FormGroup icon={VscSymbolVariable}>
+                                                            <FormItem
+                                                                name={['targets', idx, 'config', 'envs']}
+                                                                label={t('environment variables')}
+                                                            >
+                                                                <LabelList
+                                                                    ignoreKeys={[bentomlConfigsEnvKey]}
+                                                                    style={{
+                                                                        width: 440,
+                                                                    }}
+                                                                />
+                                                            </FormItem>
+                                                        </FormGroup>
+                                                    </Panel>
+                                                </Accordion>
+                                                <Accordion
+                                                    overrides={{
+                                                        Root: {
+                                                            style: {
+                                                                marginBottom: '10px',
+                                                            },
+                                                        },
+                                                    }}
+                                                    renderAll
+                                                >
+                                                    <Panel title='Runners'>
+                                                        <Tabs
+                                                            activeKey={runnerTabsActiveKey}
+                                                            renderAll
+                                                            onChange={({ activeKey }) => {
+                                                                setRunnerTabsActiveKey(activeKey)
+                                                                setUIValues((values_) => {
+                                                                    const runner =
+                                                                        values_.targets[0]?.config?.runners?.[activeKey]
+                                                                    if (runner) {
+                                                                        return values_
+                                                                    }
+                                                                    const vs = {
+                                                                        ...values_,
+                                                                        targets: [
+                                                                            {
+                                                                                ...values_.targets[0],
+                                                                                config: {
+                                                                                    ...values_.targets[0].config,
+                                                                                    runners: {
+                                                                                        ...values_.targets[0]?.config
+                                                                                            ?.runners,
+                                                                                        [activeKey]: {},
+                                                                                    },
+                                                                                },
+                                                                            },
+                                                                        ],
+                                                                    }
+                                                                    return vs
+                                                                })
+                                                            }}
+                                                        >
+                                                            {bento?.manifest.runners?.map((runner) => (
+                                                                <Tab
+                                                                    key={runner.name}
+                                                                    title={
+                                                                        <div
+                                                                            style={{
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                gap: 8,
+                                                                            }}
+                                                                        >
+                                                                            {React.createElement(
+                                                                                resourceIconMapping.bento_runner,
+                                                                                {
+                                                                                    size: 12,
+                                                                                }
+                                                                            )}
+                                                                            <span>{runner.name}</span>
+                                                                        </div>
+                                                                    }
+                                                                >
+                                                                    <div
+                                                                        style={{
+                                                                            paddingLeft,
+                                                                        }}
+                                                                    >
+                                                                        <div
+                                                                            style={{
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                gap: 10,
+                                                                            }}
+                                                                        >
+                                                                            <VscServerProcess />
+                                                                            <LabelSmall>
+                                                                                {t('number of replicas')}
+                                                                            </LabelSmall>
+                                                                        </div>
+                                                                        <div
+                                                                            style={{
+                                                                                paddingLeft,
+                                                                                marginTop: 10,
+                                                                            }}
+                                                                        >
+                                                                            <FormItem
+                                                                                name={[
+                                                                                    'targets',
+                                                                                    idx,
+                                                                                    'config',
+                                                                                    'runners',
+                                                                                    runner.name,
+                                                                                    'hpa_conf',
+                                                                                    'min_replicas',
+                                                                                ]}
+                                                                                label={
+                                                                                    <div
+                                                                                        style={{
+                                                                                            display: 'flex',
+                                                                                            alignItems: 'center',
+                                                                                            gap: 16,
+                                                                                        }}
+                                                                                    >
+                                                                                        <FiMinimize2 size={20} />
+                                                                                        <div>{t('min')}</div>
                                                                                     </div>
-                                                                                    <StatefulTooltip
-                                                                                        showArrow
-                                                                                        content={() => (
-                                                                                            <Block
-                                                                                                width={[
-                                                                                                    '100px',
-                                                                                                    '200px',
-                                                                                                    '400px',
-                                                                                                    '600px',
-                                                                                                ]}
-                                                                                            >
-                                                                                                <p>
-                                                                                                    {t(
-                                                                                                        'deployment strategy desc'
-                                                                                                    )}
-                                                                                                </p>
-                                                                                                <p>
-                                                                                                    {t(
-                                                                                                        'RollingUpdate desc'
-                                                                                                    )}
-                                                                                                </p>
-                                                                                                <p>
-                                                                                                    {t('Recreate desc')}
-                                                                                                </p>
-                                                                                                <p>
-                                                                                                    {t(
-                                                                                                        'RampedSlowRollout desc'
-                                                                                                    )}
-                                                                                                </p>
-                                                                                                <p>
-                                                                                                    {t(
-                                                                                                        'BestEffortControlledRollout desc'
-                                                                                                    )}
-                                                                                                </p>
-                                                                                            </Block>
-                                                                                        )}
-                                                                                    >
-                                                                                        <div>
-                                                                                            <FiAlertCircle size={12} />
-                                                                                        </div>
-                                                                                    </StatefulTooltip>
-                                                                                </div>
-                                                                            }
-                                                                            style={{ width: 340 }}
-                                                                        >
-                                                                            <DeploymentStrategySelector />
-                                                                        </FormItem>
-                                                                    </FormGroup>
-                                                                    <FormGroup icon={VscDebugAll}>
-                                                                        <FormItem
-                                                                            name={[
-                                                                                'targets',
-                                                                                idx,
-                                                                                'config',
-                                                                                'runners',
-                                                                                runner.name,
-                                                                                'enable_stealing_traffic_debug_mode',
-                                                                            ]}
-                                                                            label={t(
-                                                                                'enable stealing traffic debug mode'
-                                                                            )}
-                                                                        >
-                                                                            <Toggle labelPlacement='right'>
-                                                                                <div
-                                                                                    style={{
-                                                                                        display: 'flex',
-                                                                                        alignItems: 'center',
-                                                                                        gap: 3,
+                                                                                }
+                                                                            >
+                                                                                <NumberInput
+                                                                                    overrides={{
+                                                                                        Root: {
+                                                                                            style: {
+                                                                                                width: '220px',
+                                                                                                marginLeft: '36px',
+                                                                                            },
+                                                                                        },
                                                                                     }}
-                                                                                >
-                                                                                    <span
+                                                                                />
+                                                                            </FormItem>
+                                                                            <FormItem
+                                                                                name={[
+                                                                                    'targets',
+                                                                                    idx,
+                                                                                    'config',
+                                                                                    'runners',
+                                                                                    runner.name,
+                                                                                    'hpa_conf',
+                                                                                    'max_replicas',
+                                                                                ]}
+                                                                                label={
+                                                                                    <div
                                                                                         style={{
-                                                                                            fontSize: '12px',
-                                                                                            fontWeight: 'normal',
+                                                                                            display: 'flex',
+                                                                                            alignItems: 'center',
+                                                                                            gap: 16,
                                                                                         }}
                                                                                     >
-                                                                                        {target?.config?.runners?.[
-                                                                                            runner.name
-                                                                                        ]
-                                                                                            ?.enable_stealing_traffic_debug_mode
-                                                                                            ? t('enabled')
-                                                                                            : t('disabled')}
-                                                                                    </span>
-                                                                                    <StatefulTooltip
-                                                                                        showArrow
-                                                                                        content={() => (
-                                                                                            <Block
-                                                                                                width={[
-                                                                                                    '100px',
-                                                                                                    '200px',
-                                                                                                    '400px',
-                                                                                                    '600px',
-                                                                                                ]}
-                                                                                            >
-                                                                                                <span>
-                                                                                                    {t(
-                                                                                                        'enable stealing traffic debug mode desc'
-                                                                                                    )}
-                                                                                                </span>
-                                                                                            </Block>
-                                                                                        )}
-                                                                                    >
-                                                                                        <div>
-                                                                                            <FiAlertCircle size={12} />
-                                                                                        </div>
-                                                                                    </StatefulTooltip>
-                                                                                </div>
-                                                                            </Toggle>
-                                                                        </FormItem>
-                                                                        <FormItem
-                                                                            name={[
-                                                                                'targets',
-                                                                                idx,
-                                                                                'config',
-                                                                                'runners',
-                                                                                runner.name,
-                                                                                'enable_debug_pod_receive_production_traffic',
-                                                                            ]}
-                                                                            label={t(
-                                                                                'enable debug pod receive production traffic'
-                                                                            )}
-                                                                        >
-                                                                            <Toggle labelPlacement='right'>
-                                                                                <div
-                                                                                    style={{
-                                                                                        display: 'flex',
-                                                                                        alignItems: 'center',
-                                                                                        gap: 3,
+                                                                                        <FiMaximize2 size={20} />
+                                                                                        <div>{t('max')}</div>
+                                                                                    </div>
+                                                                                }
+                                                                            >
+                                                                                <NumberInput
+                                                                                    overrides={{
+                                                                                        Root: {
+                                                                                            style: {
+                                                                                                width: '220px',
+                                                                                                marginLeft: '36px',
+                                                                                            },
+                                                                                        },
                                                                                     }}
+                                                                                />
+                                                                            </FormItem>
+                                                                        </div>
+                                                                        <div
+                                                                            style={{
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                gap: 10,
+                                                                            }}
+                                                                        >
+                                                                            <GrResources />
+                                                                            <LabelSmall>
+                                                                                {t('resource per replicas')}
+                                                                            </LabelSmall>
+                                                                        </div>
+                                                                        <div
+                                                                            style={{
+                                                                                paddingLeft,
+                                                                                marginTop: 10,
+                                                                            }}
+                                                                        >
+                                                                            <FormGroup icon={RiCpuLine}>
+                                                                                <FormItem
+                                                                                    name={[
+                                                                                        'targets',
+                                                                                        idx,
+                                                                                        'config',
+                                                                                        'runners',
+                                                                                        runner.name,
+                                                                                        'resources',
+                                                                                        'requests',
+                                                                                        'cpu',
+                                                                                    ]}
+                                                                                    label={t('cpu requests')}
                                                                                 >
-                                                                                    <span
-                                                                                        style={{
-                                                                                            fontSize: '12px',
-                                                                                            fontWeight: 'normal',
+                                                                                    <CPUResourceInput
+                                                                                        overrides={{
+                                                                                            Root: {
+                                                                                                style: {
+                                                                                                    width: '220px',
+                                                                                                },
+                                                                                            },
                                                                                         }}
-                                                                                    >
-                                                                                        {target?.config?.runners?.[
-                                                                                            runner.name
-                                                                                        ]
-                                                                                            ?.enable_debug_pod_receive_production_traffic
-                                                                                            ? t('enabled')
-                                                                                            : t('disabled')}
-                                                                                    </span>
-                                                                                    <StatefulTooltip
-                                                                                        showArrow
-                                                                                        content={() => (
-                                                                                            <Block
-                                                                                                width={[
-                                                                                                    '100px',
-                                                                                                    '200px',
-                                                                                                    '400px',
-                                                                                                    '600px',
-                                                                                                ]}
+                                                                                    />
+                                                                                </FormItem>
+                                                                                <FormItem
+                                                                                    name={[
+                                                                                        'targets',
+                                                                                        idx,
+                                                                                        'config',
+                                                                                        'runners',
+                                                                                        runner.name,
+                                                                                        'resources',
+                                                                                        'limits',
+                                                                                        'cpu',
+                                                                                    ]}
+                                                                                    label={t('cpu limits')}
+                                                                                >
+                                                                                    <CPUResourceInput
+                                                                                        overrides={{
+                                                                                            Root: {
+                                                                                                style: {
+                                                                                                    width: '220px',
+                                                                                                },
+                                                                                            },
+                                                                                        }}
+                                                                                    />
+                                                                                </FormItem>
+                                                                            </FormGroup>
+                                                                            <FormGroup icon={FaMemory}>
+                                                                                <FormItem
+                                                                                    name={[
+                                                                                        'targets',
+                                                                                        idx,
+                                                                                        'config',
+                                                                                        'runners',
+                                                                                        runner.name,
+                                                                                        'resources',
+                                                                                        'requests',
+                                                                                        'memory',
+                                                                                    ]}
+                                                                                    label={t('memory requests')}
+                                                                                >
+                                                                                    <MemoryResourceInput
+                                                                                        overrides={{
+                                                                                            Root: {
+                                                                                                style: {
+                                                                                                    width: '130px',
+                                                                                                },
+                                                                                            },
+                                                                                        }}
+                                                                                    />
+                                                                                </FormItem>
+                                                                                <FormItem
+                                                                                    name={[
+                                                                                        'targets',
+                                                                                        idx,
+                                                                                        'config',
+                                                                                        'runners',
+                                                                                        runner.name,
+                                                                                        'resources',
+                                                                                        'limits',
+                                                                                        'memory',
+                                                                                    ]}
+                                                                                    label={t('memory limits')}
+                                                                                >
+                                                                                    <MemoryResourceInput
+                                                                                        overrides={{
+                                                                                            Root: {
+                                                                                                style: {
+                                                                                                    width: '130px',
+                                                                                                },
+                                                                                            },
+                                                                                        }}
+                                                                                    />
+                                                                                </FormItem>
+                                                                            </FormGroup>
+                                                                            <FormGroup icon={BiCustomize}>
+                                                                                <FormItem
+                                                                                    name={[
+                                                                                        'targets',
+                                                                                        idx,
+                                                                                        'config',
+                                                                                        'runners',
+                                                                                        runner.name,
+                                                                                        'resources',
+                                                                                        'requests',
+                                                                                        'custom',
+                                                                                    ]}
+                                                                                    label={t(
+                                                                                        'custom resources requests'
+                                                                                    )}
+                                                                                >
+                                                                                    <MapInput
+                                                                                        style={{
+                                                                                            width: '600px',
+                                                                                        }}
+                                                                                    />
+                                                                                </FormItem>
+                                                                                <FormItem
+                                                                                    name={[
+                                                                                        'targets',
+                                                                                        idx,
+                                                                                        'config',
+                                                                                        'runners',
+                                                                                        runner.name,
+                                                                                        'resources',
+                                                                                        'limits',
+                                                                                        'custom',
+                                                                                    ]}
+                                                                                    label={t('custom resources limits')}
+                                                                                >
+                                                                                    <MapInput
+                                                                                        style={{
+                                                                                            width: '600px',
+                                                                                        }}
+                                                                                    />
+                                                                                </FormItem>
+                                                                            </FormGroup>
+                                                                        </div>
+                                                                        <Accordion
+                                                                            overrides={{
+                                                                                Root: {
+                                                                                    style: {
+                                                                                        marginBottom: '10px',
+                                                                                    },
+                                                                                },
+                                                                            }}
+                                                                            renderAll
+                                                                        >
+                                                                            <Panel title={t('advanced')}>
+                                                                                <FormGroup icon={GiTeamUpgrade}>
+                                                                                    <FormItem
+                                                                                        name={[
+                                                                                            'targets',
+                                                                                            idx,
+                                                                                            'config',
+                                                                                            'runners',
+                                                                                            runner.name,
+                                                                                            'deployment_strategy',
+                                                                                        ]}
+                                                                                        label={
+                                                                                            <div
+                                                                                                style={{
+                                                                                                    display: 'flex',
+                                                                                                    alignItems:
+                                                                                                        'center',
+                                                                                                    gap: 6,
+                                                                                                }}
                                                                                             >
-                                                                                                <span>
+                                                                                                <div>
                                                                                                     {t(
-                                                                                                        'enable debug pod receive production traffic desc'
+                                                                                                        'deployment strategy'
                                                                                                     )}
-                                                                                                </span>
-                                                                                            </Block>
+                                                                                                </div>
+                                                                                                <StatefulTooltip
+                                                                                                    showArrow
+                                                                                                    content={() => (
+                                                                                                        <Block
+                                                                                                            width={[
+                                                                                                                '100px',
+                                                                                                                '200px',
+                                                                                                                '400px',
+                                                                                                                '600px',
+                                                                                                            ]}
+                                                                                                        >
+                                                                                                            <p>
+                                                                                                                {t(
+                                                                                                                    'deployment strategy desc'
+                                                                                                                )}
+                                                                                                            </p>
+                                                                                                            <p>
+                                                                                                                {t(
+                                                                                                                    'RollingUpdate desc'
+                                                                                                                )}
+                                                                                                            </p>
+                                                                                                            <p>
+                                                                                                                {t(
+                                                                                                                    'Recreate desc'
+                                                                                                                )}
+                                                                                                            </p>
+                                                                                                            <p>
+                                                                                                                {t(
+                                                                                                                    'RampedSlowRollout desc'
+                                                                                                                )}
+                                                                                                            </p>
+                                                                                                            <p>
+                                                                                                                {t(
+                                                                                                                    'BestEffortControlledRollout desc'
+                                                                                                                )}
+                                                                                                            </p>
+                                                                                                        </Block>
+                                                                                                    )}
+                                                                                                >
+                                                                                                    <div>
+                                                                                                        <FiAlertCircle
+                                                                                                            size={12}
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                </StatefulTooltip>
+                                                                                            </div>
+                                                                                        }
+                                                                                        style={{ width: 340 }}
+                                                                                    >
+                                                                                        <DeploymentStrategySelector />
+                                                                                    </FormItem>
+                                                                                </FormGroup>
+                                                                                <FormGroup icon={VscDebugAll}>
+                                                                                    <FormItem
+                                                                                        name={[
+                                                                                            'targets',
+                                                                                            idx,
+                                                                                            'config',
+                                                                                            'runners',
+                                                                                            runner.name,
+                                                                                            'enable_stealing_traffic_debug_mode',
+                                                                                        ]}
+                                                                                        label={t(
+                                                                                            'enable stealing traffic debug mode'
                                                                                         )}
                                                                                     >
-                                                                                        <div>
-                                                                                            <FiAlertCircle size={12} />
-                                                                                        </div>
-                                                                                    </StatefulTooltip>
-                                                                                </div>
-                                                                            </Toggle>
-                                                                        </FormItem>
-                                                                    </FormGroup>
-                                                                    <FormGroup icon={VscSymbolVariable}>
-                                                                        <FormItem
-                                                                            name={[
-                                                                                'targets',
-                                                                                idx,
-                                                                                'config',
-                                                                                'runners',
-                                                                                runner.name,
-                                                                                'envs',
-                                                                            ]}
-                                                                            label={t('environment variables')}
-                                                                        >
-                                                                            <LabelList
-                                                                                ignoreKeys={[bentomlConfigsEnvKey]}
-                                                                                style={{
-                                                                                    width: 440,
-                                                                                }}
-                                                                            />
-                                                                        </FormItem>
-                                                                    </FormGroup>
-                                                                </Panel>
-                                                            </Accordion>
-                                                        </div>
-                                                    </Tab>
-                                                ))}
-                                            </Tabs>
-                                        </Panel>
-                                    </Accordion>
-                                </div>
+                                                                                        <Toggle labelPlacement='right'>
+                                                                                            <div
+                                                                                                style={{
+                                                                                                    display: 'flex',
+                                                                                                    alignItems:
+                                                                                                        'center',
+                                                                                                    gap: 3,
+                                                                                                }}
+                                                                                            >
+                                                                                                <span
+                                                                                                    style={{
+                                                                                                        fontSize:
+                                                                                                            '12px',
+                                                                                                        fontWeight:
+                                                                                                            'normal',
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {target?.config
+                                                                                                        ?.runners?.[
+                                                                                                        runner.name
+                                                                                                    ]
+                                                                                                        ?.enable_stealing_traffic_debug_mode
+                                                                                                        ? t('enabled')
+                                                                                                        : t('disabled')}
+                                                                                                </span>
+                                                                                                <StatefulTooltip
+                                                                                                    showArrow
+                                                                                                    content={() => (
+                                                                                                        <Block
+                                                                                                            width={[
+                                                                                                                '100px',
+                                                                                                                '200px',
+                                                                                                                '400px',
+                                                                                                                '600px',
+                                                                                                            ]}
+                                                                                                        >
+                                                                                                            <span>
+                                                                                                                {t(
+                                                                                                                    'enable stealing traffic debug mode desc'
+                                                                                                                )}
+                                                                                                            </span>
+                                                                                                        </Block>
+                                                                                                    )}
+                                                                                                >
+                                                                                                    <div>
+                                                                                                        <FiAlertCircle
+                                                                                                            size={12}
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                </StatefulTooltip>
+                                                                                            </div>
+                                                                                        </Toggle>
+                                                                                    </FormItem>
+                                                                                    <FormItem
+                                                                                        name={[
+                                                                                            'targets',
+                                                                                            idx,
+                                                                                            'config',
+                                                                                            'runners',
+                                                                                            runner.name,
+                                                                                            'enable_debug_pod_receive_production_traffic',
+                                                                                        ]}
+                                                                                        label={t(
+                                                                                            'enable debug pod receive production traffic'
+                                                                                        )}
+                                                                                    >
+                                                                                        <Toggle labelPlacement='right'>
+                                                                                            <div
+                                                                                                style={{
+                                                                                                    display: 'flex',
+                                                                                                    alignItems:
+                                                                                                        'center',
+                                                                                                    gap: 3,
+                                                                                                }}
+                                                                                            >
+                                                                                                <span
+                                                                                                    style={{
+                                                                                                        fontSize:
+                                                                                                            '12px',
+                                                                                                        fontWeight:
+                                                                                                            'normal',
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {target?.config
+                                                                                                        ?.runners?.[
+                                                                                                        runner.name
+                                                                                                    ]
+                                                                                                        ?.enable_debug_pod_receive_production_traffic
+                                                                                                        ? t('enabled')
+                                                                                                        : t('disabled')}
+                                                                                                </span>
+                                                                                                <StatefulTooltip
+                                                                                                    showArrow
+                                                                                                    content={() => (
+                                                                                                        <Block
+                                                                                                            width={[
+                                                                                                                '100px',
+                                                                                                                '200px',
+                                                                                                                '400px',
+                                                                                                                '600px',
+                                                                                                            ]}
+                                                                                                        >
+                                                                                                            <span>
+                                                                                                                {t(
+                                                                                                                    'enable debug pod receive production traffic desc'
+                                                                                                                )}
+                                                                                                            </span>
+                                                                                                        </Block>
+                                                                                                    )}
+                                                                                                >
+                                                                                                    <div>
+                                                                                                        <FiAlertCircle
+                                                                                                            size={12}
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                </StatefulTooltip>
+                                                                                            </div>
+                                                                                        </Toggle>
+                                                                                    </FormItem>
+                                                                                </FormGroup>
+                                                                                <FormGroup icon={VscSymbolVariable}>
+                                                                                    <FormItem
+                                                                                        name={[
+                                                                                            'targets',
+                                                                                            idx,
+                                                                                            'config',
+                                                                                            'runners',
+                                                                                            runner.name,
+                                                                                            'envs',
+                                                                                        ]}
+                                                                                        label={t(
+                                                                                            'environment variables'
+                                                                                        )}
+                                                                                    >
+                                                                                        <LabelList
+                                                                                            ignoreKeys={[
+                                                                                                bentomlConfigsEnvKey,
+                                                                                            ]}
+                                                                                            style={{
+                                                                                                width: 440,
+                                                                                            }}
+                                                                                        />
+                                                                                    </FormItem>
+                                                                                </FormGroup>
+                                                                            </Panel>
+                                                                        </Accordion>
+                                                                    </div>
+                                                                </Tab>
+                                                            ))}
+                                                        </Tabs>
+                                                    </Panel>
+                                                </Accordion>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
                             </div>
-                        )
-                    })}
-                </div>
+                        </div>
+                    </Form>
+                )}
             </div>
-        </Form>
+        </div>
     )
 }

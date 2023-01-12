@@ -18,11 +18,15 @@ export interface IDeploymentTargetSchema extends IResourceSchema {
     config?: IDeploymentTargetConfigSchema
 }
 
-export interface ICreateDeploymentTargetSchema {
+export interface ICreateDeploymentTargetUISchema {
     type: DeploymentTargetType
     bento_repository: string
     bento: string
     canary_rules?: IDeploymentTargetCanaryRule[]
+    config?: IDeploymentTargetConfigUISchema
+}
+
+export interface ICreateDeploymentTargetSchema extends ICreateDeploymentTargetUISchema {
     config?: IDeploymentTargetConfigSchema
 }
 
@@ -65,7 +69,7 @@ export interface IKubeHPAConf {
 
 export type DeploymentStrategy = 'RollingUpdate' | 'Recreate' | 'RampedSlowRollout' | 'BestEffortControlledRollout'
 
-export interface IDeploymentTargetRunnerSchema {
+export interface IDeploymentTargetRunnerUISchema {
     resources?: IKubeResources
     hpa_conf?: IKubeHPAConf
     envs?: ILabelItemSchema[]
@@ -75,14 +79,27 @@ export interface IDeploymentTargetRunnerSchema {
     deployment_strategy?: DeploymentStrategy
 }
 
-export interface IDeploymentTargetConfigSchema {
+export interface IDeploymentTargetRunnerSchema extends IDeploymentTargetRunnerUISchema {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    bento_deployment_overrides?: any
+}
+
+export interface IDeploymentTargetConfigUISchema {
     resources?: IKubeResources
     hpa_conf?: IKubeHPAConf
     envs?: ILabelItemSchema[]
-    runners?: Record<string, IDeploymentTargetRunnerSchema>
+    runners?: Record<string, IDeploymentTargetRunnerUISchema>
     enable_ingress?: boolean
     enable_debug_mode?: boolean
     enable_stealing_traffic_debug_mode?: boolean
     enable_debug_pod_receive_production_traffic?: boolean
     deployment_strategy?: DeploymentStrategy
+}
+
+export interface IDeploymentTargetConfigSchema extends IDeploymentTargetConfigUISchema {
+    runners?: Record<string, IDeploymentTargetRunnerSchema>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    bento_request_overrides?: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    bento_deployment_overrides?: any
 }
