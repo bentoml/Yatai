@@ -1,5 +1,26 @@
-import Editor, { EditorProps, useMonaco } from '@monaco-editor/react'
+import Editor, { EditorProps, useMonaco, loader } from '@monaco-editor/react'
 import { useEffect } from 'react'
+
+loader
+    .init()
+    .then((monaco) => {
+        fetch('/api/v1/deployment_creation_json_schema').then((resp) => {
+            resp.json().then((jsn) => {
+                monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+                    validate: true,
+                    schemas: [
+                        {
+                            uri: 'http://myserver/foo-schema.json',
+                            fileMatch: ['*'],
+                            schema: jsn,
+                        },
+                    ],
+                })
+            })
+        })
+    })
+    // eslint-disable-next-line no-console
+    .catch((error) => console.error('An error occurred during initialization of Monaco: ', error))
 
 export default function MonacoEditor({ value, onChange, theme, ...rest }: EditorProps) {
     const monaco = useMonaco()
