@@ -12,6 +12,7 @@ import (
 	"github.com/bentoml/yatai-schemas/modelschemas"
 	"github.com/bentoml/yatai/api-server/models"
 
+	servingconversion "github.com/bentoml/yatai-deployment/apis/serving/conversion"
 	servingv1alpha2 "github.com/bentoml/yatai-deployment/apis/serving/v1alpha2"
 	servingv1alpha3 "github.com/bentoml/yatai-deployment/apis/serving/v1alpha3"
 	servingv2alpha1 "github.com/bentoml/yatai-deployment/apis/serving/v2alpha1"
@@ -70,7 +71,7 @@ func (s *kubeBentoDeploymentService) transformToBentoDeploymentV1alpha2(ctx cont
 			}
 			runners = append(runners, servingv1alpha2.BentoDeploymentRunnerSpec{
 				Name:        name,
-				Resources:   runner.Resources,
+				Resources:   servingconversion.ConvertFromDeploymentTargetResources(runner.Resources),
 				Autoscaling: runner.HPAConf,
 				Envs:        &envs_,
 			})
@@ -92,7 +93,7 @@ func (s *kubeBentoDeploymentService) transformToBentoDeploymentV1alpha2(ctx cont
 			BentoTag:    string(tag),
 			Autoscaling: autoscalingSpec,
 			Envs:        &envs,
-			Resources:   resources,
+			Resources:   servingconversion.ConvertFromDeploymentTargetResources(resources),
 			Runners:     runners,
 			Ingress:     ingress,
 		},
@@ -134,6 +135,20 @@ func (s *kubeBentoDeploymentService) transformToBentoDeploymentV1alpha3(ctx cont
 		if deploymentTarget.Config.DeploymentStrategy != nil {
 			kubeBentoDeployment.Spec.Annotations[KubeAnnotationDeploymentStrategy] = string(*deploymentTarget.Config.DeploymentStrategy)
 		}
+		if deploymentTarget.Config.BentoDeploymentOverrides != nil {
+			kubeBentoDeployment.Spec.ExtraPodMetadata = servingv1alpha3.TransformToOldExtraPodMetadata(deploymentTarget.Config.BentoDeploymentOverrides.ExtraPodMetadata)
+			kubeBentoDeployment.Spec.ExtraPodSpec = servingv1alpha3.TransformToOldExtraPodSpec(deploymentTarget.Config.BentoDeploymentOverrides.ExtraPodSpec)
+		}
+		for name, runner := range deploymentTarget.Config.Runners {
+			if runner.BentoDeploymentOverrides != nil {
+				for _, runner_ := range kubeBentoDeployment.Spec.Runners {
+					if runner_.Name == name {
+						runner_.ExtraPodMetadata = servingv1alpha3.TransformToOldExtraPodMetadata(runner.BentoDeploymentOverrides.ExtraPodMetadata)
+						runner_.ExtraPodSpec = servingv1alpha3.TransformToOldExtraPodSpec(runner.BentoDeploymentOverrides.ExtraPodSpec)
+					}
+				}
+			}
+		}
 	}
 	return
 }
@@ -146,6 +161,35 @@ func (s *kubeBentoDeploymentService) transformToBentoDeploymentV2alpha1(ctx cont
 	bentoRequest = kubeBentoDeployment_.ConvertToBentoRequest()
 	kubeBentoDeployment = &servingv2alpha1.BentoDeployment{}
 	err = kubeBentoDeployment_.ConvertToV2alpha1(kubeBentoDeployment, bentoRequest.Name)
+	if err != nil {
+		return
+	}
+	if deploymentTarget.Config != nil {
+		if deploymentTarget.Config.BentoRequestOverrides != nil {
+			bentoRequest.Spec.ImageBuildTimeout = deploymentTarget.Config.BentoRequestOverrides.ImageBuildTimeout
+			bentoRequest.Spec.ImageBuilderExtraPodMetadata = deploymentTarget.Config.BentoRequestOverrides.ImageBuilderExtraPodMetadata
+			bentoRequest.Spec.ImageBuilderExtraPodSpec = deploymentTarget.Config.BentoRequestOverrides.ImageBuilderExtraPodSpec
+			bentoRequest.Spec.ImageBuilderExtraContainerEnv = deploymentTarget.Config.BentoRequestOverrides.ImageBuilderExtraContainerEnv
+			bentoRequest.Spec.ImageBuilderContainerResources = deploymentTarget.Config.BentoRequestOverrides.ImageBuilderContainerResources
+			bentoRequest.Spec.DockerConfigJSONSecretName = deploymentTarget.Config.BentoRequestOverrides.DockerConfigJSONSecretName
+			bentoRequest.Spec.DownloaderContainerEnvFrom = deploymentTarget.Config.BentoRequestOverrides.DownloaderContainerEnvFrom
+		}
+		if deploymentTarget.Config.BentoDeploymentOverrides != nil {
+			kubeBentoDeployment.Spec.MonitorExporter = deploymentTarget.Config.BentoDeploymentOverrides.MonitorExporter
+			kubeBentoDeployment.Spec.ExtraPodMetadata = deploymentTarget.Config.BentoDeploymentOverrides.ExtraPodMetadata
+			kubeBentoDeployment.Spec.ExtraPodSpec = deploymentTarget.Config.BentoDeploymentOverrides.ExtraPodSpec
+		}
+		for name, runner := range deploymentTarget.Config.Runners {
+			if runner.BentoDeploymentOverrides != nil {
+				for _, runner_ := range kubeBentoDeployment.Spec.Runners {
+					if runner_.Name == name {
+						runner_.ExtraPodMetadata = runner.BentoDeploymentOverrides.ExtraPodMetadata
+						runner_.ExtraPodSpec = runner.BentoDeploymentOverrides.ExtraPodSpec
+					}
+				}
+			}
+		}
+	}
 	return
 }
 
@@ -343,8 +387,6 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 			}
 		}
 		kubeBentoDeployment.Spec.Labels = oldKubeBentoDeployment.Spec.Labels
-		kubeBentoDeployment.Spec.ExtraPodMetadata = oldKubeBentoDeployment.Spec.ExtraPodMetadata
-		kubeBentoDeployment.Spec.ExtraPodSpec = oldKubeBentoDeployment.Spec.ExtraPodSpec
 		kubeBentoDeployment.Spec.Ingress.Annotations = oldKubeBentoDeployment.Spec.Ingress.Annotations
 		kubeBentoDeployment.Spec.Ingress.Labels = oldKubeBentoDeployment.Spec.Ingress.Labels
 		kubeBentoDeployment.Spec.Ingress.TLS = oldKubeBentoDeployment.Spec.Ingress.TLS
@@ -385,8 +427,6 @@ func (s *kubeBentoDeploymentService) DeployV1alpha3(ctx context.Context, deploym
 						}
 					}
 					kubeBentoDeployment.Spec.Runners[idx].Labels = oldRunner.Labels
-					kubeBentoDeployment.Spec.Runners[idx].ExtraPodMetadata = oldRunner.ExtraPodMetadata
-					kubeBentoDeployment.Spec.Runners[idx].ExtraPodSpec = oldRunner.ExtraPodSpec
 				}
 			}
 		}
@@ -517,8 +557,6 @@ func (s *kubeBentoDeploymentService) DeployV2alpha1(ctx context.Context, deploym
 			}
 		}
 		kubeBentoDeployment.Spec.Labels = oldKubeBentoDeployment.Spec.Labels
-		kubeBentoDeployment.Spec.ExtraPodMetadata = oldKubeBentoDeployment.Spec.ExtraPodMetadata
-		kubeBentoDeployment.Spec.ExtraPodSpec = oldKubeBentoDeployment.Spec.ExtraPodSpec
 		kubeBentoDeployment.Spec.Ingress.Annotations = oldKubeBentoDeployment.Spec.Ingress.Annotations
 		kubeBentoDeployment.Spec.Ingress.Labels = oldKubeBentoDeployment.Spec.Ingress.Labels
 		kubeBentoDeployment.Spec.Ingress.TLS = oldKubeBentoDeployment.Spec.Ingress.TLS
@@ -566,8 +604,6 @@ func (s *kubeBentoDeploymentService) DeployV2alpha1(ctx context.Context, deploym
 						}
 					}
 					kubeBentoDeployment.Spec.Runners[idx].Labels = oldRunner.Labels
-					kubeBentoDeployment.Spec.Runners[idx].ExtraPodMetadata = oldRunner.ExtraPodMetadata
-					kubeBentoDeployment.Spec.Runners[idx].ExtraPodSpec = oldRunner.ExtraPodSpec
 					currentAutoscaling := kubeBentoDeployment.Spec.Runners[idx].Autoscaling
 					kubeBentoDeployment.Spec.Runners[idx].Autoscaling = oldRunner.Autoscaling
 					if currentAutoscaling != nil {
