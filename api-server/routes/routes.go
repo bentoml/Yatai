@@ -460,6 +460,11 @@ func organizationRoutes(grp *fizz.RouterGroup) {
 		fizz.Summary("List organization deployments"),
 	}, tonic.Handler(controllersv1.DeploymentController.ListOrganizationDeployments, 200))
 
+	grp.GET("/deployment_creation_json_schema", []fizz.OperationOption{
+		fizz.ID("Get deployment creation json schema"),
+		fizz.Summary("Get deployment creation json schema"),
+	}, tonic.Handler(controllersv1.DeploymentController.CreationJSONSchema, 200))
+
 	grp.GET("/orgs", []fizz.OperationOption{
 		fizz.ID("List organizations"),
 		fizz.Summary("List organizations"),
