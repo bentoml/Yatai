@@ -29,6 +29,7 @@ require (
 	github.com/rs/xid v1.4.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.4.0
+	github.com/swaggest/jsonschema-go v0.3.43
 	github.com/tianweidut/cron v0.0.0-20201116081805-584849f819e1
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	github.com/viney-shih/go-lock v1.1.1
@@ -131,8 +132,8 @@ require (
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/santhosh-tekuri/jsonschema v1.2.4 // indirect
-	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/swaggest/refl v1.1.0 // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/ugorji/go/codec v1.2.6 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect

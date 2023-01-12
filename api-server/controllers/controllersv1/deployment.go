@@ -16,6 +16,7 @@ import (
 	"github.com/huandu/xstrings"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/swaggest/jsonschema-go"
 	"go.uber.org/atomic"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -87,6 +88,11 @@ func (c *deploymentController) canOperate(ctx context.Context, deployment *model
 type CreateDeploymentSchema struct {
 	schemasv1.CreateDeploymentSchema
 	GetClusterSchema
+}
+
+func (c *deploymentController) CreationJSONSchema(ctx *gin.Context) (interface{}, error) {
+	reflector := jsonschema.Reflector{}
+	return reflector.Reflect(schemasv1.CreateDeploymentSchema{})
 }
 
 func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
