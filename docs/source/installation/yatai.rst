@@ -530,7 +530,7 @@ Expected output:
 
 .. code:: bash
 
-  helm upgrade --install yatai bentoml/yatai \
+  helm upgrade --install yatai yatai \
       --repo https://bentoml.github.io/helm-charts \
       -n yatai-system \
       --set postgresql.host=$PG_HOST \
