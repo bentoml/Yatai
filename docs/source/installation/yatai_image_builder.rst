@@ -513,7 +513,7 @@ The output should look like this:
 .. code:: bash
 
   NAME                                    READY   STATUS      RESTARTS   AGE
-  yatai-image-builder-8b9fb98d7-xmtd5        1/1     Running     0          67s
+  yatai-image-builder-8b9fb98d7-xmtd5     1/1     Running     0          67s
 
 View the logs of :code:`yatai-image-builder`:
 

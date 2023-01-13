@@ -29,36 +29,29 @@ Bento deployments will be completely unaffected and remain online.
 Migration steps
 ---------------
 
-1. Get ``yatai-deployment`` helm release values
-"""""""""""""""""""""""""""""""""""""""""""""""
+1. Store ``yatai-deployment`` helm release values
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code-block:: bash
 
-    helm get values yatai-deployment -n yatai-deployment > yatai-deployment-values.yaml
+    helm get values yatai-deployment -n yatai-deployment > /tmp/yatai-deployment-values.yaml
 
 .. note::
 
   The above command assumes you have installed yatai-deployment with release name ``yatai-deployment`` in ``yatai-deployment`` namespace. If you have installed yatai-deployment with a different release name or namespace, please adjust the command accordingly.
 
-2. Uninstall ``yatai-deployment`` helm release
-""""""""""""""""""""""""""""""""""""""""""""""
-
-.. code:: bash
-
-  helm -n yatai-deployment uninstall yatai-deployment
-
 .. note::
 
   The above command assumes you have installed yatai-deployment with release name ``yatai-deployment`` in ``yatai-deployment`` namespace. If you have installed yatai-deployment with a different release name or namespace, please adjust the command accordingly.
 
-3. Create ``yatai-image-builder`` namespace
+2. Create ``yatai-image-builder`` namespace
 """""""""""""""""""""""""""""""""""""""""""
 
 .. code:: bash
 
   kubectl create namespace yatai-image-builder
 
-4. Install ``yatai-image-builder-crds``
+3. Install ``yatai-image-builder-crds``
 """""""""""""""""""""""""""""""""""""""
 
 .. code:: bash
@@ -86,7 +79,7 @@ Migration steps
 
    Then reinstall the ``yatai-image-builder-crds``.
 
-5. Verify that the CRDs of ``yatai-image-builder`` has been established
+4. Verify that the CRDs of ``yatai-image-builder`` has been established
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code:: bash
@@ -101,7 +94,7 @@ The output of the command above should look something like this:
   customresourcedefinition.apiextensions.k8s.io/bentorequests.resources.yatai.ai condition met
   customresourcedefinition.apiextensions.k8s.io/bentoes.resources.yatai.ai condition met
 
-6. Install the ``yatai-image-builder`` helm chart
+5. Install the ``yatai-image-builder`` helm chart
 """""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code:: bash
@@ -109,9 +102,9 @@ The output of the command above should look something like this:
   helm upgrade --install yatai-image-builder yatai-image-builder \
       --repo https://bentoml.github.io/helm-charts \
       -n yatai-image-builder \
-      --values ./yatai-deployment-values.yaml
+      --values /tmp/yatai-deployment-values.yaml
 
-7. Verify the ``yatai-image-builder`` installation
+6. Verify the ``yatai-image-builder`` installation
 """"""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code:: bash
@@ -125,13 +118,20 @@ The output should look like this:
 .. code:: bash
 
   NAME                                    READY   STATUS      RESTARTS   AGE
-  yatai-image-builder-8b9fb98d7-xmtd5        1/1     Running     0          67s
+  yatai-image-builder-8b9fb98d7-xmtd5     1/1     Running     0          67s
 
 View the logs of :code:`yatai-image-builder`:
 
 .. code:: bash
 
   kubectl -n yatai-image-builder logs -f deploy/yatai-image-builder
+
+7. Uninstall ``yatai-deployment`` helm release
+""""""""""""""""""""""""""""""""""""""""""""""
+
+.. code:: bash
+
+  helm -n yatai-deployment uninstall yatai-deployment
 
 8. Install ``yatai-deployment``
 """""""""""""""""""""""""""""""
