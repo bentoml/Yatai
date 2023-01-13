@@ -23,19 +23,19 @@ You should see something like this:
 
 .. code-block:: bash
 
-  NAME                       NAMESPACE                  REVISION        UPDATED                                   STATUS          CHART                                  APP VERSION
-  yatai-image-builder-crds   yatai-image-builder        1               2023-01-03 13:03:02.783856038 +0000 UTC   deployed        yatai-image-builder-crds-1.1.0-d12     1.1.0-d12
+  NAME                       NAMESPACE             REVISION  UPDATED               STATUS     CHART                           APP VERSION
+  yatai-image-builder-crds   yatai-image-builder   1         2023-01-03 13:03:02   deployed   yatai-image-builder-crds-1.1.0  1.1.0
 
-As you can see, the current version is ``1.1.0-d12``.
+As you can see, the current version is ``1.1.0``.
 
 2. Upgrade yatai-image-builder-crds to the target version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to upgrade to ``1.1.0-d13``, you can run the following command:
+If you want to upgrade to ``1.1.1``, you can run the following command:
 
 .. warning::
 
-  If the minor version of the target version is different from the current version, you need to skip this step and follow the migration guide to complete this upgrade.
+   If the minor version of the target version is different from the current version, you will need to check if there is a corresponding migration document, and if so you will need to skip this step and all the next steps and follow the migration guide to complete this upgrade.
 
 .. note::
 
@@ -46,7 +46,7 @@ If you want to upgrade to ``1.1.0-d13``, you can run the following command:
 
    helm upgrade yatai-image-builder-crds yatai-image-builder-crds \
        --repo https://bentoml.github.io/helm-charts \
-       --version 1.1.0-d13 \
+       --version 1.1.1 \
        --namespace yatai-image-builder
 
 .. warning::
@@ -55,9 +55,9 @@ If you want to upgrade to ``1.1.0-d13``, you can run the following command:
 
    .. code:: bash
 
-      Error: rendered manifests contain a resource that already exists. Unable to continue with install: CustomResourceDefinition "bentodeployments.serving.yatai.ai" in namespace "" exists and cannot be imported into the current release: invalid ownership metadata; label validation error: missing key "app.kubernetes.io/managed-by": must be set to "Helm"; annotation validation error: missing key "meta.helm.sh/release-name": must be set to "yatai-image-builder-crds"; annotation validation error: missing key "meta.helm.sh/release-namespace": must be set to "yatai-image-builder"
+      Error: rendered manifests contain a resource that already exists. Unable to continue with install: CustomResourceDefinition "bentorequests.resources.yatai.ai" in namespace "" exists and cannot be imported into the current release: invalid ownership metadata; label validation error: missing key "app.kubernetes.io/managed-by": must be set to "Helm"; annotation validation error: missing key "meta.helm.sh/release-name": must be set to "yatai-image-builder-crds"; annotation validation error: missing key "meta.helm.sh/release-namespace": must be set to "yatai-image-builder"
 
-   It means you already have BentoDeployment CRD, you should use this command to fix it:
+   It means you already have BentoRequest CRD and Bento CRD, you should use this command to fix it:
 
    .. code:: bash
 
@@ -79,19 +79,19 @@ You should see something like this:
 
 .. code-block:: bash
 
-  NAME                    NAMESPACE               REVISION        UPDATED                                 STATUS          CHART                           APP VERSION
-  yatai-image-builder     yatai-image-builder     1               2022-12-23 09:43:58.003704605 +0000 UTC deployed        yatai-image-builder-1.1.0-d12   1.1.0-d12
+  NAME                    NAMESPACE             REVISION   UPDATED              STATUS     CHART                       APP VERSION
+  yatai-image-builder     yatai-image-builder   1          2022-12-23 09:43:58  deployed   yatai-image-builder-1.1.0   1.1.0
 
-As you can see, the current version is ``1.1.0-d12``.
+As you can see, the current version is ``1.1.0``.
 
 4. Upgrade yatai-image-builder to the target version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to upgrade to ``1.1.0-d13``, you can run the following command:
+If you want to upgrade to ``1.1.1``, you can run the following command:
 
 .. warning::
 
-  If the minor version of the target version is different from the current version, you need to skip this step and follow the migration guide to complete this upgrade.
+   If the minor version of the target version is different from the current version, you will need to check if there is a corresponding migration document, and if so you will need to skip this step and all the next steps and follow the migration guide to complete this upgrade.
 
 .. note::
 
@@ -102,6 +102,6 @@ If you want to upgrade to ``1.1.0-d13``, you can run the following command:
 
    helm upgrade yatai-image-builder yatai-image-builder \
        --repo https://bentoml.github.io/helm-charts \
-       --version 1.1.0-d13 \
+       --version 1.1.1 \
        --namespace yatai-image-builder
 

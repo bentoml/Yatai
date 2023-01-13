@@ -445,9 +445,9 @@ Installation Steps
 
    .. code:: bash
 
-      Error: rendered manifests contain a resource that already exists. Unable to continue with install: CustomResourceDefinition "bentodeployments.serving.yatai.ai" in namespace "" exists and cannot be imported into the current release: invalid ownership metadata; label validation error: missing key "app.kubernetes.io/managed-by": must be set to "Helm"; annotation validation error: missing key "meta.helm.sh/release-name": must be set to "yatai-image-builder-crds"; annotation validation error: missing key "meta.helm.sh/release-namespace": must be set to "yatai-image-builder"
+      Error: rendered manifests contain a resource that already exists. Unable to continue with install: CustomResourceDefinition "bentorequests.resources.yatai.ai" in namespace "" exists and cannot be imported into the current release: invalid ownership metadata; label validation error: missing key "app.kubernetes.io/managed-by": must be set to "Helm"; annotation validation error: missing key "meta.helm.sh/release-name": must be set to "yatai-image-builder-crds"; annotation validation error: missing key "meta.helm.sh/release-namespace": must be set to "yatai-image-builder"
 
-   It means you already have BentoDeployment CRD, you should use this command to fix it:
+   It means you already have BentoRequest CRD and Bento CRD, you should use this command to fix it:
 
    .. code:: bash
 
