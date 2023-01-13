@@ -40,10 +40,6 @@ Migration steps
 
   The above command assumes you have installed yatai-deployment with release name ``yatai-deployment`` in ``yatai-deployment`` namespace. If you have installed yatai-deployment with a different release name or namespace, please adjust the command accordingly.
 
-.. note::
-
-  The above command assumes you have installed yatai-deployment with release name ``yatai-deployment`` in ``yatai-deployment`` namespace. If you have installed yatai-deployment with a different release name or namespace, please adjust the command accordingly.
-
 2. Create ``yatai-image-builder`` namespace
 """""""""""""""""""""""""""""""""""""""""""
 
@@ -126,12 +122,16 @@ View the logs of :code:`yatai-image-builder`:
 
   kubectl -n yatai-image-builder logs -f deploy/yatai-image-builder
 
-7. Uninstall ``yatai-deployment`` helm release
-""""""""""""""""""""""""""""""""""""""""""""""
+7. Uninstall the old ``yatai-deployment`` helm release
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code:: bash
 
   helm -n yatai-deployment uninstall yatai-deployment
+
+.. note::
+
+  The above command assumes you have installed yatai-deployment with release name ``yatai-deployment`` in ``yatai-deployment`` namespace. If you have installed yatai-deployment with a different release name or namespace, please adjust the command accordingly.
 
 8. Install ``yatai-deployment``
 """""""""""""""""""""""""""""""
