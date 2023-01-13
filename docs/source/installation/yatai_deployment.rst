@@ -381,12 +381,6 @@ The output of the command above should look something like this:
   helm upgrade --install yatai-deployment yatai-deployment \
       --repo https://bentoml.github.io/helm-charts \
       -n yatai-deployment \
-      --set dockerRegistry.server=$DOCKER_REGISTRY_SERVER \
-      --set dockerRegistry.inClusterServer=$DOCKER_REGISTRY_IN_CLUSTER_SERVER \
-      --set dockerRegistry.username=$DOCKER_REGISTRY_USERNAME \
-      --set dockerRegistry.password=$DOCKER_REGISTRY_PASSWORD \
-      --set dockerRegistry.secure=$DOCKER_REGISTRY_SECURE \
-      --set dockerRegistry.bentoRepositoryName=$DOCKER_REGISTRY_BENTO_REPOSITORY_NAME \
       --set layers.network.ingressClass=$INGRESS_CLASS
 
 4. Verify the yatai-deployment installation
