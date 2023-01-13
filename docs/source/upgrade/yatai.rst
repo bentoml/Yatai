@@ -23,19 +23,19 @@ You should see something like this:
 
 .. code-block:: bash
 
-  NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
-  yatai   yatai-system    1               2022-12-23 09:39:51.144771713 +0000 UTC deployed        yatai-1.1.0-d12 1.1.0-d12
+  NAME    NAMESPACE       REVISION    UPDATED              STATUS      CHART         APP VERSION
+  yatai   yatai-system    1           2022-12-23 09:39:51  deployed    yatai-1.1.0   1.1.0
 
-As you can see, the current version is ``1.1.0-d12``.
+As you can see, the current version is ``1.1.0``.
 
 2. Upgrade to the target version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to upgrade to ``1.1.0-d13``, you can run the following command:
+If you want to upgrade to ``1.1.1``, you can run the following command:
 
 .. warning::
 
-   If the minor version of the target version is different from the current version, you need to skip this step and follow the migration guide to complete this upgrade.
+   If the minor version of the target version is different from the current version, you will need to check if there is a corresponding migration document, and if so you will need to skip this step and all the next steps and follow the migration guide to complete this upgrade.
 
 .. note::
 
@@ -46,6 +46,6 @@ If you want to upgrade to ``1.1.0-d13``, you can run the following command:
 
    helm upgrade yatai yatai \
        --repo https://bentoml.github.io/helm-charts \
-       --version 1.1.0-d13 \
+       --version 1.1.1 \
        --namespace yatai-system
 
