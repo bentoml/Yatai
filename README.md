@@ -76,7 +76,7 @@ kubectl --namespace yatai-system port-forward svc/yatai 8080:80
 In a separate terminal, run:
 
 ```bash
-YATAI_INITIALIZATION_TOKEN=$(kubectl get secret env --namespace yatai-system -o jsonpath="{.data.YATAI_INITIALIZATION_TOKEN}" | base64 --decode)
+YATAI_INITIALIZATION_TOKEN=$(kubectl get secret yatai-env --namespace yatai-system -o jsonpath="{.data.YATAI_INITIALIZATION_TOKEN}" | base64 --decode)
 echo "Open in browser: http://127.0.0.1:8080/setup?token=$YATAI_INITIALIZATION_TOKEN"
 ``` 
 
