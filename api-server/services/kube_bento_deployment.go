@@ -181,10 +181,10 @@ func (s *kubeBentoDeploymentService) transformToBentoDeploymentV2alpha1(ctx cont
 		}
 		for name, runner := range deploymentTarget.Config.Runners {
 			if runner.BentoDeploymentOverrides != nil {
-				for _, runner_ := range kubeBentoDeployment.Spec.Runners {
+				for idx, runner_ := range kubeBentoDeployment.Spec.Runners {
 					if runner_.Name == name {
-						runner_.ExtraPodMetadata = runner.BentoDeploymentOverrides.ExtraPodMetadata
-						runner_.ExtraPodSpec = runner.BentoDeploymentOverrides.ExtraPodSpec
+						kubeBentoDeployment.Spec.Runners[idx].ExtraPodMetadata = runner.BentoDeploymentOverrides.ExtraPodMetadata
+						kubeBentoDeployment.Spec.Runners[idx].ExtraPodSpec = runner.BentoDeploymentOverrides.ExtraPodSpec
 					}
 				}
 			}
