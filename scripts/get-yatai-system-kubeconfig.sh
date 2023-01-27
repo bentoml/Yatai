@@ -32,7 +32,7 @@ echo "🤖 generating kubeconfig..."
 
 TEMPDIR=$(mktemp -d)
 
-trap "{ rm -rf $TEMPDIR ; exit 255; }" EXIT
+trap "{ rm -rf $TEMPDIR }" EXIT
 
 SA_SECRET=$(kubectl -n ${namespace} get sa ${service_account} -o=jsonpath='{.secrets[0].name}')
 
