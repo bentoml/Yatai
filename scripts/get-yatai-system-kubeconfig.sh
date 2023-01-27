@@ -36,7 +36,24 @@ trap "{ rm -rf $TEMPDIR ; exit 255; }" EXIT
 
 SA_SECRET=$(kubectl -n ${namespace} get sa ${service_account} -o=jsonpath='{.secrets[0].name}')
 
-BEARER_TOKEN=$(kubectl get secret -n ${namespace} ${SA_SECRET} -o jsonpath='{.data.token}' | base64 -d )
+if [ -z "${SA_SECRET}" ]; then
+  echo "🤖 no secret found for serviceaccount ${service_account} in namespace ${namespace}!"
+  SA_SECRET="yatai-sa-token-$(openssl rand -hex 3)"
+  echo "🤖 creating secret ${SA_SECRET}..."
+  cat <<EOF | kubectl -n ${namespace} apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${SA_SECRET}
+  namespace: ${namespace}
+  annotations:
+    kubernetes.io/service-account.name: ${service_account}
+type: kubernetes.io/service-account-token
+EOF
+  echo "🥂 secret ${SA_SECRET} created!"
+fi
+
+BEARER_TOKEN=$(kubectl get secret -n ${namespace} ${SA_SECRET} -o jsonpath='{.data.token}' | base64 -d)
 
 kubectl -n ${namespace} get secret ${SA_SECRET} -o jsonpath='{.data.ca\.crt}' | base64 -d > $TEMPDIR/ca.crt
 
