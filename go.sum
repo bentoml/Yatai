@@ -112,8 +112,8 @@ github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647 h1:fKWm
 github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647/go.mod h1:w8sk7HbPMnOlZislz8Ch3pRw15FNMY6o1Q+53fepnhc=
 github.com/bentoml/yatai-common v0.0.0-20230110044251-1eb442339c38 h1:PqfM42gfwBeytS92pV9t8u8POf8czn/4WlmQ/RFGuuY=
 github.com/bentoml/yatai-common v0.0.0-20230110044251-1eb442339c38/go.mod h1:pox0XYk/bVUwKkadn0XwWHEbJmxSEeN3+HwGA4a8uOQ=
-github.com/bentoml/yatai-deployment v1.1.3-0.20230112071122-da07c94d3191 h1:T2om6q0vi3j+4Z3yngft3mNO/mUQ+6z1woYtZ50Kmy0=
-github.com/bentoml/yatai-deployment v1.1.3-0.20230112071122-da07c94d3191/go.mod h1:j73glvFeo11oP5I5J7lOxyY5gApS199qFxA1NzplX+Y=
+github.com/bentoml/yatai-deployment v1.1.5-0.20230201154516-7b262187ae90 h1:WDtUYXHd1oZ1KdzAy1aBGkwFCxEeuBtKD7lAHyah7vw=
+github.com/bentoml/yatai-deployment v1.1.5-0.20230201154516-7b262187ae90/go.mod h1:j73glvFeo11oP5I5J7lOxyY5gApS199qFxA1NzplX+Y=
 github.com/bentoml/yatai-image-builder v1.1.1-0.20230108162700-337f26f7f704 h1:/NHKiFOZQej5tntp0xlqRThe4f6uS0XHn1HGii2A8fQ=
 github.com/bentoml/yatai-image-builder v1.1.1-0.20230108162700-337f26f7f704/go.mod h1:yICYIIyCkBVo6xCFSkU1gUOFYzomRAekiCYvEyd6R00=
 github.com/bentoml/yatai-schemas v0.0.0-20230111172411-f8278b8bdb8d h1:6X4fEjno3ZScH5wFNk0+cIKMHBWU7T0aeLrlecXPOpg=
