@@ -23,6 +23,10 @@ Because the metrics collected are related to BentotDeployment, it relies on yata
 
     If you do not have a production Kubernetes cluster and want to install yatai for development and testing purposes. You can use `minikube <https://minikube.sigs.k8s.io/docs/start/>`_ to set up a local Kubernetes cluster for testing.
 
+- Default StorageClass
+
+    A default `StorageClass <https://kubernetes.io/docs/concepts/storage/storage-classes/>`_ is required for Loki to store logs.
+
 - Helm
 
   We use `Helm <https://helm.sh/docs/intro/using_helm/>`_ to install Loki Stack.
@@ -230,7 +234,7 @@ The output should be:
   helm repo add grafana https://grafana.github.io/helm-charts
   helm repo update grafana
 
-  cat <<EOF | helm upgrade --install loki grafana/loki-distributed -n yatai-logging -f -
+  cat <<EOF | helm upgrade --install loki grafana/loki-distributed -n yatai-logging --version 0.65.0 -f -
   loki:
     image:
       registry: quay.io/bentoml
@@ -292,7 +296,7 @@ Expected output:
 
 .. code:: bash
 
-  cat <<EOF | helm upgrade --install promtail grafana/promtail -n yatai-logging -f -
+  cat <<EOF | helm upgrade --install promtail grafana/promtail -n yatai-logging --version 6.6.1 -f -
   config:
     clients:
       - url: http://loki-loki-distributed-gateway.yatai-logging.svc.cluster.local/loki/api/v1/push
