@@ -172,7 +172,7 @@ echo "✅ MinIO connection is successful"
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update grafana
 echo "🤖 installing Loki..."
-cat <<EOF | helm upgrade --install loki grafana/loki-distributed -n ${namespace} -f -
+cat <<EOF | helm upgrade --install loki grafana/loki-distributed -n ${namespace} --version 0.65.0 -f -
 loki:
   image:
     registry: quay.io/bentoml
@@ -214,7 +214,7 @@ kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kub
 echo "✅ Loki is ready"
 
 echo "🤖 installing Promtail..."
-cat <<EOF | helm upgrade --install promtail grafana/promtail -n ${namespace} -f -
+cat <<EOF | helm upgrade --install promtail grafana/promtail --version 6.6.1 -n ${namespace} -f -
 config:
   clients:
     - url: http://loki-loki-distributed-gateway.${namespace}.svc.cluster.local/loki/api/v1/push

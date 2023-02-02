@@ -23,6 +23,10 @@ Because the metrics collected are related to BentotDeployment, it relies on yata
 
     If you do not have a production Kubernetes cluster and want to install yatai for development and testing purposes. You can use `minikube <https://minikube.sigs.k8s.io/docs/start/>`_ to set up a local Kubernetes cluster for testing.
 
+- Default StorageClass
+
+  A default `StorageClass <https://kubernetes.io/docs/concepts/storage/storage-classes/>`_ is required for the Prometheus server to store metrics data.
+
 - Helm
 
   We use `Helm <https://helm.sh/docs/intro/using_helm/>`_ to install Prometheus Stack.
