@@ -75,21 +75,19 @@ fi
 
 
 echo "⏳ waiting for minio-operator to be ready..."
-if ! kubectl -n yatai-system wait --for=condition=ready --timeout=60s pod -l app.kubernetes.io/name=minio-operator; then
+if ! kubectl wait --for=condition=ready --timeout=60s pod -l app.kubernetes.io/instance=minio-operator -A; then
   echo "😱 minio-operator is not ready"
 
-  helm repo add minio https://operator.min.io/
+  helm repo add minio https://operator.min.io/ || true
   helm repo update minio
 
   echo "🤖 installing minio-operator..."
-  helm upgrade --install minio-operator minio/minio-operator -n ${namespace} --set tenants=null
+  helm upgrade --install minio-operator minio/operator -n ${namespace}
 
   echo "⏳ waiting for minio-operator to be ready..."
-  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=minio-operator
-  echo "✅ minio-operator is ready"
-else
-  echo "✅ minio-operator is ready"
+  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/instance=minio-operator
 fi
+echo "✅ minio-operator is ready"
 
 minio_secret_name=yatai-logging-minio
 
@@ -108,66 +106,88 @@ else
   echo "🤩 secret ${minio_secret_name} already exists"
 fi
 
+S3_ENDPOINT=minio.${namespace}.svc.cluster.local
+S3_REGION=foo
+S3_BUCKET_NAME=loki-data
+S3_SECURE=true
+S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.accesskey}' | base64 -d)
+S3_SECRET_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.secretkey}' | base64 -d)
+
+# check if S3_ACCESS_KEY is empty
+if [ -z "$S3_ACCESS_KEY" ]; then
+  echo "🥹 S3_ACCESS_KEY is empty" >&2
+  exit 1
+fi
+
+echo "🤖 make sure has standard storageclass..."
+if ! kubectl get storageclass standard >/dev/null 2>&1; then
+  echo "😱 standard storageclass not found"
+  echo "🤖 creating standard storageclass..."
+  # get the default storageclass
+  default_storageclass=$(kubectl get storageclass -o json | $jq -r '.items[] | select(.metadata.annotations."storageclass.kubernetes.io/is-default-class" == "true") | .metadata.name')
+  if [ -z "$default_storageclass" ]; then
+    echo "😱 default storageclass not found"
+    exit 1
+  fi
+  # copy the default storageclass to standard
+  echo "🤖 copying default storageclass to standard..."
+  kubectl get storageclass ${default_storageclass} -o yaml | sed 's/  name: '"${default_storageclass}"'/  name: standard/' | kubectl apply -f -
+  # remove the default annotation for standard storageclass
+  kubectl patch storageclass standard -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+  echo "✅ created standard storageclass"
+else
+  echo "🤩 standard storageclass already exists"
+fi
+
+helm repo add minio https://operator.min.io/ || true
+helm repo update minio
+
 echo "🤖 creating MinIO Tenant..."
-cat <<EOF | kubectl apply -f -
-apiVersion: minio.min.io/v2
-kind: Tenant
-metadata:
-  labels:
-    app: yatai-logging-minio
-  name: yatai-logging-minio
-  namespace: ${namespace}
-spec:
-  credsSecret:
-    name: ${minio_secret_name}
-  image: quay.io/bentoml/minio-minio:RELEASE.2021-10-06T23-36-31Z
-  imagePullPolicy: IfNotPresent
-  mountPath: /export
-  podManagementPolicy: Parallel
-  pools:
-  - servers: 4
-    volumeClaimTemplate:
-      metadata:
-        name: data
-      spec:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: 20Gi
-    volumesPerServer: 4
-  requestAutoCert: false
-  s3:
-    bucketDNS: false
-  subPath: /data
-EOF
+helm upgrade --install yatai-logging-minio-tenant minio/tenant \
+  -n ${namespace} \
+  --set secrets.accessKey=${S3_ACCESS_KEY} \
+  --set secrets.secretKey=${S3_SECRET_KEY} \
+  --set tenant.name=yatai-logging-minio
 
 echo "⏳ waiting for minio tenant to be ready..."
 # this retry logic is to avoid kubectl wait errors due to minio tenant resources not being created
 for i in $(seq 1 10); do
-  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app=yatai-logging-minio && break || sleep 5
+  if kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l v1.min.io/tenant=yatai-logging-minio; then
+    echo "✅ minio tenant is ready"
+    break
+  else
+    if [ $i -eq 10 ]; then
+      echo "😱 minio tenant is not ready"
+      exit 1
+    fi
+    echo "😱 minio tenant is not ready, retrying..."
+    sleep 5
+    continue
+  fi
 done
-echo "✅ minio tenant is ready"
-
-S3_ENDPOINT=minio.${namespace}.svc.cluster.local
-S3_REGION=foo
-S3_BUCKET_NAME=loki-data
-S3_SECURE=false
-S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.accesskey}' | base64 -d)
-S3_SECRET_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.secretkey}' | base64 -d)
 
 echo "🧪 testing MinIO connection..."
 for i in $(seq 1 10); do
   kubectl -n ${namespace} delete pod s3-client 2> /dev/null || true
 
-  kubectl run s3-client --rm --tty -i --restart='Never' \
+  if kubectl run s3-client --rm --tty -i --restart='Never' \
       --namespace ${namespace} \
       --env "AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY" \
       --env "AWS_SECRET_ACCESS_KEY=$S3_SECRET_KEY" \
       --image quay.io/bentoml/s3-client:0.0.1 \
-      --command -- sh -c "s3-client -e http://$S3_ENDPOINT listbuckets 2>/dev/null" && break || sleep 5
+      --command -- sh -c "s3-client -e https://$S3_ENDPOINT listbuckets 2>/dev/null"; then
+        echo "✅ MinIO connection is successful"
+        break
+  else
+    if [ $i -eq 10 ]; then
+      echo "😱 MinIO connection failed"
+      exit 1
+    fi
+    echo "😱 MinIO connection failed, retrying..."
+    sleep 5
+    continue
+  fi
 done
-echo "✅ MinIO connection is successful"
 
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update grafana
@@ -188,7 +208,7 @@ loki:
       max_chunk_age: 1h
     storage_config:
       aws:
-        s3: http://$S3_ACCESS_KEY:$S3_SECRET_KEY@$S3_ENDPOINT/$S3_BUCKET_NAME
+        s3: https://$S3_ACCESS_KEY:$S3_SECRET_KEY@$S3_ENDPOINT/$S3_BUCKET_NAME
         s3forcepathstyle: true
       boltdb_shipper:
         shared_store: s3
