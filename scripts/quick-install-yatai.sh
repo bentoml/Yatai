@@ -157,14 +157,19 @@ kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
 
 echo "✅ PostgreSQL environment variables are correct"
 
-helm repo add minio https://operator.min.io/
-helm repo update minio
-
-echo "🤖 installing minio-operator..."
-helm upgrade --install minio-operator minio/minio-operator -n ${namespace} --set tenants=null
-
 echo "⏳ waiting for minio-operator to be ready..."
-kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=minio-operator
+if ! kubectl wait --for=condition=ready --timeout=60s pod -l app.kubernetes.io/instance=minio-operator -A; then
+  echo "😱 minio-operator is not ready"
+
+  helm repo add minio https://operator.min.io/ || true
+  helm repo update minio
+
+  echo "🤖 installing minio-operator..."
+  helm upgrade --install minio-operator minio/operator -n ${namespace}
+
+  echo "⏳ waiting for minio-operator to be ready..."
+  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/instance=minio-operator
+fi
 echo "✅ minio-operator is ready"
 
 minio_secret_name=yatai-minio
@@ -183,51 +188,10 @@ else
   echo "🤩 secret ${minio_secret_name} already exists"
 fi
 
-echo "🤖 creating MinIO Tenant..."
-cat <<EOF | kubectl apply -f -
-apiVersion: minio.min.io/v2
-kind: Tenant
-metadata:
-  labels:
-    app: yatai-minio
-  name: yatai-minio
-  namespace: ${namespace}
-spec:
-  credsSecret:
-    name: ${minio_secret_name}
-  image: quay.io/bentoml/minio-minio:RELEASE.2021-10-06T23-36-31Z
-  imagePullPolicy: IfNotPresent
-  mountPath: /export
-  podManagementPolicy: Parallel
-  pools:
-  - servers: 4
-    volumeClaimTemplate:
-      metadata:
-        name: data
-      spec:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: 20Gi
-    volumesPerServer: 4
-  requestAutoCert: false
-  s3:
-    bucketDNS: false
-  subPath: /data
-EOF
-
-echo "⏳ waiting for minio tenant to be ready..."
-# this retry logic is to avoid kubectl wait errors due to minio tenant resources not being created
-for i in $(seq 1 10); do
-  kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l app=yatai-minio && break || sleep 5
-done
-echo "✅ minio tenant is ready"
-
 S3_ENDPOINT=minio.${namespace}.svc.cluster.local
 S3_REGION=foo
 S3_BUCKET_NAME=yatai
-S3_SECURE=false
+S3_SECURE=true
 S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.accesskey}' | base64 -d)
 S3_SECRET_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.secretkey}' | base64 -d)
 
@@ -236,6 +200,53 @@ if [ -z "$S3_ACCESS_KEY" ]; then
   echo "🥹 S3_ACCESS_KEY is empty" >&2
   exit 1
 fi
+
+echo "🤖 make sure has standard storageclass..."
+if ! kubectl get storageclass standard >/dev/null 2>&1; then
+  echo "😱 standard storageclass not found"
+  echo "🤖 creating standard storageclass..."
+  # get the default storageclass
+  default_storageclass=$(kubectl get storageclass -o json | $jq -r '.items[] | select(.metadata.annotations."storageclass.kubernetes.io/is-default-class" == "true") | .metadata.name')
+  if [ -z "$default_storageclass" ]; then
+    echo "😱 default storageclass not found"
+    exit 1
+  fi
+  # copy the default storageclass to standard
+  echo "🤖 copying default storageclass to standard..."
+  kubectl get storageclass ${default_storageclass} -o yaml | sed 's/  name: '"${default_storageclass}"'/  name: standard/' | kubectl apply -f -
+  # remove the default annotation for standard storageclass
+  kubectl patch storageclass standard -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+  echo "✅ created standard storageclass"
+else
+  echo "🤩 standard storageclass already exists"
+fi
+
+helm repo add minio https://operator.min.io/ || true
+helm repo update minio
+
+echo "🤖 creating MinIO Tenant..."
+helm upgrade --install yatai-minio-tenant minio/tenant \
+  -n ${namespace} \
+  --set secrets.accessKey=${S3_ACCESS_KEY} \
+  --set secrets.secretKey=${S3_SECRET_KEY} \
+  --set tenant.name=yatai-minio
+
+echo "⏳ waiting for minio tenant to be ready..."
+# this retry logic is to avoid kubectl wait errors due to minio tenant resources not being created
+for i in $(seq 1 10); do
+  if kubectl -n ${namespace} wait --for=condition=ready --timeout=600s pod -l v1.min.io/tenant=yatai-minio; then
+    echo "✅ minio tenant is ready"
+    break
+  else
+    if [ $i -eq 10 ]; then
+      echo "😱 minio tenant is not ready"
+      exit 1
+    fi
+    echo "😱 minio tenant is not ready, retrying..."
+    sleep 5
+    continue
+  fi
+done
 
 echo "🧪 testing MinIO connection..."
 for i in $(seq 1 10); do
@@ -246,7 +257,7 @@ for i in $(seq 1 10); do
     --env "AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY" \
     --env "AWS_SECRET_ACCESS_KEY=$S3_SECRET_KEY" \
     --image quay.io/bentoml/s3-client:0.0.1 \
-    --command -- sh -c "s3-client -e http://$S3_ENDPOINT listbuckets 2>/dev/null" && break || sleep 5
+    --command -- sh -c "s3-client -e https://$S3_ENDPOINT listbuckets 2>/dev/null" && break || sleep 5
 done
 echo "✅ MinIO connection is successful"
 
