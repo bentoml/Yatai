@@ -338,7 +338,7 @@ func (c *S3Config) getMinioOptions() (opts *minio.Options, err error) {
 		Creds:  c.getMinioCredential(),
 		Secure: c.Secure,
 	}
-	if c.Secure {
+	if c.Secure && (strings.Contains(c.Endpoint, ".cluster.local") || strings.Contains(c.EndpointInCluster, ".cluster.local")) {
 		opts.Transport, err = c.getMinioTransport()
 		if err != nil {
 			return
