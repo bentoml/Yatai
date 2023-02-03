@@ -3,7 +3,10 @@ package services
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
+	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -311,15 +314,54 @@ func (c *S3Config) getMinioCredential() *credentials.Credentials {
 	return credentials.NewStaticV4(c.AccessKey, c.SecretKey, "")
 }
 
+func (c *S3Config) getMinioTransport() (*http.Transport, error) {
+	tr, err := minio.DefaultTransport(true)
+	if err != nil {
+		err = errors.Wrap(err, "get minio default transport")
+		return nil, err
+	}
+	b, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+	if err != nil && !os.IsNotExist(err) {
+		err = errors.Wrap(err, "read k8s serviceaccount ca.crt")
+		return nil, err
+	} else {
+		if tr.TLSClientConfig.RootCAs == nil {
+			tr.TLSClientConfig.RootCAs = x509.NewCertPool()
+		}
+		tr.TLSClientConfig.RootCAs.AppendCertsFromPEM(b)
+	}
+	return tr, nil
+}
+
+func (c *S3Config) getMinioOptions() (opts *minio.Options, err error) {
+	opts = &minio.Options{
+		Creds:  c.getMinioCredential(),
+		Secure: c.Secure,
+	}
+	if c.Secure {
+		opts.Transport, err = c.getMinioTransport()
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
 func (c *S3Config) GetMinioClient() (*minio.Client, error) {
 	endpoint := c.Endpoint
 	if config.YataiConfig.InCluster && !config.YataiConfig.IsSaaS {
 		endpoint = c.EndpointInCluster
 	}
-	return minio.New(endpoint, &minio.Options{
-		Creds:  c.getMinioCredential(),
-		Secure: c.Secure,
-	})
+	opts, err := c.getMinioOptions()
+	if err != nil {
+		return nil, err
+	}
+	cli, err := minio.New(endpoint, opts)
+	if err != nil {
+		err = errors.Wrap(err, "new minio client")
+		return nil, err
+	}
+	return cli, nil
 }
 
 func (c *S3Config) GetMinioCore() (*minio.Core, error) {
@@ -327,10 +369,11 @@ func (c *S3Config) GetMinioCore() (*minio.Core, error) {
 	if config.YataiConfig.InCluster && !config.YataiConfig.IsSaaS {
 		endpoint = c.EndpointInCluster
 	}
-	return minio.NewCore(endpoint, &minio.Options{
-		Creds:  c.getMinioCredential(),
-		Secure: c.Secure,
-	})
+	opts, err := c.getMinioOptions()
+	if err != nil {
+		return nil, err
+	}
+	return minio.NewCore(endpoint, opts)
 }
 
 func (c *S3Config) MakeSureBucket(ctx context.Context, bucketName string) error {
