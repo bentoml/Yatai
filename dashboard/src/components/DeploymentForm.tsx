@@ -157,6 +157,9 @@ export default function DeploymentForm({
                 if (_.endsWith(key, '_overrides')) {
                     return value
                 }
+                if (key === 'envs' || key === 'custom') {
+                    return srcValue
+                }
                 if (typeof value === 'object' || typeof srcValue === 'object') {
                     if (value === undefined || value === null) {
                         return srcValue
