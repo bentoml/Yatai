@@ -18,6 +18,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/huandu/xstrings v1.3.3
 	github.com/iancoleman/strcase v0.2.0
+	github.com/invopop/jsonschema v0.7.0
 	github.com/juju/errors v0.0.0-20200330140219-3fe23663418f
 	github.com/lib/pq v1.10.4
 	github.com/loopfz/gadgeto v0.11.1
@@ -29,7 +30,6 @@ require (
 	github.com/rs/xid v1.4.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.4.0
-	github.com/swaggest/jsonschema-go v0.3.43
 	github.com/tianweidut/cron v0.0.0-20201116081805-584849f819e1
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	github.com/viney-shih/go-lock v1.1.1
@@ -94,6 +94,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
@@ -132,8 +133,9 @@ require (
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/santhosh-tekuri/jsonschema v1.2.4 // indirect
+	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/swaggest/refl v1.1.0 // indirect
+	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/ugorji/go/codec v1.2.6 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect

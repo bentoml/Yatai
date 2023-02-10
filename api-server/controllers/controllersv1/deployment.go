@@ -14,9 +14,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/huandu/xstrings"
+	"github.com/invopop/jsonschema"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/swaggest/jsonschema-go"
 	"go.uber.org/atomic"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -92,7 +92,11 @@ type CreateDeploymentSchema struct {
 
 func (c *deploymentController) CreationJSONSchema(ctx *gin.Context) (interface{}, error) {
 	reflector := jsonschema.Reflector{}
-	return reflector.Reflect(schemasv1.CreateDeploymentSchema{})
+	res := reflector.Reflect(schemasv1.CreateDeploymentSchema{})
+	if res != nil {
+		res.Version = "http://json-schema.org/draft-04/schema#"
+	}
+	return res, nil
 }
 
 func (c *deploymentController) Create(ctx *gin.Context, schema *CreateDeploymentSchema) (*schemasv1.DeploymentSchema, error) {
@@ -966,7 +970,6 @@ func (c *deploymentController) WsPods(ctx *gin.Context, schema *GetDeploymentSch
 	go func() {
 		for {
 			_, _, err := conn.ReadMessage()
-
 			if err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 					logrus.Errorf("ws read failed: %q", err.Error())
