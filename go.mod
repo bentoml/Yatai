@@ -8,7 +8,7 @@ require (
 	github.com/bentoml/yatai-common v0.0.0-20230210154457-efbefe1633ab
 	github.com/bentoml/yatai-deployment v1.1.7-0.20230210154159-c292a9619c4f
 	github.com/bentoml/yatai-image-builder v1.1.1-0.20230108162700-337f26f7f704
-	github.com/bentoml/yatai-schemas v0.0.0-20230111172411-f8278b8bdb8d
+	github.com/bentoml/yatai-schemas v0.0.0-20230210160650-fd8186673c80
 	github.com/bits-and-blooms/bloom/v3 v3.3.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/sessions v0.0.3
