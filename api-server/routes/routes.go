@@ -105,6 +105,15 @@ func NewRouter() (*fizz.Fizz, error) {
 	engine.GET("/logout", web.Logout)
 
 	fizzApp := fizz.NewFromEngine(engine)
+	fizzApp.Generator().SetSecuritySchemes(map[string]*openapi.SecuritySchemeOrRef{
+		"apiToken": {
+			SecurityScheme: &openapi.SecurityScheme{
+				Type: "apiKey",
+				In:   "header",
+				Name: "X-YATAI-API-TOKEN",
+			},
+		},
+	})
 
 	// Override type names.
 	// fizz.Generator().OverrideTypeName(reflect.TypeOf(Fruit{}), "SweetFruit")
