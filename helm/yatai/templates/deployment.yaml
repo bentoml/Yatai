@@ -46,6 +46,10 @@ spec:
             - secretRef:
                 name: {{ include "yatai.envname" . }}
           env:
+            - name: YATAI_SYSTEM_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
             {{- if .Values.postgresql.passwordExistingSecretName }}
             - name: PG_PASSWORD
               valueFrom:
