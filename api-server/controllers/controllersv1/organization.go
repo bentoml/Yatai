@@ -148,12 +148,12 @@ func (c *organizationController) ListEventOperationNames(ctx *gin.Context, schem
 	return services.EventService.ListOperationNames(ctx, organization.ID, schema.ResourceType)
 }
 
-type ListOrginizationEventsSchema struct {
+type ListOrganizationEventsSchema struct {
 	schemasv1.ListQuerySchema
 	GetOrganizationSchema
 }
 
-func (c *organizationController) ListEvents(ctx *gin.Context, schema *ListOrginizationEventsSchema) (*schemasv1.EventListSchema, error) {
+func (c *organizationController) ListEvents(ctx *gin.Context, schema *ListOrganizationEventsSchema) (*schemasv1.EventListSchema, error) {
 	organization, err := schema.GetOrganization(ctx)
 	if err != nil {
 		return nil, err

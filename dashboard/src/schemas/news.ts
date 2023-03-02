@@ -5,7 +5,7 @@ export interface INewsItem {
     cover?: string
     started_at?: string
     ended_at?: string
-    version_constrait?: string
+    version_constraint?: string
 }
 
 export interface INewsContent {

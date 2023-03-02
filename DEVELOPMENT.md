@@ -6,7 +6,7 @@ Yatai does not rely on cloud-native, but it is accessible to cloud-native based 
 
 As you know, Kubernetes has a complex network environment, so developing cloud-native related products locally can be a challenge. But don't worry, this document will show you how to develop Yatai locally easily, quickly and comfortably.
 
-## Prequisites
+## Prerequisites
 
 - [Git LFS](https://git-lfs.github.com/)
   
@@ -97,7 +97,7 @@ As you know, Kubernetes has a complex network environment, so developing cloud-n
    git checkout main
    ```
 
-2. Use the git pull command to retrieve content from the BentoML Github repository.
+2. Use the git pull command to retrieve content from the BentoML GitHub repository.
 
    ```bash
    git pull upstream main -r
