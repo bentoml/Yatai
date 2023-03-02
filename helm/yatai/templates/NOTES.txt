@@ -1,4 +1,4 @@
-When installing Yatai for the first time, run the following command to get an initialzation link for creating your admin account:
+When installing Yatai for the first time, run the following command to get an initialization link for creating your admin account:
 
   export YATAI_INITIALIZATION_TOKEN=$(kubectl get secret {{ include "yatai.envname" . }} --namespace {{ .Release.Namespace }} -o jsonpath="{.data.YATAI_INITIALIZATION_TOKEN}" | base64 --decode)
 {{ if .Values.ingress.enabled }}

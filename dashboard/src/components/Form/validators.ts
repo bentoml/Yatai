@@ -35,10 +35,10 @@ export const required =
 export const number: Validator = (_, value) =>
     !value || value === '-' || /^-?\d*\.?\d*$/.test(value)
         ? Promise.resolve()
-        : Promise.reject('Plase input number only')
+        : Promise.reject('Please input number only')
 
 export const integer =
-    (msg = 'Plase input integer only'): Validator =>
+    (msg = 'Please input integer only'): Validator =>
     (_, value) =>
         value === '' || /^(-)?\d*$/.test(value) ? Promise.resolve() : Promise.reject(msg)
 
@@ -49,7 +49,7 @@ export const maxDecimal =
             ? Promise.resolve()
             : Promise.reject(`Should not more then ${max} decimal`)
 
-const numberComparation =
+const numberComparison =
     (callback: (value: number, flag: number) => boolean) =>
     (flag: number, msg: string, inclusive = false) => {
         const validator: Validator = (_, value) => {
@@ -62,10 +62,10 @@ const numberComparation =
         return validator
     }
 
-export const min = numberComparation((value, flag) => value > flag)
-export const max = numberComparation((value, flag) => value < flag)
+export const min = numberComparison((value, flag) => value > flag)
+export const max = numberComparison((value, flag) => value < flag)
 
-const lengthComparation = (callback: (length: number, flag: number) => boolean) => (flag: number, msg: string) => {
+const lengthComparison = (callback: (length: number, flag: number) => boolean) => (flag: number, msg: string) => {
     const validator: Validator = (_, value) => {
         if (Array.isArray(value) || typeof value === 'string') {
             return callback(value.length, flag) ? Promise.resolve() : Promise.reject(msg)
@@ -75,9 +75,9 @@ const lengthComparation = (callback: (length: number, flag: number) => boolean) 
     return validator
 }
 
-export const minLength = lengthComparation((length, minLength_) => length >= minLength_)
+export const minLength = lengthComparison((length, minLength_) => length >= minLength_)
 
-export const maxLength = lengthComparation((length, maxLength_) => length <= maxLength_)
+export const maxLength = lengthComparison((length, maxLength_) => length <= maxLength_)
 
 export const passwordFormat =
     (msg = 'Password must contain number and english character'): Validator =>

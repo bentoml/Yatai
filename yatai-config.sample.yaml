@@ -1,7 +1,7 @@
 in_cluster: false
 
 server:  # the server config section
-  enable_https: false  # if the yatai is deployed as an https server, set it to ture
+  enable_https: false  # if the yatai is deployed as an https server, set it to true
   port: 7777  # the server port
   session_secret_key: PleaseReplaceIt!  # the cookie secret, must modify and persist it when deployed to the production environment
   migration_dir: ./api-server/db/migrations  # the migrations sql files directory
