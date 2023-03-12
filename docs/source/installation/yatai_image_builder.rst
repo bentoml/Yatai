@@ -37,7 +37,7 @@ This script will automatically install the following dependencies inside the :co
 
 .. code:: bash
 
-  DEVEL=true bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-image-builder/main/scripts/quick-install-yatai-image-builder.sh")
+  bash <(curl -s "https://raw.githubusercontent.com/bentoml/yatai-image-builder/main/scripts/quick-install-yatai-image-builder.sh")
 
 .. _yatai-image-builder-installation-steps:
 
