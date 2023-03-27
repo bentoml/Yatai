@@ -43,6 +43,7 @@
     "js-base64": "^3.7.1",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
+    "monaco-editor": "^0.36.1",
     "monaco-themes": "^0.4.2",
     "pretty-bytes": "^5.6.0",
     "qs": "^6.10.1",
@@ -129,6 +130,7 @@
     "eslint-plugin-react": "^7.24.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "http-proxy-middleware": "^2.0.1",
+    "monaco-editor-webpack-plugin": "^7.0.1",
     "prettier": "^2.3.2",
     "sass": "^1.49.0",
     "simple-progress-webpack-plugin": "^2.0.0"
