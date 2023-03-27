@@ -1,6 +1,8 @@
 import Editor, { EditorProps, useMonaco, loader } from '@monaco-editor/react'
 import { useEffect } from 'react'
 
+loader.config({ paths: { vs: '/libs/monaco-editor' } })
+
 loader
     .init()
     .then((monaco) => {
