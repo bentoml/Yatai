@@ -1,6 +1,5 @@
 const path = require('path')
 const SimpleProgressWebpackPlugin = require('simple-progress-webpack-plugin')
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 const CracoEsbuildPlugin = require('craco-esbuild');
 
 module.exports = {
@@ -9,7 +8,7 @@ module.exports = {
         alias: {
             '@': path.resolve(__dirname, 'src'),
         },
-        plugins: [new MonacoWebpackPlugin(), new SimpleProgressWebpackPlugin()],
+        plugins: [new SimpleProgressWebpackPlugin()],
         configure: (webpackConfig, { env, paths }) => {
             // https://github.com/pmndrs/react-spring/issues/1078#issuecomment-752143468
             webpackConfig.module.rules.push({
