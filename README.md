@@ -195,9 +195,9 @@ spec:
               requests:
                   cpu: "500m"
                   memory: "512m"
-              autoscaling:
-                  maxReplicas: 4
-                  minReplicas: 1
+          autoscaling:
+              maxReplicas: 4
+              minReplicas: 1
 ```
 
 Apply the deployment to your minikube cluster:
