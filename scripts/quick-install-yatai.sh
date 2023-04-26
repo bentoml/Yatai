@@ -252,14 +252,24 @@ echo "🧪 testing MinIO connection..."
 for i in $(seq 1 10); do
   kubectl -n ${namespace} delete pod s3-client 2>/dev/null || true
 
-  kubectl run s3-client --rm --tty -i --restart='Never' \
+  if kubectl run s3-client --rm --tty -i --restart='Never' \
     --namespace ${namespace} \
     --env "AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY" \
     --env "AWS_SECRET_ACCESS_KEY=$S3_SECRET_KEY" \
     --image quay.io/bentoml/s3-client:0.0.1 \
-    --command -- sh -c "s3-client -e https://$S3_ENDPOINT listbuckets 2>/dev/null" && break || sleep 5
+    --command -- sh -c "s3-client -e https://$S3_ENDPOINT listbuckets 2>/dev/null"; then
+      echo "✅ MinIO connection is successful"
+      break
+    else
+      if [ $i -eq 10 ]; then
+        echo "😱 MinIO connection is not successful"
+        exit 1
+      fi
+      echo "😱 MinIO connection is not successful, retrying..."
+      sleep 5
+      continue
+  fi
 done
-echo "✅ MinIO connection is successful"
 
 helm_repo_name=bentoml
 helm_repo_url=https://bentoml.github.io/helm-charts
