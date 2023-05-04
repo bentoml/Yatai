@@ -42,9 +42,9 @@ require (
 	gorm.io/gorm v1.21.12
 	k8s.io/api v0.25.4
 	k8s.io/apimachinery v0.25.4
-	k8s.io/cli-runtime v0.25.0
+	k8s.io/cli-runtime v0.25.4
 	k8s.io/client-go v0.25.4
-	k8s.io/kubernetes v1.15.0-alpha.0
+	k8s.io/kubernetes v1.25.4
 	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2
 )
 
@@ -59,7 +59,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/containerd/containerd v1.6.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/docker v20.10.14+incompatible // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/elastic/go-licenser v0.3.1 // indirect
