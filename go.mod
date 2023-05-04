@@ -40,11 +40,11 @@ require (
 	golang.org/x/crypto v0.6.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.21.12
-	k8s.io/api v0.25.4
-	k8s.io/apimachinery v0.25.4
-	k8s.io/cli-runtime v0.25.4
-	k8s.io/client-go v0.25.4
-	k8s.io/kubernetes v1.25.4
+	k8s.io/api v0.25.9
+	k8s.io/apimachinery v0.25.9
+	k8s.io/cli-runtime v0.25.9
+	k8s.io/client-go v0.25.9
+	k8s.io/kubernetes v1.25.9
 	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2
 )
 
