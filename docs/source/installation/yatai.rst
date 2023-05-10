@@ -15,6 +15,10 @@ Prerequisites
 
       If you do not have a production Kubernetes cluster and want to install yatai for development and testing purposes. You can use `minikube <https://minikube.sigs.k8s.io/docs/start/>`_ to set up a local Kubernetes cluster for testing. If you are using macOS, you should use `hyperkit <https://minikube.sigs.k8s.io/docs/drivers/hyperkit/>`_ driver to prevent the macOS docker desktop `network limitation <https://docs.docker.com/desktop/networking/#i-cannot-ping-my-containers>`_
 
+- Dynamic Volume Provisioning
+
+  If you use MinIO as the object storage, you need to enable dynamic volume provisioning in your Kubernetes cluster. See `Dynamic Volume Provisioning <https://kubernetes.io/docs/concepts/storage/dynamic-provisioning/>`_ for more details.
+
 - Helm
 
   Yatai uses `Helm <https://helm.sh/docs/intro/using_helm/>`_ to install yatai.

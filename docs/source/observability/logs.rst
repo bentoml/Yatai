@@ -23,9 +23,9 @@ Because the metrics collected are related to BentotDeployment, it relies on yata
 
     If you do not have a production Kubernetes cluster and want to install yatai for development and testing purposes. You can use `minikube <https://minikube.sigs.k8s.io/docs/start/>`_ to set up a local Kubernetes cluster for testing.
 
-- Default StorageClass
+- Dynamic Volume Provisioning
 
-    A default `StorageClass <https://kubernetes.io/docs/concepts/storage/storage-classes/>`_ is required for Loki to store logs.
+  As Loki requires log storage, you need to enable dynamic volume provisioning in your Kubernetes cluster. For more detailed information, please refer to `Dynamic Volume Provisioning <https://kubernetes.io/docs/concepts/storage/dynamic-provisioning/>`_.
 
 - Helm
 
