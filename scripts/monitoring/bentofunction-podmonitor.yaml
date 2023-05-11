@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    owner: yatai
+    release: prometheus
+  name: bento-function
+  namespace: yatai
+spec:
+  podMetricsEndpoints:
+  - path: /metrics
+    port: metrics
+  podTargetLabels:
+  - yatai.ai/bento-repository
+  - yatai.ai/bento-version
+  - yatai.ai/bento-function
+  - yatai.ai/bento-function-component-type
+  - yatai.ai/bento-function-component-name
+  selector:
+    matchExpressions:
+    - key: yatai.ai/bento-function
+      operator: Exists

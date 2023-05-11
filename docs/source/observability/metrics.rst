@@ -260,6 +260,9 @@ Now you can auto-complete to BentoML's metrics in the prometheus expression inpu
    kubectl -n yatai-monitoring create configmap bentodeployment-dashboard --from-file=/tmp/bentodeployment-dashboard.json
    kubectl -n yatai-monitoring label configmap bentodeployment-dashboard grafana_dashboard=1
 
+   kubectl -n yatai-monitoring create configmap bentofunction-dashboard --from-file=/tmp/bentofunction-dashboard.json
+   kubectl -n yatai-monitoring label configmap bentofunction-dashboard grafana_dashboard=1
+
 3. Go to the Grafana web UI to check out the BentoDeployment dashboard
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

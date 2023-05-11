@@ -155,6 +155,19 @@ kubectl -n ${grafana_namespace} create configmap bentodeployment-dashboard --fro
 kubectl -n ${grafana_namespace} label configmap bentodeployment-dashboard grafana_dashboard=1 --overwrite
 echo "✅ BentoDeployment Grafana dashboard is imported"
 
+echo "🤖 creating PodMonitor for BentoFunctions..."
+kubectl apply -f https://raw.githubusercontent.com/bentoml/yatai/main/scripts/monitoring/bentofunction-podmonitor.yaml
+echo "✅ PodMonitor for BentoFunctions is created"
+
+echo "🤖 downloading the BentoFunction Grafana dashboard json file..."
+curl -L https://raw.githubusercontent.com/bentoml/yatai/main/scripts/monitoring/bentofunction-dashboard.json -o /tmp/bentofunction-dashboard.json
+echo "✅ BentoFunction Grafana dashboard is downloaded"
+
+echo "🤖 importing the BentoFunction Grafana dashboard..."
+kubectl -n ${grafana_namespace} create configmap bentofunction-dashboard --from-file=/tmp/bentofunction-dashboard.json -o yaml --dry-run=client | kubectl apply -f -
+kubectl -n ${grafana_namespace} label configmap bentofunction-dashboard grafana_dashboard=1 --overwrite
+echo "✅ BentoFunction Grafana dashboard is imported"
+
 echo "🌐 port-forwarding Grafana..."
 lsof -i :8888 | tail -n +2 | awk '{print $2}' | xargs -I{} kill {} 2> /dev/null || true
 kubectl -n ${grafana_namespace} port-forward svc/grafana 8888:80 --address 0.0.0.0 &
