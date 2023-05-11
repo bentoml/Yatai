@@ -90,7 +90,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(bentoml_api_server_request_in_progress{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"})",
+          "expr": "sum(bentoml_api_server_request_in_progress{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"})",
           "legendFormat": "{{exported_endpoint}}",
           "range": true,
           "refId": "A"
@@ -152,7 +152,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "round(sum(irate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\"}[2m])), 0.001)",
+          "expr": "round(sum(irate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\"}[2m])), 0.001)",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -224,7 +224,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", http_response_code!~\"[4-5].*\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m])) / sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m]))",
+          "expr": "sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", http_response_code!~\"[4-5].*\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m])) / sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m]))",
           "refId": "A"
         }
       ],
@@ -322,7 +322,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum (bentoml_api_server_request_in_progress{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"})",
+          "expr": "sum (bentoml_api_server_request_in_progress{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"})",
           "hide": false,
           "legendFormat": "Total",
           "range": true,
@@ -334,7 +334,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(exported_endpoint) (bentoml_api_server_request_in_progress{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"})",
+          "expr": "sum by(exported_endpoint) (bentoml_api_server_request_in_progress{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"})",
           "legendFormat": "{{exported_endpoint}}",
           "range": true,
           "refId": "B"
@@ -429,7 +429,7 @@
             "uid": "prometheus"
           },
           "editorMode": "builder",
-          "expr": "round(sum(irate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\"}[2m])), 0.001)",
+          "expr": "round(sum(irate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\"}[2m])), 0.001)",
           "hide": false,
           "legendFormat": "Total",
           "range": true,
@@ -441,7 +441,7 @@
             "uid": "prometheus"
           },
           "editorMode": "builder",
-          "expr": "round(sum by(exported_endpoint) (irate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\"}[2m])), 0.001)",
+          "expr": "round(sum by(exported_endpoint) (irate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\"}[2m])), 0.001)",
           "hide": false,
           "legendFormat": "{{exported_endpoint}}",
           "range": true,
@@ -540,7 +540,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", http_response_code!~\"[4-5].*\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m])) / sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m]))",
+          "expr": "sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", http_response_code!~\"[4-5].*\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m])) / sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m]))",
           "hide": false,
           "legendFormat": "Total",
           "range": true,
@@ -552,7 +552,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", http_response_code!~\"[4-5].*\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m])) by (exported_endpoint) / sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m])) by (exported_endpoint)",
+          "expr": "sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", http_response_code!~\"[4-5].*\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m])) by (exported_endpoint) / sum(rate(bentoml_api_server_request_total{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", exported_endpoint!=\"/\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\", exported_endpoint!~\"/static_content/.*\"}[2m])) by (exported_endpoint)",
           "legendFormat": "{{exported_endpoint}}",
           "range": true,
           "refId": "B"
@@ -686,7 +686,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "histogram_quantile(0.5, sum(rate(bentoml_api_server_request_duration_seconds_bucket{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", http_response_code=~\"2.*\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\"}[2m])) by (le, exported_endpoint))",
+          "expr": "histogram_quantile(0.5, sum(rate(bentoml_api_server_request_duration_seconds_bucket{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", http_response_code=~\"2.*\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\"}[2m])) by (le, exported_endpoint))",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -701,7 +701,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "histogram_quantile(0.95, sum(rate(bentoml_api_server_request_duration_seconds_bucket{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", http_response_code=~\"2.*\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\"}[2m])) by (le, exported_endpoint))",
+          "expr": "histogram_quantile(0.95, sum(rate(bentoml_api_server_request_duration_seconds_bucket{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", http_response_code=~\"2.*\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\"}[2m])) by (le, exported_endpoint))",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -716,7 +716,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "histogram_quantile(0.99, sum(rate(bentoml_api_server_request_duration_seconds_bucket{namespace=\"$namespace\", yatai_ai_bento_deployment=~\"$bento_deployment\", http_response_code=~\"2.*\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\"}[2m])) by (le, exported_endpoint))",
+          "expr": "histogram_quantile(0.99, sum(rate(bentoml_api_server_request_duration_seconds_bucket{namespace=\"$namespace\", yatai_ai_bento_function=~\"$bento_function\", http_response_code=~\"2.*\", exported_endpoint!=\"/\", exported_endpoint!~\"/static_content/.*\", exported_endpoint!=\"/docs.json\", exported_endpoint!=\"/robots.txt\"}[2m])) by (le, exported_endpoint))",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -823,7 +823,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_receive_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))",
+          "expr": "(sum(irate(container_network_receive_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))",
           "format": "time_series",
           "instant": false,
           "interval": "10s",
@@ -839,7 +839,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "- (sum(irate(container_network_transmit_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
+          "expr": "- (sum(irate(container_network_transmit_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
           "format": "time_series",
           "hide": false,
           "interval": "10s",
@@ -856,7 +856,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_receive_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))",
+          "expr": "(sum(irate(container_network_receive_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))",
           "hide": false,
           "legendFormat": "{{workload}} Sent",
           "range": true,
@@ -868,7 +868,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "- (sum(irate(container_network_transmit_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
+          "expr": "- (sum(irate(container_network_transmit_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
           "hide": false,
           "legendFormat": "{{workload}} Received",
           "range": true,
@@ -962,7 +962,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(\n    node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\"}\n  * on (namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-.*)?\", workload_type=\"deployment\"}\n)",
+          "expr": "sum(\n    node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\"}\n  * on (namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-.*)?\", workload_type=\"deployment\"}\n)",
           "hide": false,
           "legendFormat": "Total",
           "range": true,
@@ -974,7 +974,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(\n    node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\"}\n  * on (namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-.*)?\", workload_type=\"deployment\"}\n) by (workload)",
+          "expr": "sum(\n    node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\"}\n  * on (namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-.*)?\", workload_type=\"deployment\"}\n) by (workload)",
           "hide": false,
           "legendFormat": "{{workload}}",
           "range": true,
@@ -1069,7 +1069,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(\n    container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on (namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n)",
+          "expr": "sum(\n    container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on (namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n)",
           "legendFormat": "Total",
           "range": true,
           "refId": "A"
@@ -1080,7 +1080,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(\n    container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on (namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (workload)",
+          "expr": "sum(\n    container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on (namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (workload)",
           "hide": false,
           "legendFormat": "{{workload}}",
           "range": true,
@@ -1277,7 +1277,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "(sum(irate(container_network_receive_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
+          "expr": "(sum(irate(container_network_receive_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1289,7 +1289,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "(sum(irate(container_network_transmit_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
+          "expr": "(sum(irate(container_network_transmit_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1301,7 +1301,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "(sum(irate(container_network_receive_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
+          "expr": "(sum(irate(container_network_receive_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1313,7 +1313,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "(sum(irate(container_network_transmit_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
+          "expr": "(sum(irate(container_network_transmit_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1325,7 +1325,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "(sum(irate(container_network_receive_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
+          "expr": "(sum(irate(container_network_receive_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1337,7 +1337,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "(sum(irate(container_network_transmit_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
+          "expr": "(sum(irate(container_network_transmit_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}) by (pod))\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1545,7 +1545,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(\n    node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
+          "expr": "sum(\n    node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1557,7 +1557,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(\n    kube_pod_container_resource_requests{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"cpu\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
+          "expr": "sum(\n    kube_pod_container_resource_requests{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"cpu\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1569,7 +1569,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(\n    node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n/sum(\n    kube_pod_container_resource_requests{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"cpu\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
+          "expr": "sum(\n    node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n/sum(\n    kube_pod_container_resource_requests{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"cpu\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1581,7 +1581,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(\n    kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"cpu\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
+          "expr": "sum(\n    kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"cpu\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1593,7 +1593,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(\n    node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n/sum(\n    kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"cpu\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
+          "expr": "sum(\n    node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n/sum(\n    kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"cpu\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1801,7 +1801,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(\n    container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
+          "expr": "sum(\n    container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1813,7 +1813,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(\n    kube_pod_container_resource_requests{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"memory\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
+          "expr": "sum(\n    kube_pod_container_resource_requests{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"memory\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1825,7 +1825,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(\n    container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n/sum(\n    kube_pod_container_resource_requests{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"memory\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
+          "expr": "sum(\n    container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n/sum(\n    kube_pod_container_resource_requests{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"memory\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1837,7 +1837,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(\n    kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"memory\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
+          "expr": "sum(\n    kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"memory\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1849,7 +1849,7 @@
           "datasource": {
             "uid": "$datasource"
           },
-          "expr": "sum(\n    container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n/sum(\n    kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"memory\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
+          "expr": "sum(\n    container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n/sum(\n    kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"memory\"}\n  * on(namespace,pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}\n) by (pod)\n",
           "format": "table",
           "instant": true,
           "intervalFactor": 2,
@@ -1970,7 +1970,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_receive_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))",
+          "expr": "(sum(irate(container_network_receive_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))",
           "legendFormat": "Total",
           "range": true,
           "refId": "A"
@@ -1981,7 +1981,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_receive_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))",
+          "expr": "(sum(irate(container_network_receive_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))",
           "hide": false,
           "legendFormat": "{{workload}}",
           "range": true,
@@ -2075,7 +2075,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_transmit_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
+          "expr": "(sum(irate(container_network_transmit_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
           "legendFormat": "Total",
           "range": true,
           "refId": "A"
@@ -2086,7 +2086,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_transmit_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
+          "expr": "(sum(irate(container_network_transmit_bytes_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
           "hide": false,
           "legendFormat": "{{workload}}",
           "range": true,
@@ -2180,7 +2180,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_receive_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
+          "expr": "(sum(irate(container_network_receive_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
           "legendFormat": "Total",
           "range": true,
           "refId": "A"
@@ -2191,7 +2191,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_receive_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
+          "expr": "(sum(irate(container_network_receive_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
           "hide": false,
           "legendFormat": "{{workload}}",
           "range": true,
@@ -2285,7 +2285,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_transmit_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
+          "expr": "(sum(irate(container_network_transmit_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
           "legendFormat": "Total",
           "range": true,
           "refId": "A"
@@ -2296,7 +2296,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_transmit_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
+          "expr": "(sum(irate(container_network_transmit_packets_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
           "hide": false,
           "legendFormat": "{{workload}}",
           "range": true,
@@ -2390,7 +2390,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_receive_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
+          "expr": "(sum(irate(container_network_receive_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
           "legendFormat": "Total",
           "range": true,
           "refId": "A"
@@ -2401,7 +2401,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_receive_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
+          "expr": "(sum(irate(container_network_receive_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
           "hide": false,
           "legendFormat": "{{workload}}",
           "range": true,
@@ -2495,7 +2495,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_transmit_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
+          "expr": "(sum(irate(container_network_transmit_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"}))\n",
           "legendFormat": "Total",
           "range": true,
           "refId": "A"
@@ -2506,7 +2506,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(irate(container_network_transmit_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_deployment]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
+          "expr": "(sum(irate(container_network_transmit_packets_dropped_total{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\"}[$__rate_interval])\n* on (namespace,pod)\ngroup_left(workload,workload_type) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=~\"[[bento_function]](-runner-[0-9]+)?\", workload_type=\"deployment\"})\nby (workload))\n",
           "hide": false,
           "legendFormat": "{{workload}}",
           "range": true,
@@ -2560,15 +2560,15 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(bentoml_api_server_request_total, yatai_ai_bento_deployment)",
+        "definition": "label_values(bentoml_api_server_request_total, yatai_ai_bento_function)",
         "hide": 0,
         "includeAll": true,
-        "label": "BentoDeployment",
+        "label": "BentoFunction",
         "multi": false,
-        "name": "bento_deployment",
+        "name": "bento_function",
         "options": [],
         "query": {
-          "query": "label_values(bentoml_api_server_request_total, yatai_ai_bento_deployment)",
+          "query": "label_values(bentoml_api_server_request_total, yatai_ai_bento_function)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -2585,7 +2585,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "BentoDeployment",
+  "title": "BentoFunction",
   "uid": "TJ3FhiG4z",
   "version": 4,
   "weekStart": ""
