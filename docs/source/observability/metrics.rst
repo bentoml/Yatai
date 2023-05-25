@@ -251,6 +251,7 @@ Now you can auto-complete to BentoML's metrics in the prometheus expression inpu
 .. code:: bash
 
    curl -L https://raw.githubusercontent.com/bentoml/yatai/main/scripts/monitoring/bentodeployment-dashboard.json -o /tmp/bentodeployment-dashboard.json
+   curl -L https://raw.githubusercontent.com/bentoml/yatai/main/scripts/monitoring/bentofunction-dashboard.json -o /tmp/bentofunction-dashboard.json
 
 2. Create Grafana dashboard configmap
 """""""""""""""""""""""""""""""""""""
