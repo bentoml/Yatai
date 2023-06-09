@@ -19,9 +19,9 @@ As you know, Kubernetes has a complex network environment, so developing cloud-n
 
     Using a pre-installed Yatai in the development environment, the aim is to quickly provide a range of out-of-the-box infrastructure dependencies
 
-    You can start by reading this [installation document](https://docs.bentoml.org/projects/yatai/en/latest/installation/yatai.html) to install Yatai. It is highly recommended to use the [quick install script](https://docs.bentoml.org/projects/yatai/en/latest/installation/yatai.html#quick-install) to install Yatai
+    You can start by reading this [installation document](https://docs.yatai.io/en/latest/installation/yatai.html) to install Yatai. It is highly recommended to use the [quick install script](https://docs.yatai.io/en/latest/installation/yatai.html#quick-install) to install Yatai
 
-    Remember, **never use infrastructure from the production environment**, only use newly installed infrastructure in the cluster, such as SQL databases, blob storage, docker registry, etc. The [quick install script](https://docs.bentoml.org/projects/yatai/en/latest/installation/yatai.html#quick-install) mentioned above will prevent you from using the infrastructure in the production environment, this script will help you to install all the infrastructure from scratch, you can use it without any worries.
+    Remember, **never use infrastructure from the production environment**, only use newly installed infrastructure in the cluster, such as SQL databases, blob storage, docker registry, etc. The [quick install script](https://docs.yatai.io/en/latest/installation/yatai.html#quick-install) mentioned above will prevent you from using the infrastructure in the production environment, this script will help you to install all the infrastructure from scratch, you can use it without any worries.
 
     If you have already installed it, please verify that your kubectl context is correct with the following command:
 
