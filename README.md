@@ -1,7 +1,7 @@
 # 🦄️ Yatai: Model Deployment at Scale on Kubernetes
 
 [![actions_status](https://github.com/bentoml/yatai/workflows/CICD/badge.svg)](https://github.com/bentoml/yatai/actions)
-[![docs](https://readthedocs.org/projects/yatai/badge/?version=latest&style=flat-square)](https://docs.bentoml.org/projects/yatai)
+[![docs](https://readthedocs.org/projects/yatai/badge/?version=latest&style=flat-square)](https://docs.yatai.io/en/latest/)
 [![join_slack](https://badgen.net/badge/Join/Community%20Slack/cyan?icon=slack&style=flat-square)](https://join.slack.bentoml.org)
 
 Yatai (屋台, food cart) lets you deploy, operate and scale Machine Learning services on Kubernetes. 
@@ -28,16 +28,16 @@ It supports deploying any ML models via [BentoML: the unified model serving fram
 
 🚅 Cloud native & DevOps friendly
 
-- Kubernetes-native workflow via [BentoDeployment CRD](https://docs.bentoml.org/projects/yatai/en/latest/concepts/bentodeployment_crd.html) (Custom Resource Definition), which can easily fit into an existing GitOps workflow.
-- Native [integration with Grafana](https://docs.bentoml.org/projects/yatai/en/latest/observability/metrics.html) stack for observability.
+- Kubernetes-native workflow via [BentoDeployment CRD](https://docs.yatai.io/en/latest/concepts/bentodeployment_crd.html) (Custom Resource Definition), which can easily fit into an existing GitOps workflow.
+- Native [integration with Grafana](https://docs.yatai.io/en/latest/observability/metrics.html) stack for observability.
 - Support for traffic control with Istio.
 - Compatible with all major cloud platforms (AWS, Azure, and GCP).
 
 
 ## Getting Started
 
-- 📖 [Documentation](https://docs.bentoml.org/projects/yatai/) - Overview of the Yatai docs and related resources
-- ⚙️ [Installation](https://docs.bentoml.org/projects/yatai/en/latest/installation/index.html) - Hands-on instruction on how to install Yatai for production use
+- 📖 [Documentation](https://docs.yatai.io/) - Overview of the Yatai docs and related resources
+- ⚙️ [Installation](https://docs.yatai.io/en/latest/installation/index.html) - Hands-on instruction on how to install Yatai for production use
 - 👉 [Join Community Slack](https://l.linklyhq.com/l/ktPW) - Get help from our community and maintainers
 
 
@@ -65,7 +65,7 @@ This script will install Yatai along with its dependencies (PostgreSQL and MinIO
 your minikube cluster. 
 
 Note that this installation script is made for development and testing use only.
-For production deployment, check out the [Installation Guide](https://docs.bentoml.org/projects/yatai/en/latest/installation/index.html).
+For production deployment, check out the [Installation Guide](https://docs.yatai.io/en/latest/installation/index.html).
 
 To access Yatai web UI, run the following command and keep the terminal open:
 

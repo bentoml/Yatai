@@ -116,7 +116,7 @@ linkcheck_ignore = [
 linkcheck_allowed_redirects = {
   r"http[s]://docs\.aws\.amazon\.com/.*": r"http[s]://docs\.aws\.amazon\.com/.*",
   r"http[s]://docs\.bentoml\.org/.*": r"http[s]://docs\.bentoml\.org/en/latest/.*",
-  r"http[s]://docs\.bentoml\.org/projects/yatai.*": r"http[s]://docs\.bentoml\.org/projects/yatai/en/latest/.*",
+  r"http[s]://docs\.yatai\.io/.*": r"http[s]://docs\.yatai\.io/en/latest/.*",
   r"http://modelserving\.com(/.*)?": r"https://modelserving\.com/.*",
   r"https://l\.linklyhq\.com/.*": r"https://bentoml\.slack\.com/.*",
 }
