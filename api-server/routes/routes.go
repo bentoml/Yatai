@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/wI2L/fizz"
 	"github.com/wI2L/fizz/openapi"
+	"gorm.io/gorm"
 
 	"github.com/bentoml/yatai-common/consts"
 	"github.com/bentoml/yatai-schemas/schemasv1"
@@ -65,6 +66,19 @@ func injectCurrentOrganization(c *gin.Context) {
 	c.Next()
 }
 
+func errorHook(c *gin.Context, e error) (status int, resp interface{}) {
+	resp = gin.H{"error": e.Error()}
+	cause := errors.Cause(e)
+
+	if errors.Is(cause, gorm.ErrRecordNotFound) {
+		status = http.StatusNotFound
+	} else {
+		status = http.StatusBadRequest
+	}
+
+	return
+}
+
 func NewRouter() (*fizz.Fizz, error) {
 	tonic.SetRenderHook(func(c *gin.Context, statusCode int, payload interface{}) {
 		if _, exists := c.Get(WebsocketConnectContextKey); exists {
@@ -86,6 +100,8 @@ func NewRouter() (*fizz.Fizz, error) {
 			c.String(status, "")
 		}
 	}, "")
+
+	tonic.SetErrorHook(errorHook)
 
 	engine := gin.New()
 
