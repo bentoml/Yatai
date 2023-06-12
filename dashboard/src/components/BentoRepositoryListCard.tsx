@@ -485,7 +485,7 @@ export default function BentoRepositoryListCard() {
                         <p>
                             1. {t('Follow to [BentoML quickstart guide] to create your first Bento. prefix')}
                             <Link
-                                href='https://docs.bentoml.org/en/latest/quickstart.html#getting-started-page'
+                                href='https://docs.bentoml.org/en/latest/tutorial.html'
                                 target='_blank'
                             >
                                 {t('BentoML quickstart guide')}
