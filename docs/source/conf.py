@@ -7,7 +7,13 @@ project = "Yatai"
 copyright = f"2022-{datetime.now().year}, bentoml.com"
 author = "bentoml.com"
 
-version = subprocess.check_output(['sh', '-c', "git describe --tags `git rev-list --tags --max-count=1`"]).decode('utf-8').strip()[1:]
+version = (
+    subprocess.check_output(
+        ["sh", "-c", "git describe --tags `git rev-list --tags --max-count=1`"]
+    )
+    .decode("utf-8")
+    .strip()[1:]
+)
 
 # -- General configuration ---------------------------------------------------
 
@@ -48,7 +54,7 @@ autosectionlabel_prefix_document = True
 autosectionlabel_maxdepth = 10
 
 ogp_site_url = "http://docs.bentoml.org"
-ogp_image = "https://docs.bentoml.org/en/latest/_images/bentoml-banner.png"
+ogp_image = "https://docs.bentoml.org/en/latest/_static/img/bentoml-banner.png"
 ogp_site_name = "BentoML Documentation"
 ogp_use_first_image = True
 
@@ -110,13 +116,11 @@ spelling_word_list_filename = ["yatai_wordlist.txt"]
 # mock any heavy imports, eg: imports from frameworks library
 autodoc_mock_imports = []
 
-linkcheck_ignore = [
-  "https://github.com/kubernetes-sigs/metrics-server#installation"
-]
+linkcheck_ignore = ["https://github.com/kubernetes-sigs/metrics-server#installation"]
 linkcheck_allowed_redirects = {
-  r"http[s]://docs\.aws\.amazon\.com/.*": r"http[s]://docs\.aws\.amazon\.com/.*",
-  r"http[s]://docs\.bentoml\.org/.*": r"http[s]://docs\.bentoml\.org/en/latest/.*",
-  r"http[s]://docs\.yatai\.io/.*": r"http[s]://docs\.yatai\.io/en/latest/.*",
-  r"http://modelserving\.com(/.*)?": r"https://modelserving\.com/.*",
-  r"https://l\.linklyhq\.com/.*": r"https://bentoml\.slack\.com/.*",
+    r"http[s]://docs\.aws\.amazon\.com/.*": r"http[s]://docs\.aws\.amazon\.com/.*",
+    r"http[s]://docs\.bentoml\.org/.*": r"http[s]://docs\.bentoml\.org/en/latest/.*",
+    r"http[s]://docs\.yatai\.io/.*": r"http[s]://docs\.yatai\.io/en/latest/.*",
+    r"http://modelserving\.com(/.*)?": r"https://modelserving\.com/.*",
+    r"https://l\.linklyhq\.com/.*": r"https://bentoml\.slack\.com/.*",
 }

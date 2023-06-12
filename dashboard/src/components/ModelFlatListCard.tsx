@@ -216,10 +216,7 @@ export default function ModelFlatListCard() {
                     <div>
                         <p>
                             1. {t('Follow to [BentoML quickstart guide] to create your first Model. prefix')}
-                            <Link
-                                href='https://docs.bentoml.org/en/latest/quickstart.html#getting-started-page'
-                                target='_blank'
-                            >
+                            <Link href='https://docs.bentoml.org/en/latest/tutorial.html' target='_blank'>
                                 {t('BentoML quickstart guide')}
                             </Link>
                             {t('Follow to [BentoML quickstart guide] to create your first Model. suffix')}
