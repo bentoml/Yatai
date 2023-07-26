@@ -191,7 +191,7 @@ fi
 S3_ENDPOINT=minio.${namespace}.svc.cluster.local
 S3_REGION=foo
 S3_BUCKET_NAME=yatai
-S3_SECURE=true
+S3_SECURE=false
 S3_ACCESS_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.accesskey}' | base64 -d)
 S3_SECRET_KEY=$(kubectl -n ${namespace} get secret ${minio_secret_name} -o jsonpath='{.data.secretkey}' | base64 -d)
 
@@ -229,7 +229,9 @@ helm upgrade --install yatai-minio-tenant minio/tenant \
   -n ${namespace} \
   --set secrets.accessKey=${S3_ACCESS_KEY} \
   --set secrets.secretKey=${S3_SECRET_KEY} \
-  --set tenant.name=yatai-minio
+  --set tenant.name=yatai-minio \
+  --set tenant.certificate.requestAutoCert=false
+
 
 echo "⏳ waiting for minio tenant to be ready..."
 # this retry logic is to avoid kubectl wait errors due to minio tenant resources not being created
@@ -257,7 +259,7 @@ for i in $(seq 1 10); do
     --env "AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY" \
     --env "AWS_SECRET_ACCESS_KEY=$S3_SECRET_KEY" \
     --image quay.io/bentoml/s3-client:0.0.1 \
-    --command -- sh -c "s3-client -e https://$S3_ENDPOINT listbuckets 2>/dev/null"; then
+    --command -- sh -c "s3-client -e http://$S3_ENDPOINT listbuckets 2>/dev/null"; then
       echo "✅ MinIO connection is successful"
       break
     else
