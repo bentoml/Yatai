@@ -77,7 +77,7 @@ Learn Yatai
 Staying Informed
 ----------------
 
-The `BentoML Blog <http://modelserving.com>`_ and `@bentomlai <https://twitt
+The `BentoML Blog <https://bentoml.com>`_ and `@bentomlai <https://twitt
 er.com/bentomlai>`_ on Twitter are the official source for
 updates from the BentoML team. Anything important, including major releases and announcements, will be posted there. We also frequently
 share tutorials, case studies, and community updates there.
@@ -105,7 +105,7 @@ contributing to the project, helping other users and discuss all things MLOps.
    advanced_guides/index
    Community <https://l.linklyhq.com/l/ktOX>
    GitHub <https://github.com/bentoml/Yatai>
-   Blog <https://modelserving.com>
+   Blog <https://bentoml.com>
 
 .. toctree::
    :caption: Ecosystem
