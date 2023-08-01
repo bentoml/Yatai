@@ -3,6 +3,7 @@ package controllersv1
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"strings"
 	"time"
@@ -211,14 +212,15 @@ func (c *bentoController) Upload(ctx *gin.Context) {
 		uploadStatus = modelschemas.BentoUploadStatusFailed
 		now = time.Now()
 		nowPtr = &now
-		bento, err = services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
+		_, err_ := services.BentoService.Update(ctx, bento, services.UpdateBentoOption{
 			UploadStatus:    &uploadStatus,
 			UploadStartedAt: &nowPtr,
 		})
-		if err != nil {
-			abortWithError(ctx, err)
-			return
+		if err_ != nil {
+			err = stderrors.Join(err, err_)
 		}
+		abortWithError(ctx, err)
+		return
 	}
 
 	uploadStatus = modelschemas.BentoUploadStatusSuccess

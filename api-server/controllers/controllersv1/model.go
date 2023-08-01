@@ -2,6 +2,7 @@ package controllersv1
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"strings"
 	"time"
@@ -179,14 +180,15 @@ func (c *modelController) Upload(ctx *gin.Context) {
 		uploadStatus = modelschemas.ModelUploadStatusFailed
 		now = time.Now()
 		nowPtr = &now
-		model, err = services.ModelService.Update(ctx, model, services.UpdateModelOption{
+		_, err_ := services.ModelService.Update(ctx, model, services.UpdateModelOption{
 			UploadStatus:    &uploadStatus,
 			UploadStartedAt: &nowPtr,
 		})
-		if err != nil {
-			abortWithError(ctx, err)
-			return
+		if err_ != nil {
+			err = stderrors.Join(err, err_)
 		}
+		abortWithError(ctx, err)
+		return
 	}
 
 	uploadStatus = modelschemas.ModelUploadStatusSuccess
