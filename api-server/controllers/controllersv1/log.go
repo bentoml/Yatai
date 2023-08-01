@@ -56,11 +56,11 @@ type Tail struct {
 }
 
 type tailRequest struct {
-	Id            string  `json:"id"`
-	TailLines     *int64  `json:"tail_lines"`
-	ContainerName *string `json:"container_name"`
-	SinceTime     *time.Time
-	Follow        bool
+	Id            string     `json:"id"`
+	TailLines     *int64     `json:"tail_lines"`
+	ContainerName *string    `json:"container_name"`
+	SinceTime     *time.Time `json:"since_time"`
+	Follow        bool       `json:"follow"`
 }
 
 type wsTailRequest struct {

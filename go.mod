@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/aquasecurity/go-pep440-version v0.0.0-20210121094942-22b2f8951d46
-	github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
 	github.com/bentoml/yatai-common v0.0.0-20230210154457-efbefe1633ab
 	github.com/bentoml/yatai-deployment v1.1.7-0.20230210154159-c292a9619c4f
 	github.com/bentoml/yatai-image-builder v1.1.1-0.20230108162700-337f26f7f704
@@ -55,7 +54,6 @@ require (
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.3.1 // indirect
-	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/containerd/containerd v1.6.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -126,7 +124,6 @@ require (
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
-	github.com/openshift/api v3.9.0+incompatible // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
@@ -178,7 +175,6 @@ require (
 )
 
 replace (
-	github.com/bentoml/grafana-operator => github.com/bentoml/grafana-operator v1.4.1-0.20210927064226-14795530b647
 	github.com/mattn/go-ieproxy => github.com/mattn/go-ieproxy v0.0.1
 	github.com/moby/buildkit => github.com/moby/buildkit v0.8.3
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.0-rc92
