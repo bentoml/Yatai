@@ -165,7 +165,7 @@ metadata:
     name: iris-classifier
     namespace: yatai
 spec:
-    bentoTag: iris_classifier:3oevmqfvnkvwvuqj
+    bentoTag: iris_classifier:3oevmqfvnkvwvuqj  # check the tag by `bentoml list iris_classifier`
 ---
 apiVersion: serving.yatai.ai/v2alpha1
 kind: BentoDeployment
@@ -179,10 +179,10 @@ spec:
     resources:
         limits:
             cpu: "500m"
-            memory: "512m"
+            memory: "512Mi"
         requests:
             cpu: "250m"
-            memory: "128m"
+            memory: "128Mi"
     autoscaling:
         maxReplicas: 10
         minReplicas: 2
@@ -194,7 +194,7 @@ spec:
                   memory: "1Gi"
               requests:
                   cpu: "500m"
-                  memory: "512m"
+                  memory: "512Mi"
           autoscaling:
               maxReplicas: 4
               minReplicas: 1
