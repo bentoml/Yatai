@@ -226,7 +226,7 @@ The output should be:
 3. Install Loki
 ^^^^^^^^^^^^^^^
 
-1. Install `Microservices mode Loki <https://grafana.com/docs/loki/latest/fundamentals/architecture/deployment-modes/#microservices-mode>`_
+1. Install `Microservices mode Loki <https://grafana.com/docs/loki/latest/get-started/deployment-modes/#microservices-mode>`_
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code:: bash
