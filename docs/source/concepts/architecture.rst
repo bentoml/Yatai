@@ -102,7 +102,7 @@ Grafana
 Promtail
 ********
 
-`Promtail <https://grafana.com/docs/loki/latest/clients/promtail/>`_ is a Grafana agent that acquires logs, turns logs into streams, and pushes the streams to Loki through an HTTP API. Promtail can be deployed as a DaemonSet on every Kubernetes node to collect logs from the node.
+`Promtail <https://grafana.com/docs/loki/latest/send-data/promtail/>`_ is a Grafana agent that acquires logs, turns logs into streams, and pushes the streams to Loki through an HTTP API. Promtail can be deployed as a DaemonSet on every Kubernetes node to collect logs from the node.
 
 Loki
 ****
