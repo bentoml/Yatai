@@ -6,9 +6,8 @@ on:
       - main
       - v1.0.0
   pull_request:
-    branches:
-      - main
-      - v1.0.0
+    types:
+      - unlocked
 
 jobs:
   typos-check:
