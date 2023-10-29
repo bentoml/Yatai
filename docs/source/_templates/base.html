@@ -8,45 +8,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-NLGDMK5');</script>
 <!-- End Google Tag Manager -->
 {{ super() }}
-<script>
-window.Papercups = {
-    config: {
-        // Pass in your Papercups account token here after signing up
-        accountId: '25ad5fd9-293b-4e0f-9601-5b0cd7846b48',
-        token: 'bd772f05-a51b-4647-99a9-5d6f24de1999',
-        inbox: 'adc8d598-4fa9-4aae-9879-96867a838314',
-        title: 'Welcome to Yatai!',
-        subtitle: 'Ask us anything in the chat window below 😊',
-        // newMessagePlaceholder: 'Start typing...',
-        primaryColor: '#47AFD1',
-        // Optionally pass in a default greeting
-        greeting: "Hi there! How can I help you? If we couldn't get back to you in " +
-                "time, feel free to join our community on slack and post your " +
-                "question in the #support channel: https://l.linklyhq.com/l/ktOX",
-        // Optionally pass in metadata to identify the customer
-        // customer: {
-        //   name: 'Test User',
-        //   email: 'test@test.com',
-        //   external_id: '123',
-        //   metadata: {version: 1, plan: 'premium'}, // Custom fields go here
-        // },
-        // Optionally specify the base URL
-        baseUrl: 'https://yatai-community-papercups.herokuapp.com',
-        // Add this if you want to require the customer to enter
-        // their email before being able to send you a message
-        requireEmailUpfront: true,
-        // Add this if you want to indicate when you/your agents
-        // are online or offline to your customers
-        showAgentAvailability: true,
-    },
-};
-</script>
-<script
-  type="text/javascript"
-  async
-  defer
-  src="https://app.papercups.io/widget.js"
-></script>
 {% endblock %}
 
 {%- block body -%}

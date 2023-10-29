@@ -112,8 +112,8 @@ contributing to the project, helping other users and discuss all things MLOps.
    :hidden:
 
    🍱 BentoML <https://github.com/bentoml/BentoML>
+   🦾 OpenLLM <https://github.com/bentoml/OpenLLM>
    ☁️ BentoCloud <https://www.bentoml.com/bento-cloud/>
-   🚀 bentoctl <https://github.com/bentoml/bentoctl>
 
 .. spelling::
 
