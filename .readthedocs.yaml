@@ -20,6 +20,6 @@ python:
     - requirements: requirements/docs-requirements.txt
   # system_packages: true
 
-formats:
-  - epub
-  - pdf
+# formats:
+#   - epub
+#   - pdf
