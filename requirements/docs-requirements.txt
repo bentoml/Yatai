@@ -14,4 +14,4 @@ sphinx-design
 pyenchant
 Jinja2>=3.1
 sphinx-autobuild
-sphinx_lfs_content
+sphinx_lfs_content==1.1.4
