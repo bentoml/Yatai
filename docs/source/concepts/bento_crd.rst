@@ -57,7 +57,7 @@ Example of a Bento
     name: my-bento
     namespace: my-namespace
   spec:
-    bentoTag: iris:1
+    tag: iris:1
     image: my-registry.com/my-repository/iris:1
     runners:
     - name: runner1
