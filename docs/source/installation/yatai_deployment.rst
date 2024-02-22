@@ -42,6 +42,11 @@ Prerequisites
     nginx   k8s.io/ingress-nginx   <none>       10d
 
   If no value is returned, there is no ingress controller installed in your cluster. You need to select an ingress controller and install it, for example, you can install `nginx-ingress <https://kubernetes.github.io/ingress-nginx/deploy/#quick-start>`_.
+
+  .. note::
+
+    When installing nginx-ingress, remember to set `controller.allowSnippetAnnotations` to `true`, otherwise it will cause the deployment to fail.
+
   If you are using :code:`minikube`, you don't need to install ingress controller manually, just enable :code:`ingress addon` with the following command:
 
   .. code:: bash
