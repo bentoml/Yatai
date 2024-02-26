@@ -3,11 +3,13 @@
 [![actions_status](https://github.com/bentoml/yatai/workflows/Release/badge.svg)](https://github.com/bentoml/yatai/actions)
 [![join_slack](https://badgen.net/badge/Join/Community%20Slack/cyan?icon=slack&style=flat-square)](https://join.slack.bentoml.org)
 
+⚠️ Yatai for [BentoML 1.2](https://github.com/bentoml/BentoML/releases/tag/v1.2.0) is currently under construction. See [Yatai 2.0 Proposal](https://github.com/bentoml/Yatai/issues/504) for more details. 
+
+---
+
 Yatai (屋台, food cart) is the Kubernetes deployment operator for [BentoML](https://github.com/bentoml/bentoml).
 
 It let DevOps teams to seamlessly integrate BentoML into their GitOps workflow, for deploying and scaling Machine Learning services on any Kubernetes cluster.
-
-✨ Yatai contains a substantial subset of scalability features offered in [BentoCloud](https://l.bentoml.com/bento-cloud). For enterprise users looking for more advanced performance optimization and ease-of-use operational features, please [get in touch with us](https://kdyvd8c5ifq.typeform.com/to/eTujPAaE).
 
 👉 [Join our Slack community today!](https://l.bentoml.com/join-slack)
 
@@ -15,7 +17,7 @@ It let DevOps teams to seamlessly integrate BentoML into their GitOps workflow, 
 
 ## Why Yatai?
 
-Yatai is designed to run [BentoML](https://github.com/bentoml) on a distributed system, optimized for scalability and DevOps workflow.
+Yatai empowers developers to deploy [BentoML](https://github.com/bentoml) on Kubernetes, optimized for CI/CD and DevOps workflow.
 
 Yatai is Cloud native and DevOps friendly. Via its Kubernetes-native workflow, specifically the [BentoDeployment CRD](https://docs.yatai.io/en/latest/concepts/bentodeployment_crd.html) (Custom Resource Definition), DevOps teams can easily fit BentoML powered services into their existing workflow.
 
