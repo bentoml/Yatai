@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/client-go/kubernetes"
 	appstypev1 "k8s.io/client-go/kubernetes/typed/apps/v1"
-	"k8s.io/client-go/kubernetes/typed/autoscaling/v2beta2"
+	v2 "k8s.io/client-go/kubernetes/typed/autoscaling/v2"
 	batchtypev1 "k8s.io/client-go/kubernetes/typed/batch/v1"
 	batchtypev1beta "k8s.io/client-go/kubernetes/typed/batch/v1beta1"
 	apitypev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -379,13 +379,13 @@ func (s *deploymentService) GetKubeDeploymentsCli(ctx context.Context, d *models
 	return deploymentsCli, nil
 }
 
-func (s *deploymentService) GetKubeHPAsCli(ctx context.Context, d *models.Deployment) (v2beta2.HorizontalPodAutoscalerInterface, error) {
+func (s *deploymentService) GetKubeHPAsCli(ctx context.Context, d *models.Deployment) (v2.HorizontalPodAutoscalerInterface, error) {
 	cliset, _, err := s.GetKubeCliSet(ctx, d)
 	if err != nil {
 		return nil, errors.Wrap(err, "get k8s cliset")
 	}
 	ns := s.GetKubeNamespace(d)
-	hpaCli := cliset.AutoscalingV2beta2().HorizontalPodAutoscalers(ns)
+	hpaCli := cliset.AutoscalingV2().HorizontalPodAutoscalers(ns)
 	return hpaCli, nil
 }
 
