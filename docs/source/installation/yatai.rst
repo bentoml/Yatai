@@ -9,7 +9,7 @@ Prerequisites
 
 - Kubernetes
 
-  Kubernetes cluster with version 1.20 or newer (<=1.25 if you need yatai-deployment)
+  Kubernetes cluster with version 1.20 or newer
 
   .. note::
 
