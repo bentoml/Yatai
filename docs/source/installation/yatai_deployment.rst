@@ -15,8 +15,8 @@ Prerequisites
 
 - Kubernetes
 
-  Kubernetes cluster with version from 1.20 to 1.25.
-
+  Kubernetes version greater than 1.20
+  
   .. note::
 
     If you do not have a production Kubernetes cluster and want to install ``yatai-deployment`` for development and testing purposes. You can use `minikube <https://minikube.sigs.k8s.io/docs/start/>`_ to set up a local Kubernetes cluster for testing. If you are using macOS, you should use `hyperkit <https://minikube.sigs.k8s.io/docs/drivers/hyperkit/>`_ driver to prevent the macOS docker desktop `network limitation <https://docs.docker.com/desktop/networking/#i-cannot-ping-my-containers>`_
