@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"k8s.io/api/autoscaling/v2beta2"
+	v2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -24,7 +24,7 @@ type kubeHPAService struct{}
 
 var KubeHPAService = kubeHPAService{}
 
-func (s *kubeHPAService) DeploymentTargetToKubeHPA(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (hpa *v2beta2.HorizontalPodAutoscaler, err error) {
+func (s *kubeHPAService) DeploymentTargetToKubeHPA(ctx context.Context, deploymentTarget *models.DeploymentTarget, deployOption *models.DeployOption) (hpa *v2.HorizontalPodAutoscaler, err error) {
 	conf := deploymentTarget.Config
 	if conf == nil {
 		return
@@ -50,16 +50,16 @@ func (s *kubeHPAService) DeploymentTargetToKubeHPA(ctx context.Context, deployme
 
 	hpaConf := conf.HPAConf
 
-	var metrics []v2beta2.MetricSpec
+	var metrics []v2.MetricSpec
 	if hpaConf.QPS != nil && *hpaConf.QPS > 0 {
-		metrics = append(metrics, v2beta2.MetricSpec{
-			Type: v2beta2.PodsMetricSourceType,
-			Pods: &v2beta2.PodsMetricSource{
-				Metric: v2beta2.MetricIdentifier{
+		metrics = append(metrics, v2.MetricSpec{
+			Type: v2.PodsMetricSourceType,
+			Pods: &v2.PodsMetricSource{
+				Metric: v2.MetricIdentifier{
 					Name: commonconsts.KubeHPAQPSMetric,
 				},
-				Target: v2beta2.MetricTarget{
-					Type:         v2beta2.UtilizationMetricType,
+				Target: v2.MetricTarget{
+					Type:         v2.UtilizationMetricType,
 					AverageValue: resource.NewQuantity(*hpaConf.QPS, resource.DecimalSI),
 				},
 			},
@@ -67,12 +67,12 @@ func (s *kubeHPAService) DeploymentTargetToKubeHPA(ctx context.Context, deployme
 	}
 
 	if hpaConf.CPU != nil && *hpaConf.CPU > 0 {
-		metrics = append(metrics, v2beta2.MetricSpec{
-			Type: v2beta2.ResourceMetricSourceType,
-			Resource: &v2beta2.ResourceMetricSource{
+		metrics = append(metrics, v2.MetricSpec{
+			Type: v2.ResourceMetricSourceType,
+			Resource: &v2.ResourceMetricSource{
 				Name: corev1.ResourceCPU,
-				Target: v2beta2.MetricTarget{
-					Type:               v2beta2.UtilizationMetricType,
+				Target: v2.MetricTarget{
+					Type:               v2.UtilizationMetricType,
 					AverageUtilization: hpaConf.CPU,
 				},
 			},
@@ -84,12 +84,12 @@ func (s *kubeHPAService) DeploymentTargetToKubeHPA(ctx context.Context, deployme
 		if err != nil {
 			return nil, errors.Wrapf(err, "parse memory %s", *hpaConf.Memory)
 		}
-		metrics = append(metrics, v2beta2.MetricSpec{
-			Type: v2beta2.ResourceMetricSourceType,
-			Resource: &v2beta2.ResourceMetricSource{
+		metrics = append(metrics, v2.MetricSpec{
+			Type: v2.ResourceMetricSourceType,
+			Resource: &v2.ResourceMetricSource{
 				Name: corev1.ResourceMemory,
-				Target: v2beta2.MetricTarget{
-					Type:         v2beta2.UtilizationMetricType,
+				Target: v2.MetricTarget{
+					Type:         v2.UtilizationMetricType,
 					AverageValue: &quantity,
 				},
 			},
@@ -97,12 +97,12 @@ func (s *kubeHPAService) DeploymentTargetToKubeHPA(ctx context.Context, deployme
 	}
 
 	if len(metrics) == 0 {
-		metrics = append(metrics, v2beta2.MetricSpec{
-			Type: v2beta2.ResourceMetricSourceType,
-			Resource: &v2beta2.ResourceMetricSource{
+		metrics = append(metrics, v2.MetricSpec{
+			Type: v2.ResourceMetricSourceType,
+			Resource: &v2.ResourceMetricSource{
 				Name: corev1.ResourceCPU,
-				Target: v2beta2.MetricTarget{
-					Type:               v2beta2.UtilizationMetricType,
+				Target: v2.MetricTarget{
+					Type:               v2.UtilizationMetricType,
 					AverageUtilization: utils.Int32Ptr(80),
 				},
 			},
@@ -121,7 +121,7 @@ func (s *kubeHPAService) DeploymentTargetToKubeHPA(ctx context.Context, deployme
 
 	kubeNs := DeploymentService.GetKubeNamespace(deployment)
 
-	kubeHpa := &v2beta2.HorizontalPodAutoscaler{
+	kubeHpa := &v2.HorizontalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            kubeName,
 			Namespace:       kubeNs,
@@ -129,10 +129,10 @@ func (s *kubeHPAService) DeploymentTargetToKubeHPA(ctx context.Context, deployme
 			Annotations:     annotations,
 			OwnerReferences: deployOption.OwnerReferences,
 		},
-		Spec: v2beta2.HorizontalPodAutoscalerSpec{
+		Spec: v2.HorizontalPodAutoscalerSpec{
 			MinReplicas: hpaConf.MinReplicas,
 			MaxReplicas: maxReplicas,
-			ScaleTargetRef: v2beta2.CrossVersionObjectReference{
+			ScaleTargetRef: v2.CrossVersionObjectReference{
 				APIVersion: "apps/v1",
 				Kind:       "Deployment",
 				Name:       kubeName,
@@ -158,7 +158,7 @@ func (s *kubeHPAService) DeployDeploymentTargetAsKubeHPA(ctx context.Context, de
 		return errors.Wrap(err, "get deployment")
 	}
 	kubeNs := DeploymentService.GetKubeNamespace(deployment)
-	hpaCli := kubeCli.AutoscalingV2beta2().HorizontalPodAutoscalers(kubeNs)
+	hpaCli := kubeCli.AutoscalingV2().HorizontalPodAutoscalers(kubeNs)
 	if err != nil {
 		return errors.Wrap(err, "get KubeHPA cli failed")
 	}
@@ -185,7 +185,7 @@ func (s *kubeHPAService) DeployDeploymentTargetAsKubeHPA(ctx context.Context, de
 				return errors.Wrap(err, "cur hpa to json")
 			}
 
-			patch, err := strategicpatch.CreateTwoWayMergePatch(oldJson, newJson, v2beta2.HorizontalPodAutoscaler{})
+			patch, err := strategicpatch.CreateTwoWayMergePatch(oldJson, newJson, v2.HorizontalPodAutoscaler{})
 			if err != nil {
 				return errors.Wrap(err, "create json patch")
 			}
