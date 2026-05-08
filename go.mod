@@ -27,7 +27,7 @@ require (
 	github.com/panjf2000/ants/v2 v2.4.8
 	github.com/pkg/errors v0.9.1
 	github.com/rs/xid v1.4.0
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.1
 	github.com/spf13/cobra v1.4.0
 	github.com/tianweidut/cron v0.0.0-20201116081805-584849f819e1
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
