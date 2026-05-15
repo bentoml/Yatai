@@ -32,7 +32,7 @@
     "@types/styletron-standard": "^2.0.2",
     "@types/uuid": "^8.3.1",
     "@uiw/react-md-editor": "^3.9.3",
-    "axios": "^0.21.1",
+    "axios": "^0.31.1",
     "baseui": "^11.0.0",
     "classnames": "^2.3.1",
     "color": "^3.1.3",
