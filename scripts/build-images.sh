@@ -21,7 +21,7 @@ yetone/grafana:8.2.0
 grafana/promtail:2.4.1
 busybox
 minio/minio:RELEASE.2021-10-06T23-36-31Z
-bitnami/postgresql-repmgr:11.14.0-debian-10-r12
+postgres:11.14-alpine
 )
 
 for image in "${images[@]}"; do

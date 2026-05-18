@@ -117,7 +117,7 @@ kubectl -n ${namespace} delete pod postgresql-ha-client 2>/dev/null || true
 
 kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
   --namespace ${namespace} \
-  --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
+  --image postgres:14.4-alpine \
   --env="PGPASSWORD=$PG_PASSWORD" \
   --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d postgres -c "SELECT 1"
 
@@ -127,7 +127,7 @@ echo "🧐 checking if PostgreSQL database ${PG_DATABASE} exists..."
 kubectl -n ${namespace} delete pod postgresql-ha-client 2>/dev/null || true
 if ! kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
   --namespace ${namespace} \
-  --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
+  --image postgres:14.4-alpine \
   --env="PGPASSWORD=$PG_PASSWORD" \
   --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d ${PG_DATABASE} -c "SELECT 1" >/dev/null 2>&1; then
 
@@ -137,7 +137,7 @@ if ! kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
 
   kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
     --namespace ${namespace} \
-    --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
+    --image postgres:14.4-alpine \
     --env="PGPASSWORD=$PG_PASSWORD" \
     --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d postgres -c "CREATE DATABASE $PG_DATABASE"
 
@@ -151,7 +151,7 @@ kubectl -n ${namespace} delete pod postgresql-ha-client 2>/dev/null || true
 
 kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
   --namespace ${namespace} \
-  --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
+  --image postgres:14.4-alpine \
   --env="PGPASSWORD=$PG_PASSWORD" \
   --command -- psql -h $PG_HOST -p $PG_PORT -U $PG_USER -d $PG_DATABASE -c "select 1"
 

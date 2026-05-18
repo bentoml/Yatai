@@ -123,7 +123,7 @@ Installation Steps
           kubectl -n yatai-system delete pod postgresql-ha-client 2> /dev/null || true; \
           kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
               --namespace yatai-system \
-              --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
+              --image postgres:14.4-alpine \
               --env="PGPASSWORD=$PG_PASSWORD" \
               --command -- psql -h $PG_HOST -p $PG_PORT -U $PG_USER -d $PG_DATABASE -c "select 1"
 
@@ -192,7 +192,7 @@ Installation Steps
           kubectl -n yatai-system delete pod postgresql-ha-client 2> /dev/null || true; \
           kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
               --namespace yatai-system \
-              --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
+              --image postgres:14.4-alpine \
               --env="PGPASSWORD=$PG_PASSWORD" \
               --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d postgres -c "select 1"
 
@@ -216,7 +216,7 @@ Installation Steps
           kubectl -n yatai-system delete pod postgresql-ha-client 2> /dev/null || true; \
           kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
               --namespace yatai-system \
-              --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
+              --image postgres:14.4-alpine \
               --env="PGPASSWORD=$PG_PASSWORD" \
               --command -- psql -h postgresql-ha-pgpool -p 5432 -U postgres -d postgres -c "create database $PG_DATABASE"
 
@@ -238,7 +238,7 @@ You can create a connection test by running the following command and inspecting
   kubectl -n yatai-system delete pod postgresql-ha-client 2> /dev/null || true; \
   kubectl run postgresql-ha-client --rm --tty -i --restart='Never' \
       --namespace yatai-system \
-      --image docker.io/bitnami/postgresql-repmgr:14.4.0-debian-11-r13 \
+      --image postgres:14.4-alpine \
       --env="PGPASSWORD=$PG_PASSWORD" \
       --command -- psql -h $PG_HOST -p $PG_PORT -U $PG_USER -d $PG_DATABASE -c "select 1"
 
